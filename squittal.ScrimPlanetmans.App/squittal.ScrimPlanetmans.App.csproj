@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <Folder Include="CensusServices\Models\" />
-    <Folder Include="CensusServices\Interfaces\" />
+    <Folder Include="CensusStream\Interfaces\" />
     <Folder Include="CensusStream\Models\" />
     <Folder Include="Hubs\" />
     <Folder Include="Services\" />
