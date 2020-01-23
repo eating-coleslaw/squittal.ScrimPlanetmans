@@ -4,5 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\squittal.ScrimPlanetmans.App\squittal.ScrimPlanetmans.App.csproj" />
+  </ItemGroup>
+
 
 </Project>

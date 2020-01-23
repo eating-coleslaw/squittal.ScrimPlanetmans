@@ -1,15 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using squittal.ScrimPlanetmans.App.Data;
+using squittal.ScrimPlanetmans.Hubs;
+using squittal.ScrimPlanetmans.CensusStream;
+using Microsoft.AspNetCore.SignalR;
+using squittal.ScrimPlanetmans.Services;
 
 namespace squittal.ScrimPlanetmans.App
 {
@@ -28,6 +27,17 @@ namespace squittal.ScrimPlanetmans.App
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+
+            services.AddSignalR();
+
+            services.AddCensusServices(options =>
+                options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
+
+            services.AddSingleton<WebsocketMonitorService>();
+
+            services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();
+            services.AddHostedService<WebsocketMonitorHostedService>();
+            
             services.AddSingleton<WeatherForecastService>();
         }
 
@@ -54,6 +64,14 @@ namespace squittal.ScrimPlanetmans.App
             {
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
+                endpoints.MapHub<EventHub>("/eventhub");
+            });
+
+            app.Use(async (context, next) =>
+            {
+                var hubContext = context.RequestServices
+                                        .GetRequiredService<IHubContext<EventHub>>();
+                await next();
             });
         }
     }

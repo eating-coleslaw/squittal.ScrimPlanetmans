@@ -1,0 +1,83 @@
+﻿@page "/scrimtests"
+@using Microsoft.AspNetCore.SignalR.Client;
+@inject Services.WebsocketMonitorService _wsMonitor
+@inject NavigationManager NavigationManager
+
+<h2>__ScrimTests</h2>
+
+<button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
+<button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
+
+<p>Status: @isStreamServiceEnabled.ToString() (@debug)</p>
+<p id="event-log" bind="@logText">@logText</p>
+
+@code {
+    private string logText { get; set; } = string.Empty;
+    private bool isStreamServiceEnabled { get; set; } = false;
+    private bool isSubscribed { get; set; } = false;
+
+    private string debug { get; set; } = "init";
+
+    HubConnection connection;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.BaseUri);
+
+        Console.WriteLine($"Base URL: {uri} || {uri}eventhub");
+
+        connection = new HubConnectionBuilder()
+            .WithUrl($"{uri}eventhub")
+            .WithAutomaticReconnect()
+            .Build();
+
+        connection.On<string>("ReceiveMessage", ReceiveMessage);
+        await connection.StartAsync();
+
+        await GetCensusStreamStatus();
+    }
+
+    private void ReceiveMessage(string message)
+    {
+        var escaped = message.Replace("/&/", "&amp;")
+                             .Replace("/</", "&lt;")
+                             .Replace("/>/", "&gt;")
+                             .Replace("/\"/", "&quot;");
+
+        var newLog = $"{escaped} <br> {logText}";
+
+        logText = newLog;
+
+        StateHasChanged();
+    }
+
+    private async Task GetCensusStreamStatus()
+    {
+        var status = await _wsMonitor.GetStatus();
+        isStreamServiceEnabled = status.IsEnabled;
+        debug = "GetCensusStreamStatus";
+        StateHasChanged();
+    }
+
+    private async Task SubscribeToCensus()
+    {
+        //if (!isSubscribed)
+        //{
+        //    var response = await Http.PostAsync("api/CensusStream/subscribe", null);
+        //    isStreamServiceEnabled = isSubscribed = response.IsSuccessStatusCode;
+        //    StateHasChanged();
+        //}
+
+        await _wsMonitor.StartStreamSubscription();
+        debug = "SubscribeToCensus";
+        StateHasChanged();
+    }
+
+    private async Task EndCensusSubscription()
+    {
+        await _wsMonitor.StopStreamSubscription();
+        debug = "EndCensusSubscription";
+        StateHasChanged();
+    }
+}
