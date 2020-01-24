@@ -1,14 +1,15 @@
-using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using squittal.ScrimPlanetmans.App.Data;
-using squittal.ScrimPlanetmans.Hubs;
+using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
-using Microsoft.AspNetCore.SignalR;
+using squittal.ScrimPlanetmans.Hubs;
 using squittal.ScrimPlanetmans.Services;
+using System;
 
 namespace squittal.ScrimPlanetmans.App
 {
@@ -32,6 +33,7 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddCensusServices(options =>
                 options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
+            services.AddCensusHelpers();
 
             services.AddSingleton<WebsocketMonitorService>();
 

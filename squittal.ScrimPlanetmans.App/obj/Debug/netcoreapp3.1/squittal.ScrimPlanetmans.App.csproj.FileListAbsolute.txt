@@ -66,3 +66,5 @@ C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.
 C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.App\obj\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.App.Views.pdb
 C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.App\obj\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.App.dll
 C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.App\obj\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.App.pdb
+C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.App\bin\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.Shared.dll
+C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.App\bin\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.Shared.pdb

@@ -26,6 +26,7 @@
         "dependencies": {
           "DaybreakGames.Census": "1.1.0",
           "Microsoft.AspNetCore.SignalR.Client": "3.1.1",
+          "squittal.ScrimPlanetmans.Shared": "1.0.0",
           "Microsoft.AspNetCore.Antiforgery": "3.1.0.0",
           "Microsoft.AspNetCore.Authentication.Abstractions": "3.1.0.0",
           "Microsoft.AspNetCore.Authentication.Cookies": "3.1.0.0",
@@ -1113,6 +1114,14 @@
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
+        }
+      },
+      "squittal.ScrimPlanetmans.Shared/1.0.0": {
+        "runtime": {
+          "squittal.ScrimPlanetmans.Shared.dll": {}
+        },
+        "compile": {
+          "squittal.ScrimPlanetmans.Shared.dll": {}
         }
       },
       "Microsoft.AspNetCore.Antiforgery/3.1.0.0": {
@@ -3311,6 +3320,11 @@
       "sha512": "sha512-Z6YfyYTCg7lOZjJzBjONJTFKGN9/NIYKSxhU5GRd+DTwHSZyvWp1xuI5aR+dLg+ayyC5Xv57KiY4oJ0tMO89fQ==",
       "path": "system.threading.timer/4.3.0",
       "hashPath": "system.threading.timer.4.3.0.nupkg.sha512"
+    },
+    "squittal.ScrimPlanetmans.Shared/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     },
     "Microsoft.AspNetCore.Antiforgery/3.1.0.0": {
       "type": "referenceassembly",

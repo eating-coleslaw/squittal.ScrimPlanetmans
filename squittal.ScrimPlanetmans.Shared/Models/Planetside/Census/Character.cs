@@ -23,6 +23,5 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
 
         public CharacterTime Time { get; set; }
         public OutfitMember OutfitMember { get; set; }
-        public CharacterLifetimeStat LifetimeStats { get; set; }
     }
 }

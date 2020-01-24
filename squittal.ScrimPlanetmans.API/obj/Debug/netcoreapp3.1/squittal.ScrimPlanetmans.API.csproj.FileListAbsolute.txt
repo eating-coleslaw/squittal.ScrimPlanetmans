@@ -43,3 +43,5 @@ C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.
 C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.API\obj\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.API.csproj.CopyComplete
 C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.API\obj\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.API.dll
 C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.API\obj\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.API.pdb
+C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.API\bin\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.Shared.dll
+C:\Users\Chirtle\source\repos\squittal.ScrimPlanetmans\squittal.ScrimPlanetmans.API\bin\Debug\netcoreapp3.1\squittal.ScrimPlanetmans.Shared.pdb

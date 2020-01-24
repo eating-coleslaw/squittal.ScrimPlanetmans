@@ -1,4 +1,4 @@
-﻿using squittal.ScrimPlanetmans.Shared.Models.Census;
+﻿using squittal.ScrimPlanetmans.Shared.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 

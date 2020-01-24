@@ -1117,13 +1117,22 @@
       "squittal.ScrimPlanetmans.App/1.0.0": {
         "dependencies": {
           "DaybreakGames.Census": "1.1.0",
-          "Microsoft.AspNetCore.SignalR.Client": "3.1.1"
+          "Microsoft.AspNetCore.SignalR.Client": "3.1.1",
+          "squittal.ScrimPlanetmans.Shared": "1.0.0"
         },
         "runtime": {
           "squittal.ScrimPlanetmans.App.dll": {}
         },
         "compile": {
           "squittal.ScrimPlanetmans.App.dll": {}
+        }
+      },
+      "squittal.ScrimPlanetmans.Shared/1.0.0": {
+        "runtime": {
+          "squittal.ScrimPlanetmans.Shared.dll": {}
+        },
+        "compile": {
+          "squittal.ScrimPlanetmans.Shared.dll": {}
         }
       },
       "Microsoft.AspNetCore.Antiforgery/3.1.0.0": {
@@ -3324,6 +3333,11 @@
       "hashPath": "system.threading.timer.4.3.0.nupkg.sha512"
     },
     "squittal.ScrimPlanetmans.App/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "squittal.ScrimPlanetmans.Shared/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
