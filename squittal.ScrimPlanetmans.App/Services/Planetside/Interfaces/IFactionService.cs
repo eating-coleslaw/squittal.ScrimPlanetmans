@@ -8,6 +8,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         Task<IEnumerable<Faction>> GetAllFactionsAsync();
         Task<Faction> GetFactionAsync(int factionId);
-        Task RefreshStore();
+        //Task RefreshStore();
     }
 }

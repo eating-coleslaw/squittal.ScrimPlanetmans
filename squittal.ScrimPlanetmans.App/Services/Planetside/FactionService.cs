@@ -1,33 +1,47 @@
-﻿using Microsoft.EntityFrameworkCore;
-using squittal.ScrimPlanetmans.CensusServices;
+﻿using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
-using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+//using Microsoft.EntityFrameworkCore;
+//using squittal.ScrimPlanetmans.Data;
+
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class FactionService : IFactionService
     {
-        private readonly IDbContextHelper _dbContextHelper;
+        //private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusFaction _censusFaction;
 
-        public FactionService(IDbContextHelper dbContextHelper, CensusFaction censusFaction)
+        public FactionService(/*IDbContextHelper dbContextHelper,*/ CensusFaction censusFaction)
         {
-            _dbContextHelper = dbContextHelper;
+            //_dbContextHelper = dbContextHelper;
             _censusFaction = censusFaction;
         }
 
         public async Task<IEnumerable<Faction>> GetAllFactionsAsync()
         {
+            var factions = await _censusFaction.GetAllFactions();
+
+            if (factions == null)
+            {
+                return null;
+            }
+
+            var censusEntities = factions.Select(ConvertToDbModel);
+            
+            return censusEntities;
+
+            /*
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
 
                 return await dbContext.Factions.ToListAsync();
             }
+            */
         }
 
         public async Task<Faction> GetFactionAsync(int factionId)
@@ -36,6 +50,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return factions.FirstOrDefault(f => f.Id == factionId);
         }
 
+        /*
         public async Task RefreshStore()
         {
             var createdEntities = new List<Faction>();
@@ -75,6 +90,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
             }
         }
+        */
 
         public static Faction ConvertToDbModel(CensusFactionModel censusModel)
         {
