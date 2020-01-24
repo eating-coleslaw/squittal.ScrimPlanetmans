@@ -1258,7 +1258,8 @@
         "framework": ".NETCoreApp,Version=v3.1",
         "dependencies": {
           "DaybreakGames.Census": "1.1.0",
-          "Microsoft.AspNetCore.SignalR.Client": "3.1.1"
+          "Microsoft.AspNetCore.SignalR.Client": "3.1.1",
+          "squittal.ScrimPlanetmans.Shared": "1.0.0"
         },
         "compile": {
           "bin/placeholder/squittal.ScrimPlanetmans.App.dll": {}
@@ -1269,6 +1270,16 @@
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
+      },
+      "squittal.ScrimPlanetmans.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v3.1",
+        "compile": {
+          "bin/placeholder/squittal.ScrimPlanetmans.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/squittal.ScrimPlanetmans.Shared.dll": {}
+        }
       }
     }
   },
@@ -4172,6 +4183,11 @@
       "type": "project",
       "path": "../squittal.ScrimPlanetmans.App/squittal.ScrimPlanetmans.App.csproj",
       "msbuildProject": "../squittal.ScrimPlanetmans.App/squittal.ScrimPlanetmans.App.csproj"
+    },
+    "squittal.ScrimPlanetmans.Shared/1.0.0": {
+      "type": "project",
+      "path": "../squittal.ScrimPlanetmans.Shared/squittal.ScrimPlanetmans.Shared.csproj",
+      "msbuildProject": "../squittal.ScrimPlanetmans.Shared/squittal.ScrimPlanetmans.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
