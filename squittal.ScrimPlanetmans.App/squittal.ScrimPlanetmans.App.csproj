@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="CensusServices\Models\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DaybreakGames.Census" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.1" />
   </ItemGroup>

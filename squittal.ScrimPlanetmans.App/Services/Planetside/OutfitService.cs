@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DaybreakGames.Census.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -40,8 +41,9 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             var censusEntity = ConvertToDbModel(outfit);
+            var resolvedOutfit = await ResolveOutfitDetailsAsync(censusEntity, null);
 
-            return censusEntity;
+            return resolvedOutfit;
 
             /*
             using (var factory = _dbContextHelper.GetFactory())
@@ -51,6 +53,19 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 return await dbContext.Outfits.AsNoTracking().FirstOrDefaultAsync(o => o.Alias.ToLower() == alias.ToLower());
             }
             */
+        }
+
+        public async Task<IEnumerable<Character>> GetOutfitMembersByAlias(string alias)
+        {
+            var members = await _censusOutfit.GetOutfitMembersByAliasAsync(alias);
+            if (members == null)
+            {
+                return null;
+            }
+
+            var censusEntities = members.Select(ConvertToDbModel);
+
+            return censusEntities.ToList();
         }
 
         public async Task<OutfitMember> UpdateCharacterOutfitMembership(Character character)
@@ -203,10 +218,19 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 var leader = await _censusCharacter.GetCharacter(outfit.LeaderCharacterId);
                 outfit.WorldId = leader.WorldId;
-                outfit.FactionId = member.FactionId;
+                outfit.FactionId = leader.FactionId;
             }
 
             return outfit;
+        }
+
+        public static Character ConvertToDbModel(CensusOutfitMemberCharacterNameModel member)
+        {
+            return new Character
+            {
+                Id = member.CharacterId,
+                Name = member.Name.First
+            };
         }
 
         /*

@@ -69,7 +69,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             */
         }
 
-        public async Task<OutfitMember> GetCharactersOutfitAsync(string characterId)
+        public async Task<OutfitMember> GetCharacterOutfitAsync(string characterId)
         {
             var character = await GetCharacterAsync(characterId);
             if (character == null)

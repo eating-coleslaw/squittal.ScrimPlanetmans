@@ -9,6 +9,7 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Hubs;
 using squittal.ScrimPlanetmans.Services;
+using squittal.ScrimPlanetmans.Services.Planetside;
 using System;
 
 namespace squittal.ScrimPlanetmans.App
@@ -35,6 +36,16 @@ namespace squittal.ScrimPlanetmans.App
                 options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
             services.AddCensusHelpers();
 
+            services.AddTransient<IFactionService, FactionService>();
+            services.AddTransient<IItemService, ItemService>();
+            services.AddTransient<IZoneService, ZoneService>();
+
+            services.AddSingleton<IWorldService, WorldService>();
+            services.AddSingleton<ICharacterService, CharacterService>();
+            services.AddSingleton<IOutfitService, OutfitService>();
+            services.AddSingleton<IProfileService, ProfileService>();
+
+            services.AddSingleton<PlanetsideDataService>();
             services.AddSingleton<WebsocketMonitorService>();
 
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();

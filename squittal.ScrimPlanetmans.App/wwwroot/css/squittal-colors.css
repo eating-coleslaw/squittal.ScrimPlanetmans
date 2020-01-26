@@ -1,0 +1,78 @@
+﻿:root {
+    --sq-light-blue-gray: #d4d4ff;
+    --sq-light-blue-gray-alpha: #d4d4ff50;
+    --sq-light-blue-gray-alpha-5a: #d4d4ff5a;
+    --sq-light-blue-gray-alpha-80: #d4d4ff80;
+    --sq-light-blue-gray-alpha-a0: #d4d4ffa0;
+    --sq-bg-white-lit: #fcf6ff;
+    --sq-bg-white-unlit: #f6f0ff;
+    --sq-black: #27273A;
+    --sq-black-alpha-50: #27273A50;
+    --sq-logo-purple: #361862;
+    --sq-yellow: #F8BA0F;
+    --sq-bg-yellow: #FEF9BF;
+    --sq-bg-yellow-alpha-a0: #FEF9BFa0;
+    --sq-bg-red: #fad4df;
+    --sq-bg-red-alpha-80: #fad4df80;
+    --sq-bg-red-alpha-a0: #fad4dfa0;
+    --sq-ps2-vs-primary: #652fdc;
+    --sq-ps2-nc-primary: #1e62fc;
+    --sq-ps2-tr-primary: #e04c70;
+    --sq-ps2-ns-primary: #27273A;
+    --sq-ps2-vs-primary-light: #CABCFF;
+    --sq-ps2-nc-primary-light: #B6DDFD;
+    --sq-ps2-tr-primary-light: #FFD2D3;
+    --sq-ps2-ns-primary-light: #a4a4c2;
+    --sq-ps2-vs-primary-light-alpha: #CABCFF30;
+    --sq-ps2-nc-primary-light-alpha: #B6DDFD30;
+    --sq-ps2-tr-primary-light-alpha: #FFD2D330;
+    --sq-ps2-ns-primary-light-alpha: #a4a4c230;
+    --sq-ps2-vs-primary-light-alpha-40: #CABCFF40;
+    --sq-ps2-nc-primary-light-alpha-40: #B6DDFD40;
+    --sq-ps2-tr-primary-light-alpha-40: #FFD2D340;
+    --sq-ps2-ns-primary-light-alpha-40: #a4a4c240;
+    --sq-pale-purple: #b7a8d7;
+    --sq-pale-purple-alpha-a0: #b7a8d7a0;
+    --bs-blue: #007bff;
+    --bs-blue-alpha: #007bff10;
+    --bs-gray: #6c757d;
+    --bs-gray-alpha: #6c757d15;
+    --bs-pink-alpha: #e83e8c25;
+}
+
+
+.vs { /*, .vs div, .vs button, .vs p, .vs span {*/
+    --sq-ps2-primary: #652fdc;
+    --sq-ps2-primary-light: #CABCFF;
+    --sq-ps2-primary-light-alpha-10: #CABCFF10;
+    --sq-ps2-primary-light-alpha-30: #CABCFF30;
+    --sq-ps2-primary-light-alpha-40: #CABCFF40;
+    --sq-ps2-primary-light-alpha-80: #CABCFF80;
+}
+
+.nc { /*, .nc div, .nc button, .nc p, .nc span {*/
+    --sq-ps2-primary: #1e62fc;
+    --sq-ps2-primary-light: #B6DDFD;
+    --sq-ps2-primary-light-alpha-10: #B6DDFD10;
+    --sq-ps2-primary-light-alpha-30: #B6DDFD30;
+    --sq-ps2-primary-light-alpha-40: #B6DDFD40;
+    --sq-ps2-primary-light-alpha-80: #B6DDFD80;
+}
+
+.tr { /*, .tr div, .tr button, .tr p, .tr span {*/
+    --sq-ps2-primary: #e04c70;
+    --sq-ps2-primary-light: #FFD2D3;
+    --sq-ps2-primary-light-alpha-10: #FFD2D310;
+    --sq-ps2-primary-light-alpha-30: #FFD2D330;
+    --sq-ps2-primary-light-alpha-40: #FFD2D340;
+    --sq-ps2-primary-light-alpha-80: #FFD2D380;
+}
+
+.ns { /*, .ns div, .ns button, .ns p, .ns span {*/
+    --sq-ps2-primary: #27273A;
+    --sq-ps2-primary-light: #a4a4c2;
+    --sq-ps2-primary-light-alpha-10: #a4a4c210;
+    --sq-ps2-primary-light-alpha-30: #a4a4c230;
+    --sq-ps2-primary-light-alpha-40: #a4a4c240;
+    --sq-ps2-primary-light-alpha-80: #a4a4c280;
+}

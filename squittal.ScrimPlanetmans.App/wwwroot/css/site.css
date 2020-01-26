@@ -1,4 +1,6 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('squittal-colors.css');
+@import url('spinner-ellipsis.css');
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;

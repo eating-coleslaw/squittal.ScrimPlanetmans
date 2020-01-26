@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "squittal.ScrimPlanetmans.Ap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "squittal.ScrimPlanetmans.Shared", "squittal.ScrimPlanetmans.Shared\squittal.ScrimPlanetmans.Shared.csproj", "{922E4D88-A379-4B28-B0AA-8F7A1E04281A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "squittal.ScrimPlanetmans.API", "squittal.ScrimPlanetmans.API\squittal.ScrimPlanetmans.API.csproj", "{21CF793D-F60C-4E5D-86BD-080D36D016F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "squittal.ScrimPlanetmans.API", "squittal.ScrimPlanetmans.API\squittal.ScrimPlanetmans.API.csproj", "{21CF793D-F60C-4E5D-86BD-080D36D016F3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

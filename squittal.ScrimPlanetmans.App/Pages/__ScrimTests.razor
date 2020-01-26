@@ -1,17 +1,69 @@
 ﻿@page "/scrimtests"
 @using Microsoft.AspNetCore.SignalR.Client;
+@using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+@using squittal.ScrimPlanetmans.App.Pages.Admin;
+@using squittal.ScrimPlanetmans.CensusServices.Models;
 @inject Services.WebsocketMonitorService _wsMonitor
+@inject Services.PlanetsideDataService _planetside
 @inject NavigationManager NavigationManager
 
 <h2>__ScrimTests</h2>
 
+<EditForm Model="@_inputAlias1" OnValidSubmit="HandleValidOutfitAliasSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    Team 1 Outfit Alias: <InputAlias id="alias1" @bind-Value="_inputAlias1" />
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@if (_teamOutfits1.Any())
+{
+    foreach (var outfit in _teamOutfits1)
+    {
+        <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
+
+        @if (_isMembersLoading.Contains(outfit.Alias))
+        {
+            <SpinnerEllipsis />
+        }
+
+        else if(_membersMap.ContainsKey(outfit.Alias) && _membersMap[outfit.Alias].Count > 0)
+        {
+            foreach (var member in _membersMap[outfit.Alias].ToList().Take(15))
+            {
+                <p>@member.Name (@member.Id)</p>
+            }
+        }
+    }
+}
+@if (_isAliasLoading.Any())
+{
+    <SpinnerEllipsis />
+}
+
+<p>_______________________________________________________</p>
 <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
 <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
 
 <p>Status: @isStreamServiceEnabled.ToString() (@debug)</p>
 <p id="event-log" bind="@logText">@logText</p>
 
+
 @code {
+    private OutfitAlias _inputAlias1 = new OutfitAlias();
+
+    private Dictionary<string, List<Character>> _membersMap = new Dictionary<string, List<Character>>();
+    private List<Character> _outfitMembers = new List<Character>();
+
+    private List<string> _isAliasLoading = new List<string>();
+    private List<string> _isMembersLoading = new List<string>();
+
+    private List<Outfit> _teamOutfits1 = new List<Outfit>();
+    private List<string> _validOutfitAliasHistory = new List<string>();
+
     private string logText { get; set; } = string.Empty;
     private bool isStreamServiceEnabled { get; set; } = false;
     private bool isSubscribed { get; set; } = false;
@@ -80,4 +132,48 @@
         debug = "EndCensusSubscription";
         StateHasChanged();
     }
+
+    private async void HandleValidOutfitAliasSubmit()
+    {
+        Outfit newOutfit;
+
+        if (!_validOutfitAliasHistory.Contains(_inputAlias1.Alias))
+        {
+            var newAlias = _inputAlias1.Alias;
+            
+            _isAliasLoading.Add(newAlias);
+            
+            newOutfit = await _planetside.GetOutfitByAlias(newAlias);
+
+            if (newOutfit != null)
+            {
+                _teamOutfits1.Add(newOutfit);
+                _validOutfitAliasHistory.Add(newAlias); // _inputAlias1.Alias);
+                _inputAlias1.Alias = string.Empty;
+
+                _isAliasLoading.Remove(newAlias);
+
+                StateHasChanged();
+
+                await GetOutfitMembers(newAlias);
+            }
+        }
+    }
+
+    private async Task GetOutfitMembers(string alias)
+    {
+        _isMembersLoading.Add(alias);
+
+        var censusMembers = await _planetside.GetOutfitMembersByAlias(alias);
+
+        if (censusMembers != null && censusMembers.Count() > 0)
+        {
+            _membersMap.Add(alias, censusMembers.ToList());
+
+            _isMembersLoading.Remove(alias);
+
+            StateHasChanged();
+        }
+    }
+
 }
