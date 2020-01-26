@@ -1,5 +1,4 @@
-﻿using squittal.ScrimPlanetmans.CensusServices.Models;
-using squittal.ScrimPlanetmans.Services.Planetside;
+﻿using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System.Collections.Generic;
 using System.Threading.Tasks;
