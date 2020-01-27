@@ -29,7 +29,7 @@
             <SpinnerEllipsis />
         }
 
-        else if(_membersMap.ContainsKey(outfit.Alias) && _membersMap[outfit.Alias].Count > 0)
+        else if(_membersMap != null && _membersMap.ContainsKey(outfit.Alias) && _membersMap[outfit.Alias].Any())
         {
             foreach (var member in _membersMap[outfit.Alias].ToList().Take(15))
             {
@@ -165,7 +165,7 @@
 
         var censusMembers = await _planetside.GetOutfitMembersByAlias(alias);
 
-        if (censusMembers != null && censusMembers.Count() > 0)
+        if (censusMembers != null && censusMembers.Any())
         {
             _membersMap.Add(alias, censusMembers.ToList());
 
