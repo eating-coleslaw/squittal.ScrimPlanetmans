@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
-namespace squittal.ScrimPlanetmans.Shared.Models.ScrimEngine
+namespace squittal.ScrimPlanetmans.Shared.Models
 {
     public static class ExperienceEventsBuilder
     {

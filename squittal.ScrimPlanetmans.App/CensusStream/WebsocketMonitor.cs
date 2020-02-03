@@ -7,6 +7,8 @@ using squittal.ScrimPlanetmans.CensusStream.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using squittal.ScrimPlanetmans.Shared.Models;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
@@ -66,11 +68,21 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         private CensusStreamSubscription CreateSubscription()
         {
+            var eventNames = new List<string>
+            {
+                "Death",
+                "PlayerLogin",
+                "PlayerLogout"
+            };
+
+            eventNames.AddRange(ExperienceEventsBuilder.GetExperienceEvents());
+
             var subscription = new CensusStreamSubscription
             {
                 Characters = new[] { "all" },
                 Worlds = new[] { "all" },
-                EventNames = new[] { "Death", "PlayerLogin", "PlayerLogout" }
+                //EventNames = new[] { "Death", "PlayerLogin", "PlayerLogout" }
+                EventNames = eventNames
             };
 
             return subscription;
