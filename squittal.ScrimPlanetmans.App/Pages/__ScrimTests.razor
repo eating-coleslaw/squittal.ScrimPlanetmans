@@ -64,7 +64,7 @@
     private List<string> _validOutfitAliasHistory = new List<string>();
     private List<string> _subscribedOutfitsHistory = new List<string>();
 
-    private string logText { get; set; } = string.Empty;
+    private MarkupString logText { get; set; } = (MarkupString)string.Empty;
     private bool isStreamServiceEnabled { get; set; } = false;
     private bool isSubscribed { get; set; } = false;
 
@@ -92,12 +92,13 @@
 
     private void ReceiveMessage(string message)
     {
-        var escaped = message.Replace("/&/", "&amp;")
-                             .Replace("/</", "&lt;")
-                             .Replace("/>/", "&gt;")
-                             .Replace("/\"/", "&quot;");
+        //var escaped = message.Replace("/&/", "&amp;")
+        //                     .Replace("/</", "&lt;")
+        //                     .Replace("/>/", "&gt;")
+        //                     .Replace("/\"/", "&quot;");
 
-        var newLog = $"{escaped} <br> {logText}";
+        //var newLog = (MarkupString)$"{escaped} <br/> {logText}";
+        var newLog = (MarkupString)$"{message} <br/> {logText}";
 
         logText = newLog;
 
