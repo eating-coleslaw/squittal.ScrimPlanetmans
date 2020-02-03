@@ -3,6 +3,7 @@
 @using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
 @using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 @using squittal.ScrimPlanetmans.App.Pages.Admin;
+@using Newtonsoft.Json.Linq;
 @inject Services.WebsocketMonitorService _wsMonitor
 @inject Services.PlanetsideDataService _planetside
 @inject NavigationManager NavigationManager
@@ -29,9 +30,9 @@
             <SpinnerEllipsis />
         }
 
-        else if(_membersMap != null && _membersMap.ContainsKey(outfit.Alias) && _membersMap[outfit.Alias].Any())
+        else if(_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.Alias) && _membersOnlineMap[outfit.Alias].Any())
         {
-            foreach (var member in _membersMap[outfit.Alias].ToList().Take(15))
+            foreach (var member in _membersOnlineMap[outfit.Alias].ToList().Take(15))
             {
                 <p>@member.Name (@member.Id)</p>
             }
@@ -48,14 +49,18 @@
 <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
 
 <p>Status: @isStreamServiceEnabled.ToString() (@debug)</p>
-<p id="event-log" bind="@logText">@logText</p>
+<p id="event-log" bind="@logText" style="font-size: 10px;">@logText</p>
 
 
 @code {
     private OutfitAlias _inputAlias1 = new OutfitAlias();
 
     private Dictionary<string, List<Character>> _membersMap = new Dictionary<string, List<Character>>();
+    private Dictionary<string, List<Character>> _membersOnlineMap = new Dictionary<string, List<Character>>();
+    private Dictionary<string, string> _outfitMap = new Dictionary<string, string>(); //<characterId, alias>
+
     private List<Character> _outfitMembers = new List<Character>();
+    private List<Character> _outfitOnlineMembers = new List<Character>();
 
     private List<string> _isAliasLoading = new List<string>();
     private List<string> _isMembersLoading = new List<string>();
@@ -85,6 +90,9 @@
             .Build();
 
         connection.On<string>("ReceiveMessage", ReceiveMessage);
+        //connection.On<string>("ReceivePlayerLoginMessage", ReceivePlayerLoginMessage); // async m => await ReceivePlayerLoginMessage(m));
+        //connection.On<string>("ReceivePlayerLogoutMessage", ReceivePlayerLogoutMessage);
+
         await connection.StartAsync();
 
         await GetCensusStreamStatus();
@@ -92,18 +100,139 @@
 
     private void ReceiveMessage(string message)
     {
+        var payload = TryParseMessagePayload(message);
+        if (payload == null)
+        {
+            return;
+        }
+
+        //var payload = jMsg.SelectToken("payload");
+        //if (payload == null)
+        //{
+        //    return;
+        //}
+
         //var escaped = message.Replace("/&/", "&amp;")
         //                     .Replace("/</", "&lt;")
         //                     .Replace("/>/", "&gt;")
         //                     .Replace("/\"/", "&quot;");
 
         //var newLog = (MarkupString)$"{escaped} <br/> {logText}";
-        var newLog = (MarkupString)$"{message} <br/> {logText}";
+        var newLog = (MarkupString)$"{payload.ToString()} <br/> {logText}";
 
         logText = newLog;
 
         StateHasChanged();
+
+        var eventName = payload.Value<string>("event_name");
+
+        if (eventName == "PlayerLogin")
+        {
+            HandlePlayerLoginPayload(payload);
+        }
+
+        else if (eventName == "PlayerLogout")
+        {
+            HandlePlayerLogoutPayload(payload);
+        }
     }
+
+
+    private void HandlePlayerLoginPayload(JToken payload)
+    {
+        //var jMsg = TryParseMessagePayload(message);
+        //if (jMsg == null)
+        //{
+        //    return;
+        //}
+
+        //var characterId = jMsg.Value<string>("CharacterId");
+        var characterId = payload.Value<string>("character_id");
+
+        string alias;
+
+        var isOutfitTracked = _outfitMap.TryGetValue(characterId, out alias);
+
+        if (!isOutfitTracked)
+        {
+            return;
+        }
+
+        //ReceiveMessage(message);
+
+        if (!_membersOnlineMap[alias].Any(m => m.Id == characterId))
+        {
+            var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
+            if(character == null)
+            {
+                return;
+            }
+
+            _membersOnlineMap[alias].Add(character);
+
+            //await TrySubscribeNewCharacterDeath(characterId);
+        }
+
+        StateHasChanged();
+    }
+
+    private void HandlePlayerLogoutPayload(JToken payload)
+    {
+        //var jMsg = TryParseMessagePayload(message);
+        //if (jMsg == null)
+        //{
+        //    return;
+        //}
+
+        //var characterId = jMsg.Value<string>("CharacterId");
+        var characterId = payload.Value<string>("character_id");
+
+        string alias;
+
+        var isOutfitTracked = _outfitMap.TryGetValue(characterId, out alias);
+
+        if (!isOutfitTracked)
+        {
+            return;
+        }
+
+        //ReceiveMessage(message);
+
+        if (_membersOnlineMap[alias].Any(m => m.Id == characterId))
+        {
+            var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
+            if(character == null)
+            {
+                return;
+            }
+
+            _membersOnlineMap[alias].Remove(character);
+            StateHasChanged();
+        }
+    }
+
+    private JToken TryParseMessagePayload(string message)
+    {
+        if (message == null)
+        {
+            return null;
+        }
+
+        JToken jMsg;
+
+        try
+        {
+            jMsg = JToken.Parse(message).SelectToken("payload");
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"(91097) Failed to parse message: {message}");
+            return null;
+        }
+
+        return jMsg;
+    }
+
 
     private async Task GetCensusStreamStatus()
     {
@@ -179,11 +308,22 @@
     {
         _isMembersLoading.Add(alias);
 
+        StateHasChanged();
+
         var censusMembers = await _planetside.GetOutfitMembersByAlias(alias);
 
         if (censusMembers != null && censusMembers.Any())
         {
             _membersMap.Add(alias, censusMembers.ToList());
+
+            var onlineMembers = censusMembers.Where(m => m.IsOnline == true);
+
+            _membersOnlineMap.Add(alias, onlineMembers.ToList());
+
+            foreach(var member in censusMembers)
+            {
+                _outfitMap.Add(member.Id, alias);
+            }
 
             _isMembersLoading.Remove(alias);
 

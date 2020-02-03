@@ -226,12 +226,15 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return outfit;
         }
 
-        public static Character ConvertToDbModel(CensusOutfitMemberCharacterNameModel member)
+        public static Character ConvertToDbModel(CensusOutfitMemberCharacterModel member)
         {
+            bool isOnline = member.OnlineStatus > 0 ? true : false;
+
             return new Character
             {
                 Id = member.CharacterId,
-                Name = member.Name.First
+                Name = member.Name.First,
+                IsOnline = isOnline
             };
         }
 

@@ -9,5 +9,15 @@ namespace squittal.ScrimPlanetmans.Hubs
         {
             return Clients.All.SendAsync("ReceiveMessage", message);
         }
+
+        //public Task SendPlayerLoginMessage(string message)
+        //{
+        //    return Clients.All.SendAsync("ReceivePlayerLoginMessage", message);
+        //}
+
+        //public Task SendPlayerLogoutMessage(string message)
+        //{
+        //    return Clients.All.SendAsync("ReceivePlayerLogoutMessage", message);
+        //}
     }
 }

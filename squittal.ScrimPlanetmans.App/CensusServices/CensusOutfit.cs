@@ -36,7 +36,7 @@ namespace squittal.ScrimPlanetmans.CensusServices
             return await query.GetAsync<CensusOutfitModel>();
         }
 
-        public async Task<IEnumerable<CensusOutfitMemberCharacterNameModel>> GetOutfitMembersAsync(string outfitId)
+        public async Task<IEnumerable<CensusOutfitMemberCharacterModel>> GetOutfitMembersAsync(string outfitId)
         { 
             var query = _queryFactory.Create("outfit");
 
@@ -45,13 +45,14 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.Where("outfit_id").Equals(outfitId);
 
             query.AddResolve("member_character_name");
+            query.AddResolve("member_online_status");
 
-            var result = await query.GetAsync<CensusOutfitResolveMemberCharacterNameModel>();
+            var result = await query.GetAsync<CensusOutfitResolveMemberCharacterModel>();
 
             return result.Members;
         }
 
-        public async Task<IEnumerable<CensusOutfitMemberCharacterNameModel>> GetOutfitMembersByAliasAsync(string alias)
+        public async Task<IEnumerable<CensusOutfitMemberCharacterModel>> GetOutfitMembersByAliasAsync(string alias)
         {
             var query = _queryFactory.Create("outfit");
 
@@ -60,8 +61,9 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.Where("alias").Equals(alias);
 
             query.AddResolve("member_character_name");
+            query.AddResolve("member_online_status");
 
-            var result = await query.GetAsync<CensusOutfitResolveMemberCharacterNameModel>();
+            var result = await query.GetAsync<CensusOutfitResolveMemberCharacterModel>();
 
             return result.Members;
         }

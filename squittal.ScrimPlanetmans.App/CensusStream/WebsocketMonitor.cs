@@ -231,6 +231,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
+            //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
+            //{
+            //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLoginMessage", message);
+            //}
+
+            //else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
+            //{
+            //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLogoutMessage", message);
+            //}
+
             if (PayloadContainsSubscribedCharacter(jMsg))
             {
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
