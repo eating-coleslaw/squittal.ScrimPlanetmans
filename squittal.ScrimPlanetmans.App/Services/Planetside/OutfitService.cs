@@ -63,7 +63,9 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 return null;
             }
 
-            var censusEntities = members.Select(ConvertToDbModel);
+            var validMembers = members.Where(m => m.CharacterId != null && m.Name != null);
+
+            var censusEntities = validMembers.Select(ConvertToDbModel);
 
             return censusEntities.ToList();
         }
