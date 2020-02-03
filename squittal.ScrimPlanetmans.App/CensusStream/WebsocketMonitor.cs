@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using squittal.ScrimPlanetmans.Shared.Models;
+using System.Linq;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
@@ -23,6 +24,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private CensusHeartbeat _lastHeartbeat;
 
         public override string ServiceName => "CensusMonitor";
+
+        public List<string> CharacterSubscriptions = new List<string>();
 
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, /*IWebsocketEventHandler handler,*/ ILogger<WebsocketMonitor> logger, IHubContext<EventHub> hubContext)
         {
@@ -86,6 +89,68 @@ namespace squittal.ScrimPlanetmans.CensusStream
             };
 
             return subscription;
+        }
+
+        public void AddCharacterSubscriptions(IEnumerable<string> characterIds)
+        {
+            if (!characterIds.Any())
+            {
+                return;
+            }
+
+            _logger.LogInformation(string.Join(",", characterIds));
+
+            CharacterSubscriptions.AddRange(characterIds);
+        }
+
+        public void RemoveCharacterSubscription(string characterId)
+        {
+            if (CharacterSubscriptions.Contains(characterId))
+            {
+                CharacterSubscriptions.Remove(characterId);
+            }
+        }
+
+        public void RemoveCharacterSubscriptions(IEnumerable<string> characterIds)
+        {
+            foreach (var id in characterIds)
+            {
+                RemoveCharacterSubscription(id);
+            }
+        }
+
+        public void RemoveAllCharacterSubscriptions()
+        {
+            CharacterSubscriptions.Clear();
+        }
+
+        public bool PayloadContainsSubscribedCharacter(JToken message)
+        {
+            var payload = message.SelectToken("payload");
+
+            if (payload == null)
+            {
+                return false;
+            }
+
+            var characterId = payload.Value<string>("character_id");
+
+            if (!string.IsNullOrWhiteSpace(characterId))
+            {
+                if (CharacterSubscriptions.Contains(characterId))
+                {
+                    return true;
+                }
+            }
+
+            var attackerId = payload.Value<string>("attacker_character_id");
+
+            if (!string.IsNullOrWhiteSpace(attackerId))
+            {
+                return CharacterSubscriptions.Contains(attackerId);
+            }
+
+            return false;
         }
 
         public override async Task StartInternalAsync(CancellationToken cancellationToken)
@@ -157,7 +222,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+            if (PayloadContainsSubscribedCharacter(jMsg))
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+            }
 
             //await _handler.Process(jMsg);
         }

@@ -1,5 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Models;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,6 +35,26 @@ namespace squittal.ScrimPlanetmans.Services
             }
 
             return status;
+        }
+
+        public void AddCharacterSubscriptions(IEnumerable<string> characterIds)
+        {
+            _monitor.AddCharacterSubscriptions(characterIds);
+        }
+
+        public void RemoveCharacterSubscription(string characterId)
+        {
+            _monitor.RemoveCharacterSubscription(characterId);
+        }
+
+        public void RemoveCharacterSubscriptions(IEnumerable<string> characterIds)
+        {
+            _monitor.RemoveCharacterSubscriptions(characterIds);
+        }
+
+        public void RemoveAllCharacterSubscriptions()
+        {
+            _monitor.RemoveAllCharacterSubscriptions();
         }
     }
 }

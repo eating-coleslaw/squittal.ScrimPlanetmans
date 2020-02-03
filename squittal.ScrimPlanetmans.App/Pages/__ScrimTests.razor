@@ -62,6 +62,7 @@
 
     private List<Outfit> _teamOutfits1 = new List<Outfit>();
     private List<string> _validOutfitAliasHistory = new List<string>();
+    private List<string> _subscribedOutfitsHistory = new List<string>();
 
     private string logText { get; set; } = string.Empty;
     private bool isStreamServiceEnabled { get; set; } = false;
@@ -111,7 +112,8 @@
         StateHasChanged();
     }
 
-    private async Task SubscribeToCensus()
+    //private async Task SubscribeToCensus()
+    private void SubscribeToCensus()
     {
         //if (!isSubscribed)
         //{
@@ -120,14 +122,27 @@
         //    StateHasChanged();
         //}
 
-        await _wsMonitor.StartStreamSubscription();
+        //await _wsMonitor.StartStreamSubscription();
+        foreach(var alias in _validOutfitAliasHistory)
+        {
+            if (_isMembersLoading.Contains(alias) || _subscribedOutfitsHistory.Contains(alias))
+            {
+                continue;
+            }
+
+            _wsMonitor.AddCharacterSubscriptions(_membersMap[alias].Select(m => m.Id).ToList());
+            _subscribedOutfitsHistory.Add(alias);
+        }
         debug = "SubscribeToCensus";
         StateHasChanged();
     }
 
-    private async Task EndCensusSubscription()
+    //private async Task EndCensusSubscription()
+    private void EndCensusSubscription()
     {
-        await _wsMonitor.StopStreamSubscription();
+        //await _wsMonitor.StopStreamSubscription();
+        _wsMonitor.RemoveAllCharacterSubscriptions();
+        _subscribedOutfitsHistory.Clear();
         debug = "EndCensusSubscription";
         StateHasChanged();
     }
@@ -139,9 +154,9 @@
         if (!_validOutfitAliasHistory.Contains(_inputAlias1.Alias))
         {
             var newAlias = _inputAlias1.Alias;
-            
+
             _isAliasLoading.Add(newAlias);
-            
+
             newOutfit = await _planetside.GetOutfitByAlias(newAlias);
 
             if (newOutfit != null)

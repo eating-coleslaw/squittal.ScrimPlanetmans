@@ -2754,7 +2754,7 @@
     "DaybreakGames.Census/1.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-+KloqfV5jApYOHVeCV1TES/NKG9jmwNSPYTylx8uX3omktQBl1O4VLP3T1qzYj1UTRiyXLQSPqoFaTkFt6AdPg==",
+      "sha512": "sha512-5MZya4BPZmfnYj3zgVzAMaZcLIRbWG2oxq4B8IhbEDIkHxGvpcK7ouKNQiE7Ac8XkQNWksl2c4bqLyiUdbwTrQ==",
       "path": "daybreakgames.census/1.1.0",
       "hashPath": "daybreakgames.census.1.1.0.nupkg.sha512"
     },
@@ -3153,7 +3153,7 @@
     "System.Net.WebSockets.Client/4.3.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-wmWSeBJ+7j7cWyTInHZ5OXzRuKh+2LDZ9psG1UYw1BzNZcbYBxe7KBMaDLSIOD1wn1uFDLRGG4+vLqKj7n/Z+w==",
+      "sha512": "sha512-LqSrocFY47SxEmu1fYWbUmXcFJ2B/PqnMtc6zudOTUhNINgo75hgmoHv46ynkJLmqjkpxPzl251SGWHc+jofFQ==",
       "path": "system.net.websockets.client/4.3.2",
       "hashPath": "system.net.websockets.client.4.3.2.nupkg.sha512"
     },
