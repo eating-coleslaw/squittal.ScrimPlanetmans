@@ -30,8 +30,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _hubContext = hubContext;
 
-            //_client.Subscribe(CreateSubscription()).OnMessage(OnMessage)
-            //       .OnDisconnect(OnDisconnect);
+            _client.Subscribe(CreateSubscription())
+                    .OnMessage(OnMessage)
+                   .OnDisconnect(OnDisconnect);
             //.Subscribe(CreateSubscription())
         }
 
@@ -81,7 +82,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             try
             {
-                //await _client.ConnectAsync();
+                await _client.ConnectAsync();
             }
             catch (Exception ex)
             {

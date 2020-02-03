@@ -1267,7 +1267,7 @@
   },
   "libraries": {
     "DaybreakGames.Census/1.1.0": {
-      "sha512": "+KloqfV5jApYOHVeCV1TES/NKG9jmwNSPYTylx8uX3omktQBl1O4VLP3T1qzYj1UTRiyXLQSPqoFaTkFt6AdPg==",
+      "sha512": "5MZya4BPZmfnYj3zgVzAMaZcLIRbWG2oxq4B8IhbEDIkHxGvpcK7ouKNQiE7Ac8XkQNWksl2c4bqLyiUdbwTrQ==",
       "type": "package",
       "path": "daybreakgames.census/1.1.0",
       "files": [
@@ -2829,7 +2829,7 @@
       ]
     },
     "System.Net.WebSockets.Client/4.3.2": {
-      "sha512": "wmWSeBJ+7j7cWyTInHZ5OXzRuKh+2LDZ9psG1UYw1BzNZcbYBxe7KBMaDLSIOD1wn1uFDLRGG4+vLqKj7n/Z+w==",
+      "sha512": "LqSrocFY47SxEmu1fYWbUmXcFJ2B/PqnMtc6zudOTUhNINgo75hgmoHv46ynkJLmqjkpxPzl251SGWHc+jofFQ==",
       "type": "package",
       "path": "system.net.websockets.client/4.3.2",
       "files": [
@@ -4175,23 +4175,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Chirtle\\.nuget\\packages\\": {},
+    "C:\\Users\\hanzi\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
+      "projectUniqueName": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
       "projectName": "squittal.ScrimPlanetmans.App",
-      "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
-      "packagesPath": "C:\\Users\\Chirtle\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\obj\\",
+      "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
+      "packagesPath": "C:\\Users\\hanzi\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\Chirtle\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\hanzi\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -4204,8 +4204,8 @@
       "frameworks": {
         "netcoreapp3.1": {
           "projectReferences": {
-            "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj": {
-              "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj"
+            "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj": {
+              "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj"
             }
           }
         }
@@ -4246,7 +4246,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
       }
     }
   }

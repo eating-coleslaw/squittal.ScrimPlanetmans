@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj": {}
+    "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj": {
+    "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj",
+        "projectUniqueName": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj",
         "projectName": "squittal.ScrimPlanetmans.API",
-        "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj",
-        "packagesPath": "C:\\Users\\Chirtle\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\obj\\",
+        "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\squittal.ScrimPlanetmans.API.csproj",
+        "packagesPath": "C:\\Users\\hanzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Chirtle\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\hanzi\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -30,8 +30,8 @@
         "frameworks": {
           "netcoreapp3.1": {
             "projectReferences": {
-              "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj": {
-                "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj"
+              "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj": {
+                "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj"
               }
             }
           }
@@ -62,24 +62,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj": {
+    "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
+        "projectUniqueName": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
         "projectName": "squittal.ScrimPlanetmans.App",
-        "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
-        "packagesPath": "C:\\Users\\Chirtle\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\obj\\",
+        "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\squittal.ScrimPlanetmans.App.csproj",
+        "packagesPath": "C:\\Users\\hanzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.App\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Chirtle\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\hanzi\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -92,8 +92,8 @@
         "frameworks": {
           "netcoreapp3.1": {
             "projectReferences": {
-              "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj": {
-                "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj"
+              "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj": {
+                "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj"
               }
             }
           }
@@ -134,24 +134,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj": {
+    "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj",
+        "projectUniqueName": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj",
         "projectName": "squittal.ScrimPlanetmans.Shared",
-        "projectPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj",
-        "packagesPath": "C:\\Users\\Chirtle\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Chirtle\\source\\repos\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\obj\\",
+        "projectPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\squittal.ScrimPlanetmans.Shared.csproj",
+        "packagesPath": "C:\\Users\\hanzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\hanzi\\Documents\\_Programming\\P F L\\squittal.ScrimPlanetmans\\squittal.ScrimPlanetmans.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Chirtle\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\hanzi\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -189,7 +189,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
         }
       }
     }
