@@ -137,13 +137,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var characterId = payload.Value<string>("character_id");
 
-            //_logger.LogInformation(characterId);
 
             if (!string.IsNullOrWhiteSpace(characterId))
             {
                 if (CharacterSubscriptions.Contains(characterId))
                 {
-                    _logger.LogInformation($"[cid] Payload receive for message: {message.ToString()}");
+                    _logger.LogDebug($"[cid] Payload receive for message: {message.ToString()}");
                     return true;
                 }
             }
@@ -154,7 +153,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (CharacterSubscriptions.Contains(attackerId))
                 {
-                    _logger.LogInformation($"[aid] Payload receive for message: {message.ToString()}");
+                    _logger.LogDebug($"[aid] Payload receive for message: {message.ToString()}");
                 }
                 return CharacterSubscriptions.Contains(attackerId);
             }
