@@ -48,7 +48,9 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<PlanetsideDataService>();
             services.AddSingleton<WebsocketMonitorService>();
 
+            services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();
+
             services.AddHostedService<WebsocketMonitorHostedService>();
             
             services.AddSingleton<WeatherForecastService>();
