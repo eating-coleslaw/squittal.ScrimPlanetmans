@@ -196,7 +196,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
-        private PlayerLogin Process(PlayerLoginPayload payload)
+        private Task<PlayerLogin> Process(PlayerLoginPayload payload)
         {
             //using (var factory = _dbContextHelper.GetFactory())
             //{
@@ -211,7 +211,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         WorldId = payload.WorldId
                     };
 
-                    return dataModel;
+                    return Task.FromResult(dataModel);
 
                     //dbContext.PlayerLogins.Add(dataModel);
                     //await dbContext.SaveChangesAsync();
@@ -225,7 +225,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
-        private PlayerLogout Process(PlayerLogoutPayload payload)
+        private Task<PlayerLogout> Process(PlayerLogoutPayload payload)
         {
             //bool updateCharacter;
 
@@ -242,11 +242,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         WorldId = payload.WorldId
                     };
 
-                    return dataModel;
+                return Task.FromResult(dataModel);
 
-                    //dbContext.PlayerLogouts.Add(dataModel);
-                    //await dbContext.SaveChangesAsync();
-                }
+                //dbContext.PlayerLogouts.Add(dataModel);
+                //await dbContext.SaveChangesAsync();
+            }
                 catch (Exception)
                 {
                     //Ignore
@@ -269,7 +269,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
-        private GainExperience Process(GainExperiencePayload payload)
+        private Task<GainExperience> Process(GainExperiencePayload payload)
         {
             var dataModel = new GainExperience
             {
@@ -284,11 +284,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ZoneId = payload.ZoneId.Value
             };
 
-            return dataModel;
+            return Task.FromResult(dataModel);
+            //return dataModel;
         }
 
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
-        private FacilityControl Process(FacilityControlPayload payload)
+        private Task<FacilityControl> Process(FacilityControlPayload payload)
         {
             var dataModel = new FacilityControl
             {
@@ -302,11 +303,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ZoneId = payload.ZoneId.Value,
             };
 
-            return dataModel;
+            return Task.FromResult(dataModel);
         }
 
         [CensusEventHandler("PlayerFacilityCapture", typeof(PlayerFacilityCapturePayload))]
-        private PlayerFacilityCapture Process(PlayerFacilityCapturePayload payload)
+        private Task<PlayerFacilityCapture> Process(PlayerFacilityCapturePayload payload)
         {
             var dataModel = new PlayerFacilityCapture
             {
@@ -318,11 +319,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ZoneId = payload.ZoneId.Value
             };
 
-            return dataModel;
+            return Task.FromResult(dataModel);
         }
 
         [CensusEventHandler("PlayerFacilityDefend", typeof(PlayerFacilityDefendPayload))]
-        private PlayerFacilityDefend Process(PlayerFacilityDefendPayload payload)
+        private Task<PlayerFacilityDefend> Process(PlayerFacilityDefendPayload payload)
         {
             var dataModel = new PlayerFacilityDefend
             {
@@ -334,7 +335,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ZoneId = payload.ZoneId.Value
             };
 
-            return dataModel;
+            return Task.FromResult(dataModel);
         }
 
         public void Dispose()

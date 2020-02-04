@@ -16,7 +16,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
     public class WebsocketMonitor : StatefulHostedService, IWebsocketMonitor, IDisposable
     {
         private readonly ICensusStreamClient _client;
-        //private readonly IWebsocketEventHandler _handler;
+        private readonly IWebsocketEventHandler _handler;
         private readonly ILogger<WebsocketMonitor> _logger;
 
         private readonly IHubContext<EventHub> _hubContext;
@@ -27,10 +27,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public List<string> CharacterSubscriptions = new List<string>();
 
-        public WebsocketMonitor(ICensusStreamClient censusStreamClient, /*IWebsocketEventHandler handler,*/ ILogger<WebsocketMonitor> logger, IHubContext<EventHub> hubContext)
+        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, ILogger<WebsocketMonitor> logger, IHubContext<EventHub> hubContext)
         {
             _client = censusStreamClient;
-            //_handler = handler;
+            _handler = handler;
             _logger = logger;
 
             _hubContext = hubContext;
@@ -243,6 +243,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             if (PayloadContainsSubscribedCharacter(jMsg))
             {
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+
+                await _handler.Process(jMsg);
             }
 
             //await _handler.Process(jMsg);
