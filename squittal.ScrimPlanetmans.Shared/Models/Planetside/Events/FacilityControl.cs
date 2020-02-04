@@ -17,13 +17,15 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside.Events
         public int? OldFactionId { get; set; }
         public int DurationHeld { get; set; }
         public string OutfitId { get; set; }
-        public float? ZoneControlVs { get; set; }
-        public float? ZoneControlNc { get; set; }
-        public float? ZoneControlTr { get; set; }
-        public float? ZoneControlNs { get; set; }
-        public int? ZonePopulationVs { get; set; }
-        public int? ZonePopulationNc { get; set; }
-        public int? ZonePopulationTr { get; set; }
-        public int? ZonePopulationNs { get; set; }
+
+        // Voidwell-Specific Stuff
+        //public float? ZoneControlVs { get; set; }
+        //public float? ZoneControlNc { get; set; }
+        //public float? ZoneControlTr { get; set; }
+        //public float? ZoneControlNs { get; set; }
+        //public int? ZonePopulationVs { get; set; }
+        //public int? ZonePopulationNc { get; set; }
+        //public int? ZonePopulationTr { get; set; }
+        //public int? ZonePopulationNs { get; set; }
     }
 }

@@ -10,6 +10,8 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
         [Required]
         public string OutfitId { get; set; }
 
+        public int FactionId { get; set; }
+
         public DateTime? MemberSinceDate { get; set; }
         public string Rank { get; set; }
         public int? RankOrdinal { get; set; }

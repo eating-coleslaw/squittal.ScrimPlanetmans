@@ -101,6 +101,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 OutfitId = membership.OutfitId,
                 CharacterId = membership.CharacterId,
+                FactionId = character.FactionId,
                 MemberSinceDate = membership.MemberSinceDate,
                 Rank = membership.Rank,
                 RankOrdinal = membership.RankOrdinal
