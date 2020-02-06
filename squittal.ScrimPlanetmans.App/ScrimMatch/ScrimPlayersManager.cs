@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
@@ -7,9 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace squittal.ScrimPlanetmans.App.ScrimMatch
+namespace squittal.ScrimPlanetmans.ScrimMatch
 {
-    public class ScrimPlayersManager
+    public class ScrimPlayersManager : IScrimPlayersManager
     {
         private readonly IOutfitService _outfits;
         private readonly ICharacterService _characters;
@@ -34,6 +35,30 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
             _outfits = outfits;
             _characters = characters;
             //_wsMonitor = wsMonitor;
+        }
+
+        public async Task<Player> GetPlayerFromCharacterId(string characterId)
+        {
+            var character = await _characters.GetCharacterAsync(characterId);
+
+            if (character == null)
+            {
+                return null;
+            }
+
+            return new Player(character);
+        }
+
+        public async Task<IEnumerable<Player>> GetPlayersFromOutfitAlias(string alias)
+        {
+            var censusMembers = await _outfits.GetOutfitMembersByAlias(alias);
+
+            if (censusMembers == null || !censusMembers.Any())
+            {
+                return null;
+            }
+
+            return censusMembers.Select(m => new Player(m)).ToList();
         }
 
         private void HandlePlayerLoginPayload(JToken payload)
@@ -143,5 +168,7 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
                 _isMembersLoading.Remove(alias);
             }
         }
+
+        
     }
 }

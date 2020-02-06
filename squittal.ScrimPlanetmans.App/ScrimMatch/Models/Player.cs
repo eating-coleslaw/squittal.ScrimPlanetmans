@@ -20,6 +20,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         // Dynamic Attributes
         public int LoadoutId { get; set; } = 0;
         public bool IsActive { get; set; }
+        public bool IsOnline { get; set; }
 
         public Player(Character character)
         {
@@ -27,6 +28,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NameFull = character.Name;
             NameTrimmed = GetTrimmedPlayerName(NameFull);
             NameDisplay = NameTrimmed;
+            IsOnline = character.IsOnline;
             //OutfitId = character.OutfitId;
         }
 

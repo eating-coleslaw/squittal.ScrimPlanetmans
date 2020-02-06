@@ -95,6 +95,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
         }
 
+        #region Payload Handling
+
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<Death> Process(DeathPayload payload)
         {
@@ -337,6 +339,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             return Task.FromResult(dataModel);
         }
+        #endregion
 
         public void Dispose()
         {
