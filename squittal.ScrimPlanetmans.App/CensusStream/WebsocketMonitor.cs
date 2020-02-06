@@ -100,7 +100,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _logger.LogInformation(string.Join(",", characterIds));
 
-            CharacterSubscriptions.AddRange(characterIds);
+            var newCharacterIds = characterIds.Where(id => !CharacterSubscriptions.Contains(id)).ToList();
+
+            CharacterSubscriptions.AddRange(newCharacterIds);
 
             _logger.LogInformation(CharacterSubscriptions.Count().ToString());
         }
