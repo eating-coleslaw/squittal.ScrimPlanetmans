@@ -16,7 +16,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId);
         Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string alias);
         
-        bool RemoveCharacterFromTeam(string characterId);
+        Task<bool> RemoveCharacterFromTeam(string characterId);
 
         bool IsCharacterAvailable(string characterId, out Team owningTeam);
         bool IsOutfitAvailable(string alias, out Team owningTeam);

@@ -80,12 +80,20 @@ namespace squittal.ScrimPlanetmans.App
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
                 endpoints.MapHub<EventHub>("/eventhub");
+                endpoints.MapHub<MatchSetupHub>("/matchsetuphub");
             });
 
             app.Use(async (context, next) =>
             {
                 var hubContext = context.RequestServices
                                         .GetRequiredService<IHubContext<EventHub>>();
+                await next();
+            });
+
+            app.Use(async (context, next) =>
+            {
+                var hubContext = context.RequestServices
+                                        .GetRequiredService<IHubContext<MatchSetupHub>>();
                 await next();
             });
         }

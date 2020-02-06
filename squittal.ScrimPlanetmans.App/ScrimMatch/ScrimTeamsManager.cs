@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusStream;
+using squittal.ScrimPlanetmans.Hubs;
+using squittal.ScrimPlanetmans.Hubs.Models;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
@@ -13,6 +16,7 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
     {
         private readonly IScrimPlayersService _scrimPlayers;
         private readonly IWebsocketMonitor _wsMonitor;
+        private readonly IHubContext<MatchSetupHub> _setupHubContext;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
         private readonly Team Team1;
@@ -26,11 +30,18 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
 
         private Dictionary<string, int> _characterTeamOrdinalMap;
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, ILogger<ScrimTeamsManager> logger)
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IHubContext<MatchSetupHub> setupHubContext, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _wsMonitor = wsMonitor;
+            _setupHubContext = setupHubContext;
             _logger = logger;
+
+            Team1 = new Team("tm1", "Team 1", 1);
+            _ordinalTeamMap.Add(1, Team1);
+
+            Team2 = new Team("tm2", "Team 2", 2);
+            _ordinalTeamMap.Add(2, Team2);
         }
 
         public Team GetTeamOne()
@@ -82,6 +93,8 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
                 _allCharacterIds.Add(characterId);
                 _allPlayers.Add(player);
 
+                await SendTeamPlayerAddedMessage(player);
+
                 return true;
             }
             else
@@ -118,6 +131,8 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
+                    await SendTeamPlayerAddedMessage(player);
+
                     anyPlayersAdded = true;
                 }
             }
@@ -125,7 +140,7 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
             return anyPlayersAdded;
         }
 
-        public bool RemoveCharacterFromTeam(string characterId)
+        public async Task<bool> RemoveCharacterFromTeam(string characterId)
         {
             var player = GetPlayerFromId(characterId);
 
@@ -134,11 +149,19 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
                 return false;
             }
             
-            _allCharacterIds.RemoveAll(id => id == characterId);
-            _allPlayers.RemoveAll(p => p.Id == characterId);
-
             var team = player.Team;
-            return team.TryRemovePlayer(characterId); ;
+
+            if(team.TryRemovePlayer(characterId))
+            {
+                _allCharacterIds.RemoveAll(id => id == characterId);
+                _allPlayers.RemoveAll(p => p.Id == characterId);
+
+                await SendTeamPlayerRemovedMessage(player);
+
+                return true;
+            }
+
+            return false;
         }
 
         public bool IsCharacterAvailable(string characterId, out Team owningTeam)
@@ -191,6 +214,30 @@ namespace squittal.ScrimPlanetmans.App.ScrimMatch
         private Team GetOtherTeamFromOrdinal(int initTeamOrdinal)
         {
             return initTeamOrdinal == 1 ? _ordinalTeamMap[2] : _ordinalTeamMap[1];
+        }
+
+        private async Task SendTeamPlayerAddedMessage(Player player)
+        {
+            var message = new TeamPlayerChangeMessage()
+            {
+                Player = player,
+                TeamOrdinal = player.Team.TeamOrdinal,
+                ChangeType = TeamPlayerChangeType.Add
+            };
+
+            await _setupHubContext.Clients.All.SendAsync("ReceiveMessage", message);
+        }
+
+        private async Task SendTeamPlayerRemovedMessage(Player player)
+        {
+            var message = new TeamPlayerChangeMessage()
+            {
+                Player = player,
+                TeamOrdinal = player.Team.TeamOrdinal,
+                ChangeType = TeamPlayerChangeType.Remove
+            };
+
+            await _setupHubContext.Clients.All.SendAsync("ReceiveMessage", message);
         }
     }
 }
