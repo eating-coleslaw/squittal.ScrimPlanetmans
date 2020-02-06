@@ -4,6 +4,9 @@ namespace squittal.ScrimPlanetmans.Shared.Models
 {
     public class ScrimEventAggregate
     {
+        public int Points { get; set; } = 0;
+        public int NetScore { get; set; } = 0;
+
         public int Kills { get; set; } = 0;
         public int Deaths { get; set; } = 0;
         public int Headshots { get; set; } = 0;
@@ -120,6 +123,8 @@ namespace squittal.ScrimPlanetmans.Shared.Models
 
         public ScrimEventAggregate Add(ScrimEventAggregate addend)
         {
+            Points += addend.Points;
+            NetScore += addend.NetScore;
             Kills += addend.Kills;
             Deaths += addend.Deaths;
             Headshots += addend.Headshots;
