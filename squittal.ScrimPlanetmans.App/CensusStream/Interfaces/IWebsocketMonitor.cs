@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +10,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
     {
         //Task OnApplicationStartup(CancellationToken cancellationToken);
         //Task OnApplicationShutdown(CancellationToken cancellationToken);
+
+        event EventHandler<SimpleMessageEventArgs> RaiseTeamPlayerChangeEvent;
+        
         Task Subscribe(CancellationToken cancellationToken);
 
         void AddCharacterSubscriptions(IEnumerable<string> characterIds);

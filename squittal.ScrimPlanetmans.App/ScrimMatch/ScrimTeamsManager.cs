@@ -229,13 +229,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
         {
-            EventHandler<TeamPlayerChangeEventArgs> handler = RaiseTeamPlayerChangeEvent;
-
-            if (handler != null)
-            {
-                handler(this, e);
-            }
-
+            RaiseTeamPlayerChangeEvent?.Invoke(this, e);
         }
 
         private void SendTeamPlayerAddedMessage(Player player)

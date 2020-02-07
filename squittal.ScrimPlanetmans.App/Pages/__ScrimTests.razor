@@ -9,12 +9,16 @@
 @using System.Diagnostics;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.CensusStream;
 
 @inject squittal.ScrimPlanetmans.Services.WebsocketMonitorService _wsMonitor
 @inject squittal.ScrimPlanetmans.Services.PlanetsideDataService _planetside
 @inject ScrimTeamsManagerService _teamsManager
 
+
 @inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor  WebsocketMonitor
+
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
 @inject squittal.ScrimPlanetmans.Services.ScrimMatch.ScrimTeamsManagerService _teamsManager
@@ -113,6 +117,9 @@
 
         ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
+        WebsocketMonitor.RaiseTeamPlayerChangeEvent += ReceiveSimpleMessageEvent;
+
+
         //connection.On<string>("ReceivePlayerLoginMessage", ReceivePlayerLoginMessage); // async m => await ReceivePlayerLoginMessage(m));
         //connection.On<string>("ReceivePlayerLogoutMessage", ReceivePlayerLogoutMessage);
 
@@ -147,6 +154,11 @@
             .Build();
 
         connection.On<string>("ReceiveMessage", ReceiveMessage);
+    }
+
+    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
+    {
+        ReceiveMessage(e.Message);
     }
 
     private void ReceiveMessage(string message)
