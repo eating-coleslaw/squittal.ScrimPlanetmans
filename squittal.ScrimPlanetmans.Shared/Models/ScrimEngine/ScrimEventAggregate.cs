@@ -141,5 +141,26 @@ namespace squittal.ScrimPlanetmans.Shared.Models
 
             return this;
         }
+
+        public ScrimEventAggregate Subtract(ScrimEventAggregate subtrahend)
+        {
+            Points -= subtrahend.Points;
+            NetScore -= subtrahend.NetScore;
+            Kills -= subtrahend.Kills;
+            Deaths -= subtrahend.Deaths;
+            Headshots -= subtrahend.Headshots;
+            HeadshotDeaths -= subtrahend.HeadshotDeaths;
+            Suicides -= subtrahend.Suicides;
+            Teamkills -= subtrahend.Teamkills;
+            TeamkillDeaths -= subtrahend.TeamkillDeaths;
+            RevivesGiven -= subtrahend.RevivesGiven;
+            RevivesTaken -= subtrahend.RevivesTaken;
+            DamageAssists -= subtrahend.DamageAssists;
+            UtilityAssists -= subtrahend.UtilityAssists;
+            ObjectiveTicks -= subtrahend.ObjectiveTicks;
+            BaseCaps -= subtrahend.BaseCaps;
+
+            return this;
+        }
     }
 }
