@@ -11,7 +11,7 @@ namespace squittal.ScrimPlanetmans.Hubs
             return Clients.All.SendAsync("ReceiveMessage", message);
         }
 
-        public Task SendMessage(TeamPlayerChangeMessage message)
+        public Task SendTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
         {
             return Clients.All.SendAsync("ReceiveMessage", message);
         }
