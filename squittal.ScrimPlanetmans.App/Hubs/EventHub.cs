@@ -1,13 +1,23 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
+using System.Diagnostics;
+using squittal.ScrimPlanetmans.Hubs.Models;
+
 namespace squittal.ScrimPlanetmans.Hubs
 {
     public class EventHub : Hub
     {
         public Task SendMessage(string message)
         {
-            return Clients.All.SendAsync("ReceiveMessage", message);
+            //Debug.WriteLine($"MatchSetupHub: SendMessage2");
+
+            return Clients.All.SendAsync("ReceiveMessage2", message);
+        }
+
+        public Task SendMessage2(string message)
+        {
+            return Clients.All.SendAsync("ReceiveMessageAgain", message);
         }
 
         //public Task SendPlayerLoginMessage(string message)

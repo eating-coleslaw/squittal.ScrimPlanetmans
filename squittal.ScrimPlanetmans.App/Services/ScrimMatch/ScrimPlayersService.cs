@@ -1,13 +1,14 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace squittal.ScrimPlanetmans.App.Services
+namespace squittal.ScrimPlanetmans.Services
 {
-    public class ScrimPlayersService
+    public class ScrimPlayersService : IScrimPlayersService
     {
         private readonly IOutfitService _outfits;
         private readonly ICharacterService _characters;
@@ -38,7 +39,7 @@ namespace squittal.ScrimPlanetmans.App.Services
                 return null;
             }
 
-            return censusMembers.Select(m => new Player(m)).ToList();
+            return censusMembers.Where(m => !string.IsNullOrWhiteSpace(m.Id) && m.Name != null).Select(m => new Player(m)).ToList();
         }
     }
 }

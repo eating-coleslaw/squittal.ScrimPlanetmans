@@ -1,13 +1,16 @@
 ﻿using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System;
+using System.Text.Json.Serialization;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
     public class Player
     {
         public string Id { get; }
-        public Team Team { get; set; }
+
+        //public Team Team { get; set; }
+        public int TeamOrdinal { get; set; }
 
         public ScrimEventAggregate EventAggregate = new ScrimEventAggregate();
 
@@ -36,18 +39,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             var trimmed = name;
 
-            // Remove outfit tag from beginning of name
-            var idx = name.IndexOf("x");
-            if (idx > 0 && idx < 5 && (idx != name.Length - 1))
+            try
             {
-                trimmed = name.Substring(idx + 1, name.Length);
-            }
+                // Remove outfit tag from beginning of name
+                var idx = name.IndexOf("x");
+                if (idx > 0 && idx < 5 && (idx != name.Length - 1))
+                {
+                    trimmed = name.Substring(idx + 1, name.Length - idx - 1);
+                }
 
-            // Remove faction abbreviation from end of name
-            var end = trimmed.Length - 2;
-            if (trimmed.IndexOf("VS") == end || trimmed.IndexOf("NC") == end || trimmed.IndexOf("TR") == end)
+                // Remove faction abbreviation from end of name
+                var end = trimmed.Length - 2;
+                if (trimmed.IndexOf("VS") == end || trimmed.IndexOf("NC") == end || trimmed.IndexOf("TR") == end)
+                {
+                    trimmed = trimmed.Substring(0, end);
+                }
+            }
+            catch
             {
-                trimmed = trimmed.Substring(0, end);
+                return name;
             }
             
             if (string.IsNullOrWhiteSpace(trimmed))

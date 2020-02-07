@@ -18,8 +18,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public ScrimEventAggregate EventAggregate { get; set; }
 
-        public List<Player> Players { get; private set; }
-        public List<Player> ActivePlayers { get; private set; }
+        public List<Player> Players { get; } = new List<Player>();
+        public List<Player> ActivePlayers { get; } = new List<Player>();
+
+
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
@@ -63,7 +65,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             Players.Add(player);
 
-            PlayerIds.Add(player.Id);
+            _playerIds.Add(player.Id);
 
             return true;
         }
@@ -76,7 +78,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             Players.RemoveAll(p => p.Id == characterId);
-            PlayerIds.RemoveAll(id => id == characterId);
+            _playerIds.RemoveAll(id => id == characterId);
 
             return true;
         }

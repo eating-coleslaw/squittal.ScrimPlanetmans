@@ -3,9 +3,22 @@
 @using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
 @using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 @using squittal.ScrimPlanetmans.App.Pages.Admin;
+@using squittal.ScrimPlanetmans.Hubs.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using Newtonsoft.Json.Linq;
+@using System.Diagnostics;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+
 @inject squittal.ScrimPlanetmans.Services.WebsocketMonitorService _wsMonitor
 @inject squittal.ScrimPlanetmans.Services.PlanetsideDataService _planetside
+@inject ScrimTeamsManagerService _teamsManager
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@using squittal.ScrimPlanetmans.ScrimMatch.EventsTest;
+
+@inject squittal.ScrimPlanetmans.Services.ScrimMatch.ScrimTeamsManagerService _teamsManager
+
 @inject NavigationManager NavigationManager
 
 <h2>__ScrimTests</h2>
@@ -30,7 +43,7 @@
             <SpinnerEllipsis />
         }
 
-        else if(_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.Alias) && _membersOnlineMap[outfit.Alias].Any())
+        else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.Alias) && _membersOnlineMap[outfit.Alias].Any())
         {
             foreach (var member in _membersOnlineMap[outfit.Alias].ToList().Take(15))
             {
@@ -77,6 +90,8 @@
 
     HubConnection connection;
 
+    //HubConnection setupConnection;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,12 +99,25 @@
 
         Console.WriteLine($"Base URL: {uri} || {uri}eventhub");
 
+        //ConnectToEventHub(uri);
+
+
+
         connection = new HubConnectionBuilder()
             .WithUrl($"{uri}eventhub")
             .WithAutomaticReconnect()
             .Build();
 
         connection.On<string>("ReceiveMessage", ReceiveMessage);
+        connection.On<string>("ReceiveMessag2", ReceiveMessage);
+
+        ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+
+        //connection.On<TeamPlayerChangeMessage>("ReceiveTeamPlayerChangeMessage", ReceiveTeamPlayerChangeMessage);
+
+        //ConnectionMatchSetupHub(uri);
+
+
         //connection.On<string>("ReceivePlayerLoginMessage", ReceivePlayerLoginMessage); // async m => await ReceivePlayerLoginMessage(m));
         //connection.On<string>("ReceivePlayerLogoutMessage", ReceivePlayerLogoutMessage);
 
@@ -98,8 +126,50 @@
         await GetCensusStreamStatus();
     }
 
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        debug = "ReceiveTeamPlayerChangeMessage";
+
+        var message = e.Message;
+
+        //LogMessage(message);
+
+        var name = message.PlayerNameDisplay;
+        var id = message.PlayerId;
+        var team = message.TeamOrdinal;
+        var type = message.ChangeType; // Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType);
+
+        var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
+
+        LogMessage(text);
+    }
+
+    private void ConnectToEventHub(Uri baseUri)
+    {
+        connection = new HubConnectionBuilder()
+            .WithUrl($"{baseUri}eventhub")
+            .WithAutomaticReconnect()
+            .Build();
+
+        connection.On<string>("ReceiveMessage", ReceiveMessage);
+    }
+
+    //private void ConnectionMatchSetupHub(Uri baseUri)
+    //{
+    //    setupConnection = new HubConnectionBuilder()
+    //        .WithUrl($"{baseUri}matchsetuphub")
+    //        .WithAutomaticReconnect()
+    //        .Build();
+
+    //    setupConnection.On<TeamPlayerChangeMessage>("ReceiveMessage", ReceiveTeamPlayerChangeMessage);
+    //    //setupConnection.On<string>("ReceiveMessage", ReceiveTeamPlayerChangeMessage);
+    //}
+
     private void ReceiveMessage(string message)
     {
+        debug = $"Received Message: {message}";
+        LogMessage(message);
+
         var payload = TryParseMessagePayload(message);
         if (payload == null)
         {
@@ -118,11 +188,13 @@
         //                     .Replace("/\"/", "&quot;");
 
         //var newLog = (MarkupString)$"{escaped} <br/> {logText}";
-        var newLog = (MarkupString)$"{payload.ToString()} <br/> {logText}";
+        //var newLog = (MarkupString)$"{payload.ToString()} <br/> {logText}";
 
-        logText = newLog;
+        //logText = newLog;
 
-        StateHasChanged();
+        //StateHasChanged();
+
+        LogMessage(payload.ToString());
 
         var eventName = payload.Value<string>("event_name");
 
@@ -137,6 +209,17 @@
         }
     }
 
+    void LogMessage(string message)
+    {
+        var newLog = (MarkupString)$"{message} <br/> {logText}";
+
+        logText = newLog;
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 
     private void HandlePlayerLoginPayload(JToken payload)
     {
@@ -163,7 +246,7 @@
         if (!_membersOnlineMap[alias].Any(m => m.Id == characterId))
         {
             var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
-            if(character == null)
+            if (character == null)
             {
                 return;
             }
@@ -173,7 +256,10 @@
             //await TrySubscribeNewCharacterDeath(characterId);
         }
 
-        StateHasChanged();
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 
     private void HandlePlayerLogoutPayload(JToken payload)
@@ -201,13 +287,18 @@
         if (_membersOnlineMap[alias].Any(m => m.Id == characterId))
         {
             var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
-            if(character == null)
+            if (character == null)
             {
                 return;
             }
 
             _membersOnlineMap[alias].Remove(character);
-            StateHasChanged();
+
+            InvokeAsync(() =>
+            {
+
+                StateHasChanged();
+            });
         }
     }
 
@@ -233,6 +324,22 @@
         return jMsg;
     }
 
+    private void ReceiveTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
+    {
+        debug = "ReceiveTeamPlayerChangeMessage";
+
+        //LogMessage(message);
+
+        var name = message.PlayerNameDisplay;
+        var id = message.PlayerId;
+        var team = message.TeamOrdinal;
+        var type = message.ChangeType; // Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType);
+
+        var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
+
+        LogMessage(text);
+    }
+
 
     private async Task GetCensusStreamStatus()
     {
@@ -253,7 +360,7 @@
         //}
 
         //await _wsMonitor.StartStreamSubscription();
-        foreach(var alias in _validOutfitAliasHistory)
+        foreach (var alias in _validOutfitAliasHistory)
         {
             if (_isMembersLoading.Contains(alias) || _subscribedOutfitsHistory.Contains(alias))
             {
@@ -299,6 +406,8 @@
 
                 StateHasChanged();
 
+                var success = await _teamsManager.AddOutfitAliasToTeam(1, newAlias);
+
                 await GetOutfitMembers(newAlias);
             }
         }
@@ -320,7 +429,7 @@
 
             _membersOnlineMap.Add(alias, onlineMembers.ToList());
 
-            foreach(var member in censusMembers)
+            foreach (var member in censusMembers)
             {
                 _outfitMap.Add(member.Id, alias);
             }

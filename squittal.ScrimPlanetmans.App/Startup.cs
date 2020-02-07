@@ -8,8 +8,10 @@ using squittal.ScrimPlanetmans.App.Data;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Hubs;
+using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 
 namespace squittal.ScrimPlanetmans.App
@@ -45,8 +47,12 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IOutfitService, OutfitService>();
             services.AddSingleton<IProfileService, ProfileService>();
 
+            services.AddSingleton<ScrimTeamsManagerService>();
             services.AddSingleton<PlanetsideDataService>();
             services.AddSingleton<WebsocketMonitorService>();
+
+            services.AddSingleton<IScrimTeamsManager, ScrimTeamsManager>();
+            services.AddSingleton<IScrimPlayersService, ScrimPlayersService>();
 
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();
@@ -80,7 +86,7 @@ namespace squittal.ScrimPlanetmans.App
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
                 endpoints.MapHub<EventHub>("/eventhub");
-                endpoints.MapHub<MatchSetupHub>("/matchsetuphub");
+                //endpoints.MapHub<MatchSetupHub>("/matchsetuphub");
             });
 
             app.Use(async (context, next) =>
@@ -90,12 +96,12 @@ namespace squittal.ScrimPlanetmans.App
                 await next();
             });
 
-            app.Use(async (context, next) =>
-            {
-                var hubContext = context.RequestServices
-                                        .GetRequiredService<IHubContext<MatchSetupHub>>();
-                await next();
-            });
+            //app.Use(async (context, next) =>
+            //{
+            //    var hubContext = context.RequestServices
+            //                            .GetRequiredService<IHubContext<MatchSetupHub>>();
+            //    await next();
+            //});
         }
     }
 }

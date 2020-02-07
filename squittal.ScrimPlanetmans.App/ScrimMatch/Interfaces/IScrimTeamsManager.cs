@@ -1,10 +1,14 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.EventsTest;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimTeamsManager
     {
+        event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
+
         Team GetTeamOne();
         Team GetTeamTwo();
         Player GetPlayerFromId(string characterId);
