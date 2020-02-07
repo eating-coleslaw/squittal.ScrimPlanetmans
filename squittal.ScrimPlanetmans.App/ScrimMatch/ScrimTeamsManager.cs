@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using squittal.ScrimPlanetmans.ScrimMatch.EventsTest;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -99,7 +99,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _allCharacterIds.Add(characterId);
                 _allPlayers.Add(player);
 
-                await SendTeamPlayerAddedMessage(player);
+                SendTeamPlayerAddedMessage(player);
 
                 return true;
             }
@@ -138,7 +138,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
-                    await SendTeamPlayerAddedMessage(player);
+                    SendTeamPlayerAddedMessage(player);
 
                     anyPlayersAdded = true;
                 }
@@ -147,7 +147,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersAdded;
         }
 
-        public async Task<bool> RemoveCharacterFromTeam(string characterId)
+        public bool RemoveCharacterFromTeam(string characterId)
         {
             var player = GetPlayerFromId(characterId);
 
@@ -163,7 +163,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _allCharacterIds.RemoveAll(id => id == characterId);
                 _allPlayers.RemoveAll(p => p.Id == characterId);
 
-                await SendTeamPlayerRemovedMessage(player);
+                SendTeamPlayerRemovedMessage(player);
 
                 return true;
             }
@@ -238,50 +238,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
-        private async Task SendTeamPlayerAddedMessage(Player player)
+        private void SendTeamPlayerAddedMessage(Player player)
         {
-            //var message = new TeamPlayerChangeMessage()
-            //{
-            //    Player = player,
-            //    TeamOrdinal = player.TeamOrdinal,
-            //    //ChangeType = TeamPlayerChangeType.Add
-            //    ChangeType = "Add"
-            //};
-
             var payload = new TeamPlayerChangeMessage(player);
-            payload.ChangeType = "Add";
-
-            var jMessage = JsonConvert.SerializeObject(payload); //JsonConverter<TeamPlayerChangeMessage>(payload);
-
-            //await _hubContext.Clients.All.SendAsync("ReceiveTeamPlayerChangeMessage", message);
-
-            var message = $"{{ payload: {{ Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}] }} }}"; // "a;sgi;aihg;waohei";
-
-            _logger.LogInformation($"Sending TeamPlayerAdded Message: {jMessage.ToString()}");
-            //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", jMessage.ToString());
+            payload.ChangeType = TeamPlayerChangeType.Add; // "Add";
 
             OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
 
             //_logger.LogInformation($"Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
-            //await _hubContext.Clients.All.SendAsync("ReceiveMessage", ("{ payload: { Sending TeamPlayerAdded Message: {0} [{1}] } }", player.NameFull, player.Id));
         }
 
-        private async Task SendTeamPlayerRemovedMessage(Player player)
+        private void SendTeamPlayerRemovedMessage(Player player)
         {
-            //var message = new TeamPlayerChangeMessage()
-            //{
-            //    Player = player,
-            //    TeamOrdinal = player.TeamOrdinal,
-            //    //ChangeType = TeamPlayerChangeType.Remove
-            //    ChangeType = "Remove"
-            //};
+            var payload = new TeamPlayerChangeMessage(player);
+            payload.ChangeType = TeamPlayerChangeType.Remove; // "Remove";
 
-            _logger.LogInformation($"Sending TeamPlayerRemoved Message: {player.NameFull} [{player.Id}]");
+            OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
 
-            var message = "a;sgi;aihg;waohei";
+            //_logger.LogInformation($"Sending TeamPlayerRemoved Message: {player.NameFull} [{player.Id}]");
 
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+            //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
 
             //await _hubContext.Clients.All.SendAsync("ReceiveTeamPlayerChangeMessage", message);
             //await _hubContext.Clients.All.SendAsync("ReceiveMessage", $"Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");

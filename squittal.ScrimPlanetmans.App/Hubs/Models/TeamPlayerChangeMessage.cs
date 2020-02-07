@@ -8,8 +8,8 @@ namespace squittal.ScrimPlanetmans.Hubs.Models
         public string PlayerId { get; set; }
         public string PlayerNameDisplay { get; set; }
         public int TeamOrdinal { get; set; }
-        //public TeamPlayerChangeType ChangeType { get; set; }
-        public string ChangeType { get; set; }
+        public TeamPlayerChangeType ChangeType { get; set; }
+        //public string ChangeType { get; set; }
         public string Info { get; set; } = string.Empty;
 
         public TeamPlayerChangeMessage(Player player)
@@ -19,8 +19,6 @@ namespace squittal.ScrimPlanetmans.Hubs.Models
             TeamOrdinal = player.TeamOrdinal;
         }
     }
-
-    
 
     public enum TeamPlayerChangeType
     {

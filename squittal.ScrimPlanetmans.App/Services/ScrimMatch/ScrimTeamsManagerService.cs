@@ -45,9 +45,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             return await _teamsManager.AddOutfitAliasToTeam(teamOrdinal, alias);
         }
 
-        public async Task<bool> RemoveCharacterFromTeam(string characterId)
+        public bool RemoveCharacterFromTeam(string characterId)
         {
-            return await _teamsManager.RemoveCharacterFromTeam(characterId);
+            return _teamsManager.RemoveCharacterFromTeam(characterId);
         }
 
         public bool IsCharacterAvailable(string characterId, out Team owningTeam)

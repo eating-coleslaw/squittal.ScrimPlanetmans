@@ -1,4 +1,4 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.EventsTest;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId);
         Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string alias);
         
-        Task<bool> RemoveCharacterFromTeam(string characterId);
+        bool RemoveCharacterFromTeam(string characterId);
 
         bool IsCharacterAvailable(string characterId, out Team owningTeam);
         bool IsOutfitAvailable(string alias, out Team owningTeam);

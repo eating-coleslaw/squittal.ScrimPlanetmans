@@ -15,7 +15,7 @@
 @inject ScrimTeamsManagerService _teamsManager
 
 @inject IScrimTeamsManager ScrimTeamsManager
-@using squittal.ScrimPlanetmans.ScrimMatch.EventsTest;
+@using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
 @inject squittal.ScrimPlanetmans.Services.ScrimMatch.ScrimTeamsManagerService _teamsManager
 
@@ -99,24 +99,19 @@
 
         Console.WriteLine($"Base URL: {uri} || {uri}eventhub");
 
-        //ConnectToEventHub(uri);
+        ConnectToEventHub(uri);
 
 
 
-        connection = new HubConnectionBuilder()
-            .WithUrl($"{uri}eventhub")
-            .WithAutomaticReconnect()
-            .Build();
+        //connection = new HubConnectionBuilder()
+        //.WithUrl($"{uri}eventhub")
+        //.WithAutomaticReconnect()
+        //.Build();
 
-        connection.On<string>("ReceiveMessage", ReceiveMessage);
-        connection.On<string>("ReceiveMessag2", ReceiveMessage);
+        //connection.On<string>("ReceiveMessage", ReceiveMessage);
+        //connection.On<string>("ReceiveMessag2", ReceiveMessage);
 
         ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-
-        //connection.On<TeamPlayerChangeMessage>("ReceiveTeamPlayerChangeMessage", ReceiveTeamPlayerChangeMessage);
-
-        //ConnectionMatchSetupHub(uri);
-
 
         //connection.On<string>("ReceivePlayerLoginMessage", ReceivePlayerLoginMessage); // async m => await ReceivePlayerLoginMessage(m));
         //connection.On<string>("ReceivePlayerLogoutMessage", ReceivePlayerLogoutMessage);
@@ -137,7 +132,7 @@
         var name = message.PlayerNameDisplay;
         var id = message.PlayerId;
         var team = message.TeamOrdinal;
-        var type = message.ChangeType; // Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType);
+        var type = Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType); //message.ChangeType;
 
         var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
 
@@ -154,45 +149,16 @@
         connection.On<string>("ReceiveMessage", ReceiveMessage);
     }
 
-    //private void ConnectionMatchSetupHub(Uri baseUri)
-    //{
-    //    setupConnection = new HubConnectionBuilder()
-    //        .WithUrl($"{baseUri}matchsetuphub")
-    //        .WithAutomaticReconnect()
-    //        .Build();
-
-    //    setupConnection.On<TeamPlayerChangeMessage>("ReceiveMessage", ReceiveTeamPlayerChangeMessage);
-    //    //setupConnection.On<string>("ReceiveMessage", ReceiveTeamPlayerChangeMessage);
-    //}
-
     private void ReceiveMessage(string message)
     {
-        debug = $"Received Message: {message}";
-        LogMessage(message);
+        //debug = $"Received Message: {message}";
+        //LogMessage(message);
 
         var payload = TryParseMessagePayload(message);
         if (payload == null)
         {
             return;
         }
-
-        //var payload = jMsg.SelectToken("payload");
-        //if (payload == null)
-        //{
-        //    return;
-        //}
-
-        //var escaped = message.Replace("/&/", "&amp;")
-        //                     .Replace("/</", "&lt;")
-        //                     .Replace("/>/", "&gt;")
-        //                     .Replace("/\"/", "&quot;");
-
-        //var newLog = (MarkupString)$"{escaped} <br/> {logText}";
-        //var newLog = (MarkupString)$"{payload.ToString()} <br/> {logText}";
-
-        //logText = newLog;
-
-        //StateHasChanged();
 
         LogMessage(payload.ToString());
 
@@ -223,13 +189,6 @@
 
     private void HandlePlayerLoginPayload(JToken payload)
     {
-        //var jMsg = TryParseMessagePayload(message);
-        //if (jMsg == null)
-        //{
-        //    return;
-        //}
-
-        //var characterId = jMsg.Value<string>("CharacterId");
         var characterId = payload.Value<string>("character_id");
 
         string alias;
@@ -264,13 +223,6 @@
 
     private void HandlePlayerLogoutPayload(JToken payload)
     {
-        //var jMsg = TryParseMessagePayload(message);
-        //if (jMsg == null)
-        //{
-        //    return;
-        //}
-
-        //var characterId = jMsg.Value<string>("CharacterId");
         var characterId = payload.Value<string>("character_id");
 
         string alias;
@@ -281,8 +233,6 @@
         {
             return;
         }
-
-        //ReceiveMessage(message);
 
         if (_membersOnlineMap[alias].Any(m => m.Id == characterId))
         {
@@ -324,21 +274,21 @@
         return jMsg;
     }
 
-    private void ReceiveTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
-    {
-        debug = "ReceiveTeamPlayerChangeMessage";
+    //private void ReceiveTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
+    //{
+    //    debug = "ReceiveTeamPlayerChangeMessage";
 
-        //LogMessage(message);
+    //    //LogMessage(message);
 
-        var name = message.PlayerNameDisplay;
-        var id = message.PlayerId;
-        var team = message.TeamOrdinal;
-        var type = message.ChangeType; // Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType);
+    //    var name = message.PlayerNameDisplay;
+    //    var id = message.PlayerId;
+    //    var team = message.TeamOrdinal;
+    //    var type = Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType); //message.ChangeType;
 
-        var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
+    //    var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
 
-        LogMessage(text);
-    }
+    //    LogMessage(text);
+    //}
 
 
     private async Task GetCensusStreamStatus()
@@ -349,17 +299,8 @@
         StateHasChanged();
     }
 
-    //private async Task SubscribeToCensus()
     private void SubscribeToCensus()
     {
-        //if (!isSubscribed)
-        //{
-        //    var response = await Http.PostAsync("api/CensusStream/subscribe", null);
-        //    isStreamServiceEnabled = isSubscribed = response.IsSuccessStatusCode;
-        //    StateHasChanged();
-        //}
-
-        //await _wsMonitor.StartStreamSubscription();
         foreach (var alias in _validOutfitAliasHistory)
         {
             if (_isMembersLoading.Contains(alias) || _subscribedOutfitsHistory.Contains(alias))
@@ -374,10 +315,8 @@
         StateHasChanged();
     }
 
-    //private async Task EndCensusSubscription()
     private void EndCensusSubscription()
     {
-        //await _wsMonitor.StopStreamSubscription();
         _wsMonitor.RemoveAllCharacterSubscriptions();
         _subscribedOutfitsHistory.Clear();
         debug = "EndCensusSubscription";
@@ -399,7 +338,7 @@
             if (newOutfit != null)
             {
                 _teamOutfits1.Add(newOutfit);
-                _validOutfitAliasHistory.Add(newAlias); // _inputAlias1.Alias);
+                _validOutfitAliasHistory.Add(newAlias);
                 _inputAlias1.Alias = string.Empty;
 
                 _isAliasLoading.Remove(newAlias);
