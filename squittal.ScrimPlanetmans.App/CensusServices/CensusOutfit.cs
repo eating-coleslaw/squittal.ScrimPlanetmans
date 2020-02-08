@@ -18,7 +18,7 @@ namespace squittal.ScrimPlanetmans.CensusServices
         {
             var query = _queryFactory.Create("outfit");
 
-            query.ShowFields("outfit_id", "name", "alias", "time_created", "leader_character_id", "member_count");
+            query.ShowFields("outfit_id", "name", "alias", "alias_lower", "time_created", "leader_character_id", "member_count");
 
             query.Where("outfit_id").Equals(outfitId);
 
@@ -29,9 +29,9 @@ namespace squittal.ScrimPlanetmans.CensusServices
         {
             var query = _queryFactory.Create("outfit");
 
-            query.ShowFields("outfit_id", "name", "alias", "time_created", "leader_character_id", "member_count");
+            query.ShowFields("outfit_id", "name", "alias", "alias_lower", "time_created", "leader_character_id", "member_count");
 
-            query.Where("alias").Equals(alias);
+            query.Where("alias_lower").Equals(alias.ToLower());
 
             return await query.GetAsync<CensusOutfitModel>();
         }
@@ -40,7 +40,7 @@ namespace squittal.ScrimPlanetmans.CensusServices
         { 
             var query = _queryFactory.Create("outfit");
 
-            query.ShowFields("outfit_id", "name", "alias", "member_count");
+            query.ShowFields("outfit_id", "name", "alias", "alias_lower", "member_count");
 
             query.Where("outfit_id").Equals(outfitId);
 
@@ -56,9 +56,9 @@ namespace squittal.ScrimPlanetmans.CensusServices
         {
             var query = _queryFactory.Create("outfit");
 
-            query.ShowFields("outfit_id", "name", "alias", "member_count");
+            query.ShowFields("outfit_id", "name", "alias", "alias_lower", "member_count");
 
-            query.Where("alias").Equals(alias);
+            query.Where("alias_lower").Equals(alias.ToLower());
 
             query.AddResolve("member_character_name");
             query.AddResolve("member_online_status");

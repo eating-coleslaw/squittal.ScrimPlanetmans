@@ -10,6 +10,7 @@ namespace squittal.ScrimPlanetmans.Hubs.Models
         public int TeamOrdinal { get; set; }
         public TeamPlayerChangeType ChangeType { get; set; }
         //public string ChangeType { get; set; }
+        public bool IsOnline { get; set; }
         public string Info { get; set; } = string.Empty;
 
         public TeamPlayerChangeMessage(Player player)
@@ -17,6 +18,7 @@ namespace squittal.ScrimPlanetmans.Hubs.Models
             PlayerId = player.Id;
             PlayerNameDisplay = player.NameDisplay;
             TeamOrdinal = player.TeamOrdinal;
+            IsOnline = player.IsOnline;
         }
     }
 

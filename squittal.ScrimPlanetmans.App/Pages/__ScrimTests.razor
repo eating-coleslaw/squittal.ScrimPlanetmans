@@ -42,16 +42,16 @@
     {
         foreach (var outfit in _teamOutfits1)
         {
-            <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
+            <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
 
-            @if (_isMembersLoading.Contains(outfit.Alias))
+            @if (_isMembersLoading.Contains(outfit.AliasLower))
             {
                 <SpinnerEllipsis />
             }
 
-            else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.Alias) && _membersOnlineMap[outfit.Alias].Any())
+            else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.AliasLower) && _membersOnlineMap[outfit.AliasLower].Any())
             {
-                foreach (var member in _membersOnlineMap[outfit.Alias].ToList().Take(15))
+                foreach (var member in _membersOnlineMap[outfit.AliasLower].ToList().Take(15))
                 {
                     <p>@member.Name (@member.Id)</p>
                 }
@@ -90,6 +90,8 @@
     private List<string> _isMembersLoading = new List<string>();
 
     private List<Outfit> _teamOutfits1 = new List<Outfit>();
+    private List<Outfit> _outfits = new List<Outfit>();
+
     private List<string> _validOutfitAliasHistory = new List<string>();
     private List<string> _subscribedOutfitsHistory = new List<string>();
 
@@ -124,7 +126,9 @@
         var team = message.TeamOrdinal;
         var type = Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType); //message.ChangeType;
 
-        var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
+        var online = message.IsOnline == true ? " ONLINE" : string.Empty;
+
+        var text = $"Team {team} {type.ToUpper()}: {name} [{id}]{online}";
 
         LogMessage(text);
     }
@@ -193,6 +197,8 @@
                 return;
             }
 
+            UpdateOutfitMembersOnlineCount(alias.ToLower(), 1);
+
             _membersOnlineMap[alias].Add(character);
 
             //await TrySubscribeNewCharacterDeath(characterId);
@@ -217,6 +223,7 @@
             return;
         }
 
+        //TODO: remove the Any() check here
         if (_membersOnlineMap[alias].Any(m => m.Id == characterId))
         {
             var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
@@ -226,6 +233,8 @@
             }
 
             _membersOnlineMap[alias].Remove(character);
+
+            UpdateOutfitMembersOnlineCount(alias.ToLower(), -1);
 
             InvokeAsync(() =>
             {
@@ -293,31 +302,34 @@
     {
         Outfit newOutfit;
 
-        if (!_validOutfitAliasHistory.Contains(_inputAlias1.Alias))
+        var newAlias = _inputAlias1.Alias;
+        var newAliasLower = newAlias.ToLower();
+
+        if (!_validOutfitAliasHistory.Contains(newAliasLower))
         {
-            var newAlias = _inputAlias1.Alias;
+            _isAliasLoading.Add(newAliasLower);
 
-            _isAliasLoading.Add(newAlias);
-
-            newOutfit = await _planetside.GetOutfitByAlias(newAlias);
+            newOutfit = await _planetside.GetOutfitByAlias(newAliasLower);
 
             if (newOutfit != null)
             {
                 _teamOutfits1.Add(newOutfit);
-                _validOutfitAliasHistory.Add(newAlias);
+                _outfits.Add(newOutfit);
+                _validOutfitAliasHistory.Add(newAliasLower);
                 _inputAlias1.Alias = string.Empty;
 
-                _isAliasLoading.Remove(newAlias);
+                _isAliasLoading.Remove(newAliasLower);
 
                 StateHasChanged();
 
-                var success = await _teamsManager.AddOutfitAliasToTeam(1, newAlias);
+                var success = await _teamsManager.AddOutfitAliasToTeam(1, newAliasLower);
 
-                await GetOutfitMembers(newAlias);
+                await GetOutfitMembers(newAliasLower);
             }
         }
     }
 
+    //alias should already be AliasLower or alias.ToLower()
     private async Task GetOutfitMembers(string alias)
     {
         _isMembersLoading.Add(alias);
@@ -341,8 +353,19 @@
 
             _isMembersLoading.Remove(alias);
 
+            UpdateOutfitMembersOnlineCount(alias, onlineMembers.Count());
+
             StateHasChanged();
         }
     }
 
+    private void UpdateOutfitMembersOnlineCount(string aliasLower, int addend)
+    {
+        var outfit = _outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+        if (outfit == null)
+        {
+            return;
+        }
+        outfit.MembersOnlineCount += addend;
+    }
 }

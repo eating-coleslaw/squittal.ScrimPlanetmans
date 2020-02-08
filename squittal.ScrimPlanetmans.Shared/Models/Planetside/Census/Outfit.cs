@@ -10,9 +10,11 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
 
         public string Name { get; set; }
         public string Alias { get; set; }
+        public string AliasLower { get; set; }
         public DateTime CreatedDate { get; set; }
         public string LeaderCharacterId { get; set; }
         public int MemberCount { get; set; }
+        public int MembersOnlineCount { get; set; } = 0;
         public int? FactionId { get; set; }
         public int? WorldId { get; set; }
 

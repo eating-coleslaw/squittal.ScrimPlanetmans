@@ -186,15 +186,16 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             return censusOutfit == null
                 ? null
-                : new Outfit
-            {
-                Id = censusOutfit.OutfitId,
-                Alias = censusOutfit.Alias,
-                Name = censusOutfit.Name,
-                LeaderCharacterId = censusOutfit.LeaderCharacterId,
-                CreatedDate = censusOutfit.TimeCreated,
-                MemberCount = censusOutfit.MemberCount
-            };
+                : ConvertToDbModel(censusOutfit);
+            //{
+            //    Id = censusOutfit.OutfitId,
+            //    Alias = censusOutfit.Alias,
+            //    AliasLower = censusOutfit.AliasLower,
+            //    Name = censusOutfit.Name,
+            //    LeaderCharacterId = censusOutfit.LeaderCharacterId,
+            //    CreatedDate = censusOutfit.TimeCreated,
+            //    MemberCount = censusOutfit.MemberCount
+            //};
         }
 
         public static Outfit ConvertToDbModel(CensusOutfitModel censusOutfit)
@@ -203,6 +204,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 Id = censusOutfit.OutfitId,
                 Alias = censusOutfit.Alias,
+                AliasLower = censusOutfit.AliasLower,
                 Name = censusOutfit.Name,
                 LeaderCharacterId = censusOutfit.LeaderCharacterId,
                 CreatedDate = censusOutfit.TimeCreated,
