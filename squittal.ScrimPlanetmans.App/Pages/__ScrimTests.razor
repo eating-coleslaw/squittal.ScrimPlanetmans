@@ -27,47 +27,54 @@
 
 <h2>__ScrimTests</h2>
 
-<EditForm Model="@_inputAlias1" OnValidSubmit="HandleValidOutfitAliasSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem;">
 
-    Team 1 Outfit Alias: <InputAlias id="alias1" @bind-Value="_inputAlias1" />
+    <EditForm Model="@_inputAlias1" OnValidSubmit="HandleValidOutfitAliasSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-</EditForm>
+        Team 1 Outfit Alias: <InputAlias id="alias1" @bind-Value="_inputAlias1" />
 
-@if (_teamOutfits1.Any())
-{
-    foreach (var outfit in _teamOutfits1)
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </EditForm>
+
+    @if (_teamOutfits1.Any())
     {
-        <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
-
-        @if (_isMembersLoading.Contains(outfit.Alias))
+        foreach (var outfit in _teamOutfits1)
         {
-            <SpinnerEllipsis />
-        }
+            <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
 
-        else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.Alias) && _membersOnlineMap[outfit.Alias].Any())
-        {
-            foreach (var member in _membersOnlineMap[outfit.Alias].ToList().Take(15))
+            @if (_isMembersLoading.Contains(outfit.Alias))
             {
-                <p>@member.Name (@member.Id)</p>
+                <SpinnerEllipsis />
+            }
+
+            else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.Alias) && _membersOnlineMap[outfit.Alias].Any())
+            {
+                foreach (var member in _membersOnlineMap[outfit.Alias].ToList().Take(15))
+                {
+                    <p>@member.Name (@member.Id)</p>
+                }
             }
         }
     }
-}
-@if (_isAliasLoading.Any())
-{
-    <SpinnerEllipsis />
-}
+    @if (_isAliasLoading.Any())
+    {
+        <SpinnerEllipsis />
+    }
 
-<p>_______________________________________________________</p>
-<button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
-<button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
 
-<p>Status: @isStreamServiceEnabled.ToString() (@debug)</p>
-<p id="event-log" bind="@logText" style="font-size: 10px;">@logText</p>
 
+    <p>_______________________________________________________</p>
+    <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
+    <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
+
+</div>
+
+<div style="width: 55%; float: right; font-size: 10px; max-height: 500px; overflow-y: scroll;word-wrap: normal;">
+    <h5>Status: @isStreamServiceEnabled.ToString() (@debug)</h5>
+    <p id="event-log" bind="@logText" style="font-size: 10px;">@logText</p>
+</div>
 
 @code {
     private OutfitAlias _inputAlias1 = new OutfitAlias();
