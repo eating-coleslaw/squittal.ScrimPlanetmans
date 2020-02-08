@@ -92,10 +92,6 @@
 
     private string debug { get; set; } = "init";
 
-    HubConnection connection;
-
-    //HubConnection setupConnection;
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,27 +99,9 @@
 
         Console.WriteLine($"Base URL: {uri} || {uri}eventhub");
 
-        ConnectToEventHub(uri);
-
-
-
-        //connection = new HubConnectionBuilder()
-        //.WithUrl($"{uri}eventhub")
-        //.WithAutomaticReconnect()
-        //.Build();
-
-        //connection.On<string>("ReceiveMessage", ReceiveMessage);
-        //connection.On<string>("ReceiveMessag2", ReceiveMessage);
-
         ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
         WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-
-
-        //connection.On<string>("ReceivePlayerLoginMessage", ReceivePlayerLoginMessage); // async m => await ReceivePlayerLoginMessage(m));
-        //connection.On<string>("ReceivePlayerLogoutMessage", ReceivePlayerLogoutMessage);
-
-        await connection.StartAsync();
 
         await GetCensusStreamStatus();
     }
@@ -134,8 +112,6 @@
 
         var message = e.Message;
 
-        //LogMessage(message);
-
         var name = message.PlayerNameDisplay;
         var id = message.PlayerId;
         var team = message.TeamOrdinal;
@@ -144,16 +120,6 @@
         var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
 
         LogMessage(text);
-    }
-
-    private void ConnectToEventHub(Uri baseUri)
-    {
-        connection = new HubConnectionBuilder()
-            .WithUrl($"{baseUri}eventhub")
-            .WithAutomaticReconnect()
-            .Build();
-
-        connection.On<string>("ReceiveMessage", ReceiveMessage);
     }
 
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
@@ -211,8 +177,6 @@
         {
             return;
         }
-
-        //ReceiveMessage(message);
 
         if (!_membersOnlineMap[alias].Any(m => m.Id == characterId))
         {
@@ -285,23 +249,6 @@
 
         return jMsg;
     }
-
-    //private void ReceiveTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
-    //{
-    //    debug = "ReceiveTeamPlayerChangeMessage";
-
-    //    //LogMessage(message);
-
-    //    var name = message.PlayerNameDisplay;
-    //    var id = message.PlayerId;
-    //    var team = message.TeamOrdinal;
-    //    var type = Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType); //message.ChangeType;
-
-    //    var text = $"Team {team} {type.ToUpper()}: {name} [{id}]";
-
-    //    LogMessage(text);
-    //}
-
 
     private async Task GetCensusStreamStatus()
     {
