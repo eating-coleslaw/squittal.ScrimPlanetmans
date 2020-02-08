@@ -112,6 +112,20 @@
 
         WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
+        var team1 = ScrimTeamsManager.GetTeamOne();
+
+        if (team1 != null)
+        {
+            _teamOutfits1 = team1.Outfits;
+            _validOutfitAliasHistory = team1.Outfits.Select(o => o.AliasLower).ToList();
+
+            foreach (var outfit in _teamOutfits1)
+            {
+                var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - w{outfit.WorldId} - f{outfit.FactionId}";
+                LogMessage(message);
+            }
+        }
+
         await GetCensusStreamStatus();
     }
 

@@ -21,10 +21,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public List<Player> Players { get; } = new List<Player>();
         public List<Player> ActivePlayers { get; } = new List<Player>();
 
-
+        public List<Outfit> Outfits { get => _outfits; }
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
+
+        public List<Character> Characters { get => _playerIdMap.Values.ToList(); }
+
+        public Dictionary<string, Outfit> CharacterIdOutfitMap { get => _playerOutfitMap; }
 
         private List<string> _seedOutfitAliases = new List<string>();
         private List<string> _seedOutfitIds = new List<string>();
