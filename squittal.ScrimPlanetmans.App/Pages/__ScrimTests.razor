@@ -117,7 +117,7 @@
 
         ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
-        WebsocketMonitor.RaiseTeamPlayerChangeEvent += ReceiveSimpleMessageEvent;
+        WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
 
         //connection.On<string>("ReceivePlayerLoginMessage", ReceivePlayerLoginMessage); // async m => await ReceivePlayerLoginMessage(m));

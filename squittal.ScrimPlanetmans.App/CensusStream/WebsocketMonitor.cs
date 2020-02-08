@@ -28,12 +28,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public List<string> CharacterSubscriptions = new List<string>();
 
-        public event EventHandler<SimpleMessageEventArgs> RaiseTeamPlayerChangeEvent;
+        public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
         protected virtual void OnRaiseSimpleMessageChangeEvent(SimpleMessageEventArgs e)
         {
-            RaiseTeamPlayerChangeEvent?.Invoke(this, e);
+            RaiseSimpleMessageEvent?.Invoke(this, e);
         }
 
         private void SendSimpleMessageAddedMessage(string s)
