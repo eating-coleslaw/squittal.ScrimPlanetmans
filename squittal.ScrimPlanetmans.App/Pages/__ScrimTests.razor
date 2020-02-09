@@ -146,23 +146,40 @@
 
 
             //TODO: use Player objects instead of Character objects
-            var characters = team1.Characters;
+            //var characters = team1.Characters;
+
+            var players = team1.Players;
+
+            foreach (var player in players)
+            {
+                _outfitPlayers.Add(player);
+
+                if (player.IsOnline)
+                {
+                    _outfitOnlinePlayers.Add(player);
+                    UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+                }
+            }
+
+            //_outfitPlayers.AddRange(players.Where(p => !_outfitPlayers.Any(op => op.Id == p.Id)).ToList());
+
+
 
             foreach (var outfit in _teamOutfits1)
             {
-                var aliasLower = outfit.AliasLower;
+                //var aliasLower = outfit.AliasLower;
 
-                var outfitCharacterIds = team1.CharacterIdOutfitMap.Where(o => o.Value.Id == outfit.Id).Select(o => o.Key).ToList();
-                var outfitCharacters = characters.Where(c => outfitCharacterIds.Contains(c.Id)).ToList();
-                _membersMap.Add(aliasLower, outfitCharacters);
+                //var outfitCharacterIds = team1.CharacterIdOutfitMap.Where(o => o.Value.Id == outfit.Id).Select(o => o.Key).ToList();
+                //var outfitCharacters = characters.Where(c => outfitCharacterIds.Contains(c.Id)).ToList();
+                //_membersMap.Add(aliasLower, outfitCharacters);
 
-                var outfitOnlineCharacters = outfitCharacters.Where(c => c.IsOnline == true).ToList();
-                _membersOnlineMap.Add(aliasLower, outfitOnlineCharacters);
+                //var outfitOnlineCharacters = outfitCharacters.Where(c => c.IsOnline == true).ToList();
+                //_membersOnlineMap.Add(aliasLower, outfitOnlineCharacters);
 
-                foreach (var id in outfitCharacterIds)
-                {
-                    _outfitMap.TryAdd(id, aliasLower);
-                }
+                //foreach (var id in outfitCharacterIds)
+                //{
+                //    _outfitMap.TryAdd(id, aliasLower);
+                //}
 
                 var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - w{outfit.WorldId} - f{outfit.FactionId}";
                 LogMessage(message);
@@ -275,6 +292,24 @@
     {
         var characterId = payload.Value<string>("character_id");
 
+        var player = _outfitPlayers.Where(p => p.Id == characterId).FirstOrDefault();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        if (!_outfitOnlinePlayers.Any(p => p.Id == player.Id))
+        {
+            _outfitOnlinePlayers.Add(player);
+
+            if (_outfits.Any(o => o.Id == player.OutfitId))
+            {
+                UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+            }
+        }
+
+        /*
         string alias;
 
         var isOutfitTracked = _outfitMap.TryGetValue(characterId, out alias);
@@ -298,6 +333,7 @@
 
             //await TrySubscribeNewCharacterDeath(characterId);
         }
+        */
 
         InvokeAsync(() =>
         {
@@ -309,6 +345,24 @@
     {
         var characterId = payload.Value<string>("character_id");
 
+        var player = _outfitPlayers.Where(p => p.Id == characterId).FirstOrDefault();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        if (_outfitOnlinePlayers.Any(p => p.Id == player.Id))
+        {
+            _outfitOnlinePlayers.Remove(player);
+
+            if (_outfits.Any(o => o.Id == player.OutfitId))
+            {
+                UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
+            }
+        }
+
+        /*
         string alias;
 
         var isOutfitTracked = _outfitMap.TryGetValue(characterId, out alias);
@@ -330,13 +384,13 @@
             _membersOnlineMap[alias].Remove(character);
 
             UpdateOutfitMembersOnlineCount(alias.ToLower(), -1);
+        */
 
-            InvokeAsync(() =>
-            {
+        InvokeAsync(() =>
+        {
 
-                StateHasChanged();
-            });
-        }
+            StateHasChanged();
+        });
     }
 
     private JToken TryParseMessagePayload(string message)
@@ -378,7 +432,10 @@
                 continue;
             }
 
-            _wsMonitor.AddCharacterSubscriptions(_membersMap[alias].Select(m => m.Id).ToList());
+            //_wsMonitor.AddCharacterSubscriptions(_membersMap[alias].Select(m => m.Id).ToList());
+
+            WebsocketMonitor.AddCharacterSubscriptions(_outfitPlayers.Where(p => p.OutfitAliasLower == alias.ToLower()).Select(p => p.Id).ToList()); // _membersMap[alias].Select(m => m.Id).ToList());
+
             _subscribedOutfitsHistory.Add(alias);
         }
         debug = "SubscribeToCensus";
