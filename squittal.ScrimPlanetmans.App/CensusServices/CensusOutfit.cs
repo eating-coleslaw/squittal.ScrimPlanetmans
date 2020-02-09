@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace squittal.ScrimPlanetmans.CensusServices
 {
@@ -65,7 +66,36 @@ namespace squittal.ScrimPlanetmans.CensusServices
 
             var result = await query.GetAsync<CensusOutfitResolveMemberCharacterModel>();
 
-            return result.Members;
+            var outfit = ConvertToCensusModel(result);
+
+            var members = result.Members.Select(m => FillOutOutfitMemberCharacterModel(m, outfit)).ToList();
+
+            return members;
+        }
+
+        private CensusOutfitModel ConvertToCensusModel(CensusOutfitResolveMemberCharacterModel result)
+        {
+            return new CensusOutfitModel
+            {
+                OutfitId = result.OutfitId,
+                Name = result.Name,
+                Alias = result.Alias,
+                AliasLower = result.AliasLower,
+                MemberCount = result.MemberCount
+            };
+        }
+
+        private CensusOutfitMemberCharacterModel FillOutOutfitMemberCharacterModel(CensusOutfitMemberCharacterModel character, CensusOutfitModel outfit)
+        {
+            return new CensusOutfitMemberCharacterModel
+            {
+                OutfitId = outfit.OutfitId,
+                CharacterId = character.CharacterId,
+                Name = character.Name,
+                OnlineStatus = character.OnlineStatus,
+                OutfitAlias = outfit.Alias,
+                OutfitAliasLower = outfit.AliasLower
+            };
         }
     }
 }

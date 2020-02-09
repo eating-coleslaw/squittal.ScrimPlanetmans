@@ -44,18 +44,31 @@
         {
             <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
 
-            @if (_isMembersLoading.Contains(outfit.AliasLower))
+            @if (_outfitOnlinePlayers == null || !_outfitOnlinePlayers.Any(p => p.OutfitId == outfit.Id))
             {
                 <SpinnerEllipsis />
             }
 
-            else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.AliasLower) && _membersOnlineMap[outfit.AliasLower].Any())
+            else
             {
-                foreach (var member in _membersOnlineMap[outfit.AliasLower].ToList().Take(15))
+                foreach (var member in _outfitOnlinePlayers.Where(p => p.OutfitId == outfit.Id).ToList())
                 {
-                    <p>@member.Name (@member.Id)</p>
+                    <p>@member.NameDisplay (@member.Id)</p>
                 }
             }
+
+            @*@if (_isMembersLoading.Contains(outfit.AliasLower))
+                {
+                    <SpinnerEllipsis />
+                }
+
+                else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.AliasLower) && _membersOnlineMap[outfit.AliasLower].Any())
+                {
+                    foreach (var member in _membersOnlineMap[outfit.AliasLower].ToList().Take(15))
+                    {
+                        <p>@member.Name (@member.Id)</p>
+                    }
+                }*@
         }
     }
     @if (_isAliasLoading.Any())
@@ -79,12 +92,24 @@
 @code {
     private OutfitAlias _inputAlias1 = new OutfitAlias();
 
+    /* CHARACTER */
     private Dictionary<string, List<Character>> _membersMap = new Dictionary<string, List<Character>>();
     private Dictionary<string, List<Character>> _membersOnlineMap = new Dictionary<string, List<Character>>();
     private Dictionary<string, string> _outfitMap = new Dictionary<string, string>(); //<characterId, alias>
 
     private List<Character> _outfitMembers = new List<Character>();
     private List<Character> _outfitOnlineMembers = new List<Character>();
+    /* END CHARACTER */
+
+    /* PLAYER */
+    private Dictionary<string, List<Player>> _playersMap = new Dictionary<string, List<Player>>(); //<characterId, Player>
+    private Dictionary<string, List<Player>> _playersOnlineMap = new Dictionary<string, List<Player>>();
+    private Dictionary<string, string> _playerIdOutfitMap = new Dictionary<string, string>(); //<characterId, alias>
+
+    private List<Player> _outfitPlayers = new List<Player>();
+    private List<Player> _outfitOnlinePlayers = new List<Player>();
+    /* END PLAYER */
+
 
     private List<string> _isAliasLoading = new List<string>();
     private List<string> _isMembersLoading = new List<string>();
@@ -119,8 +144,26 @@
             _teamOutfits1 = team1.Outfits;
             _validOutfitAliasHistory = team1.Outfits.Select(o => o.AliasLower).ToList();
 
+
+            //TODO: use Player objects instead of Character objects
+            var characters = team1.Characters;
+
             foreach (var outfit in _teamOutfits1)
             {
+                var aliasLower = outfit.AliasLower;
+
+                var outfitCharacterIds = team1.CharacterIdOutfitMap.Where(o => o.Value.Id == outfit.Id).Select(o => o.Key).ToList();
+                var outfitCharacters = characters.Where(c => outfitCharacterIds.Contains(c.Id)).ToList();
+                _membersMap.Add(aliasLower, outfitCharacters);
+
+                var outfitOnlineCharacters = outfitCharacters.Where(c => c.IsOnline == true).ToList();
+                _membersOnlineMap.Add(aliasLower, outfitOnlineCharacters);
+
+                foreach (var id in outfitCharacterIds)
+                {
+                    _outfitMap.TryAdd(id, aliasLower);
+                }
+
                 var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - w{outfit.WorldId} - f{outfit.FactionId}";
                 LogMessage(message);
             }
@@ -142,10 +185,48 @@
 
         var online = message.IsOnline == true ? " ONLINE" : string.Empty;
 
+        switch (message.ChangeType)
+        {
+            case TeamPlayerChangeType.Add:
+                HandleTeamPlayerChangeAdd(message);
+                break;
+
+            case TeamPlayerChangeType.Remove:
+                HandleTeamPlayerChangeRemove(message);
+                break;
+        }
+
         var text = $"Team {team} {type.ToUpper()}: {name} [{id}]{online}";
 
         LogMessage(text);
     }
+
+    private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        _outfitPlayers.Add(player);
+
+        if (player.IsOnline)
+        {
+            _outfitOnlinePlayers.Add(player);
+            UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+        }
+    }
+
+    private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        _outfitPlayers.RemoveAll(p => p.Id == player.Id);
+
+        if (_outfitOnlinePlayers.Any(p => p.Id == player.Id))
+        {
+            _outfitOnlinePlayers.RemoveAll(p => p.Id == player.Id);
+            UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
+        }
+    }
+
 
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
@@ -336,9 +417,10 @@
 
                 StateHasChanged();
 
-                var success = await _teamsManager.AddOutfitAliasToTeam(1, newAliasLower);
+                //var success = await _teamsManager.AddOutfitAliasToTeam(1, newAliasLower);
+                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(1, newAliasLower);
 
-                await GetOutfitMembers(newAliasLower);
+                //await GetOutfitMembers(newAliasLower);
             }
         }
     }

@@ -18,7 +18,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string NameDisplay { get; set; }
         public string NameTrimmed { get; set; }
         public string NameAlias { get; set; }
-        public string OutfitId { get; set; }
+
+        public string OutfitId { get; set; } = string.Empty;
+        public string OutfitAlias { get; set; } = string.Empty;
+        public string OutfitAliasLower { get; set; } = string.Empty;
 
         // Dynamic Attributes
         public int LoadoutId { get; set; } = 0;
@@ -32,7 +35,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NameTrimmed = GetTrimmedPlayerName(NameFull);
             NameDisplay = NameTrimmed;
             IsOnline = character.IsOnline;
-            //OutfitId = character.OutfitId;
+            OutfitId = character.OutfitId;
+            OutfitAlias = character.OutfitAlias;
+            OutfitAliasLower = character.OutfitAliasLower;
         }
 
         private static string GetTrimmedPlayerName(string name)
