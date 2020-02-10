@@ -1,5 +1,4 @@
 ﻿@page "/scrimtests"
-@using Microsoft.AspNetCore.SignalR.Client;
 @using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
 @using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 @using squittal.ScrimPlanetmans.App.Pages.Admin;
@@ -14,7 +13,6 @@
 @inject squittal.ScrimPlanetmans.Services.WebsocketMonitorService _wsMonitor
 @inject squittal.ScrimPlanetmans.Services.PlanetsideDataService _planetside
 @inject ScrimTeamsManagerService _teamsManager
-
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor  WebsocketMonitor
@@ -56,19 +54,6 @@
                     <p>@member.NameDisplay (@member.Id)</p>
                 }
             }
-
-            @*@if (_isMembersLoading.Contains(outfit.AliasLower))
-                {
-                    <SpinnerEllipsis />
-                }
-
-                else if (_membersOnlineMap != null && _membersOnlineMap.ContainsKey(outfit.AliasLower) && _membersOnlineMap[outfit.AliasLower].Any())
-                {
-                    foreach (var member in _membersOnlineMap[outfit.AliasLower].ToList().Take(15))
-                    {
-                        <p>@member.Name (@member.Id)</p>
-                    }
-                }*@
         }
     }
     @if (_isAliasLoading.Any())
@@ -144,10 +129,6 @@
             _teamOutfits1 = team1.Outfits;
             _validOutfitAliasHistory = team1.Outfits.Select(o => o.AliasLower).ToList();
 
-
-            //TODO: use Player objects instead of Character objects
-            //var characters = team1.Characters;
-
             var players = team1.Players;
 
             foreach (var player in players)
@@ -161,26 +142,8 @@
                 }
             }
 
-            //_outfitPlayers.AddRange(players.Where(p => !_outfitPlayers.Any(op => op.Id == p.Id)).ToList());
-
-
-
             foreach (var outfit in _teamOutfits1)
             {
-                //var aliasLower = outfit.AliasLower;
-
-                //var outfitCharacterIds = team1.CharacterIdOutfitMap.Where(o => o.Value.Id == outfit.Id).Select(o => o.Key).ToList();
-                //var outfitCharacters = characters.Where(c => outfitCharacterIds.Contains(c.Id)).ToList();
-                //_membersMap.Add(aliasLower, outfitCharacters);
-
-                //var outfitOnlineCharacters = outfitCharacters.Where(c => c.IsOnline == true).ToList();
-                //_membersOnlineMap.Add(aliasLower, outfitOnlineCharacters);
-
-                //foreach (var id in outfitCharacterIds)
-                //{
-                //    _outfitMap.TryAdd(id, aliasLower);
-                //}
-
                 var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - w{outfit.WorldId} - f{outfit.FactionId}";
                 LogMessage(message);
             }
@@ -198,7 +161,7 @@
         var name = message.PlayerNameDisplay;
         var id = message.PlayerId;
         var team = message.TeamOrdinal;
-        var type = Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType); //message.ChangeType;
+        var type = Enum.GetName(typeof(TeamPlayerChangeType), message.ChangeType);
 
         var online = message.IsOnline == true ? " ONLINE" : string.Empty;
 
@@ -252,9 +215,6 @@
 
     private void ReceiveMessage(string message)
     {
-        //debug = $"Received Message: {message}";
-        //LogMessage(message);
-
         var payload = TryParseMessagePayload(message);
         if (payload == null)
         {
@@ -309,32 +269,6 @@
             }
         }
 
-        /*
-        string alias;
-
-        var isOutfitTracked = _outfitMap.TryGetValue(characterId, out alias);
-
-        if (!isOutfitTracked)
-        {
-            return;
-        }
-
-        if (!_membersOnlineMap[alias].Any(m => m.Id == characterId))
-        {
-            var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
-            if (character == null)
-            {
-                return;
-            }
-
-            UpdateOutfitMembersOnlineCount(alias.ToLower(), 1);
-
-            _membersOnlineMap[alias].Add(character);
-
-            //await TrySubscribeNewCharacterDeath(characterId);
-        }
-        */
-
         InvokeAsync(() =>
         {
             StateHasChanged();
@@ -361,30 +295,6 @@
                 UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
             }
         }
-
-        /*
-        string alias;
-
-        var isOutfitTracked = _outfitMap.TryGetValue(characterId, out alias);
-
-        if (!isOutfitTracked)
-        {
-            return;
-        }
-
-        //TODO: remove the Any() check here
-        if (_membersOnlineMap[alias].Any(m => m.Id == characterId))
-        {
-            var character = _membersMap[alias].FirstOrDefault(m => m.Id == characterId);
-            if (character == null)
-            {
-                return;
-            }
-
-            _membersOnlineMap[alias].Remove(character);
-
-            UpdateOutfitMembersOnlineCount(alias.ToLower(), -1);
-        */
 
         InvokeAsync(() =>
         {
@@ -431,9 +341,6 @@
             {
                 continue;
             }
-
-            //_wsMonitor.AddCharacterSubscriptions(_membersMap[alias].Select(m => m.Id).ToList());
-
             WebsocketMonitor.AddCharacterSubscriptions(_outfitPlayers.Where(p => p.OutfitAliasLower == alias.ToLower()).Select(p => p.Id).ToList()); // _membersMap[alias].Select(m => m.Id).ToList());
 
             _subscribedOutfitsHistory.Add(alias);
@@ -474,10 +381,7 @@
 
                 StateHasChanged();
 
-                //var success = await _teamsManager.AddOutfitAliasToTeam(1, newAliasLower);
                 var success = await ScrimTeamsManager.AddOutfitAliasToTeam(1, newAliasLower);
-
-                //await GetOutfitMembers(newAliasLower);
             }
         }
     }
