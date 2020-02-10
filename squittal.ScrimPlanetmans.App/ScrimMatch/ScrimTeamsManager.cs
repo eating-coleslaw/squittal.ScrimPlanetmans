@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Hubs;
-using squittal.ScrimPlanetmans.Hubs.Models;
+//using squittal.ScrimPlanetmans.Hubs.Models;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;

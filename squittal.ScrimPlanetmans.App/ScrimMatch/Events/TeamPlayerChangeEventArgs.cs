@@ -1,4 +1,4 @@
-﻿using squittal.ScrimPlanetmans.Hubs.Models;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Events

@@ -1,7 +1,6 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-using System;
+﻿using System;
 
-namespace squittal.ScrimPlanetmans.Hubs.Models
+namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
     public class TeamPlayerChangeMessage
     {

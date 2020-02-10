@@ -13,4 +13,8 @@
     <ProjectReference Include="..\squittal.ScrimPlanetmans.Shared\squittal.ScrimPlanetmans.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Hubs\Models\" />
+  </ItemGroup>
+
 </Project>
