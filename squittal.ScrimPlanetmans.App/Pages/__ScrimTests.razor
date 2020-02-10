@@ -25,7 +25,7 @@
 
 <h2>__ScrimTests</h2>
 
-<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem;">
+<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
 
     <EditForm Model="@_inputAlias1" OnValidSubmit="HandleValidOutfitAliasSubmit">
         <DataAnnotationsValidator />
@@ -40,19 +40,23 @@
     {
         foreach (var outfit in _teamOutfits1)
         {
-            <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
+            <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;"><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
 
             @if (_isMembersLoading.Contains(outfit.AliasLower) && (_outfitOnlinePlayers == null || !_outfitOnlinePlayers.Any(p => p.OutfitId == outfit.Id)))
             {
                 <SpinnerEllipsis />
             }
 
-            else
+            else if (_outfitOnlinePlayers.Any(p => p.OutfitId == outfit.Id))
             {
-                foreach (var member in _outfitOnlinePlayers.Where(p => p.OutfitId == outfit.Id).ToList())
-                {
-                    <p>@member.NameDisplay (@member.Id)</p>
-                }
+                <ul style="list-style-type: circle; margin-bottom: 0.5rem;">
+
+                    @foreach (var member in _outfitOnlinePlayers.Where(p => p.OutfitId == outfit.Id).ToList())
+                    {
+                        <li>@member.NameDisplay (@member.Id)</li>
+                    }
+
+                </ul>
             }
         }
     }
@@ -63,15 +67,26 @@
 
 
 
-    <p>_______________________________________________________</p>
+    @*<p>_______________________________________________________</p>*@
+    <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+
     <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
     <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
 
 </div>
 
-<div style="width: 55%; float: right; font-size: 10px; max-height: 500px; overflow-y: scroll;word-wrap: normal;">
+<div style="width: 55%; float: right; font-size: 10px; max-height: 500px; overflow-y: scroll;word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
     <h5>Status: @isStreamServiceEnabled.ToString() (@debug)</h5>
-    <p id="event-log" bind="@logText" style="font-size: 10px;">@logText</p>
+    @*<p id="event-log" bind="@logText" style="font-size: 10px;">@logText</p>*@
+
+    @if (logTexts.Any())
+    {
+        foreach (var log in logTexts.Reverse<MarkupString>())
+        {
+            <p style="font-size: 10px; margin: 0;">@log</p>
+        }
+    }
+
 </div>
 
 @code {
@@ -105,11 +120,13 @@
     private List<string> _validOutfitAliasHistory = new List<string>();
     private List<string> _subscribedOutfitsHistory = new List<string>();
 
-    private MarkupString logText { get; set; } = (MarkupString)string.Empty;
+    //private MarkupString logText { get; set; } = (MarkupString)string.Empty;
     private bool isStreamServiceEnabled { get; set; } = false;
     private bool isSubscribed { get; set; } = false;
 
     private string debug { get; set; } = "init";
+
+    private List<MarkupString> logTexts { get; set; } = new List<MarkupString>();
 
 
     protected override async Task OnInitializedAsync()
@@ -238,9 +255,13 @@
 
     void LogMessage(string message)
     {
-        var newLog = (MarkupString)$"{message} <br/> {logText}";
 
-        logText = newLog;
+        //var newLog = (MarkupString)$"{message} <br/> {logText}";
+
+        //logText = newLog;
+
+        var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
+        logTexts.Add((MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}");
 
         InvokeAsync(() =>
         {
@@ -382,7 +403,7 @@
                 StateHasChanged();
 
                 _isMembersLoading.Add(newAliasLower);
-                
+
                 StateHasChanged();
 
                 var success = await ScrimTeamsManager.AddOutfitAliasToTeam(1, newAliasLower);
