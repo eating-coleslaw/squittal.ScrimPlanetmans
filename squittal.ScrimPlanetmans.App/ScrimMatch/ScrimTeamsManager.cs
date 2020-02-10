@@ -34,6 +34,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         //private Dictionary<string, int> _characterTeamOrdinalMap;
 
+        public event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
+        public delegate void TeamPlayerChangeEventHandler(object sender, TeamPlayerChangeEventArgs e);
+
+        public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
+        public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
+
         public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IHubContext<EventHub> hubContext, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
@@ -144,6 +150,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 }
             }
 
+
+
             return anyPlayersAdded;
         }
 
@@ -224,8 +232,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
 
-        public event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
-        public delegate void TeamPlayerChangeEventHandler(object sender, TeamPlayerChangeEventArgs e);
+        
 
         protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
         {
@@ -255,6 +262,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             //await _hubContext.Clients.All.SendAsync("ReceiveTeamPlayerChangeMessage", message);
             //await _hubContext.Clients.All.SendAsync("ReceiveMessage", $"Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
+        }
+
+        protected virtual void OnRaiseSimpleMessageChangeEvent(SimpleMessageEventArgs e)
+        {
+            RaiseSimpleMessageEvent?.Invoke(this, e);
+        }
+
+        private void SendSimpleMessageAddedMessage(string s)
+        {
+            OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
         }
 
         public void Dispose()
