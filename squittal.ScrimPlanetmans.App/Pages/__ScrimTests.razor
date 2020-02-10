@@ -42,7 +42,7 @@
         {
             <p><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
 
-            @if (_outfitOnlinePlayers == null || !_outfitOnlinePlayers.Any(p => p.OutfitId == outfit.Id))
+            @if (_isMembersLoading.Contains(outfit.AliasLower) && (_outfitOnlinePlayers == null || !_outfitOnlinePlayers.Any(p => p.OutfitId == outfit.Id)))
             {
                 <SpinnerEllipsis />
             }
@@ -381,7 +381,15 @@
 
                 StateHasChanged();
 
+                _isMembersLoading.Add(newAliasLower);
+                
+                StateHasChanged();
+
                 var success = await ScrimTeamsManager.AddOutfitAliasToTeam(1, newAliasLower);
+
+                _isMembersLoading.Remove(newAliasLower);
+
+                StateHasChanged();
             }
             else
             {
