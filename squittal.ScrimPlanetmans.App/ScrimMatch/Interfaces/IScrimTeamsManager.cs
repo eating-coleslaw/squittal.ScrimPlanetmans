@@ -9,6 +9,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
 
+        Team GetTeam(int teamOrdinal);
         Team GetTeamOne();
         Team GetTeamTwo();
         Player GetPlayerFromId(string characterId);

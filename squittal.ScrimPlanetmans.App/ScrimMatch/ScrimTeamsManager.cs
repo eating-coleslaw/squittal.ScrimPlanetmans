@@ -54,6 +54,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _ordinalTeamMap.Add(2, Team2);
         }
 
+        public Team GetTeam(int teamOrdinal)
+        {
+            return _ordinalTeamMap.GetValueOrDefault(teamOrdinal);
+        }
+
         public Team GetTeamOne()
         {
             return Team1;
