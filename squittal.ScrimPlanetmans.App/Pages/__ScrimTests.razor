@@ -27,7 +27,7 @@
 
 <div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
 
-    <EditForm Model="@_inputAlias1" OnValidSubmit="HandleValidOutfitAliasSubmit">
+    <EditForm Model="@_inputAlias1" OnValidSubmit="(() => HandleValidOutfitAliasSubmit(1))">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -365,7 +365,7 @@
         StateHasChanged();
     }
 
-    private async void HandleValidOutfitAliasSubmit()
+    private async void HandleValidOutfitAliasSubmit(int teamOrdinal)
     {
         Outfit newOutfit;
 
@@ -393,7 +393,7 @@
 
                 StateHasChanged();
 
-                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(1, newAliasLower);
+                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(teamOrdinal, newAliasLower);
 
                 _isMembersLoading.Remove(newAliasLower);
 
@@ -405,36 +405,6 @@
 
                 StateHasChanged();
             }
-        }
-    }
-
-    //alias should already be AliasLower or alias.ToLower()
-    private async Task GetOutfitMembers(string alias)
-    {
-        _isMembersLoading.Add(alias);
-
-        StateHasChanged();
-
-        var censusMembers = await _planetside.GetOutfitMembersByAlias(alias);
-
-        if (censusMembers != null && censusMembers.Any())
-        {
-            _membersMap.Add(alias, censusMembers.ToList());
-
-            var onlineMembers = censusMembers.Where(m => m.IsOnline == true);
-
-            _membersOnlineMap.Add(alias, onlineMembers.ToList());
-
-            foreach (var member in censusMembers)
-            {
-                _outfitMap.Add(member.Id, alias);
-            }
-
-            _isMembersLoading.Remove(alias);
-
-            UpdateOutfitMembersOnlineCount(alias, onlineMembers.Count());
-
-            StateHasChanged();
         }
     }
 
