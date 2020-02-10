@@ -75,14 +75,19 @@
 
 </div>
 
-<div style="width: 55%; float: right; font-size: 10px; max-height: 500px; overflow-y: scroll;word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
+<div style="width: 55%; float: right; font-size: 10px; max-height: 550px; overflow-y: scroll;word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
     <h5>Status: @isStreamServiceEnabled.ToString() (@debug)</h5>
 
     @if (logTexts.Any())
     {
-        foreach (var log in logTexts.Reverse<MarkupString>())
+        foreach (var log in logTexts.Reverse<MarkupString>().Take(200))
         {
             <p style="font-size: 10.5px; margin: 0;">@log</p>
+        }
+
+        if (logTexts.Count() > 200)
+        {
+            <p style="font-size: 10.5px; margin: 0;">...max log entries reach (200 / @logTexts.Count)</p>
         }
     }
 
