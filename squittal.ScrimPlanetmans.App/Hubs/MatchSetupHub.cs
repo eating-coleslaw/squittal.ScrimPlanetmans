@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using squittal.ScrimPlanetmans.Hubs.Models;
 using System.Threading.Tasks;
 
 using System.Diagnostics;

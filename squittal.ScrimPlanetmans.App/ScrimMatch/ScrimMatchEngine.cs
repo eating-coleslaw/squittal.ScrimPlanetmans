@@ -27,6 +27,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private List<string> _allCharacterIds = new List<string>();
 
 
+        private int _roundSecondsMax = 900;
+        private int _roundSecondsRemaining;
+        private int _roundSecondsElapsed = 0;
+
         public ScrimMatchEngine(IScrimPlayersManager playersManager, IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, ILogger<ScrimMatchEngine> logger)
         {
             _playersManager = playersManager;
@@ -37,6 +41,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Team1 = _teamsManager.GetTeamOne();
             Team2 = _teamsManager.GetTeamTwo();
         }
+
+        public void InitializeNewRound()
+        {
+            _roundSecondsRemaining = _roundSecondsMax;
+            _roundSecondsElapsed = 0;
+
+        }
+
+
 
         public Task StartAsync(CancellationToken cancellationToken)
         {

@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
-using System.Diagnostics;
-using squittal.ScrimPlanetmans.Hubs.Models;
-
 namespace squittal.ScrimPlanetmans.Hubs
 {
     public class EventHub : Hub
