@@ -241,20 +241,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void SendTeamPlayerAddedMessage(Player player)
         {
-            var payload = new TeamPlayerChangeMessage(player);
-            payload.ChangeType = TeamPlayerChangeType.Add; // "Add";
+            var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+            //payload.ChangeType = TeamPlayerChangeType.Add;
 
             OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
 
-            //_logger.LogInformation($"Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
+            _logger.LogDebug($"{payload.Info}");
+            //_logger.LogDebug($"Sent TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
         }
 
         private void SendTeamPlayerRemovedMessage(Player player)
         {
-            var payload = new TeamPlayerChangeMessage(player);
-            payload.ChangeType = TeamPlayerChangeType.Remove; // "Remove";
+            var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Remove);
+            //payload.ChangeType = TeamPlayerChangeType.Remove;
 
             OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
+
+            _logger.LogDebug($"{payload.Info}");
 
             //_logger.LogInformation($"Sending TeamPlayerRemoved Message: {player.NameFull} [{player.Id}]");
 

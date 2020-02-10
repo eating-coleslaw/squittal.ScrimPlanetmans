@@ -1,10 +1,12 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using System;
 
 namespace squittal.ScrimPlanetmans.Hubs.Models
 {
     public class TeamPlayerChangeMessage
     {
         public Player Player { get; set; }
+
         public string PlayerId { get; set; }
         public string PlayerNameDisplay { get; set; }
         public bool IsOnline { get; set; }
@@ -14,14 +16,14 @@ namespace squittal.ScrimPlanetmans.Hubs.Models
         public string OutfitAlias { get; set; } = string.Empty;
         public string OutfitAliasLower { get; set; } = string.Empty;
 
-        //public string ChangeType { get; set; }
         public TeamPlayerChangeType ChangeType { get; set; }
 
-        public string Info { get; set; } = string.Empty;
+        public string Info { get => GetInfoMessage(); }
 
-        public TeamPlayerChangeMessage(Player player)
+        public TeamPlayerChangeMessage(Player player, TeamPlayerChangeType type)
         {
             Player = player;
+            ChangeType = type;
 
             PlayerId = player.Id;
             PlayerNameDisplay = player.NameDisplay;
@@ -32,14 +34,33 @@ namespace squittal.ScrimPlanetmans.Hubs.Models
             OutfitAlias = player.OutfitAlias;
             OutfitAliasLower = player.OutfitAliasLower;
         }
+
+        private string GetInfoMessage()
+        {
+            if (Player == null)
+            {
+                return string.Empty;
+            }
+
+            var type = ChangeType != TeamPlayerChangeType.Default
+                            ? Enum.GetName(typeof(TeamPlayerChangeType), ChangeType).ToUpper()
+                            : string.Empty;
+
+            var online = Player.IsOnline == true
+                            ? " ONLINE"
+                            : string.Empty;
+
+            return $"Team {Player.TeamOrdinal} {type}: {Player.NameDisplay} [{Player.Id}]{online}";
+        }
     }
 
     public enum TeamPlayerChangeType
     {
-        Add = 0,
-        Remove = 1,
-        SubstitueIn = 2,
-        SubstitueOut = 3,
-        SetActive = 4
+        Default = 0,
+        Add = 1,
+        Remove = 2,
+        SubstitueIn = 3,
+        SubstitueOut = 4,
+        SetActive = 5
     };
 }
