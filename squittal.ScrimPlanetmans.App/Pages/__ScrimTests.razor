@@ -383,6 +383,12 @@
 
                 var success = await ScrimTeamsManager.AddOutfitAliasToTeam(1, newAliasLower);
             }
+            else
+            {
+                _isAliasLoading.Remove(newAliasLower);
+
+                StateHasChanged();
+            }
         }
     }
 
