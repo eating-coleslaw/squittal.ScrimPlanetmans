@@ -13,7 +13,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     public class ScrimMatchEngine : IScrimMatchEngine
     {
         private readonly IScrimTeamsManager _teamsManager;
-        private readonly IScrimPlayersManager _playersManager;
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
@@ -33,9 +32,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private int _roundSecondsRemaining;
         private int _roundSecondsElapsed = 0;
 
-        public ScrimMatchEngine(IScrimPlayersManager playersManager, IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, ILogger<ScrimMatchEngine> logger)
+        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, ILogger<ScrimMatchEngine> logger)
         {
-            _playersManager = playersManager;
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
             _timer = timer;
@@ -91,7 +89,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void StartRound()
         {
-
+            _timer.Start();
         }
 
         
