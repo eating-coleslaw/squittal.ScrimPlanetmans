@@ -1,4 +1,6 @@
-﻿namespace squittal.ScrimPlanetmans.ScrimMatch.Models
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+
+namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 {
     public class MatchTimerTickMessage
     {
