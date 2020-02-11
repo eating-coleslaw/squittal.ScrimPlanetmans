@@ -10,6 +10,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public class StatefulTimer : IStatefulTimer
     {
+        public MatchTimerStatus Status { get => _status; }
+        
         private MatchTimerStatus _status;
 
         private int _secondsMax = 900;
@@ -30,24 +32,45 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
 
 
-        public StatefulTimer(TimeSpan timeSpan)
+        //public StatefulTimer(TimeSpan timeSpan)
+        //{
+        //    _secondsMax = (int)Math.Round((decimal)timeSpan.TotalSeconds, 0);
+
+        //    _status.SecondsMax = _secondsMax;
+
+        //    _status.State = MatchTimerState.Initialized;
+
+        //    // TODO: move Timer instantiation to the Start() method?
+        //    _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, 1000);
+        //}
+
+        public void Configure(TimeSpan timeSpan)
         {
+            _autoEvent.WaitOne();
+            if (!CanConfigureTimer())
+            {
+                _autoEvent.Set();
+                return;
+            }
+
+            _status.State = MatchTimerState.Configuring;
+            
             _secondsMax = (int)Math.Round((decimal)timeSpan.TotalSeconds, 0);
 
             _status.SecondsMax = _secondsMax;
 
-            _status.State = MatchTimerState.Initialized;
-
             // TODO: move Timer instantiation to the Start() method?
+            _timer?.Dispose(); // TODO: is this Dispose necessary?
             _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, 1000);
-        }
 
+            _status.State = MatchTimerState.Configured;
+        }
 
         public void Start()
         {
             // Ensure timer can only be started once
             _autoEvent.WaitOne();
-            if (_isRunning)
+            if (_isRunning || _status.State != MatchTimerState.Configured)
             {
                 _autoEvent.Set();
                 return;
@@ -193,35 +216,38 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool ShouldProcessTick()
         {
-            switch (_status.State)
+            return _status.State switch
             {
-                case MatchTimerState.Running:
-                    return true;
+                MatchTimerState.Running => true,
+                MatchTimerState.Starting => false,
+                MatchTimerState.Paused => false,
+                MatchTimerState.Stopping => false,
+                MatchTimerState.Stopped => false,
+                MatchTimerState.Halting => false,
+                MatchTimerState.Initialized => false,
+                MatchTimerState.Resuming => false,
+                MatchTimerState.Configuring => false,
+                MatchTimerState.Configured => false,
+                _ => false,
+            };
+        }
 
-                case MatchTimerState.Starting:
-                    return false;
-
-                case MatchTimerState.Paused:
-                    return false;
-
-                case MatchTimerState.Stopping:
-                    return false;
-
-                case MatchTimerState.Stopped:
-                    return false;
-
-                case MatchTimerState.Halting:
-                    return false;
-
-                case MatchTimerState.Initialized:
-                    return false;
-
-                case MatchTimerState.Resuming:
-                    return false;
-
-                default:
-                    return false;
-            }
+        private bool CanConfigureTimer()
+        {
+            return _status.State switch
+            {
+                MatchTimerState.Stopped => true,
+                MatchTimerState.Initialized => true,
+                MatchTimerState.Configured => true,
+                MatchTimerState.Running => false,
+                MatchTimerState.Starting => false,
+                MatchTimerState.Paused => false,
+                MatchTimerState.Stopping => false,
+                MatchTimerState.Halting => false,
+                MatchTimerState.Resuming => false,
+                MatchTimerState.Configuring => false,
+                _ => false,
+            };
         }
 
         protected virtual void OnRaiseMatchTimerTickEvent(MatchTimerTickEventArgs e)

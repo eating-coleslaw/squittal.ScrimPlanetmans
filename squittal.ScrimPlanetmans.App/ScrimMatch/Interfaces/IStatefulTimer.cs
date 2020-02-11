@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IStatefulTimer
     {
+        MatchTimerStatus Status { get; }
+
+        void Configure(TimeSpan timeSpan);
         void Start();
         void Pause();
         void Reset();
