@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusStream;
-using squittal.ScrimPlanetmans.Hubs;
-//using squittal.ScrimPlanetmans.Hubs.Models;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
@@ -21,8 +18,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimPlayersService _scrimPlayers;
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly IOutfitService _outfitService;
-        //private readonly IHubContext<MatchSetupHub> _hubContext;
-        private readonly IHubContext<EventHub> _hubContext;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
         private readonly Team Team1;
@@ -45,11 +40,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IHubContext<EventHub> hubContext, IOutfitService outfitService, ILogger<ScrimTeamsManager> logger)
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IOutfitService outfitService, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _wsMonitor = wsMonitor;
-            _hubContext = hubContext;
             _outfitService = outfitService;
             _logger = logger;
 

@@ -20,8 +20,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly IWebsocketEventHandler _handler;
         private readonly ILogger<WebsocketMonitor> _logger;
 
-        private readonly IHubContext<EventHub> _hubContext;
-
         private CensusHeartbeat _lastHeartbeat;
 
         public override string ServiceName => "CensusMonitor";
@@ -41,13 +39,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
             OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
         }
 
-        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, ILogger<WebsocketMonitor> logger, IHubContext<EventHub> hubContext)
+        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, ILogger<WebsocketMonitor> logger)
         {
             _client = censusStreamClient;
             _handler = handler;
             _logger = logger;
-
-            _hubContext = hubContext;
 
             _client.Subscribe(CreateSubscription())
                     .OnMessage(OnMessage)

@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using squittal.ScrimPlanetmans.App.Data;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
-using squittal.ScrimPlanetmans.Hubs;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
@@ -85,14 +83,6 @@ namespace squittal.ScrimPlanetmans.App
             {
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
-                endpoints.MapHub<EventHub>("/eventhub");
-            });
-
-            app.Use(async (context, next) =>
-            {
-                var hubContext = context.RequestServices
-                                        .GetRequiredService<IHubContext<EventHub>>();
-                await next();
             });
         }
     }
