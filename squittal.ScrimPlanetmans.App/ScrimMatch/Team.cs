@@ -87,6 +87,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        public bool TryAddOutfit(Outfit outfit)
+        {
+            if (ContainsOutfit(outfit.AliasLower))
+            {
+                return false;
+            }
+
+            Outfits.Add(outfit);
+            
+            return true;
+        }
+
         private void AddOutfitPlayersToTeam(Outfit outfit, IEnumerable<Character> characters)
         {
             var alias = outfit.Alias;
