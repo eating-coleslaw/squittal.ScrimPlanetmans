@@ -10,8 +10,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
 
         Team GetTeam(int teamOrdinal);
+        string GetTeamAliasDisplay(int teamOrdinal);
+
+
         Team GetTeamOne();
         Team GetTeamTwo();
+
+
         Player GetPlayerFromId(string characterId);
 
         void UpdateTeamAlias(int teamOrdinal, string alias);
@@ -19,8 +24,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void SubmitPlayersList();
 
         Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId);
-        Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string alias);
-        
+        Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string aliasLower, string alias);
+
+
         bool RemoveCharacterFromTeam(string characterId);
 
         bool IsCharacterAvailable(string characterId, out Team owningTeam);

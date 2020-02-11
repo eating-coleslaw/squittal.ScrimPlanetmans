@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
+using squittal.ScrimPlanetmans.Services.Planetside;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -19,6 +20,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         private readonly IScrimPlayersService _scrimPlayers;
         private readonly IWebsocketMonitor _wsMonitor;
+        private readonly IOutfitService _outfitService;
         //private readonly IHubContext<MatchSetupHub> _hubContext;
         private readonly IHubContext<EventHub> _hubContext;
         private readonly ILogger<ScrimTeamsManager> _logger;
@@ -32,6 +34,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly List<Player> _allPlayers = new List<Player>();
 
+        private string _defaultAliasPreText = "tm";
+
         //private Dictionary<string, int> _characterTeamOrdinalMap;
 
         public event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
@@ -40,23 +44,36 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IHubContext<EventHub> hubContext, ILogger<ScrimTeamsManager> logger)
+
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IHubContext<EventHub> hubContext, IOutfitService outfitService, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _wsMonitor = wsMonitor;
             _hubContext = hubContext;
+            _outfitService = outfitService;
             _logger = logger;
 
-            Team1 = new Team("tm1", "Team 1", 1);
+            Team1 = new Team($"{_defaultAliasPreText}1", "Team 1", 1);
             _ordinalTeamMap.Add(1, Team1);
 
-            Team2 = new Team("tm2", "Team 2", 2);
+            Team2 = new Team($"{_defaultAliasPreText}2", "Team 2", 2);
             _ordinalTeamMap.Add(2, Team2);
         }
 
         public Team GetTeam(int teamOrdinal)
         {
             return _ordinalTeamMap.GetValueOrDefault(teamOrdinal);
+        }
+
+        public string GetTeamAliasDisplay(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+            if (team == null)
+            {
+                return string.Empty;
+            }
+
+            return team.Alias;
         }
 
         public Team GetTeamOne()
@@ -77,6 +94,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.Alias = alias;
 
             _logger.LogInformation($"Alias for Team {teamOrdinal} changed from {oldAlias} to {alias}");
+
+            //TODO: add event for "Team X Alias Change"
         }
 
         public void SubmitPlayersList()
@@ -120,21 +139,46 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        public async Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string alias)
+        public async Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string aliasLower, string alias)
         {
-            if (!IsOutfitAvailable(alias, out Team owningTeam))
+            if (!IsOutfitAvailable(aliasLower, out Team owningTeam))
             {
                 return false;
             }
 
-            var players = await _scrimPlayers.GetPlayersFromOutfitAlias(alias);
+            /*
+             * Add Outfit to Team
+            */
+            var outfit = await _outfitService.GetOutfitByAlias(aliasLower);
+
+            if (outfit == null)
+            {
+                return false;
+            }
+
+            var team = _ordinalTeamMap[teamOrdinal];
+
+            if (!team.TryAddOutfit(outfit))
+            {
+                return false;
+            }
+
+            // If not yet set, set team alias to alias of the first outfit added to it
+            if (TeamOutfitCount(teamOrdinal) == 1 && team.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
+            {
+                UpdateTeamAlias(teamOrdinal, outfit.Alias);
+            }
+
+            /*
+             * Add Outfit Players to Team
+            */
+            var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
 
             if (players == null || !players.Any())
             {
                 return false;
             }
 
-            var team = _ordinalTeamMap[teamOrdinal];
             var anyPlayersAdded = false;
 
             //TODO: track which players were added and which weren't
@@ -154,8 +198,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersAdded = true;
                 }
             }
-
-
 
             return anyPlayersAdded;
         }
@@ -231,13 +273,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _allPlayers.FirstOrDefault(p => p.Id == characterId);
         }
 
-        private Team GetOtherTeamFromOrdinal(int initTeamOrdinal)
+        private int TeamOutfitCount(int teamOrdinal)
         {
-            return initTeamOrdinal == 1 ? _ordinalTeamMap[2] : _ordinalTeamMap[1];
+            if (_ordinalTeamMap.TryGetValue(teamOrdinal, out Team team))
+            {
+                return team.Outfits.Count();
+            }
+            else
+            {
+                return -1;
+            }
         }
-
-
         
+        private bool TeamContainsOutfits(int teamOrdinal)
+        {
+            return TeamOutfitCount(teamOrdinal) > 0;
+        }
 
         protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
         {

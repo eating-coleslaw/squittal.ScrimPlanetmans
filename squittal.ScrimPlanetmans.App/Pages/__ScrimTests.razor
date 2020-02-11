@@ -38,6 +38,8 @@
 
     @if (_teamOutfits1.Any())
     {
+        <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">Team 1: @_teamAliasDisplay1</p>
+
         foreach (var outfit in _teamOutfits1)
         {
             <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;"><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
@@ -132,6 +134,11 @@
     private List<MarkupString> logTexts { get; set; } = new List<MarkupString>();
 
 
+    private string _teamAliasDisplay1 = string.Empty;
+    private string _teamAliasDisplay2 = string.Empty;
+    private string _teamAliasDisplay3 = string.Empty;
+
+
     protected override async Task OnInitializedAsync()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.BaseUri);
@@ -146,8 +153,12 @@
 
         if (team1 != null)
         {
-            _teamOutfits1 = team1.Outfits;
+            //_teamOutfits1 = team1.Outfits;
+            _teamOutfits1.AddRange(team1.Outfits);
+
             _validOutfitAliasHistory = team1.Outfits.Select(o => o.AliasLower).ToList();
+
+            _teamAliasDisplay1 = team1.Alias;
 
             var players = team1.Players;
 
@@ -398,7 +409,9 @@
 
                 StateHasChanged();
 
-                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(teamOrdinal, newAliasLower);
+                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(teamOrdinal, newAliasLower, newAlias);
+
+                _teamAliasDisplay1 = ScrimTeamsManager.GetTeamAliasDisplay(teamOrdinal);
 
                 _isMembersLoading.Remove(newAliasLower);
 
