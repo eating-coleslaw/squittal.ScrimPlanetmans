@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
+﻿using Microsoft.Extensions.Logging;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public class StatefulTimer : IStatefulTimer
     {
-        public MatchTimerStatus Status { get => _status; }
-        
-        private MatchTimerStatus _status;
+        public MatchTimerStatus Status { get; }
 
         private int _secondsMax = 900;
         private int _secondsRemaining;
@@ -31,6 +30,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
 
+        private readonly ILogger<StatefulTimer> _logger;
+
+        public StatefulTimer(ILogger<StatefulTimer> logger)
+        {
+            _logger = logger;
+        }
 
         //public StatefulTimer(TimeSpan timeSpan)
         //{
@@ -53,30 +58,32 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            _status.State = MatchTimerState.Configuring;
+            Status.State = MatchTimerState.Configuring;
             
             _secondsMax = (int)Math.Round((decimal)timeSpan.TotalSeconds, 0);
 
-            _status.SecondsMax = _secondsMax;
+            Status.SecondsMax = _secondsMax;
 
             // TODO: move Timer instantiation to the Start() method?
             _timer?.Dispose(); // TODO: is this Dispose necessary?
             _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, 1000);
 
-            _status.State = MatchTimerState.Configured;
+            Status.State = MatchTimerState.Configured;
+
+            _logger.LogInformation($"Configured timer: {_secondsMax} seconds");
         }
 
         public void Start()
         {
             // Ensure timer can only be started once
             _autoEvent.WaitOne();
-            if (_isRunning || _status.State != MatchTimerState.Configured)
+            if (_isRunning || Status.State != MatchTimerState.Configured)
             {
                 _autoEvent.Set();
                 return;
             }
 
-            _status.State = MatchTimerState.Starting;
+            Status.State = MatchTimerState.Starting;
 
             // Don't think this is necessary; WaitOne() should already do a Reset  Reset to block other threads, just in case "Start Match" is double-clicked or something
             //_autoEvent.Reset();
@@ -86,7 +93,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Change(0, 1000);
 
             _isRunning = true;
-            _status.State = MatchTimerState.Running;
+            Status.State = MatchTimerState.Running;
             
             // TODO: broadcast a "MatchStateChange" of event of type "Started" here
 
@@ -98,7 +105,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             _autoEvent.WaitOne();
 
-            if (_status.State != MatchTimerState.Stopping)
+            if (Status.State != MatchTimerState.Stopping)
             {
                 _autoEvent.Set();
                 return;
@@ -108,9 +115,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Change(Timeout.Infinite, 1000);
 
             _isRunning = false;
-            _status.State = MatchTimerState.Stopped;
+            Status.State = MatchTimerState.Stopped;
 
-            var message = new MatchTimerTickMessage(_status);
+            var message = new MatchTimerTickMessage(Status);
             OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
 
             // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
@@ -121,7 +128,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void Pause()
         {
             _autoEvent.WaitOne();
-            if (_status.State != MatchTimerState.Running)
+            if (Status.State != MatchTimerState.Running)
             {
                 _autoEvent.Set();
                 return;
@@ -133,9 +140,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Change(Timeout.Infinite, 1000);
 
             _isRunning = false;
-            _status.State = MatchTimerState.Paused;
+            Status.State = MatchTimerState.Paused;
 
-            var message = new MatchTimerTickMessage(_status);
+            var message = new MatchTimerTickMessage(Status);
             OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
 
             // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
@@ -147,20 +154,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             // Ensure timer can only be started once
             _autoEvent.WaitOne();
-            if (_status.State != MatchTimerState.Paused)
+            if (Status.State != MatchTimerState.Paused)
             {
                 _autoEvent.Set();
                 return;
             }
 
-            _status.State = MatchTimerState.Resuming;
+            Status.State = MatchTimerState.Resuming;
 
             _timer.Change(_resumeDelayMs, 1000);
 
             _isRunning = true;
-            _status.State = MatchTimerState.Running;
+            Status.State = MatchTimerState.Running;
 
-            var message = new MatchTimerTickMessage(_status);
+            var message = new MatchTimerTickMessage(Status);
             OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
 
             // TODO: broadcast a "MatchStateChange" of event of type "Resumed" here
@@ -188,16 +195,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _prevTickTime = DateTime.UtcNow;
                 
                 Interlocked.Decrement(ref _secondsRemaining);
-                _status.SecondsRemaining = _secondsRemaining;
+                Status.SecondsRemaining = _secondsRemaining;
 
                 Interlocked.Increment(ref _secondsElapsed);
-                _status.SecondsElapsed = _secondsElapsed;
+                Status.SecondsElapsed = _secondsElapsed;
 
-                var message = new MatchTimerTickMessage(_status);
+                var message = new MatchTimerTickMessage(Status);
 
                 if (_secondsRemaining == 0)
                 {
-                    _status.State = MatchTimerState.Stopping;
+                    Status.State = MatchTimerState.Stopping;
 
                     // Signal the waiting thread. Only a thread waiting in Stop() should be able to do anything due to _status.State
                     _autoEvent.Set();
@@ -216,7 +223,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool ShouldProcessTick()
         {
-            return _status.State switch
+            return Status.State switch
             {
                 MatchTimerState.Running => true,
                 MatchTimerState.Starting => false,
@@ -234,7 +241,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool CanConfigureTimer()
         {
-            return _status.State switch
+            return Status.State switch
             {
                 MatchTimerState.Stopped => true,
                 MatchTimerState.Initialized => true,
