@@ -11,7 +11,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public class StatefulTimer : IStatefulTimer
     {
-        public MatchTimerStatus Status { get; }
+        //public MatchTimerStatus Status { get => _status; }
 
         private int _secondsMax = 900;
         private int _secondsRemaining;
@@ -32,9 +32,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly ILogger<StatefulTimer> _logger;
 
+        private MatchTimerStatus Status { get; set; } = new MatchTimerStatus();
+
         public StatefulTimer(ILogger<StatefulTimer> logger)
         {
             _logger = logger;
+            Status.State = MatchTimerState.Initialized;
         }
 
         //public StatefulTimer(TimeSpan timeSpan)
@@ -51,18 +54,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Configure(TimeSpan timeSpan)
         {
+            _logger.LogInformation($"Configuring timer");
+
             _autoEvent.WaitOne();
             if (!CanConfigureTimer())
             {
+                _logger.LogInformation($"Failed to configure timer: {Enum.GetName(typeof(MatchTimerState), Status.State)}");
+
                 _autoEvent.Set();
                 return;
             }
 
             Status.State = MatchTimerState.Configuring;
-            
+
             _secondsMax = (int)Math.Round((decimal)timeSpan.TotalSeconds, 0);
 
-            Status.SecondsMax = _secondsMax;
+            Status.ConfigureTimer(_secondsMax);
 
             // TODO: move Timer instantiation to the Start() method?
             _timer?.Dispose(); // TODO: is this Dispose necessary?
@@ -70,15 +77,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             Status.State = MatchTimerState.Configured;
 
-            _logger.LogInformation($"Configured timer: {_secondsMax} seconds");
+            _logger.LogInformation($"Configured timer: {_secondsMax} seconds | {Status.GetSecondsRemaining()} remaining | {Status.GetSecondsElapsed()} elapsed");
+            
+            // Signal the waiting thread
+            _autoEvent.Set();
         }
 
         public void Start()
         {
+            _logger.LogInformation($"Starting timer");
             // Ensure timer can only be started once
             _autoEvent.WaitOne();
             if (_isRunning || Status.State != MatchTimerState.Configured)
             {
+                _logger.LogInformation($"Failed to start timer: {_isRunning.ToString()} | {Enum.GetName(typeof(MatchTimerState), Status.State)}");
+
                 _autoEvent.Set();
                 return;
             }
@@ -94,11 +107,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _isRunning = true;
             Status.State = MatchTimerState.Running;
-            
+
             // TODO: broadcast a "MatchStateChange" of event of type "Started" here
+
+            _logger.LogInformation($"Started timer");
 
             // Signal the waiting thread
             _autoEvent.Set();
+
         }
 
         public void Stop()
@@ -188,17 +204,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void HandleTick(object stateInfo)
         {
+            _logger.LogDebug($"Handling timer tick");
+
             _autoEvent.WaitOne();
 
             if (ShouldProcessTick())
             {
                 _prevTickTime = DateTime.UtcNow;
-                
-                Interlocked.Decrement(ref _secondsRemaining);
-                Status.SecondsRemaining = _secondsRemaining;
 
-                Interlocked.Increment(ref _secondsElapsed);
-                Status.SecondsElapsed = _secondsElapsed;
+                _secondsRemaining = Status.DecrementRemaining();
+
+                _secondsElapsed = Status.IncrementElapsed();
+
+                //Interlocked.Decrement(ref _secondsRemaining);
+                //Status.SecondsRemaining = _secondsRemaining;
+
+                //Interlocked.Increment(ref _secondsElapsed);
+                //Status.SecondsElapsed = _secondsElapsed;
 
                 var message = new MatchTimerTickMessage(Status);
 

@@ -1,23 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
     public class MatchTimerStatus
     {
-        public int SecondsMax { get; set; }
-        public int SecondsRemaining { get; set; }
-        public int SecondsElapsed { get; set; }
+        //public int SecondsMax { get => _secondsMax; }
+
+        //public int SecondsRemaining { get => _secondsRemaining; }
+        //public int SecondsElapsed { get => _secondsElapsed; }
+
+        private int _secondsMax;
+        private int _secondsRemaining;
+        private int _secondsElapsed;
 
         public bool IsRunning { get; set; }
 
         public MatchTimerState State { get; set; }
 
-        public string TimeRemainingDisplay { get => GetDigitalDisplay(SecondsRemaining); }
-        public string TimeElapsedDisplay { get => GetDigitalDisplay(SecondsElapsed); }
+        public string TimeRemainingDisplay { get => GetDigitalDisplay(GetSecondsRemaining()); }
+        public string TimeElapsedDisplay { get => GetDigitalDisplay(GetSecondsElapsed()); }
 
+        public void ConfigureTimer(int secondsMax)
+        {
+            _secondsMax = secondsMax;
+            _secondsRemaining = _secondsMax;
+            _secondsElapsed = 0;
+        }
+
+        public int DecrementRemaining()
+        {
+            Interlocked.Decrement(ref _secondsRemaining);
+            return _secondsRemaining;
+        }
+
+        public int IncrementElapsed()
+        {
+            Interlocked.Increment(ref _secondsElapsed);
+            return _secondsElapsed;
+        }
+        
+        public int GetSecondsMax()
+        {
+            return _secondsMax;
+        }
+
+        public int GetSecondsRemaining()
+        {
+            return _secondsRemaining;
+        }
+
+        public int GetSecondsElapsed()
+        {
+            return _secondsElapsed;
+        }
 
         private string GetDigitalDisplay(int totalSeconds)
         {

@@ -1,11 +1,14 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IStatefulTimer
     {
-        MatchTimerStatus Status { get; }
+        event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
+
+        //MatchTimerStatus Status { get; }
 
         void Configure(TimeSpan timeSpan);
         void Start();

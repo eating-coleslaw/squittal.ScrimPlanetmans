@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Models.ScrimEngine;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +20,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly IStatefulTimer _timer;
 
-        public Team Team1;
-        public Team Team2;
+        //public Team Team1;
+        //public Team Team2;
 
         public MatchConfiguration MatchConfiguration;
 
@@ -27,10 +29,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private List<string> _allCharacterIds = new List<string>();
 
+        private bool _isRunning = false;
 
         private int _roundSecondsMax = 900;
         private int _roundSecondsRemaining;
-        private int _roundSecondsElapsed = 0;
+        private MatchTimerTickMessage _latestTimerTickMessage;
+
+        //private int _roundSecondsElapsed = 0;
+
+        public MatchTimerTickMessage GetLatestTimerTickMessage()
+        {
+            return _latestTimerTickMessage;
+        }
+
+        private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
+        {
+            _latestTimerTickMessage = value;
+        }
 
         public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, ILogger<ScrimMatchEngine> logger)
         {
@@ -39,8 +54,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer = timer;
             _logger = logger;
 
-            Team1 = _teamsManager.GetTeamOne();
-            Team2 = _teamsManager.GetTeamTwo();
+            _timer.RaiseMatchTimerTickEvent += OnMatchTimerTick;
+
+            //Team1 = _teamsManager.GetTeamOne();
+            //Team2 = _teamsManager.GetTeamTwo();
         }
 
         public void ClearMatch()
@@ -66,7 +83,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void InitializeNewRound()
         {
             _roundSecondsRemaining = _roundSecondsMax;
-            _roundSecondsElapsed = 0;
+            //_roundSecondsElapsed = 0;
 
             _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
 
@@ -92,6 +109,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Start();
         }
 
-        
+        private void OnMatchTimerTick(object sender, MatchTimerTickEventArgs e)
+        {
+            var message = e.Message;
+
+            SetLatestTimerTickMessage(e.Message);
+
+            var status = message.MatchTimerStatus;
+            var info = message.Info;
+
+            var state = status.State;
+
+            if (state == MatchTimerState.Stopped && _isRunning)
+            {
+                StartRound();
+                return;
+            }
+        }
+
+
     }
 }

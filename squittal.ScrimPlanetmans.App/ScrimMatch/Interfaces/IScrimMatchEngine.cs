@@ -1,4 +1,6 @@
-﻿namespace squittal.ScrimPlanetmans.ScrimMatch
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
+
+namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimMatchEngine
     {
@@ -11,5 +13,6 @@
         void EndRound();
         void ResetRound();
         void ClearMatch();
+        MatchTimerTickMessage GetLatestTimerTickMessage();
     }
 }

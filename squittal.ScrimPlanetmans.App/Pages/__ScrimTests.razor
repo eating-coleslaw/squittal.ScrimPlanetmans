@@ -12,14 +12,16 @@
 
 @inject squittal.ScrimPlanetmans.Services.WebsocketMonitorService _wsMonitor
 @inject squittal.ScrimPlanetmans.Services.PlanetsideDataService _planetside
-@inject ScrimTeamsManagerService _teamsManager
+@*@inject ScrimTeamsManagerService _teamsManager*@
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor  WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IStatefulTimer  MatchTimer
 
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
-@inject squittal.ScrimPlanetmans.Services.ScrimMatch.ScrimTeamsManagerService _teamsManager
+@*@inject squittal.ScrimPlanetmans.Services.ScrimMatch.ScrimTeamsManagerService _teamsManager*@
 
 @inject NavigationManager NavigationManager
 
@@ -75,10 +77,14 @@
     <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
     <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
 
+    <button class="btn btn-primary" @onclick="StartMatch">START MATCH!</button>
+
 </div>
 
 <div style="width: 55%; float: right; font-size: 10px; max-height: 550px; overflow-y: scroll;word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
     <h5>Status: @isStreamServiceEnabled.ToString() (@debug)</h5>
+
+    <p>@_clock (@_clockStatusDisplay)</p>
 
     @if (logTexts.Any())
     {
@@ -133,6 +139,15 @@
 
     private List<MarkupString> logTexts { get; set; } = new List<MarkupString>();
 
+    private string _clock = "--:--";
+    private MatchTimerState _clockStatus = MatchTimerState.Uninitialized;
+    private string _clockStatusDisplay
+    {
+        get
+        {
+            return Enum.GetName(typeof(MatchTimerState), _clockStatus);
+        }
+    }
 
     private string _teamAliasDisplay1 = string.Empty;
     private string _teamAliasDisplay2 = string.Empty;
@@ -148,6 +163,14 @@
         ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
         WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        MatchTimer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
+
+        var prevTick = ScrimMatchEngine.GetLatestTimerTickMessage();
+        if (prevTick != null)
+        {
+            _clock = prevTick.MatchTimerStatus.TimeRemainingDisplay;
+        }
 
         var team1 = ScrimTeamsManager.GetTeamOne();
 
@@ -349,6 +372,24 @@
         return jMsg;
     }
 
+    private void ReceiveMatchTimerTickEvent(object sender, MatchTimerTickEventArgs e)
+    {
+        var message = e.Message;
+
+        var status = message.MatchTimerStatus;
+        var info = message.Info;
+
+        var state = status.State;
+
+        _clock = status.TimeRemainingDisplay;
+        _clockStatus = state;
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
     private async Task GetCensusStreamStatus()
     {
         var status = await _wsMonitor.GetStatus();
@@ -379,6 +420,12 @@
         _subscribedOutfitsHistory.Clear();
         debug = "EndCensusSubscription";
         StateHasChanged();
+    }
+
+    private void StartMatch()
+    {
+        ScrimMatchEngine.InitializeNewRound();
+        ScrimMatchEngine.StartRound();
     }
 
     private async void HandleValidOutfitAliasSubmit(int teamOrdinal)
