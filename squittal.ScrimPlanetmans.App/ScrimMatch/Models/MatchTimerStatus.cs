@@ -59,6 +59,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         Stopped = 5,
         Halting = 6,
         Initialized = 7,
-        Resuming = 8
+        Resuming = 8,
+        Configuring = 9,
+        Configured = 10
     };
 }
