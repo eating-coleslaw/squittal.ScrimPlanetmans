@@ -52,6 +52,9 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimTeamsManager, ScrimTeamsManager>();
             services.AddSingleton<IScrimPlayersService, ScrimPlayersService>();
 
+            services.AddSingleton<IStatefulTimer, StatefulTimer>(); // TODO: should/can this be Transient?
+            services.AddSingleton<IScrimMatchEngine, ScrimMatchEngine>();
+
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();
 

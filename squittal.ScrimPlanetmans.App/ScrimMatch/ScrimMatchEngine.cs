@@ -10,12 +10,14 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
-    public class ScrimMatchEngine : IHostedService
+    public class ScrimMatchEngine : IScrimMatchEngine
     {
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IScrimPlayersManager _playersManager;
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly ILogger<ScrimMatchEngine> _logger;
+
+        private readonly IStatefulTimer _timer;
 
         public Team Team1;
         public Team Team2;
@@ -31,15 +33,36 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private int _roundSecondsRemaining;
         private int _roundSecondsElapsed = 0;
 
-        public ScrimMatchEngine(IScrimPlayersManager playersManager, IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, ILogger<ScrimMatchEngine> logger)
+        public ScrimMatchEngine(IScrimPlayersManager playersManager, IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, ILogger<ScrimMatchEngine> logger)
         {
             _playersManager = playersManager;
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
+            _timer = timer;
             _logger = logger;
 
             Team1 = _teamsManager.GetTeamOne();
             Team2 = _teamsManager.GetTeamTwo();
+        }
+
+        public void ClearMatch()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ConfigureMatch()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void EndRound()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InitializeNewMatch()
+        {
+            throw new NotImplementedException();
         }
 
         public void InitializeNewRound()
@@ -47,20 +70,28 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _roundSecondsRemaining = _roundSecondsMax;
             _roundSecondsElapsed = 0;
 
+            _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
+
         }
 
-
-
-        public Task StartAsync(CancellationToken cancellationToken)
+        public void PauseRound()
         {
-            _logger.LogInformation("Starting Scrim Match Engine");
-            return Task.CompletedTask;
+            throw new NotImplementedException();
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public void ResetRound()
         {
-            _logger.LogInformation("Stopping Scrim Match Engine");
-            return Task.CompletedTask;
+            throw new NotImplementedException();
+        }
+
+        public void ResumeRound()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StartRound()
+        {
+
         }
 
         
