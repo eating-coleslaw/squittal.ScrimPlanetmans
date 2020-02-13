@@ -1,0 +1,64 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Events;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@inject IStatefulTimer  Timer
+@inject IScrimMatchEngine ScrimMatchEngine
+
+<p>@_clock (@_clockStatusDisplay)</p>
+
+@if (_playSound)
+{
+    <audio autoplay><source src="/resources/buzzer1.wav" /></audio>
+}
+
+@code {
+    private string _clock = "--:--";
+    private MatchTimerState _clockStatus = MatchTimerState.Uninitialized;
+    private string _clockStatusDisplay
+    {
+        get
+        {
+            return Enum.GetName(typeof(MatchTimerState), _clockStatus);
+        }
+    }
+
+    bool _playSound = false;
+    bool _playedSound = false;
+    bool _canPlaySound = false;
+
+    protected override void OnInitialized()
+    {
+        _canPlaySound = false;
+
+        Timer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
+
+        var prevTick = ScrimMatchEngine.GetLatestTimerTickMessage();
+        if (prevTick != null)
+        {
+            _clock = prevTick.MatchTimerStatus.TimeRemainingDisplay;
+        }
+
+        _canPlaySound = true;
+    }
+
+    private void ReceiveMatchTimerTickEvent(object sender, MatchTimerTickEventArgs e)
+    {
+        _playSound = (!_playedSound && _canPlaySound) ? true : false;
+        _playedSound = true;
+
+        var message = e.Message;
+
+        var status = message.MatchTimerStatus;
+        var info = message.Info;
+
+        var state = status.State;
+
+        _clock = status.TimeRemainingDisplay;
+        _clockStatus = state;
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}
