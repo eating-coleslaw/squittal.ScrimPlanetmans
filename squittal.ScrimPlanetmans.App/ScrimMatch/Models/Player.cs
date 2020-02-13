@@ -1,7 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System;
-using System.Text.Json.Serialization;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
@@ -12,7 +11,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         //public Team Team { get; set; }
         public int TeamOrdinal { get; set; }
 
-        public ScrimEventAggregate EventAggregate = new ScrimEventAggregate();
+        public ScrimEventAggregate EventAggregate;
 
         public string NameFull { get; set; }
         public string NameDisplay { get; set; }
@@ -38,6 +37,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitId = character.OutfitId;
             OutfitAlias = character.OutfitAlias;
             OutfitAliasLower = character.OutfitAliasLower;
+
+            EventAggregate = new ScrimEventAggregate();
         }
 
         private static string GetTrimmedPlayerName(string name)

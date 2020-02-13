@@ -78,6 +78,17 @@
 
     <button class="btn btn-primary" @onclick="StartMatch">START MATCH!</button>
 
+    @if (_participatingPlayers.Any())
+    {
+        <div style="display: block;">
+            @foreach (var player in _participatingPlayers)
+            {
+                <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">@player.NameDisplay | Kills: @player.EventAggregate.Kills | Deaths: @player.EventAggregate.Deaths</p>
+            }
+        </div>
+    }
+    
+
 </div>
 
 <div style="width: 55%; float: right; font-size: 10px; max-height: 550px; overflow-y: scroll;word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
@@ -121,6 +132,8 @@
 
     private List<Player> _outfitPlayers = new List<Player>();
     private List<Player> _outfitOnlinePlayers = new List<Player>();
+
+    private List<Player> _participatingPlayers = new List<Player>();
     /* END PLAYER */
 
 
@@ -165,6 +178,8 @@
 
         WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
+        ScrimTeamsManager.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+
         //MatchTimer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
 
         //var prevTick = ScrimMatchEngine.GetLatestTimerTickMessage();
@@ -204,7 +219,31 @@
             }
         }
 
+        _participatingPlayers = ScrimTeamsManager.GetParticipatingPlayers().ToList();
+
         await GetCensusStreamStatus();
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        debug = "ReceivePlayerStatUpdateMessage";
+
+        var message = e.Message;
+        var player = message.Player;
+
+        if (!_participatingPlayers.Any(p => p.Id == player.Id))
+        {
+            _participatingPlayers.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+
+        var text = message.Info;
+
+        LogMessage(text);
     }
 
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
@@ -401,16 +440,19 @@
 
     private void SubscribeToCensus()
     {
-        foreach (var alias in _validOutfitAliasHistory)
-        {
-            if (_isMembersLoading.Contains(alias) || _subscribedOutfitsHistory.Contains(alias))
-            {
-                continue;
-            }
-            WebsocketMonitor.AddCharacterSubscriptions(_outfitPlayers.Where(p => p.OutfitAliasLower == alias.ToLower()).Select(p => p.Id).ToList()); // _membersMap[alias].Select(m => m.Id).ToList());
+        ScrimMatchEngine.SubmitPlayersList();
 
-            _subscribedOutfitsHistory.Add(alias);
-        }
+        //foreach (var alias in _validOutfitAliasHistory)
+        //{
+        //    if (_isMembersLoading.Contains(alias) || _subscribedOutfitsHistory.Contains(alias))
+        //    {
+        //        continue;
+        //    }
+        //    WebsocketMonitor.AddCharacterSubscriptions(_outfitPlayers.Where(p => p.OutfitAliasLower == alias.ToLower()).Select(p => p.Id).ToList()); // _membersMap[alias].Select(m => m.Id).ToList());
+
+        //    _subscribedOutfitsHistory.Add(alias);
+        //}
+
         debug = "SubscribeToCensus";
         StateHasChanged();
     }

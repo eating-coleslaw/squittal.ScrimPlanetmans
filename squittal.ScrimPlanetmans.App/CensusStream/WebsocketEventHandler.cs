@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
+using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
@@ -24,6 +25,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
     {
         //private readonly IDbContextHelper _dbContextHelper;
         private readonly ICharacterService _characterService;
+        //private readonly IScrimTeamsManager _teamsManager;
+        private readonly IScrimMatchScorer _scorer;
         private readonly ILogger<WebsocketEventHandler> _logger;
         private readonly Dictionary<string, MethodInfo> _processMethods;
 
@@ -38,10 +41,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
         });
 
-        public WebsocketEventHandler(/*IDbContextHelper dbContextHelper,*/ ICharacterService characterService, ILogger<WebsocketEventHandler> logger)
+        public WebsocketEventHandler(/*IScrimTeamsManager teamsManager, */ICharacterService characterService, IScrimMatchScorer scorer, ILogger<WebsocketEventHandler> logger)
         {
             //_dbContextHelper = dbContextHelper;
+            //_teamsManager = teamsManager;
             _characterService = characterService;
+            _scorer = scorer;
             _logger = logger;
 
             // Credit to Voidwell @ Lampjaw
@@ -100,101 +105,120 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<Death> Process(DeathPayload payload)
         {
-            //using (var factory = _dbContextHelper.GetFactory())
+            string attackerId = payload.AttackerCharacterId;
+            string victimId = payload.CharacterId;
+
+            bool isValidAttackerId = (attackerId != null && attackerId.Length > 18);
+            bool isValidVictimId = (victimId != null && victimId.Length > 18);
+
+            //bool attackerIsTracked = (isValidAttackerId && _teamsManager.IsPlayerTracked(attackerId));
+            //bool victimIsTracked = (isValidVictimId && _teamsManager.IsPlayerTracked(victimId));
+
+            //if (!attackerIsTracked && !victimIsTracked)
             //{
-            //    var dbContext = factory.GetDbContext();
+            //    return null;
+            //}
 
-                bool isValidAttackerId = (payload.AttackerCharacterId != null && payload.AttackerCharacterId.Length > 18);
-                bool isValidVictimId = (payload.CharacterId != null && payload.CharacterId.Length > 18);
+            try
+            {
+                var TaskList = new List<Task>();
+                Task<OutfitMember> attackerOutfitTask = null;
+                Task<OutfitMember> victimOutfitTask = null;
 
-                try
+                //int? attackerTeamOrdinal;
+                //int? victimTeamOrdinal;
+
+                if (isValidAttackerId == true)
                 {
-                    var TaskList = new List<Task>();
-                    Task<OutfitMember> attackerOutfitTask = null;
-                    Task<OutfitMember> victimOutfitTask = null;
+                    attackerOutfitTask = _characterService.GetCharacterOutfitAsync(attackerId);
+                    TaskList.Add(attackerOutfitTask);
 
-                    if (isValidAttackerId == true)
-                    {
-                        //attackerOutfitTask = _characterService.GetCharactersOutfitAsync(payload.AttackerCharacterId);
-                        attackerOutfitTask = _characterService.GetCharacterOutfitAsync(payload.AttackerCharacterId);
-                        TaskList.Add(attackerOutfitTask);
-                    }
-                    if (isValidVictimId == true)
-                    {
-                        //victimOutfitTask = _characterService.GetCharactersOutfitAsync(payload.CharacterId);
-                        victimOutfitTask = _characterService.GetCharacterOutfitAsync(payload.CharacterId);
-                        TaskList.Add(victimOutfitTask);
-                    }
+                    //if (isValidAttackerId)
+                    //{
+                    //    attackerTeamOrdinal = _teamsManager.GetTeamOrdinalFromPlayerId(attackerId);
+                    //}
+                }
 
-                    await Task.WhenAll(TaskList);
-                    TaskList.Clear();
+                if (isValidVictimId == true)
+                {
+                    victimOutfitTask = _characterService.GetCharacterOutfitAsync(victimId);
+                    TaskList.Add(victimOutfitTask);
 
-                    int attackerFactionId = attackerOutfitTask.Result.FactionId;
-                    int victimFactionId = victimOutfitTask.Result.FactionId;
+                    //if (victimIsTracked)
+                    //{
+                    //    victimTeamOrdinal = _teamsManager.GetTeamOrdinalFromPlayerId(victimId);
+                    //}
+                }
 
-                    //int attackerFactionId = await dbContext.Characters
-                    //                                    .Where(c => c.Id == payload.AttackerCharacterId)
-                    //                                    .Select(c => c.FactionId)
-                    //                                    .FirstOrDefaultAsync();
+                await Task.WhenAll(TaskList);
+                TaskList.Clear();
 
-                    //int victimFactionId = await dbContext.Characters
-                    //                                    .Where(c => c.Id == payload.CharacterId)
-                    //                                    .Select(c => c.FactionId)
-                    //                                    .FirstOrDefaultAsync();
+                int attackerFactionId = attackerOutfitTask.Result.FactionId;
+                int victimFactionId = victimOutfitTask.Result.FactionId;
 
-                    DeathEventType deathEventType;
+                //bool onSameTeam = _teamsManager.DoPlayersShareTeam(attackerId, victimId, out int? attackerTeamOrdinal, out int? victimTeamOrdinal);
 
-                    if (isValidAttackerId == true)
-                    {
-                        if (payload.AttackerCharacterId == payload.CharacterId)
-                        {
-                            deathEventType = DeathEventType.Suicide;
-                        }
-                        else if (attackerFactionId == victimFactionId)
-                        {
-                            deathEventType = DeathEventType.Teamkill;
-                        }
-                        else
-                        {
-                            deathEventType = DeathEventType.Kill;
-                        }
-                    }
-                    else
+                DeathEventType deathEventType;
+
+                if (isValidAttackerId == true)
+                {
+                    if (attackerId == victimId)
                     {
                         deathEventType = DeathEventType.Suicide;
                     }
-
-                    var dataModel = new Death
+                    //else if (onSameTeam)
+                    //{
+                    //    deathEventType = DeathEventType.Teamkill;
+                    //}
+                    else if (attackerFactionId == victimFactionId)
                     {
-                        AttackerCharacterId = payload.AttackerCharacterId,
-                        AttackerFireModeId = payload.AttackerFireModeId,
-                        AttackerLoadoutId = payload.AttackerLoadoutId,
-                        AttackerVehicleId = payload.AttackerVehicleId,
-                        AttackerWeaponId = payload.AttackerWeaponId,
-                        AttackerOutfitId = attackerOutfitTask?.Result?.OutfitId,
-                        AttackerFactionId = attackerFactionId,
-                        CharacterId = payload.CharacterId,
-                        CharacterLoadoutId = payload.CharacterLoadoutId,
-                        CharacterOutfitId = victimOutfitTask?.Result?.OutfitId,
-                        CharacterFactionId = victimFactionId,
-                        IsHeadshot = payload.IsHeadshot,
-                        DeathEventType = deathEventType,
-                        Timestamp = payload.Timestamp,
-                        WorldId = payload.WorldId,
-                        ZoneId = payload.ZoneId.Value
-                    };
-
-                    return dataModel;
-
-                    //dbContext.Deaths.Add(dataModel);
-                    //await dbContext.SaveChangesAsync();
+                        deathEventType = DeathEventType.Teamkill;
+                    }
+                    else
+                    {
+                        deathEventType = DeathEventType.Kill;
+                    }
                 }
-                catch (Exception)
+                else
                 {
-                    //Ignore
-                    return null;
+                    deathEventType = DeathEventType.Suicide;
+                    attackerId = victimId;
                 }
-            //}
+
+                var dataModel = new Death
+                {
+                    AttackerCharacterId = attackerId,
+                    AttackerFireModeId = payload.AttackerFireModeId,
+                    AttackerLoadoutId = payload.AttackerLoadoutId,
+                    AttackerVehicleId = payload.AttackerVehicleId,
+                    AttackerWeaponId = payload.AttackerWeaponId,
+                    //AttackerOutfitId = attackerOutfitTask?.Result?.OutfitId,
+                    //AttackerTeamOrdinal = attackerTeamOrdinal,
+                    AttackerFactionId = attackerFactionId,
+                    CharacterId = victimId,
+                    CharacterLoadoutId = payload.CharacterLoadoutId,
+                    //CharacterOutfitId = victimOutfitTask?.Result?.OutfitId,
+                    //CharacterTeamOrdinal = victimTeamOrdinal,
+                    CharacterFactionId = victimFactionId,
+                    IsHeadshot = payload.IsHeadshot,
+                    DeathEventType = deathEventType,
+                    Timestamp = payload.Timestamp,
+                    WorldId = payload.WorldId,
+                    ZoneId = payload.ZoneId.Value
+                };
+
+                _scorer.ScoreDeathEvent(dataModel);
+
+                return dataModel;
+
+                //dbContext.Deaths.Add(dataModel);
+                //await dbContext.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                //Ignore
+                return null;
+            }
         }
 
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]

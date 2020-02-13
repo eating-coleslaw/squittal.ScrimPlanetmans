@@ -14,5 +14,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void ResetRound();
         void ClearMatch();
         MatchTimerTickMessage GetLatestTimerTickMessage();
+        void SubmitPlayersList();
     }
 }

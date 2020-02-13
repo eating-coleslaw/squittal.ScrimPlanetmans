@@ -10,13 +10,14 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using squittal.ScrimPlanetmans.Shared.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public class ScrimTeamsManager : IScrimTeamsManager, IDisposable
     {
         private readonly IScrimPlayersService _scrimPlayers;
-        private readonly IWebsocketMonitor _wsMonitor;
+        //private readonly IWebsocketMonitor _wsMonitor;
         private readonly IOutfitService _outfitService;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
@@ -29,6 +30,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly List<Player> _allPlayers = new List<Player>();
 
+        private readonly List<Player> _participatingPlayers = new List<Player>();
+
         private string _defaultAliasPreText = "tm";
 
         //private Dictionary<string, int> _characterTeamOrdinalMap;
@@ -39,11 +42,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
+        public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
+        public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IWebsocketMonitor wsMonitor, IOutfitService outfitService, ILogger<ScrimTeamsManager> logger)
+
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, /*IWebsocketMonitor wsMonitor, */IOutfitService outfitService, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
-            _wsMonitor = wsMonitor;
+            //_wsMonitor = wsMonitor;
             _outfitService = outfitService;
             _logger = logger;
 
@@ -80,6 +86,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return Team2;
         }
 
+        public IEnumerable<string> GetAllPlayerIds()
+        {
+            return _allCharacterIds;
+        }
+
+        public IEnumerable<Player> GetParticipatingPlayers()
+        {
+            return _participatingPlayers;
+        }
+
         public void UpdateTeamAlias(int teamOrdinal, string alias)
         {
             var team = _ordinalTeamMap[teamOrdinal];
@@ -92,10 +108,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //TODO: add event for "Team X Alias Change"
         }
 
-        public void SubmitPlayersList()
-        {
-            _wsMonitor.AddCharacterSubscriptions(_allCharacterIds);
-        }
+        //public void SubmitPlayersList()
+        //{
+        //    _wsMonitor.AddCharacterSubscriptions(_allCharacterIds);
+        //}
 
         // Returns whether specified character was added to the specified team
         public async Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId)
@@ -262,9 +278,37 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        public bool IsPlayerTracked(string characterId)
+        {
+            return _allCharacterIds.Contains(characterId);
+        }
+
         public Player GetPlayerFromId(string characterId)
         {
             return _allPlayers.FirstOrDefault(p => p.Id == characterId);
+        }
+
+        public int? GetTeamOrdinalFromPlayerId(string characterId)
+        {
+            var player = _allPlayers.FirstOrDefault(p => p.Id == characterId);
+            if (player == null)
+            {
+                return null;
+            }
+            return player.TeamOrdinal;
+        }
+
+        public bool DoPlayersShareTeam(string firstId, string secondId, out int? firstOrdinal, out int? secondOrdinal)
+        {
+            firstOrdinal = GetTeamOrdinalFromPlayerId(firstId);
+            secondOrdinal = GetTeamOrdinalFromPlayerId(secondId);
+
+            if (firstOrdinal == null || secondOrdinal == null)
+            {
+                return false;
+            }
+
+            return firstOrdinal == secondOrdinal;
         }
 
         private int TeamOutfitCount(int teamOrdinal)
@@ -279,6 +323,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
         
+        public void UpdatePlayerStats(string characterId, ScrimEventAggregate updates)
+        {
+            var player = GetPlayerFromId(characterId);
+
+            player.EventAggregate.Add(updates);
+
+            if (!_participatingPlayers.Any(p => p.Id == player.Id))
+            {
+                _participatingPlayers.Add(player);
+            }
+
+            SendPlayerStatUpdateMessage(player);
+
+            var teamStats = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId)).EventAggregate;
+
+            teamStats.Add(updates);
+
+
+
+            // TODO: broadcast Player stats update
+            // TODO: broadcast Team stats update
+        }
+
         private bool TeamContainsOutfits(int teamOrdinal)
         {
             return TeamOutfitCount(teamOrdinal) > 0;
@@ -315,6 +382,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             //await _hubContext.Clients.All.SendAsync("ReceiveTeamPlayerChangeMessage", message);
             //await _hubContext.Clients.All.SendAsync("ReceiveMessage", $"Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
+        }
+
+        protected virtual void OnRaisePlayerStatUpdateEvent(PlayerStatUpdateEventArgs e)
+        {
+            RaisePlayerStatUpdateEvent?.Invoke(this, e);
+        }
+
+        private void SendPlayerStatUpdateMessage(Player player)
+        {
+            var payload = new PlayerStatUpdateMessage(player);
+
+            OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(payload));
+
+            _logger.LogDebug($"{payload.Info}");
         }
 
         protected virtual void OnRaiseSimpleMessageChangeEvent(SimpleMessageEventArgs e)

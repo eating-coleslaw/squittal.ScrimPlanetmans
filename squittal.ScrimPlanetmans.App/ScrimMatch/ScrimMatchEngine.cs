@@ -109,6 +109,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Start();
         }
 
+        public void SubmitPlayersList()
+        {
+            _wsMonitor.AddCharacterSubscriptions(_teamsManager.GetAllPlayerIds());
+        }
+
         private void OnMatchTimerTick(object sender, MatchTimerTickEventArgs e)
         {
             var message = e.Message;

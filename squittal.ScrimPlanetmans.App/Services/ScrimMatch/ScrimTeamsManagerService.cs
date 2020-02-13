@@ -31,10 +31,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             _teamsManager.UpdateTeamAlias(teamOrdinal, alias);
         }
 
-        public void SubmitPlayersList()
-        {
-            _teamsManager.SubmitPlayersList();
-        }
+        //public void SubmitPlayersList()
+        //{
+        //    _teamsManager.SubmitPlayersList();
+        //}
 
         public async Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId)
         {

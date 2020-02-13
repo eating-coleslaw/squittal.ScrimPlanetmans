@@ -27,8 +27,11 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside.Events
         // Non-census stream properties
         public int? CharacterFactionId { get; set; }
         public string CharacterOutfitId { get; set; }
+        public int? CharacterTeamOrdinal { get; set; }
         public int? AttackerFactionId { get; set; }
         public string AttackerOutfitId { get; set; }
+        public int? AttackerTeamOrdinal { get; set; }
+
         public DeathEventType DeathEventType { get; set; }
 
         // Navigation Properties
