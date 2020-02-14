@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
@@ -13,11 +14,13 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusZone _censusZone;
+        private readonly ILogger<ZoneService> _logger;
 
-        public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone)
+        public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone, ILogger<ZoneService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusZone = censusZone;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<Zone>> GetAllZonesAsync()
@@ -85,6 +88,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                     }
 
                     await dbContext.SaveChangesAsync();
+
+                    _logger.LogInformation($"Refreshed Zones store");
                 }
             }
         }

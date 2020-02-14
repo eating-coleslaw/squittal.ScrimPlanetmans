@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
@@ -15,15 +16,17 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusItemCategory _censusItemCategory;
         private readonly CensusItem _censusItem;
+        private readonly ILogger<ItemService> _logger;
 
         private List<Item> _items = new List<Item>();
         private List<ItemCategory> _itemCategories = new List<ItemCategory>();
 
-        public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem)
+        public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem, ILogger<ItemService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusItemCategory = censusItemCategory;
             _censusItem = censusItem;
+            _logger = logger;
         }
 
         public async Task<Item> GetItem(int itemId)
@@ -126,6 +129,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             if (itemCategories != null)
             {
                 await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
+
+                _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
             }
 
             var items = await _censusItem.GetAllItems();
@@ -133,6 +138,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             if (items != null)
             {
                 await UpsertRangeAsync(items.Select(ConvertToDbModel));
+
+                _logger.LogInformation($"Refreshed Items store: {itemCategories.Count()} entries");
             }
         }
         

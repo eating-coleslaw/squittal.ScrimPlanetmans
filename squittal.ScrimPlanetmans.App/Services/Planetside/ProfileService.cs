@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
@@ -16,16 +17,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusProfile _censusProfile;
         private readonly CensusLoadout _censusLoadout;
+        private readonly ILogger<ProfileService> _logger;
 
         private Dictionary<int, Profile> _loadoutMapping = new Dictionary<int, Profile>();
 
         private readonly SemaphoreSlim _loadoutSemaphore = new SemaphoreSlim(1);
 
-        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, CensusLoadout censusLoadout)
+        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, CensusLoadout censusLoadout, ILogger<ProfileService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusProfile = censusProfile;
             _censusLoadout = censusLoadout;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<Profile>> GetAllProfilesAsync()
@@ -136,6 +139,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             if (censusProfiles != null)
             {
                 await UpsertRangeAsync(censusProfiles.Select(ConvertToDbModel));
+
+                _logger.LogInformation($"Refreshed Profiles store");
             }
 
             var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
@@ -148,6 +153,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
 
                 await UpsertRangeAsync(allLoadouts.AsEnumerable().Select(ConvertToDbModel));
+
+                _logger.LogInformation($"Refreshed Loadouts store");
             }
         }
 

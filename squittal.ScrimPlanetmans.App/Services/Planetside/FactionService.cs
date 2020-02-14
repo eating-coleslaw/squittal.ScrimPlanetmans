@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
@@ -13,11 +14,13 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusFaction _censusFaction;
+        private readonly ILogger<FactionService> _logger;
 
-        public FactionService(IDbContextHelper dbContextHelper, CensusFaction censusFaction)
+        public FactionService(IDbContextHelper dbContextHelper, CensusFaction censusFaction, ILogger<FactionService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusFaction = censusFaction;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<Faction>> GetAllFactionsAsync()
@@ -85,6 +88,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                     }
 
                     await dbContext.SaveChangesAsync();
+
+                    _logger.LogInformation($"Refreshed Factions store");
                 }
             }
         }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
@@ -13,11 +14,13 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusWorld _censusWorld;
+        private readonly ILogger<ProfileService> _logger;
 
-        public WorldService(IDbContextHelper dbContextHelper, CensusWorld censusWorld)
+        public WorldService(IDbContextHelper dbContextHelper, CensusWorld censusWorld, ILogger<ProfileService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusWorld = censusWorld;
+            _logger = logger;
         }
 
 
@@ -87,6 +90,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                     }
 
                     await dbContext.SaveChangesAsync();
+
+                    _logger.LogInformation($"Refreshed Worlds store;");
                 }
             }
         }
