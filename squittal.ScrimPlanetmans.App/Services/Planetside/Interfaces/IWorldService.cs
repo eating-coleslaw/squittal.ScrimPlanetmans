@@ -8,6 +8,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         Task<IEnumerable<World>> GetAllWorldsAsync();
         Task<World> GetWorldAsync(int worldId);
-        //Task RefreshStore();
+        Task RefreshStore();
     }
 }

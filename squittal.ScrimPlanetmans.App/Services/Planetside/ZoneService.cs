@@ -1,23 +1,22 @@
-﻿using squittal.ScrimPlanetmans.CensusServices;
+﻿using Microsoft.EntityFrameworkCore;
+using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
+using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
-
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class ZoneService : IZoneService
     {
-        //private readonly IDbContextHelper _dbContextHelper;
+        private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusZone _censusZone;
 
-        public ZoneService(/*IDbContextHelper dbContextHelper,*/ CensusZone censusZone)
+        public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone)
         {
-            //_dbContextHelper = dbContextHelper;
+            _dbContextHelper = dbContextHelper;
             _censusZone = censusZone;
         }
 
@@ -49,7 +48,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return Zones.FirstOrDefault(e => e.Id == ZoneId);
         }
 
-        /*
         public async Task RefreshStore()
         {
             var result = new List<Zone>();
@@ -90,7 +88,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
             }
         }
-        */
 
         public static Zone ConvertToDbModel(CensusZoneModel censusModel)
         {

@@ -10,6 +10,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         Task<IEnumerable<Loadout>> GetAllLoadoutsAsync();
         Task<Profile> GetProfileFromLoadoutIdAsync(int loadoutId);
         Task<Dictionary<int, Profile>> GetLoadoutMapping();
-        //Task RefreshStore();
+        Task RefreshStore();
     }
 }

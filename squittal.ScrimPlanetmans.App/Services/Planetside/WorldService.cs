@@ -4,20 +4,19 @@ using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
+using squittal.ScrimPlanetmans.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class WorldService : IWorldService
     {
-        //private readonly IDbContextHelper _dbContextHelper;
+        private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusWorld _censusWorld;
 
-        public WorldService(/*IDbContextHelper dbContextHelper,*/ CensusWorld censusWorld)
+        public WorldService(IDbContextHelper dbContextHelper, CensusWorld censusWorld)
         {
-            //_dbContextHelper = dbContextHelper;
+            _dbContextHelper = dbContextHelper;
             _censusWorld = censusWorld;
         }
 
@@ -51,7 +50,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return worlds.FirstOrDefault(e => e.Id == worldId);
         }
 
-        /*
         public async Task RefreshStore()
         {
             var result = new List<World>();
@@ -92,7 +90,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
             }
         }
-        */
 
         public static World ConvertToDbModel(CensusWorldModel censusModel)
         {

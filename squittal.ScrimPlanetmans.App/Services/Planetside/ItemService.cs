@@ -1,27 +1,27 @@
-﻿using squittal.ScrimPlanetmans.CensusServices;
+﻿using Microsoft.EntityFrameworkCore;
+using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
+using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class ItemService : IItemService
     {
-        //private readonly IDbContextHelper _dbContextHelper;
+        private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusItemCategory _censusItemCategory;
         private readonly CensusItem _censusItem;
 
         private List<Item> _items = new List<Item>();
         private List<ItemCategory> _itemCategories = new List<ItemCategory>();
 
-        public ItemService(/*IDbContextHelper dbContextHelper,*/ CensusItemCategory censusItemCategory, CensusItem censusItem)
+        public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem)
         {
-            //_dbContextHelper = dbContextHelper;
+            _dbContextHelper = dbContextHelper;
             _censusItemCategory = censusItemCategory;
             _censusItem = censusItem;
         }
@@ -95,7 +95,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        /*
+        
         public async Task RefreshStore()
         {
             bool refreshStore = true;
@@ -135,9 +135,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(items.Select(ConvertToDbModel));
             }
         }
-        */
-
-        /*
+        
         private async Task UpsertRangeAsync(IEnumerable<Item> censusEntities)
         {
             var createdEntities = new List<Item>();
@@ -170,9 +168,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await dbContext.SaveChangesAsync();
             }
         }
-        */
-
-        /*
+        
         private async Task UpsertRangeAsync(IEnumerable<ItemCategory> censusEntities)
         {
             var createdEntities = new List<ItemCategory>();
@@ -205,7 +201,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await dbContext.SaveChangesAsync();
             }
         }
-        */
+        
         private static Item ConvertToDbModel(CensusItemModel item)
         {
             return new Item

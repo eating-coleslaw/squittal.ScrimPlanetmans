@@ -8,6 +8,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         Task<Item> GetItem(int itemId);
         Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId);
-        //Task RefreshStore();
+        Task RefreshStore();
     }
 }

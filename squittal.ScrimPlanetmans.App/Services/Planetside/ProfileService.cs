@@ -1,5 +1,7 @@
-﻿using squittal.ScrimPlanetmans.CensusServices;
+﻿using Microsoft.EntityFrameworkCore;
+using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
+using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System;
 using System.Collections.Generic;
@@ -7,14 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
-
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class ProfileService : IProfileService, IDisposable
     {
-        //private readonly IDbContextHelper _dbContextHelper;
+        private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusProfile _censusProfile;
         private readonly CensusLoadout _censusLoadout;
 
@@ -22,9 +21,9 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private readonly SemaphoreSlim _loadoutSemaphore = new SemaphoreSlim(1);
 
-        public ProfileService(/*IDbContextHelper dbContextHelper,*/ CensusProfile censusProfile, CensusLoadout censusLoadout)
+        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, CensusLoadout censusLoadout)
         {
-            //_dbContextHelper = dbContextHelper;
+            _dbContextHelper = dbContextHelper;
             _censusProfile = censusProfile;
             _censusLoadout = censusLoadout;
         }
@@ -130,7 +129,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        /*
         public async Task RefreshStore()
         {
             var censusProfiles = await _censusProfile.GetAllProfilesAsync();
@@ -152,9 +150,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(allLoadouts.AsEnumerable().Select(ConvertToDbModel));
             }
         }
-        */
 
-        /*
         private async Task UpsertRangeAsync(IEnumerable<Profile> censusEntities)
         {
             var createdEntities = new List<Profile>();
@@ -187,9 +183,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await dbContext.SaveChangesAsync();
             }
         }
-        */
 
-        /*
         private async Task UpsertRangeAsync(IEnumerable<Loadout> censusEntities)
         {
             var createdEntities = new List<Loadout>();
@@ -222,7 +216,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await dbContext.SaveChangesAsync();
             }
         }
-        */
 
         private Loadout ConvertToDbModel(CensusLoadoutModel censusModel)
         {

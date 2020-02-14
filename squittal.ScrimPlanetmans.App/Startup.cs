@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using squittal.ScrimPlanetmans.App.Data;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
+using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
@@ -32,9 +34,14 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSignalR();
 
+            services.AddDbContext<PlanetmansDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("PlanetmansDbContext")));
+
             services.AddCensusServices(options =>
                 options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
             services.AddCensusHelpers();
+
+            services.AddSingleton<IDbContextHelper, DbContextHelper>();
 
             services.AddTransient<IFactionService, FactionService>();
             services.AddTransient<IItemService, ItemService>();
@@ -56,11 +63,14 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimMatchEngine, ScrimMatchEngine>();
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
 
+            services.AddSingleton<IDbSeeder, DbSeeder>();
+
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();
 
             services.AddHostedService<WebsocketMonitorHostedService>();
-            
+            services.AddHostedService<DbSeederHostedService>();
+
             services.AddSingleton<WeatherForecastService>();
         }
 

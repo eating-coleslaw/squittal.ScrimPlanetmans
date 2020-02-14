@@ -8,6 +8,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         Task<IEnumerable<Zone>> GetAllZonesAsync();
         Task<Zone> GetZoneAsync(int zoneId);
-        //Task RefreshStore();
+        Task RefreshStore();
     }
 }

@@ -1,23 +1,22 @@
-﻿using squittal.ScrimPlanetmans.CensusServices;
+﻿using Microsoft.EntityFrameworkCore;
+using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
+using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
-
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class FactionService : IFactionService
     {
-        //private readonly IDbContextHelper _dbContextHelper;
+        private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusFaction _censusFaction;
 
-        public FactionService(/*IDbContextHelper dbContextHelper,*/ CensusFaction censusFaction)
+        public FactionService(IDbContextHelper dbContextHelper, CensusFaction censusFaction)
         {
-            //_dbContextHelper = dbContextHelper;
+            _dbContextHelper = dbContextHelper;
             _censusFaction = censusFaction;
         }
 
@@ -50,7 +49,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return factions.FirstOrDefault(f => f.Id == factionId);
         }
 
-        /*
         public async Task RefreshStore()
         {
             var createdEntities = new List<Faction>();
@@ -90,7 +88,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
             }
         }
-        */
 
         public static Faction ConvertToDbModel(CensusFactionModel censusModel)
         {
