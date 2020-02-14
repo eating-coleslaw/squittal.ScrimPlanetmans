@@ -19,6 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimPlayersService _scrimPlayers;
         //private readonly IWebsocketMonitor _wsMonitor;
         private readonly IOutfitService _outfitService;
+        private readonly IFactionService _factionService;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
         private readonly Team Team1;
@@ -46,11 +47,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, /*IWebsocketMonitor wsMonitor, */IOutfitService outfitService, ILogger<ScrimTeamsManager> logger)
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
-            //_wsMonitor = wsMonitor;
             _outfitService = outfitService;
+            _factionService = factionService;
             _logger = logger;
 
             Team1 = new Team($"{_defaultAliasPreText}1", "Team 1", 1);
@@ -96,6 +97,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _participatingPlayers;
         }
 
+        private void UpdateTeamFaction(int teamOrdinal, int? factionId)
+        {
+            var team = GetTeam(teamOrdinal);
+            var oldFactionId = team.FactionId;
+
+            team.FactionId = factionId;
+
+            var abbrev = factionId == null ? "null" : _factionService.GetFactionAbbrevFromId((int)factionId);
+
+            var oldAbbrev = oldFactionId == null ? "null" : _factionService.GetFactionAbbrevFromId((int)oldFactionId);
+
+            _logger.LogInformation($"Faction for Team {teamOrdinal} changed from {oldAbbrev} to {abbrev}");
+        }
+
         public void UpdateTeamAlias(int teamOrdinal, string alias)
         {
             var team = _ordinalTeamMap[teamOrdinal];
@@ -128,7 +143,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            var team = _ordinalTeamMap[teamOrdinal];
+            var team = GetTeam(teamOrdinal);
 
             //player.Team = team;
             player.TeamOrdinal = team.TeamOrdinal;
@@ -138,6 +153,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 _allCharacterIds.Add(characterId);
                 _allPlayers.Add(player);
+
+                if (team.FactionId == null)
+                {
+                    UpdateTeamFaction(teamOrdinal, player.FactionId);
+                }
 
                 SendTeamPlayerAddedMessage(player);
 
@@ -177,6 +197,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             if (TeamOutfitCount(teamOrdinal) == 1 && team.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
             {
                 UpdateTeamAlias(teamOrdinal, outfit.Alias);
+            }
+
+            if (team.FactionId == null && outfit.FactionId != null)
+            {
+                UpdateTeamFaction(teamOrdinal, outfit.FactionId);
             }
 
             /*
@@ -221,12 +246,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            var team = _ordinalTeamMap[player.TeamOrdinal]; // player.Team;
+            var team = GetTeam(player.TeamOrdinal); // player.Team;
 
             if(team.TryRemovePlayer(characterId))
             {
                 _allCharacterIds.RemoveAll(id => id == characterId);
                 _allPlayers.RemoveAll(p => p.Id == characterId);
+
+                if (!team.Players.Any())
+                {
+                    UpdateTeamFaction(player.TeamOrdinal, null);
+                }
 
                 SendTeamPlayerRemovedMessage(player);
 

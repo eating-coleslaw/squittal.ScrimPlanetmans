@@ -7,6 +7,7 @@
 @using Newtonsoft.Json.Linq;
 @using System.Diagnostics;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.CensusStream;
 
@@ -14,9 +15,11 @@
 @inject squittal.ScrimPlanetmans.Services.PlanetsideDataService _planetside
 
 @inject IScrimTeamsManager ScrimTeamsManager
-@inject IWebsocketMonitor  WebsocketMonitor
+@inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchEngine ScrimMatchEngine
-@inject IStatefulTimer  MatchTimer
+@inject IStatefulTimer MatchTimer
+@inject IWorldService WorldService
+@inject IFactionService FactionService
 
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
@@ -43,7 +46,7 @@
 
         foreach (var outfit in _teamOutfits1)
         {
-            <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;"><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) - w<span>@outfit.WorldId</span> - f<span>@outfit.FactionId</span></p>
+            <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;"><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span> <span>@FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span></p>
 
             @if (_isMembersLoading.Contains(outfit.AliasLower) && (_outfitOnlinePlayers == null || !_outfitOnlinePlayers.Any(p => p.OutfitId == outfit.Id)))
             {
@@ -115,6 +118,9 @@
 
 @code {
     private OutfitAlias _inputAlias1 = new OutfitAlias();
+
+    private IEnumerable<World> _worlds; // = new List<World>();
+    private Team team1;
 
     /* CHARACTER */
     private Dictionary<string, List<Character>> _membersMap = new Dictionary<string, List<Character>>();
@@ -188,7 +194,9 @@
         //    _clock = prevTick.MatchTimerStatus.TimeRemainingDisplay;
         //}
 
-        var team1 = ScrimTeamsManager.GetTeamOne();
+        _worlds = await WorldService.GetAllWorldsAsync();
+
+        team1 = ScrimTeamsManager.GetTeamOne();
 
         if (team1 != null)
         {
@@ -214,7 +222,10 @@
 
             foreach (var outfit in _teamOutfits1)
             {
-                var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - w{outfit.WorldId} - f{outfit.FactionId}";
+                var world = _worlds.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault();
+                var faction = FactionService.GetFactionAbbrevFromId((int)outfit.FactionId);
+                
+                var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - {world} - {faction}";
                 LogMessage(message);
             }
         }

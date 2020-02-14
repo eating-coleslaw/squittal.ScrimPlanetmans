@@ -1,11 +1,8 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
-using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -14,7 +11,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public string Alias { get; set; } //first seed team, or a custom value
         public string NameInternal { get; set; } //team1 or team2
         public int TeamOrdinal { get; private set; } //1 or 2
-        public int FactionId { get; set; }
+        public int? FactionId { get; set; }
 
         public ScrimEventAggregate EventAggregate { get; set; }
 
