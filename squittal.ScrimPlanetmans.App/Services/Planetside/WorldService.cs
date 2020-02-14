@@ -26,25 +26,25 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<World>> GetAllWorldsAsync()
         {
-            var worlds = await _censusWorld.GetAllWorlds();
+            //var worlds = await _censusWorld.GetAllWorlds();
 
-            if (worlds == null)
-            {
-                return null;
-            }
+            //if (worlds == null)
+            //{
+            //    return null;
+            //}
 
-            var censusEntities = worlds.Select(ConvertToDbModel);
+            //var censusEntities = worlds.Select(ConvertToDbModel);
 
-            return censusEntities.ToList();
+            //return censusEntities.ToList();
 
-            /*
+
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
 
                 return await dbContext.Worlds.ToListAsync();
             }
-            */
+
         }
 
         public async Task<World> GetWorldAsync(int worldId)

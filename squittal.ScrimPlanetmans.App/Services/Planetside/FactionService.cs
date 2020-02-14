@@ -25,31 +25,42 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Faction>> GetAllFactionsAsync()
         {
-            var factions = await _censusFaction.GetAllFactions();
+            //var factions = await _censusFaction.GetAllFactions();
 
-            if (factions == null)
-            {
-                return null;
-            }
+            //if (factions == null)
+            //{
+            //    return null;
+            //}
 
-            var censusEntities = factions.Select(ConvertToDbModel);
-            
-            return censusEntities;
+            //var censusEntities = factions.Select(ConvertToDbModel);
 
-            /*
+            //return censusEntities;
+
+
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
 
                 return await dbContext.Factions.ToListAsync();
             }
-            */
+
         }
 
         public async Task<Faction> GetFactionAsync(int factionId)
         {
             var factions = await GetAllFactionsAsync();
             return factions.FirstOrDefault(f => f.Id == factionId);
+        }
+
+        public string GetFactionAbbrevFromId(int factionId)
+        {
+            return factionId switch
+            {
+                1 => "VS",
+                2 => "NC",
+                3 => "TR",
+                _ => "NSO",
+            };
         }
 
         public async Task RefreshStore()
