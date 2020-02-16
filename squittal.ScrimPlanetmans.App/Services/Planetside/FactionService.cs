@@ -59,7 +59,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 1 => "VS",
                 2 => "NC",
                 3 => "TR",
-                _ => "NSO",
+                4 => "NSO",
+                _ => string.Empty
             };
         }
 
