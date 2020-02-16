@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
-    public class ScrimActionRule
+    public class ScrimActionModel
     {
         [Required]
         public ScrimAction Action { get; set; }

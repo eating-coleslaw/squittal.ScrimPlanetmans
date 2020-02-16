@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.Services.Planetside;
+﻿using squittal.ScrimPlanetmans.ScrimMatch;
+using squittal.ScrimPlanetmans.Services.Planetside;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +13,15 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IItemService _itemService;
         private readonly IZoneService _zoneService;
         private readonly IProfileService _profileService;
+        private readonly IScrimRulesetManager _rulesetManager;
 
         public DbSeeder(
             IWorldService worldService,
             IFactionService factionService,
             IItemService itemService,
             IZoneService zoneService,
-            IProfileService profileService
+            IProfileService profileService,
+            IScrimRulesetManager rulesetManager
         )
         {
             _worldService = worldService;
@@ -26,6 +29,7 @@ namespace squittal.ScrimPlanetmans.Data
             _itemService = itemService;
             _zoneService = zoneService;
             _profileService = profileService;
+            _rulesetManager = rulesetManager;
         }
 
         public async Task OnApplicationStartup(CancellationToken cancellationToken)
@@ -47,6 +51,9 @@ namespace squittal.ScrimPlanetmans.Data
 
             Task profileTask = _profileService.RefreshStore();
             TaskList.Add(profileTask);
+
+            Task scrimActionTask = _rulesetManager.SeedScrimActionModels();
+            TaskList.Add(scrimActionTask);
 
             await Task.WhenAll(TaskList);
         }

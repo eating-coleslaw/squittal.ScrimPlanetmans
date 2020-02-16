@@ -47,6 +47,8 @@ namespace squittal.ScrimPlanetmans.App
             services.AddTransient<IItemService, ItemService>();
             services.AddTransient<IZoneService, ZoneService>();
 
+            services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
+
             services.AddSingleton<IWorldService, WorldService>();
             services.AddSingleton<ICharacterService, CharacterService>();
             services.AddSingleton<IOutfitService, OutfitService>();

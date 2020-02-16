@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using squittal.ScrimPlanetmans.Data.DataConfigurations;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.Data
@@ -30,6 +31,10 @@ namespace squittal.ScrimPlanetmans.Data
         //public DbSet<PlayerLogout> PlayerLogouts { get; set; }
         #endregion
 
+        #region Scrim Match DbSets
+        public DbSet<ScrimActionModel> ScrimActions { get; set; }
+        #endregion
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -51,6 +56,10 @@ namespace squittal.ScrimPlanetmans.Data
             //builder.ApplyConfiguration(new DeathConfiguration());
             //builder.ApplyConfiguration(new PlayerLoginConfiguration());
             //builder.ApplyConfiguration(new PlayerLogoutConfiguration());
+            #endregion
+
+            #region Scrim Match DbSets
+            builder.ApplyConfiguration(new ScrimActionModelConfiguration());
             #endregion
         }
     }
