@@ -19,71 +19,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ItemCategoryRule", b =>
-                {
-                    b.Property<int>("RulesetId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ItemCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ScrimRulesetId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RulesetId", "ItemCategoryId");
-
-                    b.HasIndex("ScrimRulesetId");
-
-                    b.ToTable("ItemCategoryRule");
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimActionModel", b =>
-                {
-                    b.Property<int>("Action")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Action");
-
-                    b.ToTable("ScrimAction");
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimActionPoints", b =>
-                {
-                    b.Property<int>("RulesetId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Action")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ActionModelAction")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ScrimRulesetId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RulesetId", "Action");
-
-                    b.HasIndex("ActionModelAction");
-
-                    b.HasIndex("ScrimRulesetId");
-
-                    b.ToTable("ScrimActionPoints");
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimRuleset", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -102,7 +38,60 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ScrimRuleset");
+                    b.ToTable("Ruleset");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetActionRule", b =>
+                {
+                    b.Property<int>("RulesetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScrimActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("RulesetId", "ScrimActionType");
+
+                    b.ToTable("RulesetActionRule");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemCategoryRule", b =>
+                {
+                    b.Property<int>("RulesetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("RulesetId", "ItemCategoryId");
+
+                    b.ToTable("RulesetItemCategoryRule");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimAction", b =>
+                {
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Action");
+
+                    b.ToTable("ScrimAction");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.Faction", b =>
@@ -250,22 +239,22 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("Zone");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ItemCategoryRule", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetActionRule", b =>
                 {
-                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimRuleset", null)
-                        .WithMany("ItemCategoryRules")
-                        .HasForeignKey("ScrimRulesetId");
+                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
+                        .WithMany("ActionRules")
+                        .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimActionPoints", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemCategoryRule", b =>
                 {
-                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimActionModel", "ActionModel")
-                        .WithMany()
-                        .HasForeignKey("ActionModelAction");
-
-                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimRuleset", null)
-                        .WithMany("ActionRules")
-                        .HasForeignKey("ScrimRulesetId");
+                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
+                        .WithMany("ItemCategoryRules")
+                        .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
