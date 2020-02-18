@@ -55,6 +55,9 @@ namespace squittal.ScrimPlanetmans.Data
             Task scrimActionTask = _rulesetManager.SeedScrimActionModels();
             TaskList.Add(scrimActionTask);
 
+            Task defaultRulesetTask = _rulesetManager.SeedDefaultRuleset();
+            TaskList.Add(defaultRulesetTask);
+
             await Task.WhenAll(TaskList);
         }
 

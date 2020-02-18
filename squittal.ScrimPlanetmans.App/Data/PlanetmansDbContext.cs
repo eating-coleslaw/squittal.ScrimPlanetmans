@@ -34,7 +34,7 @@ namespace squittal.ScrimPlanetmans.Data
         #region Scrim Match DbSets
         public DbSet<ScrimAction> ScrimActions { get; set; }
         public DbSet<Ruleset> Rulesets { get; set; }
-        public DbSet<RulesetActionRule> RulesetActionRule { get; set; }
+        public DbSet<RulesetActionRule> RulesetActionRules { get; set; }
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         #endregion
 

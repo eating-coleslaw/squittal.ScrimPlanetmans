@@ -17,8 +17,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public DateTime? DateLastModified { get; set; }
         
-        public IEnumerable<RulesetItemCategoryRule> ItemCategoryRules { get; set; }
-        public IEnumerable<RulesetActionRule> ActionRules { get; set; }
+        public ICollection<RulesetItemCategoryRule> ItemCategoryRules { get; set; }
+        public ICollection<RulesetActionRule> ActionRules { get; set; }
 
     }
 }

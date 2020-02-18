@@ -85,6 +85,15 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             */
         }
 
+        public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.ItemCategories.Select(ic => ic.Id).ToListAsync();
+        }
+
+
         private async Task SetUpItemsListAsync()
         {
             if (_items == null || _items.Count == 0)

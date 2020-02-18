@@ -7,6 +7,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     public interface IItemService
     {
         Task<Item> GetItem(int itemId);
+        Task<IEnumerable<int>> GetItemCategoryIdsAsync();
         Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId);
         Task RefreshStore();
     }

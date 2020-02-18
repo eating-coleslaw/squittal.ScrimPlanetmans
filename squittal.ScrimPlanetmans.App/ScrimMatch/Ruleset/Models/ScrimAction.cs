@@ -8,7 +8,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public ScrimActionType Action { get; set; }
 
         [Required]
-        public string Name { get; set; } //=> Enum.GetName(typeof(ScrimAction), Action);
+        public string Name { get; set; }
         
         public string Description { get; set; }
 
