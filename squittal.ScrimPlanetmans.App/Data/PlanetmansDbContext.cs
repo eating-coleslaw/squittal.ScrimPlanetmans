@@ -32,7 +32,10 @@ namespace squittal.ScrimPlanetmans.Data
         #endregion
 
         #region Scrim Match DbSets
-        public DbSet<ScrimActionModel> ScrimActions { get; set; }
+        public DbSet<ScrimAction> ScrimActions { get; set; }
+        public DbSet<Ruleset> Rulesets { get; set; }
+        public DbSet<RulesetActionRule> RulesetActionRule { get; set; }
+        public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -59,7 +62,10 @@ namespace squittal.ScrimPlanetmans.Data
             #endregion
 
             #region Scrim Match DbSets
-            builder.ApplyConfiguration(new ScrimActionModelConfiguration());
+            builder.ApplyConfiguration(new ScrimActionConfiguration());
+            builder.ApplyConfiguration(new RulesetConfiguration());
+            builder.ApplyConfiguration(new RulesetActionRuleConfiguration());
+            builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
             #endregion
         }
     }

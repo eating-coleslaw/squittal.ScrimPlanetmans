@@ -4,9 +4,9 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 {
-    public class ScrimActionModelConfiguration : IEntityTypeConfiguration<ScrimActionModel>
+    public class ScrimActionConfiguration : IEntityTypeConfiguration<ScrimAction>
     {
-        public void Configure(EntityTypeBuilder<ScrimActionModel> builder)
+        public void Configure(EntityTypeBuilder<ScrimAction> builder)
         {
             builder.ToTable("ScrimAction");
 

@@ -8,19 +8,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
     public interface IScrimRulesetService
     {
-        Task<ScrimRuleset> GetRulesetFromId(int id);
-        Task<ScrimRuleset> GetRulesetFromName(string name);
-        Task<ScrimRuleset> GetLatestRuleset();
+        Task<Ruleset> GetRulesetFromId(int id);
+        Task<Ruleset> GetRulesetFromName(string name);
+        Task<Ruleset> GetLatestRuleset();
 
-        Task<ScrimRuleset> GetDefaultRuleset();
+        Task<Ruleset> GetDefaultRuleset();
 
         Task<IEnumerable<int>> GetAllRulesetIds();
         Task<IEnumerable<string>> GetAllRulesetNames();
 
-        Task SaveRuleset(ScrimRuleset ruleset);
+        Task SaveRuleset(Ruleset ruleset);
 
-        Task SaveActionRule(ScrimActionRulePoints rule);
-        Task SaveItemCategoryRule(ItemCategoryRule rule);
+        Task SaveActionRule(RulesetActionRule rule);
+        Task SaveItemCategoryRule(RulesetItemCategoryRule rule);
 
         Task RefreshStore();
     }

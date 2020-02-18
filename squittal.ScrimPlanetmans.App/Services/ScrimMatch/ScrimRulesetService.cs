@@ -26,22 +26,22 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             throw new NotImplementedException();
         }
 
-        public Task<ScrimRuleset> GetDefaultRuleset()
+        public Task<Ruleset> GetDefaultRuleset()
         {
             throw new NotImplementedException();
         }
 
-        public Task<ScrimRuleset> GetLatestRuleset()
+        public Task<Ruleset> GetLatestRuleset()
         {
             throw new NotImplementedException();
         }
 
-        public Task<ScrimRuleset> GetRulesetFromId(int id)
+        public Task<Ruleset> GetRulesetFromId(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ScrimRuleset> GetRulesetFromName(string name)
+        public Task<Ruleset> GetRulesetFromName(string name)
         {
             throw new NotImplementedException();
         }
@@ -51,17 +51,17 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             throw new NotImplementedException();
         }
 
-        public Task SaveActionRule(ScrimActionRulePoints rule)
+        public Task SaveActionRule(RulesetActionRule rule)
         {
             throw new NotImplementedException();
         }
 
-        public Task SaveItemCategoryRule(ItemCategoryRule rule)
+        public Task SaveItemCategoryRule(RulesetItemCategoryRule rule)
         {
             throw new NotImplementedException();
         }
 
-        public Task SaveRuleset(ScrimRuleset ruleset)
+        public Task SaveRuleset(Ruleset ruleset)
         {
             throw new NotImplementedException();
         }

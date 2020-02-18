@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
-    public class ScrimActionModel
+    public class ScrimAction
     {
         [Required]
-        public ScrimAction Action { get; set; }
+        public ScrimActionType Action { get; set; }
 
         [Required]
         public string Name { get; set; } //=> Enum.GetName(typeof(ScrimAction), Action);
@@ -15,7 +15,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
     }
 
-    public enum ScrimAction
+    public enum ScrimActionType
     {
         // Objectives: 10-19
         FirstBaseCapture = 10,

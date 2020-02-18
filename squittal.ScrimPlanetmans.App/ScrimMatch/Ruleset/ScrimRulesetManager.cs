@@ -15,7 +15,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IDbContextHelper _dbContextHelper;
         public ILogger<ScrimRulesetManager> _logger;
 
-        private ScrimRuleset _workingRuleset;
+        private Ruleset _workingRuleset;
 
         public ScrimRulesetManager(IDbContextHelper dbContextHelper, ILogger<ScrimRulesetManager> logger)
         {
@@ -25,7 +25,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void InitializeNewRuleset()
         {
-            _workingRuleset = new ScrimRuleset
+            _workingRuleset = new Ruleset
             {
                 Name = "Untitled_Ruleset"
             };
@@ -37,15 +37,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             throw new NotImplementedException();
         }
 
+        //public async Task SeedDefaultRuleset()
+        //{
+        //    using (var factory = _dbContextHelper.GetFactory())
+        //    {
+        //        var dbContext = factory.GetDbContext();
+
+        //        var storeEntity = factory.ScrimRulesets.FirstOrDefaultAsync(r => r.Id == 0 && r.Name)
+        //    }
+        //}
+
         public async Task SeedScrimActionModels()
         {
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
 
-                var createdEntities = new List<ScrimActionModel>();
+                var createdEntities = new List<ScrimAction>();
 
-                var enumValues = (ScrimAction[])Enum.GetValues(typeof(ScrimAction));
+                var enumValues = (ScrimActionType[])Enum.GetValues(typeof(ScrimActionType));
 
                 var storeEntities = await dbContext.ScrimActions.ToListAsync();
 
@@ -74,11 +84,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private ScrimActionModel ConvertToDbModel(ScrimAction value)
+        private ScrimAction ConvertToDbModel(ScrimActionType value)
         {
-            var name = Enum.GetName(typeof(ScrimAction), value);
+            var name = Enum.GetName(typeof(ScrimActionType), value);
 
-            return new ScrimActionModel
+            return new ScrimAction
             {
                 Action = value,
                 Name = name,
