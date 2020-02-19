@@ -69,6 +69,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 var storeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == defaultRulesetId);
 
+                bool rulesetExistsInDb = false;
+
                 var storeActionRules = new List<RulesetActionRule>();
                 var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
 
@@ -77,6 +79,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
                     
                     storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+
+                    rulesetExistsInDb = true;
                 }
                 else
                 {
@@ -88,11 +92,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         DateCreated = utcNow
                     };
 
-                    dbContext.Rulesets.Add(newRuleset);
+                    //dbContext.Rulesets.Add(newRuleset);
 
                     //await dbContext.SaveChangesAsync();
 
-                    newRuleset.Id = defaultRulesetId;
+                    //newRuleset.Id = defaultRulesetId;
                     storeRuleset = newRuleset;
                 }
 
@@ -180,7 +184,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 storeRuleset.ActionRules = allActionRules; // await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
                 storeRuleset.ItemCategoryRules = allItemCategoryRules; // await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
-                dbContext.Rulesets.Update(storeRuleset);
+                if (rulesetExistsInDb)
+                {
+                    dbContext.Rulesets.Update(storeRuleset);
+                }
+                else
+                {
+                    dbContext.Rulesets.Add(storeRuleset);
+                }
 
                 await dbContext.SaveChangesAsync();
             }
