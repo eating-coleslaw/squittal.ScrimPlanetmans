@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using squittal.ScrimPlanetmans.Shared.Models;
 using System.Linq;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
+using squittal.ScrimPlanetmans.Models;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
@@ -264,13 +265,23 @@ namespace squittal.ScrimPlanetmans.CensusStream
             //await _handler.Process(jMsg);
         }
 
-
-
         private Task OnDisconnect(string error)
         {
             _logger.LogInformation("Websocket Client Disconnected!");
 
             return Task.CompletedTask;
+        }
+
+        public async Task<ServiceState> GetStatus()
+        {
+            var status = await GetStateAsync(CancellationToken.None);
+
+            if (status == null)
+            {
+                return null;
+            }
+
+            return status;
         }
 
         public void Dispose()

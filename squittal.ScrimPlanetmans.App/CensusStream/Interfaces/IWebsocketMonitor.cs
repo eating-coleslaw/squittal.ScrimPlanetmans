@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
+﻿using squittal.ScrimPlanetmans.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,5 +20,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         void RemoveCharacterSubscription(string characterId);
         void RemoveCharacterSubscriptions(IEnumerable<string> characterIds);
         void RemoveAllCharacterSubscriptions();
+        Task<ServiceState> GetStatus();
     }
 }
