@@ -22,7 +22,7 @@
 
 
 @*<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">*@
-@if (_team == null || string.IsNullOrWhiteSpace(_team?.Alias))
+@if (_team == null || !_teamOutfits.Any())
 {
     <h3>Team @i_teamOrdinal</h3>
 }
