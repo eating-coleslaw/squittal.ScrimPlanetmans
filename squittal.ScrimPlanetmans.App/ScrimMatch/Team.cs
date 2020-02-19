@@ -17,6 +17,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public List<Player> Players { get; } = new List<Player>();
         public List<Player> ActivePlayers { get; } = new List<Player>();
+        public List<Player> ParticipatingPlayers { get; set; } = new List<Player>();
 
         public List<Outfit> Outfits { get => _outfits; }
 
@@ -92,6 +93,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             Outfits.Add(outfit);
+            _seedOutfitAliases.Add(outfit.AliasLower);
+            _seedOutfitIds.Add(outfit.Id);
             
             return true;
         }

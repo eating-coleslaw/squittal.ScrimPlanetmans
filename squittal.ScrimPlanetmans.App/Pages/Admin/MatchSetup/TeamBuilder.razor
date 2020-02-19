@@ -1,0 +1,421 @@
+﻿@using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+@using squittal.ScrimPlanetmans.App.Pages.Admin;
+@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using Newtonsoft.Json.Linq;
+@using System.Diagnostics;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.ScrimMatch.Events;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+
+
+
+@*<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">*@
+@if (_team == null || string.IsNullOrWhiteSpace(_team?.Alias))
+{
+    <h3>Team @i_teamOrdinal</h3>
+}
+else
+{
+    <h3>Team @($"{i_teamOrdinal}: {_team.Alias}")</h3>
+}
+@*<h3>Team @_team.Alias</h3>*@
+
+    <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </EditForm>
+
+    @if (_teamOutfits.Any())
+    {
+        <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">@*@ScrimTeamsManager.GetTeamAliasDisplay(i_teamOrdinal)*@</p>@*@(_team.Alias ?? $"Team {i_teamOrdinal}")</p>*@
+
+        foreach (var outfit in _teamOutfits)
+        {
+            <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;"><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span> <span>@FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span></p>
+
+            @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
+            {
+                <SpinnerEllipsis />
+            }
+
+            else if (_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id))
+            {
+                <ul style="list-style-type: circle; margin-bottom: 0.5rem;">
+
+                    @foreach (var member in _teamPlayersOnline.Where(p => p.OutfitId == outfit.Id).ToList())
+                    {
+                        <li>@member.NameDisplay (@member.Id)</li>
+                    }
+
+                </ul>
+            }
+        }
+    }
+    @if (_teamOutfitsLoading.Any())
+    {
+        <SpinnerEllipsis />
+    }
+
+
+
+    <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+
+    @if (_teamPlayersParticipating.Any())
+    {
+        <div style="display: block;">
+            @foreach (var player in _teamPlayersParticipating)
+            {
+                <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">@player.NameDisplay | Kills: @player.EventAggregate.Kills | Deaths: @player.EventAggregate.Deaths</p>
+            }
+        </div>
+    }
+
+
+@*</div>*@
+
+
+
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    /* Form & Input Variables */
+    private OutfitAlias _inputAlias = new OutfitAlias();
+
+    private List<string> _teamOutfitsLoadingMembers = new List<string>();
+
+    private List<string> _teamOutfitsLoading = new List<string>();
+
+    private List<string> _validOutfitAliasHistory = new List<string>();
+
+    /* Team & Players */
+    private Team _team;
+
+    private List<Outfit> _teamOutfits = new List<Outfit>();
+
+    private List<Player> _teamPlayers = new List<Player>();
+
+    private List<Player> _teamPlayersOnline = new List<Player>();
+
+    private List<Player> _teamPlayersParticipating = new List<Player>();
+
+    /* Helpers */
+    private IEnumerable<World> _worlds;
+    private int _renderedTeamOrdinal;
+
+    /***********
+       Methods
+     ***********/
+    protected override async Task OnInitializedAsync()
+    {
+        ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        ScrimTeamsManager.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+
+        WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        _worlds = await WorldService.GetAllWorldsAsync();
+
+        //InitializeTeamData();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+            InitializeTeamData();
+        }
+    }
+
+    private void InitializeTeamData()
+    {
+        _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
+
+        if (_team == null)
+        {
+            return;
+        }
+
+        _teamOutfits = _team.Outfits;
+
+        _teamPlayersParticipating = _team.ParticipatingPlayers; // ScrimTeamsManager.GetParticipatingPlayers().ToList();
+
+        _validOutfitAliasHistory = _team.Outfits.Select(o => o.AliasLower).ToList();
+
+        //var players = _team.Players;
+        _teamPlayers = _team.Players;
+
+        //foreach (var player in players)
+        foreach (var player in _teamPlayers)
+        {
+            //_teamPlayers.Add(player);
+
+            if (player.IsOnline && !_teamPlayersOnline.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersOnline.Add(player);
+                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+            }
+        }
+
+        foreach(var outfit in _teamOutfits)
+        {
+            SetOutfitMembersOnlineCount(outfit.AliasLower);
+        }
+
+    }
+
+    private async void HandleValidOutfitAliasSubmit()
+    {
+        Outfit newOutfit;
+
+        var newAlias = _inputAlias.Alias;
+        var newAliasLower = newAlias.ToLower();
+
+        if (!_validOutfitAliasHistory.Contains(newAliasLower) && ScrimTeamsManager.IsOutfitAvailable(newAliasLower, out Team owningTeam))
+        {
+            _teamOutfitsLoading.Add(newAliasLower);
+
+            newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
+
+            if (newOutfit != null)
+            {
+                //_teamOutfits.Add(newOutfit);
+                _validOutfitAliasHistory.Add(newAliasLower);
+                _inputAlias.Alias = string.Empty;
+
+                _teamOutfitsLoading.Remove(newAliasLower);
+
+                StateHasChanged();
+
+                _teamOutfitsLoadingMembers.Add(newAliasLower);
+
+                StateHasChanged();
+
+                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
+
+                //_teamAliasDisplay1 = ScrimTeamsManager.GetTeamAliasDisplay(teamOrdinal);
+
+                _teamOutfitsLoadingMembers.Remove(newAliasLower);
+
+                StateHasChanged();
+            }
+            else
+            {
+                _teamOutfitsLoading.Remove(newAliasLower);
+
+                StateHasChanged();
+            }
+        }
+    }
+
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        switch (message.ChangeType)
+        {
+            case TeamPlayerChangeType.Add:
+                HandleTeamPlayerChangeAdd(message);
+                break;
+
+            case TeamPlayerChangeType.Remove:
+                HandleTeamPlayerChangeRemove(message);
+                break;
+        }
+    }
+
+    private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        _teamPlayers.Add(player);
+
+        if (player.IsOnline)
+        {
+            _teamPlayersOnline.Add(player);
+            //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+            SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+        }
+    }
+
+    private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        _teamPlayers.RemoveAll(p => p.Id == player.Id);
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
+            //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
+            SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+        }
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersParticipating.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
+    {
+        ReceiveMessage(e.Message);
+    }
+
+    private void ReceiveMessage(string message)
+    {
+        var payload = TryParseMessagePayload(message);
+        if (payload == null)
+        {
+            return;
+        }
+
+        var eventName = payload.Value<string>("event_name");
+
+        if (eventName == "PlayerLogin")
+        {
+            HandlePlayerLoginPayload(payload);
+        }
+
+        else if (eventName == "PlayerLogout")
+        {
+            HandlePlayerLogoutPayload(payload);
+        }
+    }
+
+    private void HandlePlayerLoginPayload(JToken payload)
+    {
+        var characterId = payload.Value<string>("character_id");
+
+        var player = _teamPlayers.Where(p => p.Id == characterId).FirstOrDefault();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Add(player);
+
+            if (_teamOutfits.Any(o => o.Id == player.OutfitId))
+            {
+                UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+            }
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void HandlePlayerLogoutPayload(JToken payload)
+    {
+        var characterId = payload.Value<string>("character_id");
+
+        var player = _teamPlayers.Where(p => p.Id == characterId).FirstOrDefault();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Remove(player);
+
+            if (_teamOutfits.Any(o => o.Id == player.OutfitId))
+            {
+                UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
+            }
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private JToken TryParseMessagePayload(string message)
+    {
+        if (message == null)
+        {
+            return null;
+        }
+
+        JToken jMsg;
+
+        try
+        {
+            jMsg = JToken.Parse(message).SelectToken("payload");
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"(91097) Failed to parse message: {message}");
+            return null;
+        }
+
+        return jMsg;
+    }
+
+    private void SetOutfitMembersOnlineCount(string aliasLower)
+    {
+        var outfit = _teamOutfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+        if (outfit == null)
+        {
+            return;
+        }
+        outfit.MembersOnlineCount = _teamPlayersOnline.Where(p => p.OutfitAliasLower == aliasLower).Count();
+    }
+
+    private void UpdateOutfitMembersOnlineCount(string aliasLower, int addend)
+    {
+        var outfit = _teamOutfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+        if (outfit == null)
+        {
+            return;
+        }
+        outfit.MembersOnlineCount += addend;
+    }
+
+
+}

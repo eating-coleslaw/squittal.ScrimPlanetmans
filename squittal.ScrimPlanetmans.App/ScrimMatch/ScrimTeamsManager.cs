@@ -221,7 +221,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             foreach (var player in players)
             {
                 //player.Team = team;
-                player.TeamOrdinal = team.TeamOrdinal;
+                player.TeamOrdinal = teamOrdinal; // team.TeamOrdinal;
 
                 if (team.TryAddPlayer(player))
                 {
@@ -364,13 +364,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _participatingPlayers.Add(player);
             }
 
-            SendPlayerStatUpdateMessage(player);
+            var team = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId));
 
-            var teamStats = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId)).EventAggregate;
+            var teamStats = team.EventAggregate;
+
+            if (!team.ParticipatingPlayers.Any(p => p.Id == player.Id))
+            {
+                team.ParticipatingPlayers.Add(player);
+            }
 
             teamStats.Add(updates);
 
-
+            SendPlayerStatUpdateMessage(player);
 
             // TODO: broadcast Player stats update
             // TODO: broadcast Team stats update

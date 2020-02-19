@@ -2,6 +2,7 @@
 @using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
 @using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 @using squittal.ScrimPlanetmans.App.Pages.Admin;
+@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup;
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using Newtonsoft.Json.Linq;
@@ -71,16 +72,6 @@
         <SpinnerEllipsis />
     }
 
-
-
-    @*<p>_______________________________________________________</p>*@
-    <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
-
-    <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
-    <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
-
-    <button class="btn btn-primary" @onclick="StartMatch">START MATCH!</button>
-
     @if (_participatingPlayers.Any())
     {
         <div style="display: block;">
@@ -90,7 +81,18 @@
             }
         </div>
     }
-    
+
+    @*<p>_______________________________________________________</p>*@
+    <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+
+    <TeamBuilder i_teamOrdinal=2 />
+
+    <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+
+    <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
+    <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
+
+    <button class="btn btn-primary" @onclick="StartMatch">START MATCH!</button>
 
 </div>
 
@@ -216,21 +218,25 @@
                 if (player.IsOnline)
                 {
                     _outfitOnlinePlayers.Add(player);
-                    UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+                    //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
                 }
             }
 
             foreach (var outfit in _teamOutfits1)
             {
+                SetOutfitMembersOnlineCount(outfit.AliasLower);
+
                 var world = _worlds.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault();
                 var faction = FactionService.GetFactionAbbrevFromId((int)outfit.FactionId);
-                
+
                 var message = $"Team 1 Outfit: [{outfit.Alias}] {outfit.Name} ({outfit.MemberCount} | {outfit.MembersOnlineCount}) - {world} - {faction}";
                 LogMessage(message);
             }
+
+            _participatingPlayers = team1.ParticipatingPlayers;
         }
 
-        _participatingPlayers = ScrimTeamsManager.GetParticipatingPlayers().ToList();
+        //_participatingPlayers = ScrimTeamsManager.GetParticipatingPlayers().ToList();
 
         await GetCensusStreamStatus();
     }
@@ -241,6 +247,11 @@
 
         var message = e.Message;
         var player = message.Player;
+
+        if (player.TeamOrdinal != 1)
+        {
+            return;
+        }
 
         if (!_participatingPlayers.Any(p => p.Id == player.Id))
         {
@@ -283,6 +294,11 @@
     {
         var player = message.Player;
 
+        if (player.TeamOrdinal != 1)
+        {
+            return;
+        }
+
         _outfitPlayers.Add(player);
 
         if (player.IsOnline)
@@ -290,6 +306,8 @@
             _outfitOnlinePlayers.Add(player);
             UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
         }
+
+        LogMessage($"Added player from test page: {player.NameDisplay}");
     }
 
     private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
@@ -489,7 +507,12 @@
         var newAlias = _inputAlias1.Alias;
         var newAliasLower = newAlias.ToLower();
 
-        if (!_validOutfitAliasHistory.Contains(newAliasLower))
+        if (teamOrdinal != 1)
+        {
+            return;
+        }
+
+        if (!_validOutfitAliasHistory.Contains(newAliasLower) && ScrimTeamsManager.IsOutfitAvailable(newAliasLower, out Team owningTeam))
         {
             _isAliasLoading.Add(newAliasLower);
 
@@ -526,6 +549,17 @@
             }
         }
     }
+
+    private void SetOutfitMembersOnlineCount(string aliasLower)
+    {
+        var outfit = _outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+        if (outfit == null)
+        {
+            return;
+        }
+        outfit.MembersOnlineCount = _outfitOnlineMembers.Where(p => p.OutfitAliasLower == aliasLower).Count();
+    }
+
 
     private void UpdateOutfitMembersOnlineCount(string aliasLower, int addend)
     {

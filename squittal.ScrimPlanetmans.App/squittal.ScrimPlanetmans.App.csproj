@@ -9,6 +9,8 @@
     <Compile Remove="Migrations\20200216183753_AddScrimActionModel.Designer.cs" />
     <Compile Remove="Migrations\20200216192554_AddActionPointsItemCategoryModels.cs" />
     <Compile Remove="Migrations\20200216192554_AddActionPointsItemCategoryModels.Designer.cs" />
+    <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.cs" />
+    <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +33,7 @@
 
   <ItemGroup>
     <Folder Include="Hubs\Models\" />
+    <Folder Include="Pages\Admin\Rulesets\" />
   </ItemGroup>
 
 </Project>
