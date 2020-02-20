@@ -4,7 +4,7 @@ using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
-    public class Player
+    public class Player : IEquitable<Player>
     {
         public string Id { get; }
 
@@ -86,6 +86,55 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             NameAlias = alias;
             NameDisplay = NameAlias;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as Player); 
+        }
+
+        public bool Equals(Player p)
+        {
+            if (ReferenceEquals(p, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, p))
+            {
+                return true;
+            }
+
+            if (this.GetType() != p.GetType())
+            {
+                return false;
+            }
+
+            return p.Id == Id;
+        }
+
+        public static bool operator ==(Player lhs, Player rhs)
+        {
+            if (ReferenceEquals(lhs, null))
+            {
+                if (ReferenceEquals(rhs, null))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(Player lhs, Player rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

@@ -81,8 +81,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
+            var player = Players.FirstOrDefault(p => p.Id == characterId);
+
             Players.RemoveAll(p => p.Id == characterId);
             _playerIds.RemoveAll(id => id == characterId);
+
+            ParticipatingPlayers.RemoveAll(p => p.Id == characterId);
+
+            EventAggregate.Subtract(player.EventAggregate);
 
             return true;
         }
@@ -98,6 +104,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _seedOutfitAliases.Add(outfit.AliasLower);
             _seedOutfitIds.Add(outfit.Id);
             
+            return true;
+        }
+
+        public bool TryRemoveOutfit(string aliasLower)
+        {
+            var outfit = Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+            
+            if (outfit == null)
+            {
+                return false;
+            }
+
+            Outfits.RemoveAll(o => o.AliasLower == aliasLower);
+            _seedOutfitAliases.RemoveAll(alias => alias == aliasLower);
+            _seedOutfitIds.RemoveAll(id => id == outfit.Id);
+
             return true;
         }
 

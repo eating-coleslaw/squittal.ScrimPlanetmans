@@ -32,8 +32,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId);
         Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string aliasLower, string alias);
 
-        Task<bool> RefreshOutfitPlayers(int teamOrdinal, string aliasLower);
+        Task<bool> RefreshOutfitPlayers(string aliasLower);
 
+        bool RemoveOutfitFromTeam(string aliasLower);
         bool RemoveCharacterFromTeam(string characterId);
 
         bool IsCharacterAvailable(string characterId, out Team owningTeam);
@@ -43,6 +44,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool DoPlayersShareTeam(string firstId, string secondId, out int? firstOrdinal, out int? secondOrdinal);
         bool IsPlayerTracked(string characterId);
         void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
-        
+        Team GetTeamFromOutfitAlias(string aliasLower);
     }
 }

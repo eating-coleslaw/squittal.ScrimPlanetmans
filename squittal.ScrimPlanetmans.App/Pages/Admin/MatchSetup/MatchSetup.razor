@@ -95,7 +95,8 @@
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
         _debug = "GetCensusStreamStatus";
-        StateHasChanged();
+
+        //StateHasChanged();
     }
 
     private void SubscribeToCensus()
@@ -105,7 +106,7 @@
 
         LogAdminMessage($"Subscribed all characters to Stream Monitor!");
 
-        StateHasChanged();
+        //StateHasChanged();
     }
 
     private void EndCensusSubscription()
@@ -115,7 +116,7 @@
 
         LogAdminMessage($"Removed all characters to Stream Monitor!");
 
-        StateHasChanged();
+        //StateHasChanged();
     }
 
     private void StartMatch()
@@ -125,6 +126,7 @@
 
         LogAdminMessage($"Started new match!"); // TODO: add team names to this
 
+        //SateHasChanged();
     }
 
     /*****************
@@ -151,6 +153,16 @@
         }
 
         else if (eventName == "GainExperience")
+        {
+            LogMessage(payload.ToString(), _streamLogs);
+        }
+        
+        else if (eventName == "PlayerLogin")
+        {
+            LogMessage(payload.ToString(), _streamLogs);
+        }
+
+        else if (eventName == "PlayerLogout")
         {
             LogMessage(payload.ToString(), _streamLogs);
         }

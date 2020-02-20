@@ -87,6 +87,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return Team2;
         }
 
+        public Team GetTeamFromOutfitAlias(string aliasLower)
+        {
+            if (!IsOutfitAvailable(aliasLower, out Team owningTeam))
+            {
+                return owningTeam;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public IEnumerable<string> GetAllPlayerIds()
         {
             return _allCharacterIds;
@@ -176,9 +188,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            /*
-             * Add Outfit to Team
-            */
+            /* Add Outfit to Team */
             var outfit = await _outfitService.GetOutfitByAlias(aliasLower);
 
             if (outfit == null)
@@ -186,7 +196,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            var team = _ordinalTeamMap[teamOrdinal];
+            var team = GetTeam(teamOrdinal); //_ordinalTeamMap[teamOrdinal];
 
             if (!team.TryAddOutfit(outfit))
             {
@@ -204,9 +214,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 UpdateTeamFaction(teamOrdinal, outfit.FactionId);
             }
 
-            /*
-             * Add Outfit Players to Team
-            */
+            /* Add Outfit Players to Team */
             var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
 
             if (players == null || !players.Any())
@@ -237,9 +245,99 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersAdded;
         }
 
-        public Task<bool> RefreshOutfitPlayers(int teamOrdinal, string aliasLower)
+        public async Task<bool> RefreshOutfitPlayers(string aliasLower)
         {
-            throw new NotImplementedException();
+            if (IsOutfitAvailable(aliasLower, out Team outfitTeam))
+            {
+                return false;
+            }
+
+            var teamOrdinal = outfitTeam.TeamOrdinal;
+
+            var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
+
+            if (players == null || !players.Any())
+            {
+                return false;
+            }
+
+            var anyPlayersAdded = false;
+
+            //TODO: track which players were added and which weren't
+
+            foreach (var player in players)
+            {
+                if (!IsCharacterAvailable(player.Id, out Team playerTeam))
+                {
+                    // TODO: broadcast "Couldn't Add Player to Team Message
+                    continue;
+                }
+                
+                //player.Team = team;
+                player.TeamOrdinal = teamOrdinal; // team.TeamOrdinal;
+
+                if (outfitTeam.TryAddPlayer(player))
+                {
+                    _allCharacterIds.Add(player.Id);
+                    _allPlayers.Add(player);
+
+                    SendTeamPlayerAddedMessage(player);
+
+                    anyPlayersAdded = true;
+                }
+            }
+
+            return anyPlayersAdded;
+
+        }
+
+        public bool RemoveOutfitFromTeam(string aliasLower)
+        {
+            var team = GetTeamFromOutfitAlias(aliasLower);
+
+            if (team == null)
+            {
+                return false;
+            }
+
+            team.TryRemoveOutfit(aliasLower);
+
+            var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower).ToList();
+
+            if (players == null || !players.Any())
+            {
+                return false;
+            }
+
+            var anyPlayersRemoved = false;
+
+            foreach (var player in players)
+            {
+                if (RemovePlayerFromTeam(player))
+                {
+                    anyPlayersRemoved = true;
+                }
+            }
+
+            if (team.Outfits.Any())
+            {
+                var nextOutfit = team.Outfits.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
+            }
+            else if (team.Players.Any())
+            {
+                var nextPlayer = team.Players.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
+                UpdateTeamFaction(team.TeamOrdinal, nextPlayer.FactionId);
+            }
+            else
+            {
+                UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
+                UpdateTeamFaction(team.TeamOrdinal, null);
+            }
+
+            return anyPlayersRemoved;
         }
 
         public bool RemoveCharacterFromTeam(string characterId)
@@ -251,12 +349,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
+            return RemovePlayerFromTeam(player);
+        }
+
+        public bool RemovePlayerFromTeam(Player player)
+        {
+            //var player = GetPlayerFromId(characterId);
+
+            //if (player == null)
+            //{
+            //    return false;
+            //}
+
             var team = GetTeam(player.TeamOrdinal); // player.Team;
 
-            if(team.TryRemovePlayer(characterId))
+            if(team.TryRemovePlayer(player.Id))
             {
-                _allCharacterIds.RemoveAll(id => id == characterId);
-                _allPlayers.RemoveAll(p => p.Id == characterId);
+                _allCharacterIds.RemoveAll(id => id == player.Id);
+                _allPlayers.RemoveAll(p => p.Id == player.Id);
+
+                if (_participatingPlayers.Any(p => p.Id == player.Id))
+                {
+                    _participatingPlayers.RemoveAll(p => p.Id == player.Id);
+                }
 
                 if (!team.Players.Any())
                 {

@@ -39,7 +39,11 @@ namespace squittal.ScrimPlanetmans.Services
                 return null;
             }
 
-            return censusMembers.Where(m => !string.IsNullOrWhiteSpace(m.Id) && m.Name != null).Select(m => new Player(m)).ToList();
+            return censusMembers
+                    .Where(m => !string.IsNullOrWhiteSpace(m.Id) && m.Name != null)
+                    .Select(m => new Player(m))
+                    .Distinct()
+                    .ToList();
         }
     }
 }
