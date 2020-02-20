@@ -1,7 +1,206 @@
-﻿
+﻿@page "/admin"
+@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
-<h3>MatchSetup</h3>
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IWebsocketMonitor WebsocketMonitor
+
+<h3>Match Setup</h3>
+
+<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
+
+    <TeamBuilder i_teamOrdinal=1 i_OnAdminLogTextAdded="LogAdminMessage" />
+
+    <TeamBuilder i_teamOrdinal=2 i_OnAdminLogTextAdded="LogAdminMessage" />
+
+    <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
+    <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>
+
+    <button class="btn btn-primary" @onclick="StartMatch">START MATCH!</button>
+
+</div>
+
+<div style="width: 55%; float: right; font-size: 10px; max-height: 550px; word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
+
+    <h5>Status: @_isStreamServiceEnabled.ToString() (@_debug)</h5>
+
+    <MatchTimer />
+
+    <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
+    <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha);">
+        @if (_adminLogs.Any())
+        {
+            foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200))
+            {
+                <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+            }
+
+            if (_adminLogs.Count() > 200)
+            {
+                <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing 200 / @_adminLogs.Count)</p>
+            }
+        }
+    </div>
+
+    <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
+    <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha);">
+        @if (_streamLogs.Any())
+        {
+            foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200))
+            {
+                <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+            }
+
+            if (_streamLogs.Count() > 200)
+            {
+                <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing 200 / @_streamLogs.Count)</p>
+            }
+        }
+    </div>
+
+</div>
+
 
 @code {
 
+
+    private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
+    private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
+
+    private bool _isStreamServiceEnabled { get; set; } = false;
+
+    private string _debug { get; set; } = "init";
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCensusStreamStatus();
+    }
+
+    protected override void OnInitialized()
+    {
+        WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+    }
+
+
+    /*****************************************
+     *  Match & Subscription State Buttons
+     *****************************************/
+    private async Task GetCensusStreamStatus()
+    {
+        var status = await WebsocketMonitor.GetStatus();
+        _isStreamServiceEnabled = status.IsEnabled;
+        _debug = "GetCensusStreamStatus";
+        StateHasChanged();
+    }
+
+    private void SubscribeToCensus()
+    {
+        ScrimMatchEngine.SubmitPlayersList();
+        _debug = "SubscribeToCensus";
+
+        LogAdminMessage($"Subscribed all characters to Stream Monitor!");
+
+        StateHasChanged();
+    }
+
+    private void EndCensusSubscription()
+    {
+        WebsocketMonitor.RemoveAllCharacterSubscriptions();
+        _debug = "EndCensusSubscription";
+
+        LogAdminMessage($"Removed all characters to Stream Monitor!");
+
+        StateHasChanged();
+    }
+
+    private void StartMatch()
+    {
+        ScrimMatchEngine.InitializeNewRound();
+        ScrimMatchEngine.StartRound();
+
+        LogAdminMessage($"Started new match!"); // TODO: add team names to this
+
+    }
+
+    /*****************
+     *  Event Handling
+     *****************/
+    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
+    {
+        ReceiveMessage(e.Message);
+    }
+
+    private void ReceiveMessage(string message)
+    {
+        var payload = TryParseMessagePayload(message);
+        if (payload == null)
+        {
+            return;
+        }
+
+        var eventName = payload.Value<string>("event_name");
+
+        if (eventName == "Death")
+        {
+            LogMessage(payload.ToString(), _streamLogs);
+        }
+
+        else if (eventName == "GainExperience")
+        {
+            LogMessage(payload.ToString(), _streamLogs);
+        }
+    }
+
+    private JToken TryParseMessagePayload(string message)
+    {
+        if (message == null)
+        {
+            return null;
+        }
+
+        JToken jMsg;
+
+        try
+        {
+            jMsg = JToken.Parse(message).SelectToken("payload");
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"(91097) Failed to parse message: {message}");
+            return null;
+        }
+
+        return jMsg;
+    }
+
+
+    /*****************
+     *  Log Messages
+     *****************/
+    private void LogAdminMessage(string message)
+    {
+        LogMessage(message, _adminLogs);
+    }
+
+    private void LogStreamMessage(string message)
+    {
+        LogMessage(message, _streamLogs);
+    }
+
+    private void LogMessage(string message, List<MarkupString> target)
+    {
+        var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
+
+        target.Add((MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}");
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 }

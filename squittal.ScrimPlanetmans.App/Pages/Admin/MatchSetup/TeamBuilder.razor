@@ -21,61 +21,71 @@
 
 
 
-@*<div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">*@
 @if (_team == null || !_teamOutfits.Any())
 {
     <h3>Team @i_teamOrdinal</h3>
 }
 else
 {
-    <h3>Team @($"{i_teamOrdinal}: {_team.Alias}")</h3>
+    <h3>
+        Team @($"{i_teamOrdinal}: {_team.Alias}")
+        <span style="font-size: 12px; font-weight: 500;"> @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
+            <span style="font-weight: 700; font-size: larger;">@(_team.EventAggregate.Points)
+            </span>
+        </span>
+    </h3>
 }
+
 @*<h3>Team @_team.Alias</h3>*@
 
-    <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+<EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-        Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
+    Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
 
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </EditForm>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
 
-    @if (_teamOutfits.Any())
+@if (_teamOutfits.Any())
+{
+    <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">@*@ScrimTeamsManager.GetTeamAliasDisplay(i_teamOrdinal)*@</p>@*@(_team.Alias ?? $"Team {i_teamOrdinal}")</p>*@
+
+    foreach (var outfit in _teamOutfits)
     {
-        <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">@*@ScrimTeamsManager.GetTeamAliasDisplay(i_teamOrdinal)*@</p>@*@(_team.Alias ?? $"Team {i_teamOrdinal}")</p>*@
+        <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">
+            <b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
+            <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: text-bottom;" @onclick="(() => ToggleOutfitPlayersVisibility(outfit.AliasLower))">@(ShowOutfitPlayers(outfit.AliasLower) ? "Hide Players" : "Show Players")</button>
+        </p>
 
-        foreach (var outfit in _teamOutfits)
+        @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
         {
-            <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;"><b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span> <span>@FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span></p>
+            <SpinnerEllipsis />
+        }
 
-            @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
-            {
-                <SpinnerEllipsis />
-            }
+        else if (_teamPlayersOnline != null && _teamPlayersOnline.Any(p => p.OutfitId == outfit.Id) &&  ShowOutfitPlayers(outfit.AliasLower))
+        {
+            <ul style="list-style-type: circle; margin-bottom: 0.5rem;">
 
-            else if (_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id))
-            {
-                <ul style="list-style-type: circle; margin-bottom: 0.5rem;">
+                @foreach (var member in _teamPlayersOnline.Where(p => p.OutfitId == outfit.Id).ToList())
+                {
+                    <li>@member.NameDisplay <span style="font-size: small;">(@member.Id)</span> || @(member.EventAggregate.Kills)k @(member.EventAggregate.Deaths)d <span style="font-weight: 700; font-size: larger;">@(member.EventAggregate.NetScore)</span> </li>
+                }
 
-                    @foreach (var member in _teamPlayersOnline.Where(p => p.OutfitId == outfit.Id).ToList())
-                    {
-                        <li>@member.NameDisplay (@member.Id)</li>
-                    }
-
-                </ul>
-            }
+            </ul>
         }
     }
-    @if (_teamOutfitsLoading.Any())
-    {
-        <SpinnerEllipsis />
-    }
+}
+@if (_teamOutfitsLoading.Any())
+{
+    <SpinnerEllipsis />
+}
 
 
 
-    <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+<p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
 
+@*
     @if (_teamPlayersParticipating.Any())
     {
         <div style="display: block;">
@@ -85,15 +95,17 @@ else
             }
         </div>
     }
-
-
-@*</div>*@
+*@
 
 
 
 @code {
     [Parameter]
     public int i_teamOrdinal { get; set; }
+
+    [Parameter]
+    public EventCallback<string> i_OnAdminLogTextAdded { get; set; }
+
 
     /* Form & Input Variables */
     private OutfitAlias _inputAlias = new OutfitAlias();
@@ -114,6 +126,10 @@ else
     private List<Player> _teamPlayersOnline = new List<Player>();
 
     private List<Player> _teamPlayersParticipating = new List<Player>();
+
+    /* UI & Layout Variables */
+    private Dictionary<string, bool> _outfitPlayersExtendedMap = new Dictionary<string, bool>(); // <outfit alias, is player list expanded?>
+
 
     /* Helpers */
     private IEnumerable<World> _worlds;
@@ -145,6 +161,9 @@ else
 
     private void InitializeTeamData()
     {
+        var message = $"Starting to reload Team {i_teamOrdinal} data...";
+        i_OnAdminLogTextAdded.InvokeAsync(message);
+
         _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
 
         if (_team == null)
@@ -173,13 +192,23 @@ else
             }
         }
 
-        foreach(var outfit in _teamOutfits)
+        foreach (var outfit in _teamOutfits)
         {
+            message = $"Loaded Team {i_teamOrdinal} outfit: [{outfit.Alias}] {outfit.Name}";
+            i_OnAdminLogTextAdded.InvokeAsync(message);
+
+            _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+
             SetOutfitMembersOnlineCount(outfit.AliasLower);
         }
 
+        message = $"Finished reloading Team {i_teamOrdinal} data";
+        i_OnAdminLogTextAdded.InvokeAsync(message);
     }
 
+    /**********************************
+     *  Form Submission & Validation
+     **********************************/
     private async void HandleValidOutfitAliasSubmit()
     {
         Outfit newOutfit;
@@ -209,6 +238,8 @@ else
 
                 var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
 
+                _outfitPlayersExtendedMap.Add(newAliasLower, true);
+
                 //_teamAliasDisplay1 = ScrimTeamsManager.GetTeamAliasDisplay(teamOrdinal);
 
                 _teamOutfitsLoadingMembers.Remove(newAliasLower);
@@ -224,7 +255,34 @@ else
         }
     }
 
+    /*************************
+     *  UI & Layout Controls
+     *************************/
+    private void ToggleOutfitPlayersVisibility(string aliasLower)
+    {
+        if(_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
+        {
+            _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
+            StateHasChanged();
+        }
+    }
 
+    private bool ShowOutfitPlayers(string aliasLower)
+    {
+        if(_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool showPlayers))
+        {
+            return showPlayers;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+    /*****************
+     *  Event Handling
+     *****************/
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
         var message = e.Message;
@@ -239,6 +297,8 @@ else
                 HandleTeamPlayerChangeRemove(message);
                 break;
         }
+
+        i_OnAdminLogTextAdded.InvokeAsync(message.Info);
     }
 
     private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
@@ -258,6 +318,10 @@ else
             //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
+
+        var logText = $"Added player from TeamBuilder {i_teamOrdinal}: {player.NameDisplay}";
+
+        i_OnAdminLogTextAdded.InvokeAsync(logText);
     }
 
     private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
@@ -272,6 +336,8 @@ else
             //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
+
+        i_OnAdminLogTextAdded.InvokeAsync(message.Info);
     }
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
@@ -293,6 +359,8 @@ else
         {
             StateHasChanged();
         });
+
+        i_OnAdminLogTextAdded.InvokeAsync(message.Info);
     }
 
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
@@ -338,9 +406,14 @@ else
 
             if (_teamOutfits.Any(o => o.Id == player.OutfitId))
             {
-                UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
             }
         }
+
+        var message = $"Team {i_teamOrdinal} Player Login: {player.NameDisplay} [{player.Id}]";
+
+        i_OnAdminLogTextAdded.InvokeAsync(message);
 
         InvokeAsync(() =>
         {
@@ -365,9 +438,14 @@ else
 
             if (_teamOutfits.Any(o => o.Id == player.OutfitId))
             {
-                UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
+                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
             }
         }
+
+        var message = $"Team {i_teamOrdinal} Player Logout: {player.NameDisplay} [{player.Id}]";
+
+        i_OnAdminLogTextAdded.InvokeAsync(message);
 
         InvokeAsync(() =>
         {
@@ -396,6 +474,7 @@ else
 
         return jMsg;
     }
+
 
     private void SetOutfitMembersOnlineCount(string aliasLower)
     {
