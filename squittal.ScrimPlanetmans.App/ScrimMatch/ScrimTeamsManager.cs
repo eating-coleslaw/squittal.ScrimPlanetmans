@@ -237,6 +237,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersAdded;
         }
 
+        public Task<bool> RefreshOutfitPlayers(int teamOrdinal, string aliasLower)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool RemoveCharacterFromTeam(string characterId)
         {
             var player = GetPlayerFromId(characterId);
@@ -366,14 +371,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var team = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId));
 
-            var teamStats = team.EventAggregate;
+            team.EventAggregate.Add(updates);
+
+            //var teamStats = team.EventAggregate;
 
             if (!team.ParticipatingPlayers.Any(p => p.Id == player.Id))
             {
                 team.ParticipatingPlayers.Add(player);
             }
 
-            teamStats.Add(updates);
+            //teamStats.Add(updates);
 
             SendPlayerStatUpdateMessage(player);
 

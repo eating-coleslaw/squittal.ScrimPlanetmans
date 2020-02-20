@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
 
-        public ScrimEventAggregate EventAggregate { get; set; }
+        public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
 
         public List<Player> Players { get; } = new List<Player>();
         public List<Player> ActivePlayers { get; } = new List<Player>();
@@ -46,6 +46,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Alias = alias;
             NameInternal = nameInternal;
             TeamOrdinal = teamOrdinal;
+
+            //EventAggregate = new ScrimEventAggregate();
         }
 
         public bool ContainsPlayer(string characterId)
