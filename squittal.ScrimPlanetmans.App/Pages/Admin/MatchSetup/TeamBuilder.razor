@@ -378,8 +378,6 @@ else
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
 
-        var logText = $"Added player from TeamBuilder {i_teamOrdinal}: {player.NameDisplay}";
-
         LogMessage(message.Info);
     }
 
@@ -402,7 +400,7 @@ else
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
 
-        LogMessage($"TeamBuilder {i_teamOrdinal} {message.Info}");
+        LogMessage(message.Info);
     }
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
