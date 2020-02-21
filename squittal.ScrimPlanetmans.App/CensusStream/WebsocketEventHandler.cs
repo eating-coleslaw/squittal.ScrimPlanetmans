@@ -30,6 +30,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly ILogger<WebsocketEventHandler> _logger;
         private readonly Dictionary<string, MethodInfo> _processMethods;
 
+        private bool _isScoringEnabled = false;
+
         // Credit to Voidwell @Lampjaw
         private readonly JsonSerializer _payloadDeserializer = JsonSerializer.Create(new JsonSerializerSettings
         {
@@ -41,10 +43,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
         });
 
-        public WebsocketEventHandler(/*IScrimTeamsManager teamsManager, */ICharacterService characterService, IScrimMatchScorer scorer, ILogger<WebsocketEventHandler> logger)
+        public WebsocketEventHandler(ICharacterService characterService, IScrimMatchScorer scorer, ILogger<WebsocketEventHandler> logger)
         {
             //_dbContextHelper = dbContextHelper;
-            //_teamsManager = teamsManager;
             _characterService = characterService;
             _scorer = scorer;
             _logger = logger;
@@ -54,6 +55,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Where(m => m.GetCustomAttribute<CensusEventHandlerAttribute>() != null)
                 .ToDictionary(m => m.GetCustomAttribute<CensusEventHandlerAttribute>().EventName);
+        }
+
+        public void EnabledScoring()
+        {
+            _isScoringEnabled = true;
+        }
+
+        public void DisableScoring()
+        {
+            _isScoringEnabled = false;
         }
 
         public async Task Process(JToken message)
@@ -207,7 +218,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     ZoneId = payload.ZoneId.Value
                 };
 
-                _scorer.ScoreDeathEvent(dataModel);
+                if (_isScoringEnabled)
+                {
+                    _scorer.ScoreDeathEvent(dataModel);
+                }
 
                 return dataModel;
 

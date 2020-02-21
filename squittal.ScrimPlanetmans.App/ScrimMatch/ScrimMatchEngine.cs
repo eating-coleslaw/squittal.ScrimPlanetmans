@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         //public Team Team1;
         //public Team Team2;
 
-        public MatchConfiguration MatchConfiguration;
+        public MatchConfiguration MatchConfiguration { get; set; }
 
         private Dictionary<int, Team> _ordinalTeamMap = new Dictionary<int, Team>();
 
@@ -31,21 +31,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool _isRunning = false;
 
+        private int _currentRound = 0;
+
         private int _roundSecondsMax = 900;
         private int _roundSecondsRemaining;
         private MatchTimerTickMessage _latestTimerTickMessage;
 
         //private int _roundSecondsElapsed = 0;
 
-        public MatchTimerTickMessage GetLatestTimerTickMessage()
-        {
-            return _latestTimerTickMessage;
-        }
-
-        private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
-        {
-            _latestTimerTickMessage = value;
-        }
+        
 
         public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, ILogger<ScrimMatchEngine> logger)
         {
@@ -56,23 +50,65 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _timer.RaiseMatchTimerTickEvent += OnMatchTimerTick;
 
+            MatchConfiguration = new MatchConfiguration();
             //Team1 = _teamsManager.GetTeamOne();
             //Team2 = _teamsManager.GetTeamTwo();
         }
 
-        public void ClearMatch()
+        
+        public void Start()
         {
-            throw new NotImplementedException();
+            if (_isRunning)
+            {
+                return;
+            }
+            
+            if (_currentRound == 0)
+            {
+                // TODO: InitializeNewMatch
+            }
+
+            InitializeNewRound();
+
+            StartRound();
         }
 
-        public void ConfigureMatch()
+
+        public void ClearMatch()
         {
-            throw new NotImplementedException();
+            _wsMonitor.DisableScoring();
+            _wsMonitor.RemoveAllCharacterSubscriptions();
+            
+            MatchConfiguration = new MatchConfiguration();
+
+            _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
+
+            _currentRound = 0;
+
+            _latestTimerTickMessage = null;
+            // TODO: empty Teams, reset points, etc.
+
+        }
+
+        public void ConfigureMatch(MatchConfiguration configuration)
+        {
+            MatchConfiguration = configuration;
+
+            _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
+
         }
 
         public void EndRound()
         {
-            throw new NotImplementedException();
+            _isRunning = false;
+
+            _wsMonitor.DisableScoring();
+
+            // Stop the timer if forcing the round to end (as opposed to timer reaching 0)
+            if (GetLatestTimerTickMessage().MatchTimerStatus.State != MatchTimerState.Stopped)
+            {
+                _timer.Stop(); // TODO: change this to Halt, if Halt ends up getting implemented
+            }
         }
 
         public void InitializeNewMatch()
@@ -82,6 +118,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void InitializeNewRound()
         {
+            _currentRound += 1;
+            
             _roundSecondsRemaining = _roundSecondsMax;
             //_roundSecondsElapsed = 0;
 
@@ -89,25 +127,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
+        public void StartRound()
+        {
+            _timer.Start();
+            _wsMonitor.EnableScoring();
+        }
+
         public void PauseRound()
         {
-            throw new NotImplementedException();
+            _wsMonitor.DisableScoring();
+            _timer.Pause();
         }
 
         public void ResetRound()
         {
-            throw new NotImplementedException();
+            _timer.Reset(); // TODO: actually implement StatefulTimer.Reset
+            _wsMonitor.DisableScoring();
         }
 
         public void ResumeRound()
         {
-            throw new NotImplementedException();
+            _timer.Resume();
+            _wsMonitor.EnableScoring();
         }
 
-        public void StartRound()
-        {
-            _timer.Start();
-        }
+        
 
         public void SubmitPlayersList()
         {
@@ -127,11 +171,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (state == MatchTimerState.Stopped && _isRunning)
             {
-                StartRound();
+                EndRound();
                 return;
             }
         }
 
+        public MatchTimerTickMessage GetLatestTimerTickMessage()
+        {
+            return _latestTimerTickMessage;
+        }
+
+        private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
+        {
+            _latestTimerTickMessage = value;
+        }
 
     }
 }

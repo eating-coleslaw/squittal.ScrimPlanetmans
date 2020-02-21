@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-//using squittal.ScrimPlanetmans.Hubs;
 using squittal.ScrimPlanetmans.CensusStream.Models;
 using System;
 using System.Threading;
@@ -138,6 +137,17 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             CharacterSubscriptions.Clear();
         }
+
+        public void EnableScoring()
+        {
+            _handler.EnabledScoring();
+        }
+
+        public void DisableScoring()
+        {
+            _handler.DisableScoring();
+        }
+
 
         public bool PayloadContainsSubscribedCharacter(JToken message)
         {

@@ -54,7 +54,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Configure(TimeSpan timeSpan)
         {
-            _logger.LogInformation($"Configuring timer");
+            _logger.LogInformation($"Configuring Timer");
 
             _autoEvent.WaitOne();
             if (!CanConfigureTimer())
@@ -77,7 +77,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             Status.State = MatchTimerState.Configured;
 
-            _logger.LogInformation($"Configured timer: {_secondsMax} seconds | {Status.GetSecondsRemaining()} remaining | {Status.GetSecondsElapsed()} elapsed");
+            _logger.LogInformation($"Timer Configured: {_secondsMax} seconds | {Status.GetSecondsRemaining()} remaining | {Status.GetSecondsElapsed()} elapsed");
             
             // Signal the waiting thread
             _autoEvent.Set();
@@ -85,7 +85,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Start()
         {
-            _logger.LogInformation($"Starting timer");
+            _logger.LogInformation($"Starting Timer");
             // Ensure timer can only be started once
             _autoEvent.WaitOne();
             if (_isRunning || Status.State != MatchTimerState.Configured)
@@ -110,7 +110,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             // TODO: broadcast a "MatchStateChange" of event of type "Started" here
 
-            _logger.LogInformation($"Started timer");
+            _logger.LogInformation($"Timer Started");
 
             // Signal the waiting thread
             _autoEvent.Set();
@@ -168,7 +168,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Resume()
         {
-            // Ensure timer can only be started once
             _autoEvent.WaitOne();
             if (Status.State != MatchTimerState.Paused)
             {
@@ -194,7 +193,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Reset()
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Reseting timer");
+
+            if (!CanResetTimer())
+            {
+                _logger.LogInformation($"Failed to reset timer: {_isRunning.ToString()} | {Enum.GetName(typeof(MatchTimerState), Status.State)}");
+                return;
+            }
+
+            Configure(TimeSpan.FromSeconds(_secondsMax));
+
+            _logger.LogInformation($"Timer reset");
         }
 
         public void Halt()
@@ -263,11 +272,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool CanConfigureTimer()
         {
+            if (_isRunning)
+            {
+                return false;
+            }
+            
             return Status.State switch
             {
                 MatchTimerState.Stopped => true,
                 MatchTimerState.Initialized => true,
                 MatchTimerState.Configured => true,
+                MatchTimerState.Running => false,
+                MatchTimerState.Starting => false,
+                MatchTimerState.Paused => false,
+                MatchTimerState.Stopping => false,
+                MatchTimerState.Halting => false,
+                MatchTimerState.Resuming => false,
+                MatchTimerState.Configuring => false,
+                _ => false,
+            };
+        }
+
+        private bool CanResetTimer()
+        {
+            if (_isRunning)
+            {
+                return false;
+            }
+
+            return Status.State switch
+            {
+                MatchTimerState.Stopped => true,
+                MatchTimerState.Initialized => false,
+                MatchTimerState.Configured => false,
                 MatchTimerState.Running => false,
                 MatchTimerState.Starting => false,
                 MatchTimerState.Paused => false,

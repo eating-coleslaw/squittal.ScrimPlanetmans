@@ -8,6 +8,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
     public interface IWebsocketEventHandler : IDisposable
     {
         Task Process(JToken jPayload);
+        void DisableScoring();
+        void EnabledScoring();
         //void Process(JToken jPayload);
     }
 }

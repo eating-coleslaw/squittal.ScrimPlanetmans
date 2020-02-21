@@ -2,6 +2,7 @@
 @using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.ScrimEngine
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
@@ -11,6 +12,15 @@
 <h3>Match Setup</h3>
 
 <div style="width: calc(45% - 1rem); float: left; margin-right: 1rem; font-size: smaller; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">
+
+    <EditForm Model="@_matchConfiguration">
+
+        <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
+        <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
+
+    </EditForm>
+
+    @*Round Length (seconds): <InputText id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal.ToString()" />*@
 
     <TeamBuilder i_teamOrdinal=1 i_OnAdminLogTextAdded="LogAdminMessage" />
 
@@ -65,7 +75,8 @@
 
 
 @code {
-
+    private string _roundSecondsInput = string.Empty;
+    private MatchConfiguration _matchConfiguration { get; set; }
 
     private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
     private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
@@ -84,6 +95,15 @@
     protected override void OnInitialized()
     {
         WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        if (ScrimMatchEngine.MatchConfiguration != null)
+        {
+            _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
+        }
+        else
+        {
+            _matchConfiguration = new MatchConfiguration();
+        }
     }
 
 
@@ -121,8 +141,13 @@
 
     private void StartMatch()
     {
-        ScrimMatchEngine.InitializeNewRound();
-        ScrimMatchEngine.StartRound();
+        SubscribeToCensus();
+
+        ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+        ScrimMatchEngine.Start();
+
+        //ScrimMatchEngine.InitializeNewRound();
+        //ScrimMatchEngine.StartRound();
 
         LogAdminMessage($"Started new match!"); // TODO: add team names to this
 
@@ -156,7 +181,7 @@
         {
             LogMessage(payload.ToString(), _streamLogs);
         }
-        
+
         else if (eventName == "PlayerLogin")
         {
             LogMessage(payload.ToString(), _streamLogs);

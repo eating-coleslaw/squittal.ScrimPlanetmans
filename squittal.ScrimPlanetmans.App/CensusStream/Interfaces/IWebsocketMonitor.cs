@@ -21,5 +21,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         void RemoveCharacterSubscriptions(IEnumerable<string> characterIds);
         void RemoveAllCharacterSubscriptions();
         Task<ServiceState> GetStatus();
+        void EnableScoring();
+        void DisableScoring();
     }
 }
