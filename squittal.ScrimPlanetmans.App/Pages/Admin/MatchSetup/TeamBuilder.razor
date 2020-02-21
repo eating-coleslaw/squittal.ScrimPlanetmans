@@ -1,16 +1,13 @@
-﻿@using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
-@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
-@using squittal.ScrimPlanetmans.App.Pages.Admin;
-@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup;
-@using squittal.ScrimPlanetmans.App.Pages.Shared;
-@using squittal.ScrimPlanetmans.ScrimMatch.Models;
-@using Newtonsoft.Json.Linq;
-@using System.Diagnostics;
-@using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@using squittal.ScrimPlanetmans.Services.Planetside;
-@using squittal.ScrimPlanetmans.ScrimMatch;
+﻿@using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+@using System.Diagnostics;
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor WebsocketMonitor
@@ -27,10 +24,12 @@
 }
 else
 {
-    <h3>
+    <h3 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary);">
         Team @($"{i_teamOrdinal}: {_team.Alias}")
-        <span style="font-size: 12px; font-weight: 500;"> @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
-            <span style="font-weight: 700; font-size: larger;">@(_team.EventAggregate.Points)
+        <span style="font-size: 12px; font-weight: 500;">
+            @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
+            <span style="font-weight: 700; font-size: larger;">
+                @(_team.EventAggregate.Points)
             </span>
         </span>
     </h3>
@@ -53,11 +52,11 @@ else
 
     foreach (var outfit in _teamOutfits)
     {
-        <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">
+        <p  class="@SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; margin-top: 0.5rem;">
             <b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
             <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: text-bottom;" @onclick="(() => ToggleOutfitPlayersVisibility(outfit.AliasLower))">| @(ShowOutfitPlayers(outfit.AliasLower) ? "Hide Players" : "Show Players")</button>
-            
-            @if(!_teamOutfitsLoadingMembers.Contains(outfit.AliasLower))
+
+            @if (!_teamOutfitsLoadingMembers.Contains(outfit.AliasLower))
             {
                 <button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: text-bottom;" @onclick="(() => RefreshOutfitPlayers(outfit.AliasLower))">| Refresh</button>
                 <button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: text-bottom;" @onclick="(() => RemoveOutfit(outfit.AliasLower))">| Remove</button>
@@ -70,7 +69,7 @@ else
             <SpinnerEllipsis />
         }
 
-        else if (_teamPlayersOnline != null && _teamPlayersOnline.Any(p => p.OutfitId == outfit.Id) &&  ShowOutfitPlayers(outfit.AliasLower))
+        else if (_teamPlayersOnline != null && _teamPlayersOnline.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
         {
             <ul style="list-style-type: circle; margin-bottom: 0.5rem;">
 
@@ -227,6 +226,12 @@ else
         {
             _teamOutfitsLoading.Add(newAliasLower);
 
+            //await InvokeAsync(() =>
+            //{
+            //    LogMessage($"LOADING ALIAS: [{newAliasLower}] added to list");
+            //    StateHasChanged();
+            //});
+
             newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
 
             if (newOutfit != null)
@@ -235,21 +240,38 @@ else
                 _validOutfitAliasHistory.Add(newAliasLower);
                 _inputAlias.Alias = string.Empty;
 
-                _teamOutfitsLoading.Remove(newAliasLower);
+                //_teamOutfitsLoading.Remove(newAliasLower);
 
-                await InvokeAsync(() =>
-                {
-                    StateHasChanged();
-                });
+                //await InvokeAsync(() =>
+                //{
+                //    LogMessage("LOADING ALIAS: [{newAliasLower}] removed from list");
+                //    StateHasChanged();
+                //});
 
                 _teamOutfitsLoadingMembers.Add(newAliasLower);
 
-                await InvokeAsync(() =>
-                {
-                    StateHasChanged();
-                });
+                //await InvokeAsync(() =>
+                //{
+                //    LogMessage("LOADING MEMBERS: [{newAliasLower}] added to list");
+                //    StateHasChanged();
+                //});
 
-                var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
+                try
+                {
+                    var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
+                }
+                //catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException er)
+                catch (Exception ex)
+                {
+                    LogMessage($"<span style=\"color: red;\">Failed to add outfit {newAlias}: {ex}</span>");
+                }
+                _teamOutfitsLoading.Remove(newAliasLower);
+
+                //await InvokeAsync(() =>
+                //{
+                //    LogMessage("LOADING ALIAS: [{newAliasLower}] removed from list");
+                //    StateHasChanged();
+                //});
 
                 _outfitPlayersExtendedMap.Add(newAliasLower, true);
 
@@ -257,10 +279,11 @@ else
 
                 _teamOutfitsLoadingMembers.Remove(newAliasLower);
 
-                await InvokeAsync(() =>
-                {
-                    StateHasChanged();
-                });
+                //await InvokeAsync(() =>
+                //{
+                //    LogMessage("LOADING MEMBERS: [{newAliasLower}] removed from list");
+                //    StateHasChanged();
+                //});
             }
             else
             {
@@ -315,7 +338,7 @@ else
      *************************/
     private void ToggleOutfitPlayersVisibility(string aliasLower)
     {
-        if(_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
+        if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
         {
             _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
             StateHasChanged();
@@ -324,7 +347,7 @@ else
 
     private bool ShowOutfitPlayers(string aliasLower)
     {
-        if(_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool showPlayers))
+        if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool showPlayers))
         {
             return showPlayers;
         }
@@ -370,6 +393,8 @@ else
         }
 
         //_teamPlayers.Add(player);
+
+        _teamOutfitsLoading.Remove(player.OutfitAliasLower); //TEST TEST TEST TEST
 
         if (player.IsOnline)
         {
