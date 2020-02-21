@@ -172,5 +172,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
         #endregion Objective Events
+
+        #region Misc. Non-Scored Events
+        public void HandlePlayerLogin(PlayerLogin login)
+        {
+            var characterId = login.CharacterId;
+            _teamsManager.SetPlayerOnlineStatus(characterId, true);
+        }
+
+        public void HandlePlayerLogout(PlayerLogout login)
+        {
+            var characterId = login.CharacterId;
+            _teamsManager.SetPlayerOnlineStatus(characterId, false);
+        }
+        #endregion Misc. Non-Scored Events
     }
 }

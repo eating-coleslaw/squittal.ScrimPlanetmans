@@ -503,6 +503,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // TODO: broadcast Team stats update
         }
 
+        public void SaveRoundEndScores(int round)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetPlayerOnlineStatus(string characterId, bool isOnline)
+        {
+            GetPlayerFromId(characterId).IsOnline = isOnline;
+        }
+
         private bool TeamContainsOutfits(int teamOrdinal)
         {
             return TeamOutfitCount(teamOrdinal) > 0;

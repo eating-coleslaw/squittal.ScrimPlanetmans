@@ -45,5 +45,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool IsPlayerTracked(string characterId);
         void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
         Team GetTeamFromOutfitAlias(string aliasLower);
+        void SetPlayerOnlineStatus(string characterId, bool isOnline);
     }
 }

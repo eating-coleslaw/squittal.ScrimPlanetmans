@@ -7,6 +7,7 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
 @inject IScrimMatchEngine ScrimMatchEngine
+@inject IScrimTeamsManager ScrimTeamsEngine
 @inject IWebsocketMonitor WebsocketMonitor
 
 <h3>Match Setup</h3>
@@ -149,7 +150,7 @@
         //ScrimMatchEngine.InitializeNewRound();
         //ScrimMatchEngine.StartRound();
 
-        LogAdminMessage($"Started new match!"); // TODO: add team names to this
+        LogAdminMessage($"Started new match: {_matchConfiguration.Title}"); // TODO: add team names to this
 
         //SateHasChanged();
     }
@@ -174,22 +175,24 @@
 
         if (eventName == "Death")
         {
-            LogMessage(payload.ToString(), _streamLogs);
+            //LogMessage(payload.ToString(), _streamLogs);
         }
 
         else if (eventName == "GainExperience")
         {
-            LogMessage(payload.ToString(), _streamLogs);
+            //LogMessage(payload.ToString(), _streamLogs);
         }
 
         else if (eventName == "PlayerLogin")
         {
             LogMessage(payload.ToString(), _streamLogs);
+            HandlePlayerLoginPayload(payload);
         }
 
         else if (eventName == "PlayerLogout")
         {
             LogMessage(payload.ToString(), _streamLogs);
+            HandlePlayerLogoutPayload(payload);
         }
     }
 
@@ -213,6 +216,38 @@
         }
 
         return jMsg;
+    }
+
+    private void HandlePlayerLoginPayload(JToken payload)
+    {
+        var characterId = payload.Value<string>("character_id");
+
+        var player = ScrimTeamsEngine.GetPlayerFromId(characterId);
+
+        if (player == null)
+        {
+            return;
+        }
+
+        var message = $"Team {player.TeamOrdinal} Player LOGIN: [{player.OutfitAlias}] {player.NameDisplay} [{player.Id}]";
+
+        LogAdminMessage(message);
+    }
+
+    private void HandlePlayerLogoutPayload(JToken payload)
+    {
+        var characterId = payload.Value<string>("character_id");
+
+        var player = ScrimTeamsEngine.GetPlayerFromId(characterId);
+
+        if (player == null)
+        {
+            return;
+        }
+
+        var message = $"Team {player.TeamOrdinal} Player LOGOUT: [{player.OutfitAlias}] {player.NameDisplay} [{player.Id}]";
+
+        LogAdminMessage(message);
     }
 
 

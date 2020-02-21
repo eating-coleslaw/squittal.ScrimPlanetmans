@@ -69,13 +69,13 @@ else
             <SpinnerEllipsis />
         }
 
-        else if (_teamPlayersOnline != null && _teamPlayersOnline.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
+        else if (_teamPlayersVisible != null && _teamPlayersVisible.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
         {
             <ul style="list-style-type: circle; margin-bottom: 0.5rem;">
 
-                @foreach (var member in _teamPlayersOnline.Where(p => p.OutfitId == outfit.Id).ToList())
+                @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id).ToList())
                 {
-                    <li>@member.NameDisplay <span style="font-size: small;">(@member.Id)</span> || @(member.EventAggregate.Kills)k @(member.EventAggregate.Deaths)d <span style="font-weight: 700; font-size: larger;">@(member.EventAggregate.NetScore) (@member.EventAggregate.Points)</span> </li>
+                    <li>@member.NameDisplay <span style="font-size: small;">(@member.Id)</span> @(member.IsOnline ? "ONLINE" : "OFFLINE") || @(member.EventAggregate.Kills)k @(member.EventAggregate.Deaths)d <span style="font-weight: 700; font-size: larger;">@(member.EventAggregate.NetScore) (@member.EventAggregate.Points)</span> </li>
                 }
 
             </ul>
@@ -133,9 +133,12 @@ else
 
     private List<Player> _teamPlayersParticipating = new List<Player>();
 
+    private List<Player> _teamPlayersVisible = new List<Player>();
+
     /* UI & Layout Variables */
     private Dictionary<string, bool> _outfitPlayersExtendedMap = new Dictionary<string, bool>(); // <outfit alias, is player list expanded?>
 
+    private int _defaultMaxPlayersToExtend = 6;
 
     /* Helpers */
     private IEnumerable<World> _worlds;
@@ -181,6 +184,8 @@ else
 
         _teamPlayersParticipating = _team.ParticipatingPlayers; // ScrimTeamsManager.GetParticipatingPlayers().ToList();
 
+        _teamPlayersVisible.AddRange(_teamPlayersParticipating);
+
         _validOutfitAliasHistory = _team.Outfits.Select(o => o.AliasLower).ToList();
 
         //var players = _team.Players;
@@ -196,6 +201,11 @@ else
                 _teamPlayersOnline.Add(player);
                 //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
             }
+
+            if (player.IsOnline && !_teamPlayersVisible.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersVisible.Add(player);
+            }
         }
 
         foreach (var outfit in _teamOutfits)
@@ -203,7 +213,15 @@ else
             message = $"Loaded Team {i_teamOrdinal} outfit: [{outfit.Alias}] {outfit.Name}";
             LogMessage(message);
 
-            _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+            //_outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+            if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower) > _defaultMaxPlayersToExtend)
+            {
+                _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
+            }
+            else
+            {
+                _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+            }
 
             SetOutfitMembersOnlineCount(outfit.AliasLower);
         }
@@ -273,7 +291,14 @@ else
                 //    StateHasChanged();
                 //});
 
-                _outfitPlayersExtendedMap.Add(newAliasLower, true);
+                if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == newAliasLower) > _defaultMaxPlayersToExtend)
+                {
+                    _outfitPlayersExtendedMap.Add(newAliasLower, false);
+                }
+                else
+                {
+                    _outfitPlayersExtendedMap.Add(newAliasLower, true);
+                }
 
                 //_teamAliasDisplay1 = ScrimTeamsManager.GetTeamAliasDisplay(teamOrdinal);
 
@@ -401,6 +426,11 @@ else
             _teamPlayersOnline.Add(player);
             //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+
+            if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersVisible.Add(player);
+            }
         }
 
         LogMessage(message.Info);
@@ -421,6 +451,7 @@ else
         {
             _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
             _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
             //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
@@ -443,12 +474,17 @@ else
             _teamPlayersParticipating.Add(player);
         }
 
-        InvokeAsync(() =>
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
         {
-            StateHasChanged();
-        });
+            _teamPlayersVisible.Add(player);
+        }
 
-        LogMessage(message.Info);
+        //InvokeAsync(() =>
+        //{
+        //    StateHasChanged();
+        //});
+
+        //LogMessage(message.Info);
     }
 
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
@@ -488,6 +524,8 @@ else
             return;
         }
 
+        //player.IsOnline = true; // TODO: remove this once PlayerLogin message events are implemented
+
         if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
         {
             _teamPlayersOnline.Add(player);
@@ -499,9 +537,14 @@ else
             }
         }
 
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.Add(player);
+        }
+
         var message = $"Team {i_teamOrdinal} Player LOGIN: {player.NameDisplay} [{player.Id}]";
 
-        LogMessage(message);
+        //LogMessage(message);
 
         InvokeAsync(() =>
         {
@@ -519,6 +562,8 @@ else
         {
             return;
         }
+        
+        //player.IsOnline = false; // TODO: remove this once PlayerLogin message events are implemented
 
         if (_teamPlayersOnline.Any(p => p.Id == player.Id))
         {
@@ -531,9 +576,15 @@ else
             }
         }
 
+        // Only remove the player from the visible list if they haven't done anything in the match
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
         var message = $"Team {i_teamOrdinal} Player LOGOUT: {player.NameDisplay} [{player.Id}]";
 
-        LogMessage(message);
+        //LogMessage(message);
 
         InvokeAsync(() =>
         {

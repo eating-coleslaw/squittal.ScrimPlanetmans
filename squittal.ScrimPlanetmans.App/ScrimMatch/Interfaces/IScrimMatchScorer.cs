@@ -9,5 +9,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         int ScorePlayerFacilityCaptureEvent(PlayerFacilityCapture capture);
         int ScorePlayerFacilityDefendEvent(PlayerFacilityDefend defense);
         int ScoreGainExperienceEvent(GainExperience expGain);
+        void HandlePlayerLogin(PlayerLogin login);
+        void HandlePlayerLogout(PlayerLogout login);
     }
 }

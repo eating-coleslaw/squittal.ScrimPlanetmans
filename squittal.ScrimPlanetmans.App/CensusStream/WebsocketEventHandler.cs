@@ -87,6 +87,18 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _logger.LogDebug("Payload received for event: {0}.", eventName);
 
+            var eventName1 = jPayload.Value<string>("event_name");
+
+            if (eventName == "PlayerLogin" || eventName == "PlayerLogout")
+            {
+                _logger.LogInformation($"Payload received for event {eventName}: {payload.ToString()}");
+            }
+
+            if (eventName1 == "PlayerLogin" || eventName1 == "PlayerLogout")
+            {
+                _logger.LogInformation($"Payload received for event1 {eventName}: {payload.ToString()}");
+            }
+
             if (!_processMethods.ContainsKey(eventName))
             {
                 _logger.LogWarning("No process method found for event: {0}", eventName);
@@ -100,10 +112,34 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             try
             {
-                var inputType = _processMethods[eventName].GetCustomAttribute<CensusEventHandlerAttribute>().PayloadType;
-                var inputParam = jPayload.ToObject(inputType, _payloadDeserializer);
+                //var inputType = _processMethods[eventName].GetCustomAttribute<CensusEventHandlerAttribute>().PayloadType;
+                //var inputParam = jPayload.ToObject(inputType, _payloadDeserializer);
 
-                await (Task)_processMethods[eventName].Invoke(this, new[] { inputParam });
+                //await (Task)_processMethods[eventName].Invoke(this, new[] { inputParam });
+
+                switch (eventName)
+                {
+                    case "Death":
+                        var deathParam = jPayload.ToObject<DeathPayload>(_payloadDeserializer);
+                        await Process(deathParam);
+                        break;
+
+                    case "PlayerLogin":
+                        var loginParam = jPayload.ToObject<PlayerLoginPayload>(_payloadDeserializer);
+                        await Task.Run(()=>
+                        { 
+                            Process(loginParam);
+                        });
+                        break;
+
+                    case "PlayerLogout":
+                        var logoutParam = jPayload.ToObject<PlayerLogoutPayload>(_payloadDeserializer);
+                        await Task.Run(() =>
+                        {
+                            Process(logoutParam);
+                        });
+                        break;
+                }
             }
             catch (Exception ex)
             {
@@ -236,7 +272,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
-        private Task<PlayerLogin> Process(PlayerLoginPayload payload)
+        //private Task<PlayerLogin> Process(PlayerLoginPayload payload)
+        private PlayerLogin Process(PlayerLoginPayload payload)
         {
             //using (var factory = _dbContextHelper.GetFactory())
             //{
@@ -251,7 +288,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         WorldId = payload.WorldId
                     };
 
-                    return Task.FromResult(dataModel);
+                    _scorer.HandlePlayerLogin(dataModel);
+
+                    return dataModel;
+                    //return Task.FromResult(dataModel);
 
                     //dbContext.PlayerLogins.Add(dataModel);
                     //await dbContext.SaveChangesAsync();
@@ -265,7 +305,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
-        private Task<PlayerLogout> Process(PlayerLogoutPayload payload)
+        //private Task<PlayerLogout> Process(PlayerLogoutPayload payload)
+        private PlayerLogout Process(PlayerLogoutPayload payload)
         {
             //bool updateCharacter;
 
@@ -282,7 +323,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         WorldId = payload.WorldId
                     };
 
-                return Task.FromResult(dataModel);
+                _scorer.HandlePlayerLogout(dataModel);
+
+                return dataModel;
+                //return Task.FromResult(dataModel);
 
                 //dbContext.PlayerLogouts.Add(dataModel);
                 //await dbContext.SaveChangesAsync();
