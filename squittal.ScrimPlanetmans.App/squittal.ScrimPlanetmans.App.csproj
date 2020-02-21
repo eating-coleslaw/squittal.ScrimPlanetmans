@@ -32,7 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Hubs\Models\" />
     <Folder Include="Pages\Admin\Rulesets\" />
   </ItemGroup>
 

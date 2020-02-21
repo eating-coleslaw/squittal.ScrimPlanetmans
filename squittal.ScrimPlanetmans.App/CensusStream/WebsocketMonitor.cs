@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using squittal.ScrimPlanetmans.Hubs;
+//using squittal.ScrimPlanetmans.Hubs;
 using squittal.ScrimPlanetmans.CensusStream.Models;
 using System;
 using System.Threading;
