@@ -33,25 +33,41 @@
         Timer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
 
         var prevTick = ScrimMatchEngine.GetLatestTimerTickMessage();
+
         if (prevTick != null)
         {
             _clock = prevTick.MatchTimerStatus.TimeRemainingDisplay;
+
+            if (prevTick.MatchTimerStatus.GetSecondsRemaining() > 0)
+            {
+                _canPlaySound = true;
+            }
+        }
+        else
+        {
+            _canPlaySound = true;
         }
 
-        _canPlaySound = true;
     }
 
     private void ReceiveMatchTimerTickEvent(object sender, MatchTimerTickEventArgs e)
     {
-        _playSound = (!_playedSound && _canPlaySound) ? true : false;
-        _playedSound = true;
-
         var message = e.Message;
 
         var status = message.MatchTimerStatus;
         var info = message.Info;
 
         var state = status.State;
+
+        if (status.GetSecondsRemaining() == 0)
+        {
+            _playSound = (!_playedSound && _canPlaySound) ? true : false;
+            _playedSound = true;
+        }
+        else
+        {
+            _canPlaySound = true;
+        }
 
         _clock = status.TimeRemainingDisplay;
         _clockStatus = state;
