@@ -26,8 +26,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         // Dynamic Attributes
         public int LoadoutId { get; set; } = 0;
-        public bool IsActive { get; set; }
+
         public bool IsOnline { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsParticipating { get; set; }
 
         public Player(Character character)
         {
