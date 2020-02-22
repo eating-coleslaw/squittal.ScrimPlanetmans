@@ -15,6 +15,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
 
+        // Each aggregate is only the points scored during the round number of the enytry's key
+        public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory = new Dictionary<int, ScrimEventAggregate>();
+
         public List<Player> Players { get; } = new List<Player>();
         public List<Player> ActivePlayers { get; } = new List<Player>();
         public List<Player> ParticipatingPlayers { get; set; } = new List<Player>();
@@ -121,6 +124,55 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _seedOutfitIds.RemoveAll(id => id == outfit.Id);
 
             return true;
+        }
+
+        public void SaveRoundToEventAggregateHistory(int round)
+        {
+            if (round < 1)
+            {
+                return;
+            }
+
+            var maxRound = GetHighestEventAggregateHistoryRound();
+
+            // Only allow updating the current round, or saving a new round
+            if (round != maxRound && round != (maxRound + 1))
+            {
+                return;
+            }
+
+            var roundStats = new ScrimEventAggregate();
+
+            roundStats.Add(EventAggregate);
+
+            for (var r = 1; r == (round - 1); r++)
+            {
+                if (EventAggregateRoundHistory.TryGetValue(r, out ScrimEventAggregate stats))
+                {
+                    roundStats.Subtract(stats);
+                }
+            }
+
+            if (EventAggregateRoundHistory.ContainsKey(round))
+            {
+                EventAggregateRoundHistory[round] = roundStats;
+            }
+            else
+            {
+                EventAggregateRoundHistory.Add(round, roundStats);
+            }
+        }
+
+        private int GetHighestEventAggregateHistoryRound()
+        {
+            var rounds = EventAggregateRoundHistory.Keys.ToArray();
+
+            if (!rounds.Any())
+            {
+                return 0;
+            }
+
+            return rounds.Max();
         }
 
         private void AddOutfitPlayersToTeam(Outfit outfit, IEnumerable<Character> characters)

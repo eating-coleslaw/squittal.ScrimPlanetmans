@@ -1,6 +1,8 @@
 ﻿using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
@@ -12,6 +14,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int TeamOrdinal { get; set; }
 
         public ScrimEventAggregate EventAggregate;
+
+        // Each aggregate is only the points scored during the round number of the enytry's key
+        public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory = new Dictionary<int, ScrimEventAggregate>();
 
         public string NameFull { get; set; }
         public string NameDisplay { get; set; }
@@ -90,6 +95,67 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             NameAlias = alias;
             NameDisplay = NameAlias;
+        }
+
+        public void SaveRoundToEventAggregateHistory(int round)
+        {
+            if (round < 1)
+            {
+                return;
+            }
+            
+            var maxRound = GetHighestEventAggregateHistoryRound();
+
+            // Only allow updating the current round, or saving a new round
+            if (round != maxRound && round != (maxRound + 1))
+            {
+                return;
+            }
+
+            var roundStats = new ScrimEventAggregate();
+
+            roundStats.Add(EventAggregate);
+
+            //if (round == 1)
+            //{
+            //    if (EventAggregateRoundHistory.ContainsKey(1))
+            //    {
+            //        EventAggregateRoundHistory[1] = roundStats;
+            //        return;
+            //    }
+
+            //    EventAggregateRoundHistory.Add(1, roundStats);
+            //    return;
+            //}
+
+            for (var r = 1; r == (round - 1); r++)
+            {
+                if (EventAggregateRoundHistory.TryGetValue(r, out ScrimEventAggregate stats))
+                {
+                    roundStats.Subtract(stats);
+                }
+            }
+
+            if (EventAggregateRoundHistory.ContainsKey(round))
+            {
+                EventAggregateRoundHistory[round] = roundStats;
+            }
+            else
+            {
+                EventAggregateRoundHistory.Add(round, roundStats);
+            }
+        }
+
+        private int GetHighestEventAggregateHistoryRound()
+        {
+            var rounds = EventAggregateRoundHistory.Keys.ToArray();
+
+            if (!rounds.Any())
+            {
+                return 0;
+            }
+
+            return rounds.Max();
         }
 
         public override bool Equals(object obj)
