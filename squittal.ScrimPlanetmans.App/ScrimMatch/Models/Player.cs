@@ -26,10 +26,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         // Dynamic Attributes
         public int LoadoutId { get; set; } = 0;
+        public PlayerStatus Status { get; set; } = PlayerStatus.Unknown;
 
-        public bool IsOnline { get; set; }
-        public bool IsActive { get; set; }
-        public bool IsParticipating { get; set; }
+        public bool IsOnline { get; set; } = false;
+        public bool IsActive { get; set; } = false;
+        public bool IsParticipating { get; set; } = false;
+
 
         public Player(Character character)
         {
@@ -138,5 +140,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             return Id.GetHashCode();
         }
+    }
+
+
+    public enum PlayerStatus
+    {
+        Unknown,
+        Alive,
+        Respawning,
+        Revived,
+        ContestingObjective,
+        Benched,
+        Offline
     }
 }
