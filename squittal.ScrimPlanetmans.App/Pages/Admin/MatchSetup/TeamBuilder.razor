@@ -151,13 +151,8 @@ else
      ***********/
     protected override async Task OnInitializedAsync()
     {
-        //ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-
-        //ScrimTeamsManager.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-
-        //WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         _worlds = await WorldService.GetAllWorldsAsync();

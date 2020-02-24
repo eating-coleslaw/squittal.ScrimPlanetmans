@@ -1,7 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
-using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Shared.Models;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,16 +7,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimTeamsManager
     {
-        event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
-        event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
-
         Team GetTeam(int teamOrdinal);
         string GetTeamAliasDisplay(int teamOrdinal);
 
-
         Team GetTeamOne();
         Team GetTeamTwo();
-
 
         Player GetPlayerFromId(string characterId);
 

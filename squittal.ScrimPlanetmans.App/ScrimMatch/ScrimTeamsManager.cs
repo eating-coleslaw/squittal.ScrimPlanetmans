@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using squittal.ScrimPlanetmans.CensusStream;
-using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models;
@@ -17,7 +14,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     public class ScrimTeamsManager : IScrimTeamsManager, IDisposable
     {
         private readonly IScrimPlayersService _scrimPlayers;
-        //private readonly IWebsocketMonitor _wsMonitor;
         private readonly IOutfitService _outfitService;
         private readonly IFactionService _factionService;
         private readonly IScrimMessageBroadcastService _messageService;
@@ -37,15 +33,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private string _defaultAliasPreText = "tm";
 
         //private Dictionary<string, int> _characterTeamOrdinalMap;
-
-        public event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
-        public delegate void TeamPlayerChangeEventHandler(object sender, TeamPlayerChangeEventArgs e);
-
-        public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
-        public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
-
-        public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
-        public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
 
         public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, IScrimMessageBroadcastService messageService, ILogger<ScrimTeamsManager> logger)
@@ -520,71 +507,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return TeamOutfitCount(teamOrdinal) > 0;
         }
 
-        protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
-        {
-            RaiseTeamPlayerChangeEvent?.Invoke(this, e);
-        }
-
         private void SendTeamPlayerAddedMessage(Player player)
         {
             var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
-
             _messageService.BroadcastTeamPlayerChangeMessage(payload);
-
-            //payload.ChangeType = TeamPlayerChangeType.Add;
-
-            //OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
-
-            _logger.LogDebug($"{payload.Info}");
-            //_logger.LogDebug($"Sent TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
         }
 
         private void SendTeamPlayerRemovedMessage(Player player)
         {
             var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Remove);
-
             _messageService.BroadcastTeamPlayerChangeMessage(payload);
-
-            //payload.ChangeType = TeamPlayerChangeType.Remove;
-
-            //OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
-
-            _logger.LogDebug($"{payload.Info}");
-
-            //_logger.LogInformation($"Sending TeamPlayerRemoved Message: {player.NameFull} [{player.Id}]");
-
-            //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
-
-            //await _hubContext.Clients.All.SendAsync("ReceiveTeamPlayerChangeMessage", message);
-            //await _hubContext.Clients.All.SendAsync("ReceiveMessage", $"Sending TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
-        }
-
-        protected virtual void OnRaisePlayerStatUpdateEvent(PlayerStatUpdateEventArgs e)
-        {
-            RaisePlayerStatUpdateEvent?.Invoke(this, e);
         }
 
         private void SendPlayerStatUpdateMessage(Player player)
         {
             var payload = new PlayerStatUpdateMessage(player);
-
             _messageService.BroadcastPlayerStatUpdateMessage(payload);
-
-            //OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(payload));
-
-            _logger.LogDebug($"{payload.Info}");
-        }
-
-        protected virtual void OnRaiseSimpleMessageChangeEvent(SimpleMessageEventArgs e)
-        {
-            RaiseSimpleMessageEvent?.Invoke(this, e);
-        }
-
-        private void SendSimpleMessageAddedMessage(string s)
-        {
-            _messageService.BroadcastSimpleMessage(s);
-            
-            //OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
         }
 
         public void Dispose()

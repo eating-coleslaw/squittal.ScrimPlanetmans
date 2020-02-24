@@ -12,8 +12,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         //Task OnApplicationStartup(CancellationToken cancellationToken);
         //Task OnApplicationShutdown(CancellationToken cancellationToken);
 
-        event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
-        
         Task Subscribe(CancellationToken cancellationToken);
 
         void AddCharacterSubscriptions(IEnumerable<string> characterIds);

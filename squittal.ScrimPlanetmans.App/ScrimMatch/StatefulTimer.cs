@@ -12,7 +12,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public class StatefulTimer : IStatefulTimer
     {
-        //public MatchTimerStatus Status { get => _status; }
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<StatefulTimer> _logger;
 

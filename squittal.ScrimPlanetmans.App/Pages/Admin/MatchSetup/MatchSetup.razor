@@ -97,7 +97,6 @@
 
     protected override void OnInitialized()
     {
-        //WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)

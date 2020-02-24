@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using squittal.ScrimPlanetmans.Shared.Models;
 using System.Linq;
-using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 
@@ -28,20 +27,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public List<string> CharacterSubscriptions = new List<string>();
 
-        public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
-        public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
-
-        protected virtual void OnRaiseSimpleMessageChangeEvent(SimpleMessageEventArgs e)
-        {
-            RaiseSimpleMessageEvent?.Invoke(this, e);
-        }
-
-        private void SendSimpleMessageAddedMessage(string s)
-        {
-            _messageService.BroadcastSimpleMessage(s);
-            
-            //OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
-        }
 
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
@@ -307,6 +292,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
 
             return status;
+        }
+
+        private void SendSimpleMessageAddedMessage(string s)
+        {
+            _messageService.BroadcastSimpleMessage(s);
         }
 
         public void Dispose()
