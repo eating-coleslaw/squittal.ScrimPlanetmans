@@ -22,7 +22,7 @@
 @inject IStatefulTimer MatchTimer
 @inject IWorldService WorldService
 @inject IFactionService FactionService
-
+@inject IScrimMessageBroadcastService MessageService
 
 @*@inject squittal.ScrimPlanetmans.Services.ScrimMatch.ScrimTeamsManagerService _teamsManager*@
 
@@ -85,7 +85,7 @@
     @*<p>_______________________________________________________</p>*@
     <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
 
-    <TeamBuilder i_teamOrdinal=2 i_OnAdminLogTextAdded="LogMessage"/>
+    <TeamBuilder i_teamOrdinal=2 i_OnAdminLogTextAdded="LogMessage" />
 
     <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
 
@@ -182,11 +182,13 @@
 
         Console.WriteLine($"Base URL: {uri} || {uri}eventhub");
 
-        ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        //ScrimTeamsManager.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        //WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        //ScrimTeamsManager.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
 
-        WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-
-        ScrimTeamsManager.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
 
         //MatchTimer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
 
