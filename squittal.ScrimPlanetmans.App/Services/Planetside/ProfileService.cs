@@ -255,7 +255,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 GetNewCensusLoadoutModel(29, 191, 4, "NS Light Assault"),
                 GetNewCensusLoadoutModel(30, 192, 4, "NS Combat Medic"),
                 GetNewCensusLoadoutModel(31, 193, 4, "NS Engineer"),
-                GetNewCensusLoadoutModel(32, 194, 4, "NS Heavy Assault")
+                GetNewCensusLoadoutModel(32, 194, 4, "NS Heavy Assault"),
+                GetNewCensusLoadoutModel(45, 252, 4, "NS Defector")
             };
 
             return nsLoadouts;
