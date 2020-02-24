@@ -39,5 +39,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
         Team GetTeamFromOutfitAlias(string aliasLower);
         void SetPlayerOnlineStatus(string characterId, bool isOnline);
+        bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer);
     }
 }

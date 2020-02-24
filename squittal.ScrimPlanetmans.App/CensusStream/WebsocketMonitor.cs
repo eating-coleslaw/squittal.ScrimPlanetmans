@@ -256,15 +256,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
             if (PayloadContainsSubscribedCharacter(jMsg))
             {
                 //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
-                if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
-                {
-                    _logger.LogInformation($"Payload received for event PlayerLogin: {jMsg.ToString()}");
-                }
+                //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
+                //{
+                //    _logger.LogInformation($"Payload received for event PlayerLogin: {jMsg.ToString()}");
+                //}
 
-                else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
-                {
-                    _logger.LogInformation($"Payload received for event PlayerLogout: {jMsg.ToString()}");
-                }
+                //else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
+                //{
+                //    _logger.LogInformation($"Payload received for event PlayerLogout: {jMsg.ToString()}");
+                //}
 
 
                 await _handler.Process(jMsg);

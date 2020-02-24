@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
@@ -20,6 +17,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
+        public event EventHandler<PlayerScrimDeathEventEventArgs> RaisePlayerScrimDeathEvent;
+        public delegate void PlayerScrimDeathEventMessageEventHandler(object sender, PlayerScrimDeathEventEventArgs e);
+
         public event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
         public delegate void PlayerLoginEventHandler(object sender, PlayerLoginEventArgs e);
 
@@ -29,6 +29,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<MatchStateUpdateEventArgs> RaiseMatchStateUpdateEvent;
 
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
+
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
 
         public ScrimMessageBroadcastService(ILogger<ScrimMessageBroadcastService> logger)
@@ -81,9 +82,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaisePlayerLogoutEvent?.Invoke(this, e);
         }
 
-        /**********************
-         * Player Stat Update
-         **********************/
+        /*************************************
+         * Player Stat Update & Scrim Events
+         *************************************/
         public void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message)
         {
             OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(message));
@@ -91,6 +92,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaisePlayerStatUpdateEvent(PlayerStatUpdateEventArgs e)
         {
             RaisePlayerStatUpdateEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastPlayerScrimDeathEventMessage(PlayerScrimDeathEventMessage message)
+        {
+            OnRaisePlayerScrimDeathEvent(new PlayerScrimDeathEventEventArgs(message));
+        }
+        protected virtual void OnRaisePlayerScrimDeathEvent(PlayerScrimDeathEventEventArgs e)
+        {
+            RaisePlayerScrimDeathEvent?.Invoke(this, e);
         }
 
         /***************************

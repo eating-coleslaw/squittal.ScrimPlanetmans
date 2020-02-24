@@ -11,7 +11,10 @@ using Newtonsoft.Json.Linq;
 using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
 using squittal.ScrimPlanetmans.ScrimMatch;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
@@ -24,9 +27,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
     public class WebsocketEventHandler : IWebsocketEventHandler
     {
         //private readonly IDbContextHelper _dbContextHelper;
+        private readonly IItemService _itemService;
         private readonly ICharacterService _characterService;
-        //private readonly IScrimTeamsManager _teamsManager;
+        private readonly IScrimTeamsManager _teamsManager;
         private readonly IScrimMatchScorer _scorer;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<WebsocketEventHandler> _logger;
         private readonly Dictionary<string, MethodInfo> _processMethods;
 
@@ -43,8 +48,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
         });
 
-        public WebsocketEventHandler(ICharacterService characterService, IScrimMatchScorer scorer, ILogger<WebsocketEventHandler> logger)
+        public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer, IItemService itemService, IScrimMessageBroadcastService messageService, ILogger<WebsocketEventHandler> logger)
         {
+            _teamsManager = teamsManager;
+            _itemService = itemService;
+            _messageService = messageService;
             //_dbContextHelper = dbContextHelper;
             _characterService = characterService;
             _scorer = scorer;
@@ -87,17 +95,17 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _logger.LogDebug("Payload received for event: {0}.", eventName);
 
-            var eventName1 = jPayload.Value<string>("event_name");
+            //var eventName1 = jPayload.Value<string>("event_name");
 
-            if (eventName == "PlayerLogin" || eventName == "PlayerLogout")
-            {
-                _logger.LogInformation($"Payload received for event {eventName}: {payload.ToString()}");
-            }
+            //if (eventName == "PlayerLogin" || eventName == "PlayerLogout")
+            //{
+            //    _logger.LogInformation($"Payload received for event {eventName}: {payload.ToString()}");
+            //}
 
-            if (eventName1 == "PlayerLogin" || eventName1 == "PlayerLogout")
-            {
-                _logger.LogInformation($"Payload received for event1 {eventName}: {payload.ToString()}");
-            }
+            //if (eventName1 == "PlayerLogin" || eventName1 == "PlayerLogout")
+            //{
+            //    _logger.LogInformation($"Payload received for event1 {eventName}: {payload.ToString()}");
+            //}
 
             if (!_processMethods.ContainsKey(eventName))
             {
@@ -150,7 +158,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         #region Payload Handling
 
         [CensusEventHandler("Death", typeof(DeathPayload))]
-        private async Task<Death> Process(DeathPayload payload)
+        private async Task<PlayerScrimDeathEvent> Process(DeathPayload payload)
         {
             string attackerId = payload.AttackerCharacterId;
             string victimId = payload.CharacterId;
@@ -158,108 +166,104 @@ namespace squittal.ScrimPlanetmans.CensusStream
             bool isValidAttackerId = (attackerId != null && attackerId.Length > 18);
             bool isValidVictimId = (victimId != null && victimId.Length > 18);
 
-            //bool attackerIsTracked = (isValidAttackerId && _teamsManager.IsPlayerTracked(attackerId));
-            //bool victimIsTracked = (isValidVictimId && _teamsManager.IsPlayerTracked(victimId));
+            Player attackerPlayer;
+            Player victimPlayer;
 
-            //if (!attackerIsTracked && !victimIsTracked)
-            //{
-            //    return null;
-            //}
+            PlayerScrimDeathEvent deathEvent = new PlayerScrimDeathEvent();
+
+            deathEvent.Timestamp = payload.Timestamp;
+            deathEvent.ZoneId = payload.ZoneId;
+            deathEvent.IsHeadshot = payload.IsHeadshot;
+
+            var weaponItem = await _itemService.GetItem((int)payload.AttackerWeaponId);
+            if (weaponItem != null)
+            {
+                deathEvent.Weapon = new PlayerScrimWeapon()
+                {
+                    Id = weaponItem.Id,
+                    ItemCategoryId = (int)weaponItem.ItemCategoryId,
+                    Name = weaponItem.Name
+                };
+            }
+            
 
             try
             {
-                var TaskList = new List<Task>();
-                Task<OutfitMember> attackerOutfitTask = null;
-                Task<OutfitMember> victimOutfitTask = null;
-
-                //int? attackerTeamOrdinal;
-                //int? victimTeamOrdinal;
-
                 if (isValidAttackerId == true)
                 {
-                    attackerOutfitTask = _characterService.GetCharacterOutfitAsync(attackerId);
-                    TaskList.Add(attackerOutfitTask);
+                    deathEvent.AttackerCharacterId = attackerId;
+                    deathEvent.AttackerLoadoutId = payload.AttackerLoadoutId;
+                    
+                    attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
+                    deathEvent.AttackerPlayer = attackerPlayer;
 
-                    //if (isValidAttackerId)
-                    //{
-                    //    attackerTeamOrdinal = _teamsManager.GetTeamOrdinalFromPlayerId(attackerId);
-                    //}
                 }
 
                 if (isValidVictimId == true)
                 {
-                    victimOutfitTask = _characterService.GetCharacterOutfitAsync(victimId);
-                    TaskList.Add(victimOutfitTask);
+                    deathEvent.VictimCharacterId = victimId;
+                    deathEvent.VictimLoadoutId = payload.CharacterLoadoutId;
 
-                    //if (victimIsTracked)
-                    //{
-                    //    victimTeamOrdinal = _teamsManager.GetTeamOrdinalFromPlayerId(victimId);
-                    //}
+                    victimPlayer = _teamsManager.GetPlayerFromId(victimId);
+                    deathEvent.VictimPlayer = victimPlayer;
                 }
 
-                await Task.WhenAll(TaskList);
-                TaskList.Clear();
+                deathEvent.ActionType = GetDeathScrimActionType(deathEvent);
 
-                int attackerFactionId = attackerOutfitTask.Result.FactionId;
-                int victimFactionId = victimOutfitTask.Result.FactionId;
-
-                //bool onSameTeam = _teamsManager.DoPlayersShareTeam(attackerId, victimId, out int? attackerTeamOrdinal, out int? victimTeamOrdinal);
-
-                DeathEventType deathEventType;
-
-                if (isValidAttackerId == true)
+                if (deathEvent.ActionType != ScrimActionType.OutsideInterference)
                 {
-                    if (attackerId == victimId)
+                    _logger.LogInformation($"Real scrim action found {deathEvent.ActionType}");
+                    
+                    deathEvent.DeathType = GetDeathEventType(deathEvent.ActionType);
+
+                    if (deathEvent.DeathType == DeathEventType.Suicide)
                     {
-                        deathEventType = DeathEventType.Suicide;
+                        deathEvent.AttackerPlayer = deathEvent.VictimPlayer;
+                        deathEvent.AttackerCharacterId = deathEvent.VictimCharacterId;
+                        deathEvent.AttackerLoadoutId = deathEvent.VictimLoadoutId;
                     }
-                    //else if (onSameTeam)
-                    //{
-                    //    deathEventType = DeathEventType.Teamkill;
-                    //}
-                    else if (attackerFactionId == victimFactionId)
+
+                    if (_isScoringEnabled)
                     {
-                        deathEventType = DeathEventType.Teamkill;
-                    }
-                    else
-                    {
-                        deathEventType = DeathEventType.Kill;
+                        //_scorer.ScoreDeathEvent(dataModel);
+                        var points = _scorer.ScoreDeathEvent(deathEvent);
+                        deathEvent.Points = points;
                     }
                 }
-                else
-                {
-                    deathEventType = DeathEventType.Suicide;
-                    attackerId = victimId;
-                }
 
-                var dataModel = new Death
-                {
-                    AttackerCharacterId = attackerId,
-                    AttackerFireModeId = payload.AttackerFireModeId,
-                    AttackerLoadoutId = payload.AttackerLoadoutId,
-                    AttackerVehicleId = payload.AttackerVehicleId,
-                    AttackerWeaponId = payload.AttackerWeaponId,
-                    //AttackerOutfitId = attackerOutfitTask?.Result?.OutfitId,
-                    //AttackerTeamOrdinal = attackerTeamOrdinal,
-                    AttackerFactionId = attackerFactionId,
-                    CharacterId = victimId,
-                    CharacterLoadoutId = payload.CharacterLoadoutId,
-                    //CharacterOutfitId = victimOutfitTask?.Result?.OutfitId,
-                    //CharacterTeamOrdinal = victimTeamOrdinal,
-                    CharacterFactionId = victimFactionId,
-                    IsHeadshot = payload.IsHeadshot,
-                    DeathEventType = deathEventType,
-                    Timestamp = payload.Timestamp,
-                    WorldId = payload.WorldId,
-                    ZoneId = payload.ZoneId.Value
-                };
+                //var dataModel = new Death
+                //{
+                //    AttackerCharacterId = attackerId,
+                //    AttackerFireModeId = payload.AttackerFireModeId,
+                //    AttackerLoadoutId = payload.AttackerLoadoutId,
+                //    AttackerVehicleId = payload.AttackerVehicleId,
+                //    AttackerWeaponId = payload.AttackerWeaponId,
+                //    //AttackerOutfitId = attackerOutfitTask?.Result?.OutfitId,
+                //    //AttackerTeamOrdinal = attackerTeamOrdinal,
+                //    AttackerFactionId = attackerFactionId,
+                //    CharacterId = victimId,
+                //    CharacterLoadoutId = payload.CharacterLoadoutId,
+                //    //CharacterOutfitId = victimOutfitTask?.Result?.OutfitId,
+                //    //CharacterTeamOrdinal = victimTeamOrdinal,
+                //    CharacterFactionId = victimFactionId,
+                //    IsHeadshot = payload.IsHeadshot,
+                //    DeathEventType = deathEventType,
+                //    Timestamp = payload.Timestamp,
+                //    WorldId = payload.WorldId,
+                //    ZoneId = payload.ZoneId.Value
+                //};
 
-                if (_isScoringEnabled)
-                {
-                    _scorer.ScoreDeathEvent(dataModel);
-                }
+                //if (_isScoringEnabled)
+                //{
+                //    //_scorer.ScoreDeathEvent(dataModel);
+                //    var points = _scorer.ScoreDeathEvent(deathEvent);
+                //    deathEvent.Points = points;
+                //}
 
-                return dataModel;
+                _messageService.BroadcastPlayerScrimDeathEventMessage(new PlayerScrimDeathEventMessage(deathEvent));
+
+                //return dataModel;
+                return deathEvent;
 
                 //dbContext.Deaths.Add(dataModel);
                 //await dbContext.SaveChangesAsync();
@@ -269,6 +273,81 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 //Ignore
                 return null;
             }
+        }
+
+        private ScrimActionType GetDeathScrimActionType(PlayerScrimDeathEvent death)
+        {
+            // Determine if this is involves a non-tracked player
+            if ((death.AttackerPlayer == null && !string.IsNullOrWhiteSpace(death.AttackerCharacterId))
+                    || (death.VictimPlayer == null && !string.IsNullOrWhiteSpace(death.VictimCharacterId)))
+            {
+                return ScrimActionType.OutsideInterference;
+            }
+
+            var attackerIsMax = death.AttackerLoadoutId == null
+                                    ? false
+                                    : ProfileService.IsMaxLoadoutId((int)death.AttackerLoadoutId);
+
+            var victimIsMax = death.VictimLoadoutId == null
+                                    ? false
+                                    : ProfileService.IsMaxLoadoutId((int)death.VictimLoadoutId);
+
+            var sameTeam = _teamsManager.DoPlayersShareTeam(death.AttackerPlayer, death.VictimPlayer);
+            var samePlayer = (death.AttackerPlayer == death.VictimPlayer || death.AttackerPlayer == null);
+
+            if (samePlayer)
+            {
+                return victimIsMax
+                            ? ScrimActionType.MaxSuicide
+                            : ScrimActionType.InfantrySuicide;
+            }
+            else if (sameTeam)
+            {
+                if (attackerIsMax)
+                {
+                    return victimIsMax
+                                ? ScrimActionType.MaxTeamkillMax
+                                : ScrimActionType.MaxTeamkillInfantry;
+                }
+                else
+                {
+                    return victimIsMax
+                                ? ScrimActionType.InfantryTeamkillMax
+                                : ScrimActionType.InfantryTeamkillInfantry;
+                }
+            }
+            else
+            {
+                if (attackerIsMax)
+                {
+                    return victimIsMax
+                                ? ScrimActionType.MaxKillMax
+                                : ScrimActionType.MaxKillInfantry;
+                }
+                else
+                {
+                    return victimIsMax
+                                ? ScrimActionType.InfantryKillMax
+                                : ScrimActionType.InfantryKillInfantry;
+                }
+            }
+        }
+
+        private DeathEventType GetDeathEventType(ScrimActionType scrimActionType)
+        {
+            return scrimActionType switch
+            {
+                ScrimActionType.MaxSuicide => DeathEventType.Suicide,
+                ScrimActionType.InfantrySuicide => DeathEventType.Suicide,
+                ScrimActionType.MaxTeamkillMax => DeathEventType.Teamkill,
+                ScrimActionType.MaxTeamkillInfantry => DeathEventType.Teamkill,
+                ScrimActionType.InfantryTeamkillMax => DeathEventType.Teamkill,
+                ScrimActionType.InfantryTeamkillInfantry => DeathEventType.Teamkill,
+                ScrimActionType.MaxKillMax => DeathEventType.Kill,
+                ScrimActionType.MaxKillInfantry => DeathEventType.Kill,
+                ScrimActionType.InfantryKillMax => DeathEventType.Kill,
+                ScrimActionType.InfantryKillInfantry => DeathEventType.Kill
+            };
         }
 
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]

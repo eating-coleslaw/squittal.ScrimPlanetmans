@@ -65,6 +65,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         // Miscellaneous: 100 - 109
         Login = 100,
-        Logout = 101
+        Logout = 101,
+
+        // Warnings & Errors: 200+
+        OutsideInterference = 200
     };
 }

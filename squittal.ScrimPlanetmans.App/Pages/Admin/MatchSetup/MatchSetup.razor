@@ -11,6 +11,7 @@
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimTeamsManager ScrimTeamsEngine
 @inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchScorer MatchScorer
 
 <h3>Match Setup</h3>
 
@@ -97,7 +98,8 @@
 
     protected override void OnInitialized()
     {
-        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        MessageService.RaisePlayerScrimDeathEvent += ReceivePlayerDeathEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
@@ -142,9 +144,12 @@
         //StateHasChanged();
     }
 
-    private void StartMatch()
+    //private void StartMatch()
+    private async Task StartMatch()
     {
         SubscribeToCensus();
+
+        await MatchScorer.SetActiveRuleset();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
         ScrimMatchEngine.Start();
@@ -252,6 +257,11 @@
         LogAdminMessage(message);
     }
 
+    private void ReceivePlayerDeathEvent(object sender, PlayerScrimDeathEventEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogStreamMessage(info);
+    }
 
     /*****************
      *  Log Messages

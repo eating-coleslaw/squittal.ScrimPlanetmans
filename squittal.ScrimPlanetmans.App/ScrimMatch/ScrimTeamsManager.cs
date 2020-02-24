@@ -437,6 +437,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return player.TeamOrdinal;
         }
 
+        public bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer)
+        {
+            if (firstPlayer == null || secondPlayer == null)
+            {
+                return false;
+            }
+
+            return firstPlayer.TeamOrdinal == secondPlayer.TeamOrdinal;
+        }
+
         public bool DoPlayersShareTeam(string firstId, string secondId, out int? firstOrdinal, out int? secondOrdinal)
         {
             firstOrdinal = GetTeamOrdinalFromPlayerId(firstId);

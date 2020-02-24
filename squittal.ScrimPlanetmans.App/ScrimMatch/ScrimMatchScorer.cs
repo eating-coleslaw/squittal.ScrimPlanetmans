@@ -2,24 +2,148 @@
 using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.Shared.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public class ScrimMatchScorer : IScrimMatchScorer
     {
+        private readonly IScrimRulesetManager _rulesets;
         private readonly IScrimTeamsManager _teamsManager;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
-        public ScrimMatchScorer(IScrimTeamsManager teamsManager, ILogger<ScrimMatchEngine> logger)
+        private Ruleset _activeRuleset = new Ruleset();
+
+        public ScrimMatchScorer(IScrimRulesetManager rulesets, IScrimTeamsManager teamsManager, ILogger<ScrimMatchEngine> logger)
         {
+            _rulesets = rulesets;
             _teamsManager = teamsManager;
             _logger = logger;
+
+            //_activeRuleset = _rulesets.GetActiveRuleset();
         }
 
         #region Death Events
+        public async Task SetActiveRuleset()
+        {
+            _activeRuleset = await _rulesets.GetDefaultRuleset();
+        }
+
+        public int ScoreDeathEvent(PlayerScrimDeathEvent death)
+        {
+            switch (death.DeathType)
+            {
+                case DeathEventType.Kill:
+                    return ScoreKill(death);
+
+                case DeathEventType.Suicide:
+                    return ScoreSuicide(death);
+
+                case DeathEventType.Teamkill:
+                    return ScoreTeamkill(death);
+
+                default:
+                    return 0;
+            }
+        }
+
+        private int ScoreKill(PlayerScrimDeathEvent death)
+        {
+            int points;
+
+            if (death.ActionType == ScrimActionType.InfantryKillInfantry)
+            {
+                var categoryId = death.Weapon.ItemCategoryId;
+                points = _activeRuleset.ItemCategoryRules
+                                            .Where(rule => rule.ItemCategoryId == categoryId)
+                                            .Select(rule => rule.Points)
+                                            .FirstOrDefault();
+            }
+            else
+            {
+                var actionType = death.ActionType;
+                points = _activeRuleset.ActionRules
+                                            .Where(rule => rule.ScrimActionType == actionType)
+                                            .Select(rule => rule.Points)
+                                            .FirstOrDefault();
+            }
+
+            var isHeadshot = (death.IsHeadshot ? 1 : 0);
+
+            var attackerUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+                Kills = 1,
+                Headshots = isHeadshot
+            };
+
+            var victimUpdate = new ScrimEventAggregate()
+            {
+                NetScore = -points,
+                Deaths = 1,
+                HeadshotDeaths = isHeadshot
+            };
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(death.AttackerPlayer.Id, attackerUpdate);
+            _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
+
+            return points;
+        }
+
+        private int ScoreSuicide(PlayerScrimDeathEvent death)
+        {
+            var actionType = death.ActionType;
+            var points = _activeRuleset.ActionRules
+                                        .Where(rule => rule.ScrimActionType == actionType)
+                                        .Select(rule => rule.Points)
+                                        .FirstOrDefault();
+
+            var victimUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+                Deaths = 1,
+                Suicides = 1
+            };
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
+
+            return points;
+        }
+
+        private int ScoreTeamkill(PlayerScrimDeathEvent death)
+        {
+            var actionType = death.ActionType;
+            var points = _activeRuleset.ActionRules
+                                        .Where(rule => rule.ScrimActionType == actionType)
+                                        .Select(rule => rule.Points)
+                                        .FirstOrDefault();
+
+            var attackerUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+                Teamkills = 1
+            };
+
+            var victimUpdate = new ScrimEventAggregate()
+            {
+                Deaths = 1,
+                TeamkillDeaths = 1
+            };
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(death.AttackerPlayer.Id, attackerUpdate);
+            _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
+
+            return points;
+        }
+
         public int ScoreDeathEvent(Death death)
         {
             var attackerId = death.AttackerCharacterId;
