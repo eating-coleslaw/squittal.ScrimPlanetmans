@@ -62,5 +62,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         VehicleSuicide = 86,
         VehicleDeath = 87,
         VehicleTeamkillDeath = 88,
+
+        // Miscellaneous: 100 - 109
+        Login = 100,
+        Logout = 101
     };
 }
