@@ -1,8 +1,10 @@
 ﻿@using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @inject IStatefulTimer  Timer
 @inject IScrimMatchEngine ScrimMatchEngine
+@inject IScrimMessageBroadcastService MessageService
 
 <p>@_clock (@_clockStatusDisplay)</p>
 
@@ -30,7 +32,8 @@
     {
         _canPlaySound = false;
 
-        Timer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
+        //Timer.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
+        MessageService.RaiseMatchTimerTickEvent += ReceiveMatchTimerTickEvent;
 
         var prevTick = ScrimMatchEngine.GetLatestTimerTickMessage();
 

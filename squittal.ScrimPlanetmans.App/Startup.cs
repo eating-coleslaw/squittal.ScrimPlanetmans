@@ -43,6 +43,8 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSingleton<IDbContextHelper, DbContextHelper>();
 
+            services.AddSingleton<IScrimMessageBroadcastService, ScrimMessageBroadcastService>();
+
             services.AddTransient<IFactionService, FactionService>();
             services.AddTransient<IItemService, ItemService>();
             services.AddTransient<IZoneService, ZoneService>();

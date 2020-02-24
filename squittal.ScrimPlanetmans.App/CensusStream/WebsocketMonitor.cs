@@ -11,6 +11,7 @@ using squittal.ScrimPlanetmans.Shared.Models;
 using System.Linq;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.Models;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
@@ -18,6 +19,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
     {
         private readonly ICensusStreamClient _client;
         private readonly IWebsocketEventHandler _handler;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<WebsocketMonitor> _logger;
 
         private CensusHeartbeat _lastHeartbeat;
@@ -36,13 +38,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         private void SendSimpleMessageAddedMessage(string s)
         {
-            OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
+            _messageService.BroadcastSimpleMessage(s);
+            
+            //OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
         }
 
-        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, ILogger<WebsocketMonitor> logger)
+        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
             _client = censusStreamClient;
             _handler = handler;
+            _messageService = messageService;
             _logger = logger;
 
             _client.Subscribe(CreateSubscription())

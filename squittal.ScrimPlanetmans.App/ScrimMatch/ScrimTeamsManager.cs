@@ -20,6 +20,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         //private readonly IWebsocketMonitor _wsMonitor;
         private readonly IOutfitService _outfitService;
         private readonly IFactionService _factionService;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
         private readonly Team Team1;
@@ -47,11 +48,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, ILogger<ScrimTeamsManager> logger)
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, IScrimMessageBroadcastService messageService, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _outfitService = outfitService;
             _factionService = factionService;
+            _messageService = messageService;
             _logger = logger;
 
             Team1 = new Team($"{_defaultAliasPreText}1", "Team 1", 1);
@@ -526,9 +528,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private void SendTeamPlayerAddedMessage(Player player)
         {
             var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+            _messageService.BroadcastTeamPlayerChangeMessage(payload);
+
             //payload.ChangeType = TeamPlayerChangeType.Add;
 
-            OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
+            //OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
 
             _logger.LogDebug($"{payload.Info}");
             //_logger.LogDebug($"Sent TeamPlayerAdded Message: {player.NameFull} [{player.Id}]");
@@ -537,9 +542,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private void SendTeamPlayerRemovedMessage(Player player)
         {
             var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Remove);
+
+            _messageService.BroadcastTeamPlayerChangeMessage(payload);
+
             //payload.ChangeType = TeamPlayerChangeType.Remove;
 
-            OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
+            //OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(payload));
 
             _logger.LogDebug($"{payload.Info}");
 
@@ -560,7 +568,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var payload = new PlayerStatUpdateMessage(player);
 
-            OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(payload));
+            _messageService.BroadcastPlayerStatUpdateMessage(payload);
+
+            //OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(payload));
 
             _logger.LogDebug($"{payload.Info}");
         }
@@ -572,7 +582,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void SendSimpleMessageAddedMessage(string s)
         {
-            OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
+            _messageService.BroadcastSimpleMessage(s);
+            
+            //OnRaiseSimpleMessageChangeEvent(new SimpleMessageEventArgs(s));
         }
 
         public void Dispose()

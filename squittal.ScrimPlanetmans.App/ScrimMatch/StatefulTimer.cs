@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     public class StatefulTimer : IStatefulTimer
     {
         //public MatchTimerStatus Status { get => _status; }
+        private readonly IScrimMessageBroadcastService _messageService;
+        private readonly ILogger<StatefulTimer> _logger;
 
         private int _secondsMax = 900;
         private int _secondsRemaining;
@@ -30,12 +33,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
 
-        private readonly ILogger<StatefulTimer> _logger;
 
         private MatchTimerStatus Status { get; set; } = new MatchTimerStatus();
 
-        public StatefulTimer(ILogger<StatefulTimer> logger)
+        public StatefulTimer(IScrimMessageBroadcastService messageService, ILogger<StatefulTimer> logger)
         {
+            _messageService = messageService;
             _logger = logger;
             Status.State = MatchTimerState.Initialized;
         }
@@ -134,7 +137,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Status.State = MatchTimerState.Stopped;
 
             var message = new MatchTimerTickMessage(Status);
-            OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+
+            // TODO: use both to make MatchTimer razor component self-contained?
+            //OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+            _messageService.BroadcastMatchTimerTickMessage(message);
+
 
             // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
 
@@ -159,7 +166,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Status.State = MatchTimerState.Paused;
 
             var message = new MatchTimerTickMessage(Status);
-            OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+            
+            // TODO: use both to make MatchTimer razor component self-contained?
+            //OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+            _messageService.BroadcastMatchTimerTickMessage(message);
 
             // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
 
@@ -183,7 +193,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Status.State = MatchTimerState.Running;
 
             var message = new MatchTimerTickMessage(Status);
-            OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+
+            // TODO: use both to make MatchTimer razor component self-contained?
+            //OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+            _messageService.BroadcastMatchTimerTickMessage(message);
 
             // TODO: broadcast a "MatchStateChange" of event of type "Resumed" here
 
@@ -244,7 +257,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     return;
                 }
 
-                OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+                // TODO: use both to make MatchTimer razor component self-contained?
+                //OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+                _messageService.BroadcastMatchTimerTickMessage(message);
 
                 // Signal the waiting thread
                 _autoEvent.Set();

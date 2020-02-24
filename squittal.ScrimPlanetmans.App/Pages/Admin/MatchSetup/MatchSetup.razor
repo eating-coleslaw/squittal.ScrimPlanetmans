@@ -5,7 +5,9 @@
 @using squittal.ScrimPlanetmans.Models.ScrimEngine
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
 
+@inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimTeamsManager ScrimTeamsEngine
 @inject IWebsocketMonitor WebsocketMonitor
@@ -95,7 +97,8 @@
 
     protected override void OnInitialized()
     {
-        WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        //WebsocketMonitor.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
