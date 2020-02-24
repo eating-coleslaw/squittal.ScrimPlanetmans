@@ -132,6 +132,30 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
+        public static bool IsMaxLoadoutId(int loadoutId)
+        {
+            return loadoutId switch
+            {
+                7 => true,
+                14 => true,
+                21 => true,
+                45 => true,
+                _ => false,
+            };
+        }
+
+        public static bool IsMaxProfileId(int profileId)
+        {
+            return profileId switch
+            {
+                8 => true,
+                16 => true,
+                23 => true,
+                252 => true,
+                _ => false,
+            };
+        }
+
         public async Task RefreshStore()
         {
             var censusProfiles = await _censusProfile.GetAllProfilesAsync();
