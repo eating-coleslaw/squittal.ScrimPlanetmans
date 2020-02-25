@@ -6,12 +6,14 @@
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Events;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.Services.Planetside;
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimTeamsManager ScrimTeamsEngine
 @inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchScorer MatchScorer
+@inject IItemService ItemService
 
 <h3>Match Setup</h3>
 
@@ -144,12 +146,13 @@
         //StateHasChanged();
     }
 
-    //private void StartMatch()
-    private async Task StartMatch()
+    //private async Task StartMatch()
+    private void StartMatch()
     {
         SubscribeToCensus();
 
-        await MatchScorer.SetActiveRuleset();
+        //await MatchScorer.SetActiveRuleset();
+        //await ItemService.SetUpItemsListAsync();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
         ScrimMatchEngine.Start();

@@ -69,11 +69,15 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 
+            services.AddSingleton<IApplicationDataLoader, ApplicationDataLoader>();
+
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();
 
             services.AddHostedService<WebsocketMonitorHostedService>();
             services.AddHostedService<DbSeederHostedService>();
+
+            services.AddHostedService<ApplicationDataLoaderHostedService>();
 
             services.AddSingleton<WeatherForecastService>();
         }

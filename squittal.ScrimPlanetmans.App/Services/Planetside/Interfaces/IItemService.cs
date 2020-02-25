@@ -9,6 +9,9 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         Task<Item> GetItem(int itemId);
         Task<IEnumerable<int>> GetItemCategoryIdsAsync();
         Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId);
+        Item GetWeaponFromItemId(int id);
         Task RefreshStore();
+        Task SetUpItemsListAsync();
+        Task SetUpWeaponsListAsnyc();
     }
 }

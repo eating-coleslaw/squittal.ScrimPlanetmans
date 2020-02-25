@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class ItemService : IItemService
@@ -19,7 +18,30 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ILogger<ItemService> _logger;
 
         private List<Item> _items = new List<Item>();
+        private List<Item> _weapons = new List<Item>();
+
         private List<ItemCategory> _itemCategories = new List<ItemCategory>();
+
+        private readonly List<int> _nonWeaponItemCategories = new List<int>()
+        {
+            99, // Camo
+            103, // Infantry Gear
+            105, // Vehicle Gear
+            106, // Armor Camo
+            107, // Weapon Camo
+            108, // Vehicle Camo
+            133, // Implants
+            134, // Consolidated Camo
+            135, // VO Packs
+            136, // Male VO Pack
+            137, // Female VO Pack
+            139, // Infantry Abilities
+            140, // Vehicle Abilities
+            141, // Boosts & Utilities
+            142, // Consolidated Decal
+            143, // Attachments
+            145 // ANT Utility
+        };
 
         public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem, ILogger<ItemService> logger)
         {
@@ -35,54 +57,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             if (_items == null || _items.Count == 0)
             {
-                //return _items.FirstOrDefault(i => i.Id == itemId);
                 await SetUpItemsListAsync();
             }
 
-            //censusItems = await _censusItem.GetAllItems();
-
-            //if (censusItems == null)
-            //{
-            //    return null;
-            //}
-
-            //_items = censusItems.Select(ConvertToDbModel).ToList();
-
-            //await SetUpItemsListAsync();
-
             return _items.FirstOrDefault(i => i.Id == itemId);
-
-            /*
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                return await dbContext.Items.FirstOrDefaultAsync(i => i.Id == itemId);
-            }
-            */
         }
 
         public async Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId)
         {
             if (_items == null || _items.Count == 0)
             {
-                //return _items.FirstOrDefault(i => i.Id == itemId);
                 await SetUpItemsListAsync();
             }
 
             return _items.Where(i => i.ItemCategoryId == categoryId && i.ItemCategoryId.HasValue)
                          .ToList();
-
-            /*
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                return await dbContext.Items
-                                .Where(i => i.ItemCategoryId == categoryId && i.ItemCategoryId.HasValue)
-                                .ToListAsync();
-            }
-            */
         }
 
         public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
@@ -94,16 +83,41 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         }
 
 
-        private async Task SetUpItemsListAsync()
+        public async Task SetUpItemsListAsync()
         {
             if (_items == null || _items.Count == 0)
             {
-                var censusItems = await _censusItem.GetAllItems();
+                //var censusItems = await _censusItem.GetAllItems();
 
-                if (censusItems != null)
-                {
-                    _items = censusItems.Select(ConvertToDbModel).ToList();
-                }
+                //if (censusItems != null)
+                //{
+                //    _items = censusItems.Select(ConvertToDbModel).ToList();
+                //}
+
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                _items = await dbContext.Items.ToListAsync();
+            }
+        }
+
+        public Item GetWeaponFromItemId(int id)
+        {
+            // TODO: handle "Unknown" weapon deaths/kills, like Fatalities
+            
+            return _weapons.FirstOrDefault(w => w.Id == id);
+        }
+
+        public async Task SetUpWeaponsListAsnyc()
+        {
+            if (_weapons == null || _weapons.Count == 0)
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                _weapons = await dbContext.Items
+                                        .Where(i => i.ItemCategoryId.HasValue && !_nonWeaponItemCategories.Contains((int)i.ItemCategoryId))
+                                        .ToListAsync();
             }
         }
 
