@@ -63,7 +63,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 
                 var playerName = player.NameDisplay;
                 var outfitDisplay = !string.IsNullOrWhiteSpace(player.OutfitAlias)
-                                        ? $"[{player.OutfitAlias}]"
+                                        ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
                 return $"{actionDisplay} DEATH: {otherCharacterId} [{weaponName}] {outfitDisplay}{playerName}";
@@ -81,11 +81,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Events
             var victimName = victim.NameDisplay;
 
             var attackerOutfit = !string.IsNullOrWhiteSpace(attacker.OutfitAlias)
-                                            ? $"[{attacker.OutfitAlias}]"
+                                            ? $"[{attacker.OutfitAlias}] "
                                             : string.Empty;
 
             var victimOutfit = !string.IsNullOrWhiteSpace(victim.OutfitAlias)
-                                            ? $"[{victim.OutfitAlias}]"
+                                            ? $"[{victim.OutfitAlias}] "
                                             : string.Empty;
 
             var actionDisplay = GetEnumValueName(deathEvent.ActionType);
@@ -110,7 +110,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Events
             var attackerName = attacker.NameDisplay;
 
             var attackerOutfit = !string.IsNullOrWhiteSpace(attacker.OutfitAlias)
-                                            ? $"[{attacker.OutfitAlias}]"
+                                            ? $"[{attacker.OutfitAlias}] "
                                             : string.Empty;
 
             var actionDisplay = GetEnumValueName(deathEvent.ActionType);
