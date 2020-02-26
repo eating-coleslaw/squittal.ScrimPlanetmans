@@ -269,7 +269,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 await _handler.Process(jMsg);
 
-                SendSimpleMessageAddedMessage(message);
+                SendSimpleMessage(message);
             }
 
             //await _handler.Process(jMsg);
@@ -294,7 +294,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             return status;
         }
 
-        private void SendSimpleMessageAddedMessage(string s)
+        private void SendSimpleMessage(string s)
         {
             _messageService.BroadcastSimpleMessage(s);
         }
