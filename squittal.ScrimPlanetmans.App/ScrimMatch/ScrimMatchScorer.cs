@@ -14,7 +14,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimTeamsManager _teamsManager;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
-        private Ruleset _activeRuleset = new Ruleset();
+        private Ruleset _activeRuleset;
 
         public ScrimMatchScorer(IScrimRulesetManager rulesets, IScrimTeamsManager teamsManager, ILogger<ScrimMatchEngine> logger)
         {
@@ -28,7 +28,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #region Death Events
         public async Task SetActiveRuleset()
         {
-            _activeRuleset = await _rulesets.GetDefaultRuleset();
+            //_activeRuleset = await _rulesets.GetDefaultRuleset();
+            _activeRuleset = await _rulesets.GetActiveRuleset();
         }
 
         public int ScoreDeathEvent(PlayerScrimDeathEvent death)

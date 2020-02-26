@@ -37,10 +37,15 @@ namespace squittal.ScrimPlanetmans.Data
             var weaponsListTask = _itemService.SetUpWeaponsListAsnyc();
             TaskList.Add(weaponsListTask);
 
-            var rulesetTask = _matchScorer.SetActiveRuleset();
-            TaskList.Add(rulesetTask);
+            var activeRulesetTask = _rulesetManager.SetupActiveRuleset();
+            TaskList.Add(activeRulesetTask);
+
+            //var rulesetTask = _matchScorer.SetActiveRuleset();
+            //TaskList.Add(rulesetTask);
 
             await Task.WhenAll(TaskList);
+
+            await _matchScorer.SetActiveRuleset();
         }
 
         public async Task OnApplicationShutdown(CancellationToken cancellationToken)

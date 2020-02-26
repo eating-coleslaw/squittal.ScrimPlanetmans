@@ -18,7 +18,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public ILogger<ScrimRulesetManager> _logger;
 
         private Ruleset _workingRuleset;
-        private Ruleset ActiveRuleset { get; set; } = new Ruleset();
+        private Ruleset ActiveRuleset { get; set; }
 
         private readonly int _defaultRulesetId;
 
@@ -41,9 +41,77 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
-        public Ruleset GetActiveRuleset()
+        public async Task<Ruleset> GetActiveRuleset()
         {
+            if (ActiveRuleset == null)
+            {
+                return await GetDefaultRuleset();
+            }
+            else if (!ActiveRuleset.ActionRules.Any() || !ActiveRuleset.ItemCategoryRules.Any())
+            {
+                await SetupActiveRuleset();
+                return ActiveRuleset;
+            }
+            else
+            {
+                return ActiveRuleset;
+            }
+        }
+
+
+        public async Task<Ruleset> ActivateRuleset(int rulesetId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+
+            var newActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == rulesetId);
+
+            if (newActiveRuleset == null)
+            {
+                return null;
+            }
+
+            if (currentActiveRuleset != null && currentActiveRuleset.Id != rulesetId)
+            {
+                currentActiveRuleset.IsActive = false;
+                dbContext.Rulesets.Update(currentActiveRuleset);
+            }
+            else
+            {
+                newActiveRuleset.IsActive = true;
+                dbContext.Rulesets.Update(newActiveRuleset);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            ActiveRuleset = newActiveRuleset;
+            ActiveRuleset.ActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+            ActiveRuleset.ItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+
             return ActiveRuleset;
+        }
+
+
+        public async Task SetupActiveRuleset()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+
+            if (ruleset == null)
+            {
+                _logger.LogError($"Failed to setup active ruleset: no ruleset found");
+                return;
+            }
+
+            ActiveRuleset = ruleset;
+            ActiveRuleset.ActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
+            ActiveRuleset.ItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
+
+            _logger.LogError($"Active ruleset loaded: {ActiveRuleset.Name}");
         }
 
         public async Task<Ruleset> GetDefaultRuleset()
@@ -117,17 +185,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     var utcNow = DateTime.UtcNow;
                     var newRuleset = new Ruleset
                     {
-                        //Id = defaultRulesetId,
                         Name = "Default",
                         DateCreated = utcNow
                     };
 
-                    //dbContext.Rulesets.Add(newRuleset);
-
-                    //await dbContext.SaveChangesAsync();
-
-                    //newRuleset.Id = defaultRulesetId;
                     storeRuleset = newRuleset;
+                }
+
+
+                storeRuleset.IsDefault = true;
+
+                var activeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+                if (activeRuleset == null || activeRuleset.Id == defaultRulesetId)
+                {
+                    storeRuleset.IsActive = true;
                 }
 
 

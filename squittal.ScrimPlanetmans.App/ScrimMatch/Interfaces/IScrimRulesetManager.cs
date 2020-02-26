@@ -5,8 +5,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimRulesetManager
     {
-        Ruleset GetActiveRuleset();
+        Task<Ruleset> GetActiveRuleset();
         Task<Ruleset> GetDefaultRuleset();
+
+        Task<Ruleset> ActivateRuleset(int rulesetId);
+        Task SetupActiveRuleset();
+
         Task SeedDefaultRuleset();
         Task SeedScrimActionModels();
     }
