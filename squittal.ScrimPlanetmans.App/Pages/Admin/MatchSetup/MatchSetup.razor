@@ -100,8 +100,10 @@
 
     protected override void OnInitialized()
     {
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaisePlayerScrimDeathEvent += ReceivePlayerDeathEvent;
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
@@ -178,9 +180,11 @@
         var payload = TryParseMessagePayload(message);
         if (payload == null)
         {
+            LogAdminMessage(message);
             return;
         }
 
+        /*
         var eventName = payload.Value<string>("event_name");
 
         if (eventName == "Death")
@@ -204,6 +208,7 @@
             LogMessage(payload.ToString(), _streamLogs);
             HandlePlayerLogoutPayload(payload);
         }
+        */
     }
 
     private JToken TryParseMessagePayload(string message)
@@ -264,6 +269,18 @@
     {
         var info = e.Message.Info;
         LogStreamMessage(info);
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogAdminMessage(info);
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogAdminMessage(info);
     }
 
     /*****************
