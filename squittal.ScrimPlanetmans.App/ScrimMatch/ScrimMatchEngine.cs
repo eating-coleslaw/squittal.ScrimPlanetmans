@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IWebsocketMonitor _wsMonitor;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
         private readonly IStatefulTimer _timer;
@@ -41,14 +43,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         
 
-        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, ILogger<ScrimMatchEngine> logger)
+        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
             _timer = timer;
+            _messageService = messageService;
             _logger = logger;
 
-            _timer.RaiseMatchTimerTickEvent += OnMatchTimerTick;
+            //_timer.RaiseMatchTimerTickEvent += OnMatchTimerTick;
+
+            _messageService.RaiseMatchTimerTickEvent += OnMatchTimerTick;
 
             MatchConfiguration = new MatchConfiguration();
             //Team1 = _teamsManager.GetTeamOne();
@@ -109,6 +114,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 _timer.Stop(); // TODO: change this to Halt, if Halt ends up getting implemented
             }
+
+            _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
         }
 
         public void InitializeNewMatch()
@@ -129,12 +136,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void StartRound()
         {
+            _isRunning = true;
             _timer.Start();
             _wsMonitor.EnableScoring();
         }
 
         public void PauseRound()
         {
+            _isRunning = false;
             _wsMonitor.DisableScoring();
             _timer.Pause();
         }
@@ -147,6 +156,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void ResumeRound()
         {
+            _isRunning = true;
             _timer.Resume();
             _wsMonitor.EnableScoring();
         }
