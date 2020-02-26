@@ -212,8 +212,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 if (deathEvent.ActionType != ScrimActionType.OutsideInterference)
                 {
-                    _logger.LogInformation($"Real scrim action found {deathEvent.ActionType}");
-                    
                     deathEvent.DeathType = GetDeathEventType(deathEvent.ActionType);
 
                     if (deathEvent.DeathType == DeathEventType.Suicide)
@@ -354,81 +352,44 @@ namespace squittal.ScrimPlanetmans.CensusStream
         //private Task<PlayerLogin> Process(PlayerLoginPayload payload)
         private PlayerLogin Process(PlayerLoginPayload payload)
         {
-            //using (var factory = _dbContextHelper.GetFactory())
-            //{
-            //    var dbContext = factory.GetDbContext();
+            var characterId = payload.CharacterId;
 
-                try
-                {
-                    var dataModel = new PlayerLogin
-                    {
-                        CharacterId = payload.CharacterId,
-                        Timestamp = payload.Timestamp,
-                        WorldId = payload.WorldId
-                    };
+            var player = _teamsManager.GetPlayerFromId(characterId);
+            
+            var dataModel = new PlayerLogin
+            {
+                CharacterId = payload.CharacterId,
+                Timestamp = payload.Timestamp,
+                WorldId = payload.WorldId
+            };
 
-                    _scorer.HandlePlayerLogin(dataModel);
+            _scorer.HandlePlayerLogin(dataModel);
 
-                    return dataModel;
-                    //return Task.FromResult(dataModel);
+            _messageService.BroadcastPlayerLoginMessage(new PlayerLoginMessage(player, dataModel));
 
-                    //dbContext.PlayerLogins.Add(dataModel);
-                    //await dbContext.SaveChangesAsync();
-                }
-                catch (Exception)
-                {
-                    //Ignore
-                    return null;
-                }
-            //}
+            return dataModel;
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
         //private Task<PlayerLogout> Process(PlayerLogoutPayload payload)
         private PlayerLogout Process(PlayerLogoutPayload payload)
         {
-            //bool updateCharacter;
+            var characterId = payload.CharacterId;
 
-            //using (var factory = _dbContextHelper.GetFactory())
-            //{
-            //    var dbContext = factory.GetDbContext();
+            var player = _teamsManager.GetPlayerFromId(characterId);
 
-                try
-                {
-                    var dataModel = new PlayerLogout
-                    {
-                        CharacterId = payload.CharacterId,
-                        Timestamp = payload.Timestamp,
-                        WorldId = payload.WorldId
-                    };
+            var dataModel = new PlayerLogout
+            {
+                CharacterId = payload.CharacterId,
+                Timestamp = payload.Timestamp,
+                WorldId = payload.WorldId
+            };
 
-                _scorer.HandlePlayerLogout(dataModel);
+            _scorer.HandlePlayerLogout(dataModel);
 
-                return dataModel;
-                //return Task.FromResult(dataModel);
+            _messageService.BroadcastPlayerLogoutMessage(new PlayerLogoutMessage(player, dataModel));
 
-                //dbContext.PlayerLogouts.Add(dataModel);
-                //await dbContext.SaveChangesAsync();
-            }
-                catch (Exception)
-                {
-                    //Ignore
-                    return null;
-                }
-
-                //var lastLoginTime = dbContext.PlayerLogins
-                //                                .Where(l => l.CharacterId == payload.CharacterId)
-                //                                .OrderByDescending(l => l.Timestamp)
-                //                                .Select(l => l.Timestamp)
-                //                                .FirstOrDefault();
-
-                //updateCharacter = (lastLoginTime != default && (payload.Timestamp - lastLoginTime) > TimeSpan.FromMinutes(5));
-            //}
-
-            //if (updateCharacter)
-            //{
-            //    await _characterService.UpdateCharacterAsync(payload.CharacterId);
-            //}
+            return dataModel;
         }
 
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
