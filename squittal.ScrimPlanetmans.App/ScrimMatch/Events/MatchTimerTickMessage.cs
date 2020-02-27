@@ -1,6 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
-namespace squittal.ScrimPlanetmans.ScrimMatch.Events
+namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
     public class MatchTimerTickMessage
     {

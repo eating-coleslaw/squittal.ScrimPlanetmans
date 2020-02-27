@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace squittal.ScrimPlanetmans.ScrimMatch.Events
+namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
     public class ScrimAssistActionEventEventArgs : EventArgs
     {
