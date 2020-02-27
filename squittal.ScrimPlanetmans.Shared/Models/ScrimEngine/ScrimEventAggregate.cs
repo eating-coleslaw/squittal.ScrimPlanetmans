@@ -18,11 +18,14 @@ namespace squittal.ScrimPlanetmans.Shared.Models
         public int RevivesGiven { get; set; } = 0;
         public int RevivesTaken { get; set; } = 0;
 
-        public int DamageAssists { get; set; }
-        public int UtilityAssists { get; set; }
+        public int DamageAssists { get; set; } = 0;
+        public int UtilityAssists { get; set; } = 0;
 
-        public int ObjectiveTicks { get; set; }
-        public int BaseCaps { get; set; }
+        public int DamageAssistedDeaths { get; set; } = 0;
+        public int UtilityAssistedDeaths { get; set; } = 0;
+
+        public int ObjectiveTicks { get; set; } = 0;
+        public int BaseCaps { get; set; } = 0;
 
 
         public double KillDeathRatio
