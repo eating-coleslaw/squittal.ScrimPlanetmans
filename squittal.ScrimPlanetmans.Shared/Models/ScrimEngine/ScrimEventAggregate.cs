@@ -164,10 +164,10 @@ namespace squittal.ScrimPlanetmans.Shared.Models
             RevivesTaken -= subtrahend.RevivesTaken;
             DamageAssists -= subtrahend.DamageAssists;
             UtilityAssists -= subtrahend.UtilityAssists;
-            DamageAssistedDeaths += addend.DamageAssistedDeaths;
-            UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
-            ObjectiveCaptureTicks += addend.ObjectiveCaptureTicks;
-            ObjectiveDefenseTicks += addend.ObjectiveDefenseTicks;
+            DamageAssistedDeaths -= subtrahend.DamageAssistedDeaths;
+            UtilityAssistedDeaths -= subtrahend.UtilityAssistedDeaths;
+            ObjectiveCaptureTicks -= subtrahend.ObjectiveCaptureTicks;
+            ObjectiveDefenseTicks -= subtrahend.ObjectiveDefenseTicks;
             BaseCaps -= subtrahend.BaseCaps;
 
             return this;
