@@ -102,5 +102,43 @@ namespace squittal.ScrimPlanetmans.Shared.Models
 
             return events;
         }
+
+        public static ExperienceType GetExperienceTypeFromId(int experienceId)
+        {
+            if (ReviveIds.Contains(experienceId))
+            {
+                return ExperienceType.Revive;
+            }
+            else if (SpawnIds.Contains(experienceId))
+            {
+                return ExperienceType.Spawn;
+            }
+            else if (PointControlIds.Contains(experienceId))
+            {
+                return ExperienceType.PointControl;
+            }
+            else if (DamageAssistIds.Contains(experienceId))
+            {
+                return ExperienceType.DamageAssist;
+            }
+            else if (UtilityAssistIds.Contains(experienceId))
+            {
+                return ExperienceType.UtilityAssist;
+            }
+            else
+            {
+                return ExperienceType.Unknown;
+            }
+        }
+    }
+
+    public enum ExperienceType
+    {
+        Revive,
+        Spawn,
+        PointControl,
+        DamageAssist,
+        UtilityAssist,
+        Unknown = 99
     }
 }
