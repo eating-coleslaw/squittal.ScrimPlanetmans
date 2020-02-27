@@ -1,7 +1,7 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 
-namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
+namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 {
     public class TeamPlayerChangeEventArgs : EventArgs
     {

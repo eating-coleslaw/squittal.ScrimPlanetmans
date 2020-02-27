@@ -4,7 +4,7 @@
 @using squittal.ScrimPlanetmans.CensusStream;
 @using squittal.ScrimPlanetmans.Models.ScrimEngine
 @using squittal.ScrimPlanetmans.ScrimMatch;
-@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Events;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 
@@ -46,8 +46,38 @@
     <MatchTimer />
 
     <AdminLog />
+    @*<p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
+    <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha);">
+        @if (_adminLogs.Any())
+        {
+            foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200))
+            {
+                <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+            }
+
+            if (_adminLogs.Count() > 200)
+            {
+                <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing 200 / @_adminLogs.Count)</p>
+            }
+        }
+    </div>*@
 
     <StreamLog />
+    @*<p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
+    <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha);">
+        @if (_streamLogs.Any())
+        {
+            foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200))
+            {
+                <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+            }
+
+            if (_streamLogs.Count() > 200)
+            {
+                <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing 200 / @_streamLogs.Count)</p>
+            }
+        }
+    </div>*@
 
 </div>
 
@@ -88,12 +118,16 @@
     }
 
 
-    #region Match & Subscription State Buttons
+    /*****************************************
+     *  Match & Subscription State Buttons
+     *****************************************/
     private async Task GetCensusStreamStatus()
     {
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
         _debug = "GetCensusStreamStatus";
+
+        //StateHasChanged();
     }
 
     private void SubscribeToCensus()
@@ -102,6 +136,8 @@
         _debug = "SubscribeToCensus";
 
         LogAdminMessage($"Subscribed all characters to Stream Monitor!");
+
+        //StateHasChanged();
     }
 
     private void EndCensusSubscription()
@@ -110,21 +146,32 @@
         _debug = "EndCensusSubscription";
 
         LogAdminMessage($"Removed all characters to Stream Monitor!");
+
+        //StateHasChanged();
     }
 
+    //private async Task StartMatch()
     private void StartMatch()
     {
         SubscribeToCensus();
 
+        //await MatchScorer.SetActiveRuleset();
+        //await ItemService.SetUpItemsListAsync();
+
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
         ScrimMatchEngine.Start();
 
+        //ScrimMatchEngine.InitializeNewRound();
+        //ScrimMatchEngine.StartRound();
+
         LogAdminMessage($"Started new match: {_matchConfiguration.Title}"); // TODO: add team names to this
+
+        //SateHasChanged();
     }
-    #endregion
 
-
-    #region  Event Handling
+    /*****************
+     *  Event Handling
+     *****************/
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
         ReceiveMessage(e.Message);
@@ -135,6 +182,7 @@
         var payload = TryParseMessagePayload(message);
         if (payload == null)
         {
+            //LogAdminMessage(message);
             return;
         }
 
@@ -236,10 +284,10 @@
         var info = e.Message.Info;
         LogAdminMessage(info);
     }
-    #endregion
 
-
-    #region  Log Messages
+    /*****************
+     *  Log Messages
+     *****************/
     private void LogAdminMessage(string message)
     {
         MessageService.BroadcastSimpleMessage(message);
@@ -263,5 +311,4 @@
             StateHasChanged();
         });
     }
-    #endregion
 }

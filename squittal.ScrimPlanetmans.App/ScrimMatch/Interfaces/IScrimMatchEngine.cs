@@ -1,5 +1,5 @@
 ﻿using squittal.ScrimPlanetmans.Models.ScrimEngine;
-using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {

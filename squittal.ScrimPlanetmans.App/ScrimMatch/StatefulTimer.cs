@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;

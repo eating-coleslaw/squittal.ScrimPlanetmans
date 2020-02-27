@@ -1,4 +1,4 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using System;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatch

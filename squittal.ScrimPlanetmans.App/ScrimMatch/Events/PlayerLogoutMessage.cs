@@ -1,7 +1,7 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
 
-namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
+namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 {
     public class PlayerLogoutMessage
     {

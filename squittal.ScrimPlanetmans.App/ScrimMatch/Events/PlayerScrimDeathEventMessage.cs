@@ -2,7 +2,7 @@
 using squittal.ScrimPlanetmans.Shared.Models;
 using System;
 
-namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
+namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 {
     public class PlayerScrimDeathEventMessage
     {

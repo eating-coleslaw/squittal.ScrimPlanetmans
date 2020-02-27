@@ -1,5 +1,5 @@
 ﻿using squittal.ScrimPlanetmans.Models;
-using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Events;
 using System;
 using System.Collections.Generic;
 using System.Threading;
