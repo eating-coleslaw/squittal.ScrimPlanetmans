@@ -132,7 +132,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        public static bool IsMaxLoadoutId(int loadoutId)
+        public static bool IsMaxLoadoutId(int? loadoutId)
         {
             return loadoutId switch
             {
@@ -140,6 +140,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 14 => true,
                 21 => true,
                 45 => true,
+                null => false,
                 _ => false,
             };
         }
