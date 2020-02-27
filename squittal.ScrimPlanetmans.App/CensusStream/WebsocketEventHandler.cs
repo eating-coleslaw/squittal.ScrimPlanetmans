@@ -545,7 +545,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
             }
 
-            // TODO: broadcast Player Revive Event Message
+            _messageService.BroadcastScrimReviveActionEventMessage(new ScrimReviveActionEventMessage(reviveEvent));
         }
 
         private ScrimActionType GetReviveScrimActionType(ScrimReviveActionEvent reviveEvent)
@@ -606,6 +606,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
             }
 
+            _messageService.BroadcastScrimAssistActionEventMessage(new ScrimAssistActionEventMessage(assistEvent));
         }
 
         private ScrimActionType GetAssistScrimActionType(ScrimAssistActionEvent assistEvent)
@@ -624,7 +625,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         private void ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
-            var controlEvent = new ScrimObjectivePlayActionEvent(baseEvent);
+            var controlEvent = new ScrimObjectiveTickActionEvent(baseEvent);
 
             string playerId = payload.CharacterId;
 
@@ -642,21 +643,21 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _teamsManager.SetPlayerLoadoutId(playerId, controlEvent.LoadoutId);
 
-            controlEvent.ActionType = GetPointControlScrimActionType(controlEvent);
+            controlEvent.ActionType = GetObjectiveTickScrimActionType(controlEvent);
 
             if (controlEvent.ActionType != ScrimActionType.Unknown)
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreObjectivePlayEvent(controlEvent);
+                    var points = _scorer.ScoreObjectiveTickEvent(controlEvent);
                     controlEvent.Points = points;
                 }
             }
 
-
+            _messageService.BroadcastScrimObjectiveTickActionEventMessage(new ScrimObjectiveTickActionEventMessage(controlEvent));
         }
 
-        private ScrimActionType GetPointControlScrimActionType(ScrimObjectivePlayActionEvent controlEvent)
+        private ScrimActionType GetObjectiveTickScrimActionType(ScrimObjectiveTickActionEvent controlEvent)
         {
             var experienceId = controlEvent.ExperienceGainInfo.Id;
 

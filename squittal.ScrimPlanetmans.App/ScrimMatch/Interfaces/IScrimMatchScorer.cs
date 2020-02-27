@@ -17,6 +17,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task SetActiveRuleset();
         int ScoreReviveEvent(ScrimReviveActionEvent revive);
         int ScoreAssistEvent(ScrimAssistActionEvent assist);
-        int ScoreObjectivePlayEvent(ScrimObjectivePlayActionEvent objective);
+        int ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective);
     }
 }

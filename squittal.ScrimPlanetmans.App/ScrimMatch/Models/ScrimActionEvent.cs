@@ -111,7 +111,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         }
     }
 
-    public class ScrimObjectivePlayActionEvent : ScrimExperienceGainActionEvent
+    public class ScrimObjectiveTickActionEvent : ScrimExperienceGainActionEvent
     {
         public Player Player { get; set; }
 
@@ -126,7 +126,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         //public int? LoadoutId { get; set; }
 
         //public int Points { get; set; }
-        public ScrimObjectivePlayActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
+        public ScrimObjectiveTickActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
         {
             Timestamp = baseExperienceEvent.Timestamp;
             ZoneId = baseExperienceEvent.ZoneId;

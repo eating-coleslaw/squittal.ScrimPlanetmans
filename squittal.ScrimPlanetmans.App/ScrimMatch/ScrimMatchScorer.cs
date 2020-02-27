@@ -336,7 +336,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return points;
         }
 
-        public int ScoreObjectivePlayEvent(ScrimObjectivePlayActionEvent objective)
+        public int ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective)
         {
             var actionType = objective.ActionType;
             var points = _activeRuleset.ActionRules

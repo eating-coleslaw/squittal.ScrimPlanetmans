@@ -20,6 +20,17 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<ScrimDeathActionEventEventArgs> RaisePlayerScrimDeathEvent;
         public delegate void PlayerScrimDeathEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
 
+
+        public event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
+        public delegate void ScrimReviveActionEventMessageEventHandler(object sender, ScrimReviveActionEventEventArgs e);
+
+        public event EventHandler<ScrimAssistActionEventEventArgs> RaiseScrimAssistActionEvent;
+        public delegate void ScrimAssistActionEventMessageEventHandler(object sender, ScrimAssistActionEventEventArgs e);
+
+        public event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
+        public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimObjectiveTickActionEventEventArgs e);
+
+
         public event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
         public delegate void PlayerLoginEventHandler(object sender, PlayerLoginEventArgs e);
 
@@ -101,6 +112,33 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaisePlayerScrimDeathEvent(ScrimDeathActionEventEventArgs e)
         {
             RaisePlayerScrimDeathEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message)
+        {
+            OnRaiseScrimReviveActionEvent(new ScrimReviveActionEventEventArgs(message));
+        }
+        protected virtual void OnRaiseScrimReviveActionEvent(ScrimReviveActionEventEventArgs e)
+        {
+            RaiseScrimReviveActionEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastScrimAssistActionEventMessage(ScrimAssistActionEventMessage message)
+        {
+            OnRaiseScrimAssistActionEvent(new ScrimAssistActionEventEventArgs(message));
+        }
+        protected virtual void OnRaiseScrimAssistActionEvent(ScrimAssistActionEventEventArgs e)
+        {
+            RaiseScrimAssistActionEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEventMessage message)
+        {
+            OnRaiseScrimObjectiveTickActionEvent(new ScrimObjectiveTickActionEventEventArgs(message));
+        }
+        protected virtual void OnRaiseScrimObjectiveTickActionEvent(ScrimObjectiveTickActionEventEventArgs e)
+        {
+            RaiseScrimObjectiveTickActionEvent?.Invoke(this, e);
         }
 
         /***************************
