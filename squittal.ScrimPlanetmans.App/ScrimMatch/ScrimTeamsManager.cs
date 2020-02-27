@@ -512,6 +512,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             GetPlayerFromId(characterId).IsOnline = isOnline;
         }
 
+        public void SetPlayerLoadoutId(string characterId, int loadoutId)
+        {
+            if (loadoutId <= 0)
+            {
+                return;
+            }
+
+            GetPlayerFromId(characterId).LoadoutId = loadoutId;
+        }
+
         private bool TeamContainsOutfits(int teamOrdinal)
         {
             return TeamOutfitCount(teamOrdinal) > 0;
