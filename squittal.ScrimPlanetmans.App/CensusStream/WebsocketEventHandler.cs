@@ -182,7 +182,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     Id = weaponItem.Id,
                     ItemCategoryId = (int)weaponItem.ItemCategoryId,
-                    Name = weaponItem.Name
+                    Name = weaponItem.Name,
+                    IsVehicleWeapon = weaponItem.IsVehicleWeapon
                 };
             }
             
@@ -282,6 +283,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
+            var attackerIsVehicle = death.Weapon.IsVehicleWeapon;
+
             var attackerIsMax = death.AttackerLoadoutId == null
                                     ? false
                                     : ProfileService.IsMaxLoadoutId((int)death.AttackerLoadoutId);
@@ -301,7 +304,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
             else if (sameTeam)
             {
-                if (attackerIsMax)
+                if (attackerIsVehicle)
+                {
+                    return victimIsMax
+                                ? ScrimActionType.VehicleTeamkillMax
+                                : ScrimActionType.VehicleTeamkillInfantry;
+                }
+                else if (attackerIsMax)
                 {
                     return victimIsMax
                                 ? ScrimActionType.MaxTeamkillMax
@@ -316,7 +325,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
             else
             {
-                if (attackerIsMax)
+                if (attackerIsVehicle)
+                {
+                    return victimIsMax
+                                ? ScrimActionType.VehicleKillMax
+                                : ScrimActionType.VehicleKillInfantry;
+                }
+                else if (attackerIsMax)
                 {
                     return victimIsMax
                                 ? ScrimActionType.MaxKillMax
