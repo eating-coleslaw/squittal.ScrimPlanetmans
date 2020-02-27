@@ -44,7 +44,9 @@
             if (prevTick.MatchTimerStatus.GetSecondsRemaining() > 0)
             {
                 _canPlaySound = true;
+                _playedSound = false;
             }
+
         }
         else
         {
@@ -69,7 +71,9 @@
         }
         else
         {
+            _playedSound = false;
             _canPlaySound = true;
+            _playSound = false;
         }
 
         _clock = status.TimeRemainingDisplay;
