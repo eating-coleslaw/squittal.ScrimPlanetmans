@@ -24,7 +24,8 @@ namespace squittal.ScrimPlanetmans.Shared.Models
         public int DamageAssistedDeaths { get; set; } = 0;
         public int UtilityAssistedDeaths { get; set; } = 0;
 
-        public int ObjectiveTicks { get; set; } = 0;
+        public int ObjectiveCaptureTicks { get; set; } = 0;
+        public int ObjectiveDefenseTicks { get; set; } = 0;
         public int BaseCaps { get; set; } = 0;
 
 
@@ -139,7 +140,10 @@ namespace squittal.ScrimPlanetmans.Shared.Models
             RevivesTaken += addend.RevivesTaken;
             DamageAssists += addend.DamageAssists;
             UtilityAssists += addend.UtilityAssists;
-            ObjectiveTicks += addend.ObjectiveTicks;
+            DamageAssistedDeaths += addend.DamageAssistedDeaths;
+            UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
+            ObjectiveCaptureTicks += addend.ObjectiveCaptureTicks;
+            ObjectiveDefenseTicks += addend.ObjectiveDefenseTicks;
             BaseCaps += addend.BaseCaps;
 
             return this;
@@ -160,7 +164,10 @@ namespace squittal.ScrimPlanetmans.Shared.Models
             RevivesTaken -= subtrahend.RevivesTaken;
             DamageAssists -= subtrahend.DamageAssists;
             UtilityAssists -= subtrahend.UtilityAssists;
-            ObjectiveTicks -= subtrahend.ObjectiveTicks;
+            DamageAssistedDeaths += addend.DamageAssistedDeaths;
+            UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
+            ObjectiveCaptureTicks += addend.ObjectiveCaptureTicks;
+            ObjectiveDefenseTicks += addend.ObjectiveDefenseTicks;
             BaseCaps -= subtrahend.BaseCaps;
 
             return this;
