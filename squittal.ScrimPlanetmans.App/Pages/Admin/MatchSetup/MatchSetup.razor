@@ -265,7 +265,7 @@
         LogAdminMessage(message);
     }
 
-    private void ReceivePlayerDeathEvent(object sender, PlayerScrimDeathEventEventArgs e)
+    private void ReceivePlayerDeathEvent(object sender, ScrimDeathActionEventEventArgs e)
     {
         var info = e.Message.Info;
         LogStreamMessage(info);

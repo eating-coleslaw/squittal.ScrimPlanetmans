@@ -32,7 +32,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _activeRuleset = await _rulesets.GetActiveRuleset();
         }
 
-        public int ScoreDeathEvent(PlayerScrimDeathEvent death)
+        public int ScoreDeathEvent(ScrimDeathActionEvent death)
         {
             switch (death.DeathType)
             {
@@ -50,7 +50,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private int ScoreKill(PlayerScrimDeathEvent death)
+        private int ScoreKill(ScrimDeathActionEvent death)
         {
             int points;
 
@@ -95,7 +95,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return points;
         }
 
-        private int ScoreSuicide(PlayerScrimDeathEvent death)
+        private int ScoreSuicide(ScrimDeathActionEvent death)
         {
             var actionType = death.ActionType;
             var points = _activeRuleset.ActionRules
@@ -117,7 +117,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return points;
         }
 
-        private int ScoreTeamkill(PlayerScrimDeathEvent death)
+        private int ScoreTeamkill(ScrimDeathActionEvent death)
         {
             var actionType = death.ActionType;
             var points = _activeRuleset.ActionRules

@@ -4,12 +4,12 @@ using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 {
-    public class PlayerScrimDeathEventMessage
+    public class ScrimDeathActionEventMessage
     {
-        public PlayerScrimDeathEvent DeathEvent { get; set; }
+        public ScrimDeathActionEvent DeathEvent { get; set; }
         public string Info { get; set; }
 
-        public PlayerScrimDeathEventMessage(PlayerScrimDeathEvent deathEvent)
+        public ScrimDeathActionEventMessage(ScrimDeathActionEvent deathEvent)
         {
             DeathEvent = deathEvent;
 
@@ -36,7 +36,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Events
             }
         }
 
-        private string GetOutsideInterferenceInfo(PlayerScrimDeathEvent deathEvent)
+        private string GetOutsideInterferenceInfo(ScrimDeathActionEvent deathEvent)
         {
             Player player;
             string otherCharacterId;
@@ -70,7 +70,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Events
             }
         }
 
-        private string GetKillInfo(PlayerScrimDeathEvent deathEvent)
+        private string GetKillInfo(ScrimDeathActionEvent deathEvent)
         {
             var attacker = deathEvent.AttackerPlayer;
             var victim = deathEvent.VictimPlayer;
@@ -96,12 +96,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Events
             return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {headshot} [{weaponName}] {victimOutfit}{victimName}";
         }
 
-        private string GetTeamkillInfo(PlayerScrimDeathEvent deathEvent)
+        private string GetTeamkillInfo(ScrimDeathActionEvent deathEvent)
         {
             return GetKillInfo(deathEvent);
         }
 
-        private string GetSuicideInfo(PlayerScrimDeathEvent deathEvent)
+        private string GetSuicideInfo(ScrimDeathActionEvent deathEvent)
         {
             var attacker = deathEvent.AttackerPlayer;
 

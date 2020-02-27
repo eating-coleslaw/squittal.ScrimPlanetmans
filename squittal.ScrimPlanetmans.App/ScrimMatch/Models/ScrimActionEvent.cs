@@ -3,7 +3,7 @@ using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
-    public abstract class PlayerScrimEvent
+    public abstract class ScrimActionEvent
     {
 
         public DateTime Timestamp { get; set; }
@@ -12,11 +12,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int? ZoneId { get; set; }
     }
 
-    public class PlayerScrimDeathEvent : PlayerScrimEvent
+    public class ScrimDeathActionEvent : ScrimActionEvent
     {
         public Player AttackerPlayer { get; set; }
         public Player VictimPlayer { get; set; }
-        public PlayerScrimWeapon Weapon { get; set; }
+        public ScrimActionWeaponInfo Weapon { get; set; }
 
         public string AttackerCharacterId { get; set; }
         public string VictimCharacterId { get; set; }
@@ -30,60 +30,60 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public DeathEventType DeathType { get; set; }
     }
 
-    public class PlayerScrimReviveEvent : PlayerScrimEvent
+    public class ScrimReviveActionEvent : ScrimActionEvent
     {
         public Player MedicPlayer { get; set; }
         public Player RevivedPlayer { get; set; }
-        public PlayerScrimExperienceGain ExperienceGain { get; set; }
+        public ScrimActionExperienceGainInfo ExperienceGain { get; set; }
 
         public int? MedicLoadoutId { get; set; }
 
         public int Points { get; set; }
     }
 
-    public class PlayerScrimDamageAssistEvent : PlayerScrimEvent
+    public class ScrimDamageAssistActionEvent : ScrimActionEvent
     {
         public Player AttackerPlayer { get; set; }
         public Player VictimPlayer { get; set; }
-        public PlayerScrimExperienceGain ExperienceGain { get; set; }
+        public ScrimActionExperienceGainInfo ExperienceGain { get; set; }
 
         public int? AttackerLoadoutId { get; set; }
 
         public int Points { get; set; }
     }
 
-    public class PlayerScrimUtilityAssistEvent : PlayerScrimEvent
+    public class ScrimUtilityAssistActionEvent : ScrimActionEvent
     {
         public Player AttackerPlayer { get; set; }
         public Player VictimPlayer { get; set; }
-        public PlayerScrimExperienceGain ExperienceGain { get; set; }
+        public ScrimActionExperienceGainInfo ExperienceGain { get; set; }
 
         public int? AttackerLoadoutId { get; set; }
 
         public int Points { get; set; }
     }
 
-    public class PlayerScrimLoginEvent : PlayerScrimEvent
+    public class ScrimLoginActionEvent : ScrimActionEvent
     {
         public Player Player { get; set; }
 
-        public PlayerScrimLoginEvent()
+        public ScrimLoginActionEvent()
         {
             ActionType = ScrimActionType.Login;
         }
     }
 
-    public class PlayerScrimLogoutEvent : PlayerScrimEvent
+    public class ScrimLogoutActionEvent : ScrimActionEvent
     {
         public Player Player { get; set; }
 
-        public PlayerScrimLogoutEvent()
+        public ScrimLogoutActionEvent()
         {
             ActionType = ScrimActionType.Logout;
         }
     }
 
-    public class PlayerScrimWeapon
+    public class ScrimActionWeaponInfo
     {
         public int Id { get; set; }
         public int ItemCategoryId { get; set; }
@@ -91,7 +91,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsVehicleWeapon { get; set; }
     }
 
-    public class PlayerScrimExperienceGain
+    public class ScrimActionExperienceGainInfo
     {
         public int Id { get; set; }
         public int Amount { get; set; }

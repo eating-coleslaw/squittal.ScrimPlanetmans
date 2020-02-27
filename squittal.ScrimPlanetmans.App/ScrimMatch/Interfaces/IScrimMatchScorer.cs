@@ -6,7 +6,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimMatchScorer
     {
-        int ScoreDeathEvent(PlayerScrimDeathEvent death);
+        int ScoreDeathEvent(ScrimDeathActionEvent death);
         int ScoreDeathEvent(Death death);
         int ScoreFacilityControlEvent(FacilityControl control);
         int ScorePlayerFacilityCaptureEvent(PlayerFacilityCapture capture);

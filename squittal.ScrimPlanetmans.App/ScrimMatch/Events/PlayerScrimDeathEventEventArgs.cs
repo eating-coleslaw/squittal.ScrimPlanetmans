@@ -2,13 +2,13 @@
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Events
 {
-    public class PlayerScrimDeathEventEventArgs : EventArgs
+    public class ScrimDeathActionEventEventArgs : EventArgs
     {
-        public PlayerScrimDeathEventEventArgs(PlayerScrimDeathEventMessage m)
+        public ScrimDeathActionEventEventArgs(ScrimDeathActionEventMessage m)
         {
             Message = m;
         }
 
-        public PlayerScrimDeathEventMessage Message { get; }
+        public ScrimDeathActionEventMessage Message { get; }
     }
 }

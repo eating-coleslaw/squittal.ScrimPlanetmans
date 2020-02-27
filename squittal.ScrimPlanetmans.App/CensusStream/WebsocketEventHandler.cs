@@ -158,7 +158,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         #region Payload Handling
 
         [CensusEventHandler("Death", typeof(DeathPayload))]
-        private async Task<PlayerScrimDeathEvent> Process(DeathPayload payload)
+        private async Task<ScrimDeathActionEvent> Process(DeathPayload payload)
         {
             string attackerId = payload.AttackerCharacterId;
             string victimId = payload.CharacterId;
@@ -169,7 +169,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
-            PlayerScrimDeathEvent deathEvent = new PlayerScrimDeathEvent();
+            ScrimDeathActionEvent deathEvent = new ScrimDeathActionEvent();
 
             deathEvent.Timestamp = payload.Timestamp;
             deathEvent.ZoneId = payload.ZoneId;
@@ -178,7 +178,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var weaponItem = await _itemService.GetItem((int)payload.AttackerWeaponId);
             if (weaponItem != null)
             {
-                deathEvent.Weapon = new PlayerScrimWeapon()
+                deathEvent.Weapon = new ScrimActionWeaponInfo()
                 {
                     Id = weaponItem.Id,
                     ItemCategoryId = (int)weaponItem.ItemCategoryId,
@@ -259,7 +259,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 //    deathEvent.Points = points;
                 //}
 
-                _messageService.BroadcastPlayerScrimDeathEventMessage(new PlayerScrimDeathEventMessage(deathEvent));
+                _messageService.BroadcastPlayerScrimDeathEventMessage(new ScrimDeathActionEventMessage(deathEvent));
 
                 //return dataModel;
                 return deathEvent;
@@ -274,7 +274,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
         }
 
-        private ScrimActionType GetDeathScrimActionType(PlayerScrimDeathEvent death)
+        private ScrimActionType GetDeathScrimActionType(ScrimDeathActionEvent death)
         {
             // Determine if this is involves a non-tracked player
             if ((death.AttackerPlayer == null && !string.IsNullOrWhiteSpace(death.AttackerCharacterId))
