@@ -21,6 +21,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         SubsequentBaseCapture = 11,
         PointControl = 12,
         PointDefend = 13,
+        ConvertCapturePoint = 14,
+        ObjectiveCapturePulse = 15,
+        ObjectiveDefensePulse = 16,
 
         // Infantry: 20 - 39
         InfantryKillInfantry = 20,
@@ -68,6 +71,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         Logout = 101,
 
         // Warnings & Errors: 200+
-        OutsideInterference = 200
+        OutsideInterference = 200,
+        Unknown = 201
     };
 }

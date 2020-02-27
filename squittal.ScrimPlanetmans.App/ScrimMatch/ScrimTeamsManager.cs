@@ -512,9 +512,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             GetPlayerFromId(characterId).IsOnline = isOnline;
         }
 
-        public void SetPlayerLoadoutId(string characterId, int loadoutId)
+        public void SetPlayerLoadoutId(string characterId, int? loadoutId)
         {
-            if (loadoutId <= 0)
+            if (loadoutId == null || loadoutId <= 0)
             {
                 return;
             }

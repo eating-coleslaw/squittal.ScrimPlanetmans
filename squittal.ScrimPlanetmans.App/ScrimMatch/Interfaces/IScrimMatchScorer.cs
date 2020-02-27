@@ -15,5 +15,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void HandlePlayerLogin(PlayerLogin login);
         void HandlePlayerLogout(PlayerLogout login);
         Task SetActiveRuleset();
+        int ScoreReviveEvent(ScrimReviveActionEvent revive);
+        int ScoreAssistEvent(ScrimAssistActionEvent assist);
+        int ScoreObjectivePlayEvent(ScrimObjectivePlayActionEvent objective);
     }
 }

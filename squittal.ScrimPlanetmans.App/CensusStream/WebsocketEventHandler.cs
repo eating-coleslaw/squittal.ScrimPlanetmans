@@ -147,6 +147,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                             Process(logoutParam);
                         });
                         break;
+
+                    case "GainExperience":
+                        var experienceParam = jPayload.ToObject<GainExperiencePayload>(_payloadDeserializer);
+                        await Task.Run(() =>
+                        {
+                            Process(experienceParam);
+                        });
+                        break;
                 }
             }
             catch (Exception ex)
@@ -169,11 +177,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
-            ScrimDeathActionEvent deathEvent = new ScrimDeathActionEvent();
-
-            deathEvent.Timestamp = payload.Timestamp;
-            deathEvent.ZoneId = payload.ZoneId;
-            deathEvent.IsHeadshot = payload.IsHeadshot;
+            ScrimDeathActionEvent deathEvent = new ScrimDeathActionEvent
+            {
+                Timestamp = payload.Timestamp,
+                ZoneId = payload.ZoneId,
+                IsHeadshot = payload.IsHeadshot
+            };
 
             var weaponItem = await _itemService.GetItem((int)payload.AttackerWeaponId);
             if (weaponItem != null)
@@ -198,6 +207,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
                     deathEvent.AttackerPlayer = attackerPlayer;
 
+                    if (attackerPlayer != null)
+                    {
+                        _teamsManager.SetPlayerLoadoutId(attackerId, deathEvent.AttackerLoadoutId);
+
+                    }
                 }
 
                 if (isValidVictimId == true)
@@ -207,6 +221,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     victimPlayer = _teamsManager.GetPlayerFromId(victimId);
                     deathEvent.VictimPlayer = victimPlayer;
+
+                    if (victimPlayer != null)
+                    {
+                        _teamsManager.SetPlayerLoadoutId(victimId, deathEvent.VictimLoadoutId);
+                    }
                 }
 
                 deathEvent.ActionType = GetDeathScrimActionType(deathEvent);
@@ -287,11 +306,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var attackerIsMax = death.AttackerLoadoutId == null
                                     ? false
-                                    : ProfileService.IsMaxLoadoutId((int)death.AttackerLoadoutId);
+                                    : ProfileService.IsMaxLoadoutId(death.AttackerLoadoutId);
 
             var victimIsMax = death.VictimLoadoutId == null
                                     ? false
-                                    : ProfileService.IsMaxLoadoutId((int)death.VictimLoadoutId);
+                                    : ProfileService.IsMaxLoadoutId(death.VictimLoadoutId);
 
             var sameTeam = _teamsManager.DoPlayersShareTeam(death.AttackerPlayer, death.VictimPlayer);
             var samePlayer = (death.AttackerPlayer == death.VictimPlayer || death.AttackerPlayer == null);
@@ -356,13 +375,19 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ScrimActionType.MaxTeamkillInfantry => DeathEventType.Teamkill,
                 ScrimActionType.InfantryTeamkillMax => DeathEventType.Teamkill,
                 ScrimActionType.InfantryTeamkillInfantry => DeathEventType.Teamkill,
+                ScrimActionType.VehicleTeamkillMax => DeathEventType.Teamkill,
+                ScrimActionType.VehicleTeamkillInfantry => DeathEventType.Teamkill,
                 ScrimActionType.MaxKillMax => DeathEventType.Kill,
                 ScrimActionType.MaxKillInfantry => DeathEventType.Kill,
                 ScrimActionType.InfantryKillMax => DeathEventType.Kill,
-                ScrimActionType.InfantryKillInfantry => DeathEventType.Kill
+                ScrimActionType.InfantryKillInfantry => DeathEventType.Kill,
+                ScrimActionType.VehicleKillMax => DeathEventType.Kill,
+                ScrimActionType.VehicleKillInfantry => DeathEventType.Kill,
+                _ => DeathEventType.Kill
             };
         }
 
+        #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
         //private Task<PlayerLogin> Process(PlayerLoginPayload payload)
         private PlayerLogin Process(PlayerLoginPayload payload)
@@ -371,6 +396,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var player = _teamsManager.GetPlayerFromId(characterId);
             
+            // TODO: use ScrimActionLoginEvent instead of PlayerLogin
+
             var dataModel = new PlayerLogin
             {
                 CharacterId = payload.CharacterId,
@@ -393,6 +420,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var player = _teamsManager.GetPlayerFromId(characterId);
 
+            // TODO: use ScrimActionLogoutEvent instead of PlayerLogout
+
             var dataModel = new PlayerLogout
             {
                 CharacterId = payload.CharacterId,
@@ -406,26 +435,242 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             return dataModel;
         }
+        #endregion
 
+        #region GainExperience Payloads
+        //private Task<GainExperience> Process(GainExperiencePayload payload)
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
-        private Task<GainExperience> Process(GainExperiencePayload payload)
+        private void Process(GainExperiencePayload payload)
         {
-            var dataModel = new GainExperience
+            var experienceId = payload.ExperienceId;
+            var experienceType = ExperienceEventsBuilder.GetExperienceTypeFromId(experienceId);
+
+            var baseEvent = new ScrimExperienceGainActionEvent
             {
-                Id = Guid.NewGuid(),
-                ExperienceId = payload.ExperienceId,
-                CharacterId = payload.CharacterId,
-                Amount = payload.Amount,
-                LoadoutId = payload.LoadoutId,
-                OtherId = payload.OtherId,
                 Timestamp = payload.Timestamp,
-                WorldId = payload.WorldId,
-                ZoneId = payload.ZoneId.Value
+                ZoneId = payload.ZoneId,
+
+                ExperienceType = experienceType,
+                ExperienceGainInfo = new ScrimActionExperienceGainInfo
+                {
+                    Id = experienceId,
+                    Amount = payload.Amount
+                },
+                LoadoutId = payload.LoadoutId
             };
 
-            return Task.FromResult(dataModel);
+            switch (experienceType)
+            {
+                case ExperienceType.Revive:
+                    ProcessRevivePayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.DamageAssist:
+                    ProcessAssistPayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.UtilityAssist:
+                    ProcessAssistPayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.PointControl:
+                    ProcessPointControlPayload(baseEvent, payload);
+                    return;
+
+                default:
+                    return;
+            }
+
+            //var characterId = payload.CharacterId;
+
+            //var player = _teamsManager.GetPlayerFromId(characterId);
+
+
+            //var dataModel = new GainExperience
+            //{
+            //    Id = Guid.NewGuid(),
+            //    ExperienceId = payload.ExperienceId,
+            //    CharacterId = payload.CharacterId,
+            //    Amount = payload.Amount,
+            //    LoadoutId = payload.LoadoutId,
+            //    OtherId = payload.OtherId,
+            //    Timestamp = payload.Timestamp,
+            //    WorldId = payload.WorldId,
+            //    ZoneId = payload.ZoneId.Value
+            //};
+
+            //return Task.FromResult(dataModel);
             //return dataModel;
         }
+
+        private void ProcessRevivePayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        {
+            var reviveEvent = new ScrimReviveActionEvent(baseEvent);
+
+            string medicId = payload.CharacterId;
+            string revivedId = payload.OtherId;
+
+            bool isValidMedicId = (medicId != null && medicId.Length > 18);
+            bool isValidRevivedId = (revivedId != null && revivedId.Length > 18);
+
+            Player medicPlayer;
+            Player revivedPlayer;
+
+            if (isValidMedicId == true)
+            {
+                reviveEvent.MedicCharacterId = medicId;
+
+                medicPlayer = _teamsManager.GetPlayerFromId(medicId);
+                reviveEvent.MedicPlayer = medicPlayer;
+
+                _teamsManager.SetPlayerLoadoutId(medicId, reviveEvent.LoadoutId);
+            }
+
+            if (isValidRevivedId == true)
+            {
+                reviveEvent.RevivedCharacterId = revivedId;
+
+                revivedPlayer = _teamsManager.GetPlayerFromId(revivedId);
+                reviveEvent.RevivedPlayer = revivedPlayer;
+            }
+
+            reviveEvent.ActionType = GetReviveScrimActionType(reviveEvent);
+
+            if (reviveEvent.ActionType != ScrimActionType.OutsideInterference)
+            {
+                if (_isScoringEnabled)
+                {
+                    var points = _scorer.ScoreReviveEvent(reviveEvent);
+                    reviveEvent.Points = points;
+                }
+            }
+
+            // TODO: broadcast Player Revive Event Message
+        }
+
+        private ScrimActionType GetReviveScrimActionType(ScrimReviveActionEvent reviveEvent)
+        {
+            // Determine if this is involves a non-tracked player
+            if ((reviveEvent.MedicPlayer == null && !string.IsNullOrWhiteSpace(reviveEvent.MedicCharacterId))
+                    || (reviveEvent.RevivedPlayer == null && !string.IsNullOrWhiteSpace(reviveEvent.RevivedCharacterId)))
+            {
+                return ScrimActionType.OutsideInterference;
+            }
+
+            bool isRevivedMax = ProfileService.IsMaxLoadoutId(reviveEvent.RevivedPlayer.LoadoutId);
+
+            return isRevivedMax
+                        ? ScrimActionType.ReviveMax
+                        : ScrimActionType.ReviveInfantry;
+        }
+
+        private void ProcessAssistPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        {
+            var assistEvent = new ScrimAssistActionEvent(baseEvent);
+
+            string attackerId = payload.CharacterId;
+            string victimId = payload.OtherId;
+
+            bool isValidattackerId = (attackerId != null && attackerId.Length > 18);
+            bool isValidvictimId = (victimId != null && victimId.Length > 18);
+
+            Player attackerPlayer;
+            Player victimPlayer;
+
+            if (isValidattackerId == true)
+            {
+                assistEvent.AttackerCharacterId = attackerId;
+
+                attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
+                assistEvent.AttackerPlayer = attackerPlayer;
+
+                _teamsManager.SetPlayerLoadoutId(attackerId, assistEvent.LoadoutId);
+            }
+
+            if (isValidvictimId == true)
+            {
+                assistEvent.VictimCharacterId = victimId;
+
+                victimPlayer = _teamsManager.GetPlayerFromId(victimId);
+                assistEvent.VictimPlayer = victimPlayer;
+            }
+
+            assistEvent.ActionType = GetAssistScrimActionType(assistEvent);
+
+            if (assistEvent.ActionType != ScrimActionType.OutsideInterference)
+            {
+                if (_isScoringEnabled)
+                {
+                    var points = _scorer.ScoreAssistEvent(assistEvent);
+                    assistEvent.Points = points;
+                }
+            }
+
+        }
+
+        private ScrimActionType GetAssistScrimActionType(ScrimAssistActionEvent assistEvent)
+        {
+            // Determine if this is involves a non-tracked player
+            if ((assistEvent.AttackerPlayer == null && !string.IsNullOrWhiteSpace(assistEvent.AttackerCharacterId))
+                    || (assistEvent.VictimPlayer == null && !string.IsNullOrWhiteSpace(assistEvent.VictimCharacterId)))
+            {
+                return ScrimActionType.OutsideInterference;
+            }
+
+            return assistEvent.ExperienceType == ExperienceType.DamageAssist
+                        ? ScrimActionType.DamageAssist
+                        : ScrimActionType.UtilityAssist;
+        }
+
+        private void ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        {
+            var controlEvent = new ScrimObjectivePlayActionEvent(baseEvent);
+
+            string playerId = payload.CharacterId;
+
+            bool isValidAttackerId = (playerId != null && playerId.Length > 18);
+
+            if (!isValidAttackerId)
+            {
+                return;
+            }
+
+            controlEvent.PlayerCharacterId = playerId;
+
+            var player = _teamsManager.GetPlayerFromId(playerId);
+            controlEvent.Player = player;
+
+            _teamsManager.SetPlayerLoadoutId(playerId, controlEvent.LoadoutId);
+
+            controlEvent.ActionType = GetPointControlScrimActionType(controlEvent);
+
+            if (controlEvent.ActionType != ScrimActionType.Unknown)
+            {
+                if (_isScoringEnabled)
+                {
+                    var points = _scorer.ScoreObjectivePlayEvent(controlEvent);
+                    controlEvent.Points = points;
+                }
+            }
+
+
+        }
+
+        private ScrimActionType GetPointControlScrimActionType(ScrimObjectivePlayActionEvent controlEvent)
+        {
+            var experienceId = controlEvent.ExperienceGainInfo.Id;
+
+            return experienceId switch
+            {
+                15 => ScrimActionType.PointControl,             // Control Point - Defend (100xp)
+                16 => ScrimActionType.PointDefend,              // Control Point - Attack (100xp)
+                272 => ScrimActionType.ConvertCapturePoint,     // Convert Capture Point (25xp)
+                556 => ScrimActionType.ObjectiveDefensePulse,   // Objective Pulse Defend (50xp)
+                557 => ScrimActionType.ObjectiveCapturePulse,   // Objective Pulse Capture (100xp)
+                _ => ScrimActionType.Unknown
+            };
+        }
+        #endregion
 
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private Task<FacilityControl> Process(FacilityControlPayload payload)

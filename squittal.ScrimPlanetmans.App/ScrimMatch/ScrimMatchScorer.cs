@@ -65,10 +65,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             else
             {
                 var actionType = death.ActionType;
-                points = _activeRuleset.ActionRules
-                                            .Where(rule => rule.ScrimActionType == actionType)
-                                            .Select(rule => rule.Points)
-                                            .FirstOrDefault();
+                points = GetActionRulePoints(actionType);
+                //points = _activeRuleset.ActionRules
+                //                            .Where(rule => rule.ScrimActionType == actionType)
+                //                            .Select(rule => rule.Points)
+                //                            .FirstOrDefault();
             }
 
             var isHeadshot = (death.IsHeadshot ? 1 : 0);
@@ -98,10 +99,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private int ScoreSuicide(ScrimDeathActionEvent death)
         {
             var actionType = death.ActionType;
-            var points = _activeRuleset.ActionRules
-                                        .Where(rule => rule.ScrimActionType == actionType)
-                                        .Select(rule => rule.Points)
-                                        .FirstOrDefault();
+            var points = GetActionRulePoints(actionType);
+            //var points = _activeRuleset.ActionRules
+            //                            .Where(rule => rule.ScrimActionType == actionType)
+            //                            .Select(rule => rule.Points)
+            //                            .FirstOrDefault();
 
             var victimUpdate = new ScrimEventAggregate()
             {
@@ -120,10 +122,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private int ScoreTeamkill(ScrimDeathActionEvent death)
         {
             var actionType = death.ActionType;
-            var points = _activeRuleset.ActionRules
-                                        .Where(rule => rule.ScrimActionType == actionType)
-                                        .Select(rule => rule.Points)
-                                        .FirstOrDefault();
+            var points = GetActionRulePoints(actionType);
+            //var points = _activeRuleset.ActionRules
+            //                            .Where(rule => rule.ScrimActionType == actionType)
+            //                            .Select(rule => rule.Points)
+            //                            .FirstOrDefault();
 
             var attackerUpdate = new ScrimEventAggregate()
             {
@@ -278,6 +281,93 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             throw new NotImplementedException();
         }
 
+        public int ScoreReviveEvent(ScrimReviveActionEvent revive)
+        {
+            var actionType = revive.ActionType;
+            var points = GetActionRulePoints(actionType);
+
+            var medicUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+                RevivesGiven = 1
+            };
+
+            var revivedUpdate = new ScrimEventAggregate()
+            {
+                RevivesTaken = 1
+            };
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(revive.MedicPlayer.Id, medicUpdate);
+            _teamsManager.UpdatePlayerStats(revive.RevivedPlayer.Id, revivedUpdate);
+
+            return points;
+        }
+
+        public int ScoreAssistEvent(ScrimAssistActionEvent assist)
+        {
+            var actionType = assist.ActionType;
+            var points = GetActionRulePoints(actionType);
+
+            var attackerUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points
+            };
+
+            var victimUpdate = new ScrimEventAggregate();
+
+            if (actionType == ScrimActionType.DamageAssist)
+            {
+                attackerUpdate.DamageAssists = 1;
+                victimUpdate.DamageAssistedDeaths = 1;
+            }
+            else
+            {
+                attackerUpdate.UtilityAssists = 1;
+                victimUpdate.UtilityAssistedDeaths = 1;
+            }
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(assist.AttackerPlayer.Id, attackerUpdate);
+            _teamsManager.UpdatePlayerStats(assist.VictimPlayer.Id, victimUpdate);
+
+            return points;
+        }
+
+        public int ScoreObjectivePlayEvent(ScrimObjectivePlayActionEvent objective)
+        {
+            var actionType = objective.ActionType;
+            var points = _activeRuleset.ActionRules
+                                        .Where(rule => rule.ScrimActionType == actionType)
+                                        .Select(rule => rule.Points)
+                                        .FirstOrDefault();
+
+            var playerUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points
+            };
+
+            var isDefense = (actionType == ScrimActionType.PointDefend
+                                || actionType == ScrimActionType.ObjectiveDefensePulse);
+
+            if (isDefense)
+            {
+                playerUpdate.ObjectiveDefenseTicks = 1;
+            }
+            else
+            {
+                playerUpdate.ObjectiveCaptureTicks = 1;
+            }
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(objective.Player.Id, playerUpdate);
+
+            return points;
+        }
+
         #endregion Experience Events
 
         #region Objective Events
@@ -311,5 +401,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _teamsManager.SetPlayerOnlineStatus(characterId, false);
         }
         #endregion Misc. Non-Scored Events
+    
+        private int GetActionRulePoints(ScrimActionType actionType)
+        {
+            return _activeRuleset.ActionRules
+                                    .Where(rule => rule.ScrimActionType == actionType)
+                                    .Select(rule => rule.Points)
+                                    .FirstOrDefault();
+        }
+    
     }
 }

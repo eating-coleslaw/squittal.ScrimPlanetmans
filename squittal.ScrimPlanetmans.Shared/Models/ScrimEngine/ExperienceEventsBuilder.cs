@@ -21,8 +21,8 @@ namespace squittal.ScrimPlanetmans.Shared.Models
 
         public static int[] PointControlIds =
         {
-            15,     // Control Point - Defend (100xp)
-            16,     // Control Point - Attack (100xp)
+            15,     // Control Point - Defend (100xp) (killing someone on/from point?)
+            16,     // Control Point - Attack (100xp) (killing someone on/from point?)
             272,    // Convert Capture Point (25xp)
             556,    // Objective Pulse Defend (50xp)
             557     // Objective Pulse Capture (100xp)
@@ -109,10 +109,6 @@ namespace squittal.ScrimPlanetmans.Shared.Models
             {
                 return ExperienceType.Revive;
             }
-            else if (SpawnIds.Contains(experienceId))
-            {
-                return ExperienceType.Spawn;
-            }
             else if (PointControlIds.Contains(experienceId))
             {
                 return ExperienceType.PointControl;
@@ -135,7 +131,6 @@ namespace squittal.ScrimPlanetmans.Shared.Models
     public enum ExperienceType
     {
         Revive,
-        Spawn,
         PointControl,
         DamageAssist,
         UtilityAssist,
