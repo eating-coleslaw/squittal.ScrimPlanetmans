@@ -10,7 +10,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
         event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         
-        event EventHandler<ScrimDeathActionEventEventArgs> RaisePlayerScrimDeathEvent;
+        event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
         event EventHandler<ScrimAssistActionEventEventArgs> RaiseScrimAssistActionEvent;
         event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
@@ -27,7 +27,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message);
         void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message);
 
-        void BroadcastPlayerScrimDeathEventMessage(ScrimDeathActionEventMessage message);
+        void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message);
         void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message);
         void BroadcastScrimAssistActionEventMessage(ScrimAssistActionEventMessage message);
         void BroadcastScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEventMessage message);

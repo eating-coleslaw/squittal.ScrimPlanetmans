@@ -278,7 +278,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 //    deathEvent.Points = points;
                 //}
 
-                _messageService.BroadcastPlayerScrimDeathEventMessage(new ScrimDeathActionEventMessage(deathEvent));
+                _messageService.BroadcastScrimDeathActionEventMessage(new ScrimDeathActionEventMessage(deathEvent));
 
                 //return dataModel;
                 return deathEvent;

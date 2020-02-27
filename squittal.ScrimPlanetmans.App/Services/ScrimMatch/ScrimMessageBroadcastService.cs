@@ -17,8 +17,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
-        public event EventHandler<ScrimDeathActionEventEventArgs> RaisePlayerScrimDeathEvent;
-        public delegate void PlayerScrimDeathEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
+        public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
+        public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
 
 
         public event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
@@ -105,13 +105,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaisePlayerStatUpdateEvent?.Invoke(this, e);
         }
 
-        public void BroadcastPlayerScrimDeathEventMessage(ScrimDeathActionEventMessage message)
+        public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
         {
-            OnRaisePlayerScrimDeathEvent(new ScrimDeathActionEventEventArgs(message));
+            OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
         }
-        protected virtual void OnRaisePlayerScrimDeathEvent(ScrimDeathActionEventEventArgs e)
+        protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
         {
-            RaisePlayerScrimDeathEvent?.Invoke(this, e);
+            RaiseScrimDeathActionEvent?.Invoke(this, e);
         }
 
         public void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message)

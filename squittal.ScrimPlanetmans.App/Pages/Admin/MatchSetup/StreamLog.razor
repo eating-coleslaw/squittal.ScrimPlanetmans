@@ -1,5 +1,5 @@
 ﻿@using Newtonsoft.Json.Linq;
-@using squittal.ScrimPlanetmans.ScrimMatch.Events;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 
 @inject IScrimMessageBroadcastService MessageService
@@ -27,7 +27,11 @@
     protected override void OnInitialized()
     {
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-        MessageService.RaisePlayerScrimDeathEvent += ReceivePlayerDeathEvent;
+        MessageService.RaiseScrimDeathActionEvent += ReceiveDeathActionEvent;
+
+        MessageService.RaiseScrimReviveActionEvent += ReceiveReviveActionEvent;
+        MessageService.RaiseScrimAssistActionEvent += ReceiveAssistActionEvent;
+        MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveObjectiveTickActionEvent;
     }
 
     #region  Event Handling
@@ -36,7 +40,25 @@
         ReceiveMessage(e.Message);
     }
 
-    private void ReceivePlayerDeathEvent(object sender, PlayerScrimDeathEventEventArgs e)
+    private void ReceiveDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+    private void ReceiveReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+    private void ReceiveAssistActionEvent(object sender, ScrimAssistActionEventEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+    private void ReceiveObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
     {
         var info = e.Message.Info;
         LogMessage(info);
@@ -94,7 +116,7 @@
         }
         catch (Exception)
         {
-            Console.WriteLine($"(91097) Failed to parse message: {message}");
+            //Console.WriteLine($"(91097) Failed to parse message: {message}");
             return null;
         }
 
