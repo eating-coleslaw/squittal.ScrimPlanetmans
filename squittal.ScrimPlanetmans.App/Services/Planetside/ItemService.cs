@@ -121,7 +121,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        
+        public IEnumerable<int> GetNonWeaponItemCateogryIds()
+        {
+            return _nonWeaponItemCategories;
+        }
+
         public async Task RefreshStore()
         {
             bool refreshStore = true;
