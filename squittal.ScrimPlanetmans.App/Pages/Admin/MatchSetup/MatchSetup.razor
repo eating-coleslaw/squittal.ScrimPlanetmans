@@ -49,7 +49,7 @@
 
             <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
 
-            <span>Status: @_isStreamServiceEnabled.ToString() (@_debug)</span>
+            @*<span>Status: @_isStreamServiceEnabled.ToString() (@_debug)</span>*@
 
             <div style="font-size: 14px; display: block;">
                 <MatchTimer />
