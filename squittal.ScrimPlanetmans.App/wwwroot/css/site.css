@@ -652,10 +652,11 @@ table.killfeed td {
     Leaderboard Styles
 */
 .leaderboard-table {
-    width: 100%;
-    margin-top: -1rem;
+    /*width: 100%;*/
+    width: 90%;
+    /*margin-top: -1rem;*/
     font-family: 'Roboto Mono';
-    overflow-x: scroll;
+    /*overflow-x: scroll;*/
 }
 
     .leaderboard-table thead {
@@ -709,7 +710,8 @@ table.killfeed td {
 
     .leaderboard-table tbody {
         font-family: 'Roboto Mono';
-        font-size: small !important;
+        /*font-size: small !important;*/
+        font-size: 0.75rem !important;
     }
 
         .leaderboard-table tbody tr:nth-of-type(2n+1) {
@@ -998,7 +1000,7 @@ button.refresh {
     .sq-mini-card-9 .sq-content,
     .sq-mini-card-6 .sq-content,
     .sq-mini-card-3 .sq-content {
-        max-height: calc(360px - 1.5rem);
+        /*max-height: calc(360px - 1.5rem);*/
         overflow: auto;
         padding: 0 0 0 0.5rem;
         margin-bottom: 0.5rem;
