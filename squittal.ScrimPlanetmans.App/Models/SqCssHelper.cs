@@ -15,6 +15,18 @@
             return cssClass;
         }
 
+        public static string GetOnlineStatusEmoji(bool isOnline)
+        {
+            if (isOnline)
+            {
+                return "🌐";
+            }
+            else
+            {
+                return "💤"; // 🌙 
+            }
+        }
+
         public static string GetZoneDisplayEmojiFromName(string zoneName)
         {
             return zoneName switch
