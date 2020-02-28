@@ -19,32 +19,35 @@
 @inject IScrimMessageBroadcastService MessageService
 
 
-
-@if (_team == null || !_teamOutfits.Any())
-{
-    <h3>Team @i_teamOrdinal</h3>
-}
-else
-{
-    <h3 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary);">
-        Team @($"{i_teamOrdinal}: {_team.Alias}")
-        <span style="font-size: 12px; font-weight: 500;">
-            @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
-            <span style="font-weight: 700; font-size: larger;">
-                @(_team.EventAggregate.Points)
+<div class="header-card-container @GetHeaderCardClass()">
+    
+    @if (_team == null || !_teamOutfits.Any())
+    {
+        <h4>Team @i_teamOrdinal</h4>
+    }
+    else
+    {
+        <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary);">
+            Team @($"{i_teamOrdinal}: {_team.Alias}")
+            <span style="font-size: 12px; font-weight: 500;">
+                @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
+                <span style="font-weight: 700; font-size: larger;">
+                    @(_team.EventAggregate.Points)
+                </span>
             </span>
-        </span>
-    </h3>
-}
+        </h4>
+    }
 
-<EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+    <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
+        Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-</EditForm>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </EditForm>
+
+</div>
 
 @if (_teamOutfits.Any())
 {
@@ -78,21 +81,40 @@ else
             {
                 @*<table class="leaderboard-table" style="margin-bottom: 0.5rem;">*@
                 <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>K</th>
+                            <th>D</th>
+                            <th>P</th>
+                            <th>N</th>
+                        </tr>
+                    </thead>
+                    
                     <tbody>
                         @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id).ToList())
                         {
                             <tr>
                                 <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-                                <td style="text-overflow: ellipsis;overflow: hidden;max-width: 200px;" title="@member.NameFull">@member.NameFull</td>
-                                <td style="font-size:smaller; color: var(--bs-gray);">@member.Id</td>
-                                <td>@(member.EventAggregate.Kills)k</td>
-                                <td>@(member.EventAggregate.Deaths)d</td>
-                                <td>@(member.EventAggregate.RevivesGiven)r</td>
-                                <td>@(member.EventAggregate.DamageAssists)da</td>
-                                <td>@(member.EventAggregate.ObjectiveCaptureTicks)cap</td>
-                                <td>@(member.EventAggregate.ObjectiveDefenseTicks)def</td>
-                                <td>@(member.EventAggregate.Points)p</td>
+                                @*<td style="text-overflow: ellipsis;overflow: hidden;max-width: 200px;" title="@member.NameFull">@member.NameFull</td>*@
+                                @*<td style="font-size:smaller; color: var(--bs-gray);">@member.Id</td>*@
+                                <td  title="@member.NameFull [@(member.Id)]">
+                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
+                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+
+                                </td>
+                                <td>@(member.EventAggregate.Kills)</td>
+                                <td>@(member.EventAggregate.Deaths)</td>
+                                @*<td>@(member.EventAggregate.RevivesGiven)r</td>*@
+                                @*<td>@(member.EventAggregate.DamageAssists)da</td>*@
+                                @*<td>@(member.EventAggregate.ObjectiveCaptureTicks)cap</td>*@
+                                @*<td>@(member.EventAggregate.ObjectiveDefenseTicks)def</td>*@
+                                <td>@(member.EventAggregate.Points)</td>
                                 <td style="font-weight: 700; font-size: larger;">@(member.EventAggregate.NetScore)</td>
+
+                                @* TODO: add button to remove player*@
+
                             </tr>
                         }
                     </tbody>
@@ -684,5 +706,10 @@ else
         outfit.MembersOnlineCount += addend;
     }
 
-
+    private string GetHeaderCardClass()
+    {
+        return (_team == null || !_teamOutfits.Any())
+            ? "default"
+            : SqCssHelper.GetFactionClassFromId(_team.FactionId);
+    }
 }
