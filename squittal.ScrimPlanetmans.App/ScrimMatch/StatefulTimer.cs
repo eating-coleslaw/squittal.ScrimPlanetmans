@@ -121,10 +121,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Stop()
         {
+            _logger.LogInformation($"Stopping Timer");
             _autoEvent.WaitOne();
 
             if (Status.State != MatchTimerState.Stopping)
             {
+                _logger.LogInformation($"Failed to stop timer: timer not running");
                 _autoEvent.Set();
                 return;
             }
@@ -141,17 +143,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
             _messageService.BroadcastMatchTimerTickMessage(message);
 
-
             // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
+
+            _logger.LogInformation($"Timer Stopped");
 
             _autoEvent.Set();
         }
 
         public void Pause()
         {
+            _logger.LogInformation($"Pausing Timer");
+
             _autoEvent.WaitOne();
             if (Status.State != MatchTimerState.Running)
             {
+                _logger.LogInformation($"Failed to pause timer: timer not running");
                 _autoEvent.Set();
                 return;
             }
@@ -172,14 +178,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
 
+            _logger.LogInformation($"Timer Paused");
+
             _autoEvent.Set();
         }
 
         public void Resume()
         {
+            _logger.LogInformation($"Resuming Timer");
+
             _autoEvent.WaitOne();
             if (Status.State != MatchTimerState.Paused)
             {
+                _logger.LogInformation($"Failed to resume timer: timer not paused");
                 _autoEvent.Set();
                 return;
             }
@@ -220,7 +231,37 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void Halt()
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Halting Timer");
+            _autoEvent.WaitOne();
+
+            if (!CanHaltTimer())
+            {
+                _logger.LogInformation($"Failed to halt timer: {Enum.GetName(typeof(MatchTimerState), Status.State)}");
+                _autoEvent.Set();
+                return;
+            }
+            Status.State = MatchTimerState.Halting;
+
+            _timer.Change(Timeout.Infinite, 1000);
+
+            _isRunning = false;
+
+            _secondsRemaining = Status.ForceZeroRemaining();
+            _secondsElapsed = Status.ForceMaxElapsed();
+
+            Status.State = MatchTimerState.Stopped;
+
+            var message = new MatchTimerTickMessage(Status);
+
+            // TODO: use both to make MatchTimer razor component self-contained?
+            //OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+            _messageService.BroadcastMatchTimerTickMessage(message);
+
+            // TODO: broadcast a "MatchStateChange" of event of type "Round Ended" here
+
+            _logger.LogInformation($"Timer Halted");
+
+            _autoEvent.Set();
         }
 
         private void HandleTick(object stateInfo)
@@ -322,6 +363,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 MatchTimerState.Running => false,
                 MatchTimerState.Starting => false,
                 MatchTimerState.Paused => false,
+                MatchTimerState.Stopping => false,
+                MatchTimerState.Halting => false,
+                MatchTimerState.Resuming => false,
+                MatchTimerState.Configuring => false,
+                _ => false,
+            };
+        }
+
+        private bool CanHaltTimer()
+        {
+            return Status.State switch
+            {
+                MatchTimerState.Stopped => true,
+                MatchTimerState.Running => true,
+                MatchTimerState.Paused => true,
+                MatchTimerState.Initialized => false,
+                MatchTimerState.Configured => false,
+                MatchTimerState.Starting => false,
                 MatchTimerState.Stopping => false,
                 MatchTimerState.Halting => false,
                 MatchTimerState.Resuming => false,

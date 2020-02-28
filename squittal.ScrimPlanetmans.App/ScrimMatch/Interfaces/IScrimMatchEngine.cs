@@ -1,5 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -18,6 +19,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void ResetRound();
         void ClearMatch();
         MatchTimerTickMessage GetLatestTimerTickMessage();
+        bool IsRunning();
+        int GetCurrentRound();
+        MatchState GetMatchState();
+
         void SubmitPlayersList();
     }
 }

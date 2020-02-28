@@ -4,11 +4,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
     public class MatchStateUpdateEventArgs : EventArgs
     {
-        public MatchStateUpdateEventArgs(string s)
+        public MatchStateUpdateEventArgs(MatchStateUpdateMessage m)
         {
-            Message = s;
+            Message = m;
         }
 
-        public string Message { get; }
+        public MatchStateUpdateMessage Message { get; }
     }
 }

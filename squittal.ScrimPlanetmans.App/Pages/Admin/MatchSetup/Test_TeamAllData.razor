@@ -1,0 +1,562 @@
+﻿@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+@using System.Diagnostics;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+
+    <div class="header-card-container @GetHeaderCardClass()">
+
+        @if (_team == null || !_teamOutfits.Any())
+        {
+            <h4>Team @i_teamOrdinal</h4>
+        }
+        else
+        {
+            <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0;">
+                Team @($"{i_teamOrdinal}: {_team.Alias}")
+            </h4>
+
+            <table style="width: 100%; font-size: 0.75rem;" class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+                <thead style="vertical-align: bottom;">
+                    <tr>
+                        <th>Kills</th>
+                        <th>Deaths</th>
+                        <th class="stacked-label med">
+                            <span class="small">Rev.<br></span>
+                            <span>Given</span>
+                        </th>
+                        <th class="stacked-label med">
+                            <span class="small">Rev.<br></span>
+                            <span>Taken</span>
+                        </th>
+                        <th class="stacked-label med">
+                            <span class="small">Dmg<br></span>
+                            <span>Ass.</span>
+                        </th>
+                        <th class="stacked-label med">
+                            <span class="small">Util.<br></span>
+                            <span>Ass.</span>
+                        </th>
+                        <th class="stacked-label med">
+                            <span class="small">Obj.<br></span>
+                            <span>Def.</span>
+                        </th>
+                        <th class="stacked-label med">
+                            <span class="small">Obj.<br></span>
+                            <span>Cap.</span>
+                        </th>
+
+                        <th>Points</th>
+                        <th class="stacked-label med">
+                            <span class="small">Net<br></span>
+                            <span>Score</span>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.Kills);">@(_team.EventAggregate.Kills)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.Deaths);">@(_team.EventAggregate.Deaths)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.RevivesGiven);">@(_team.EventAggregate.RevivesGiven)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.RevivesTaken);">@(_team.EventAggregate.RevivesTaken)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.DamageAssists);">@(_team.EventAggregate.DamageAssists)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.UtilityAssists);">@(_team.EventAggregate.UtilityAssists)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.ObjectiveDefenseTicks);">@(_team.EventAggregate.ObjectiveDefenseTicks)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.ObjectiveCaptureTicks);">@(_team.EventAggregate.ObjectiveCaptureTicks)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.Points);">@(_team.EventAggregate.Points)</td>
+                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregate.NetScore);">@(_team.EventAggregate.NetScore)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        }
+
+    </div>
+
+@if (_teamOutfits.Any())
+{
+    foreach (var outfit in _teamOutfits)
+    {
+        <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(outfit.FactionId)">
+
+            <h5 class="@SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;">
+                <b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
+            </h5>
+
+            <p style="margin: 0 0 0.1rem 0;">
+                @if (!_teamOutfitsLoadingMembers.Contains(outfit.AliasLower))
+                {
+                    <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="(() => ToggleOutfitPlayersVisibility(outfit.AliasLower))">@(ShowOutfitPlayers(outfit.AliasLower) ? "Hide Players" : "Show Players")</button>
+                }
+            </p>
+
+            <div class="sq-content">
+
+                @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
+                {
+                    <SpinnerEllipsis />
+                }
+
+                else if (_teamPlayersVisible != null && _teamPlayersVisible.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
+                {
+                    <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th>Kills</th>
+                                <th>Deaths</th>
+                                <th class="stacked-label med">
+                                    <span class="small">Rev.<br></span>
+                                    <span>Given</span>
+                                </th>
+                                <th class="stacked-label med">
+                                    <span class="small">Rev.<br></span>
+                                    <span>Taken</span>
+                                </th>
+                                <th class="stacked-label med">
+                                    <span class="small">Dmg<br></span>
+                                    <span>Ass.</span>
+                                </th>
+                                <th class="stacked-label med">
+                                    <span class="small">Util.<br></span>
+                                    <span>Ass.</span>
+                                </th>
+                                <th class="stacked-label med">
+                                    <span class="small">Obj.<br></span>
+                                    <span>Def.</span>
+                                </th>
+                                <th class="stacked-label med">
+                                    <span class="small">Obj.<br></span>
+                                    <span>Cap.</span>
+                                </th>
+
+                                <th>Points</th>
+                                <th class="stacked-label med">
+                                    <span class="small">Net<br></span>
+                                    <span>Score</span>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id).ToList())
+                            {
+                                <tr>
+                                    <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
+                                    @*<td style="text-overflow: ellipsis;overflow: hidden;max-width: 200px;" title="@member.NameFull">@member.NameFull</td>*@
+                                    @*<td style="font-size:smaller; color: var(--bs-gray);">@member.Id</td>*@
+                                    <td title="@member.NameFull [@(member.Id)]">
+                                        <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
+                                        <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+
+                                    </td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.RevivesGiven);">@(member.EventAggregate.RevivesGiven)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.RevivesTaken);">@(member.EventAggregate.RevivesTaken)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.DamageAssists);">@(member.EventAggregate.DamageAssists)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.UtilityAssists);">@(member.EventAggregate.UtilityAssists)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.ObjectiveDefenseTicks);">@(member.EventAggregate.ObjectiveDefenseTicks)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.ObjectiveCaptureTicks);">@(member.EventAggregate.ObjectiveCaptureTicks)</td>
+                                    @*<td>@(member.EventAggregate.RevivesGiven)r</td>*@
+                                    @*<td>@(member.EventAggregate.DamageAssists)da</td>*@
+                                    @*<td>@(member.EventAggregate.ObjectiveCaptureTicks)cap</td>*@
+                                    @*<td>@(member.EventAggregate.ObjectiveDefenseTicks)def</td>*@
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
+                                    <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
+
+                                    @* TODO: add button to remove player*@
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+        </div>
+    }
+}
+@if (_teamOutfitsLoading.Any())
+{
+    <SpinnerEllipsis />
+}
+
+
+
+<p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+
+@*
+    @if (_teamPlayersParticipating.Any())
+    {
+        <div style="display: block;">
+            @foreach (var player in _teamPlayersParticipating)
+            {
+                <p style="margin-bottom: 0.1rem; margin-top: 0.5rem;">@player.NameDisplay | Kills: @player.EventAggregate.Kills | Deaths: @player.EventAggregate.Deaths</p>
+            }
+        </div>
+    }
+*@
+
+
+
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    //[Parameter]
+    //public EventCallback<string> i_OnAdminLogTextAdded { get; set; }
+
+
+    /* Form & Input Variables */
+    private OutfitAlias _inputAlias = new OutfitAlias();
+
+    private List<string> _teamOutfitsLoadingMembers = new List<string>();
+
+    private List<string> _teamOutfitsLoading = new List<string>();
+
+    private List<string> _validOutfitAliasHistory = new List<string>();
+
+    /* Team & Players */
+    private Team _team;
+
+    private List<Outfit> _teamOutfits = new List<Outfit>();
+
+    private List<Player> _teamPlayers = new List<Player>();
+
+    private List<Player> _teamPlayersOnline = new List<Player>();
+
+    private List<Player> _teamPlayersParticipating = new List<Player>();
+
+    private List<Player> _teamPlayersVisible = new List<Player>();
+
+    /* UI & Layout Variables */
+    private Dictionary<string, bool> _outfitPlayersExtendedMap = new Dictionary<string, bool>(); // <outfit alias, is player list expanded?>
+
+    private int _defaultMaxPlayersToExtend = 6;
+
+    /* Helpers */
+    private IEnumerable<World> _worlds;
+    private int _renderedTeamOrdinal;
+
+    /***********
+       Methods
+     ***********/
+    protected override async Task OnInitializedAsync()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+            InitializeTeamData();
+        }
+    }
+
+    private void InitializeTeamData()
+    {
+        _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
+
+        if (_team == null)
+        {
+            return;
+        }
+
+        _teamOutfits = _team.Outfits;
+
+        _teamPlayersParticipating = _team.ParticipatingPlayers; // ScrimTeamsManager.GetParticipatingPlayers().ToList();
+
+        _teamPlayersVisible.AddRange(_teamPlayersParticipating);
+
+        _validOutfitAliasHistory = _team.Outfits.Select(o => o.AliasLower).ToList();
+
+        _teamPlayers = _team.Players;
+
+        foreach (var player in _teamPlayers)
+        {
+            if (player.IsOnline && !_teamPlayersOnline.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersOnline.Add(player);
+            }
+
+            if (player.IsOnline && !_teamPlayersVisible.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersVisible.Add(player);
+            }
+        }
+
+        foreach (var outfit in _teamOutfits)
+        {
+
+            if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower) > _defaultMaxPlayersToExtend)
+            {
+                _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
+            }
+            else
+            {
+                _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+            }
+
+            //SetOutfitMembersOnlineCount(outfit.AliasLower);
+        }
+    }
+
+
+    /*************************
+     *  UI & Layout Controls
+     *************************/
+    private void ToggleOutfitPlayersVisibility(string aliasLower)
+    {
+        if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
+        {
+            _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private bool ShowOutfitPlayers(string aliasLower)
+    {
+        if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool showPlayers))
+        {
+            return showPlayers;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /*****************
+     *  Event Handling
+     *****************/
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        switch (message.ChangeType)
+        {
+            case TeamPlayerChangeType.Add:
+                HandleTeamPlayerChangeAdd(message);
+                break;
+
+            case TeamPlayerChangeType.Remove:
+                HandleTeamPlayerChangeRemove(message);
+                break;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        _teamOutfitsLoading.Remove(player.OutfitAliasLower);
+
+        if (player.IsOnline)
+        {
+            _teamPlayersOnline.Add(player);
+
+            if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersVisible.Add(player);
+            }
+        }
+    }
+
+    private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id) || _teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
+            _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersParticipating.Add(player);
+        }
+
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
+    {
+        ReceiveMessage(e.Message);
+    }
+
+    private void ReceiveMessage(string message)
+    {
+        var payload = TryParseMessagePayload(message);
+        if (payload == null)
+        {
+            return;
+        }
+
+        var eventName = payload.Value<string>("event_name");
+
+        if (eventName == "PlayerLogin")
+        {
+            HandlePlayerLoginPayload(payload);
+        }
+
+        else if (eventName == "PlayerLogout")
+        {
+            HandlePlayerLogoutPayload(payload);
+        }
+    }
+
+    private void HandlePlayerLoginPayload(JToken payload)
+    {
+        var characterId = payload.Value<string>("character_id");
+
+        var player = _teamPlayers.Where(p => p.Id == characterId).FirstOrDefault();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Add(player);
+        }
+
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.Add(player);
+        }
+
+        var message = $"Team {i_teamOrdinal} Player LOGIN: {player.NameDisplay} [{player.Id}]";
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void HandlePlayerLogoutPayload(JToken payload)
+    {
+        var characterId = payload.Value<string>("character_id");
+
+        var player = _teamPlayers.Where(p => p.Id == characterId).FirstOrDefault();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Remove(player);
+        }
+
+        // Only remove the player from the visible list if they haven't done anything in the match
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
+        var message = $"Team {i_teamOrdinal} Player LOGOUT: {player.NameDisplay} [{player.Id}]";
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private JToken TryParseMessagePayload(string message)
+    {
+        if (message == null)
+        {
+            return null;
+        }
+
+        JToken jMsg;
+
+        try
+        {
+            jMsg = JToken.Parse(message).SelectToken("payload");
+        }
+        catch (Exception)
+        {
+            //Console.WriteLine($"(91097) Failed to parse message: {message}");
+            return null;
+        }
+
+        return jMsg;
+    }
+
+    private string GetHeaderCardClass()
+    {
+        return (_team == null || !_teamOutfits.Any())
+            ? "default"
+            : SqCssHelper.GetFactionClassFromId(_team.FactionId);
+    }
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+}

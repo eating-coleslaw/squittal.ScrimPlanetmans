@@ -28,12 +28,19 @@
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
     }
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
         ReceiveMessage(e.Message);
+    }
+
+    private void ReceiveMatchStateUpdateMessageEvent(object sender, MatchStateUpdateEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
     }
 
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)

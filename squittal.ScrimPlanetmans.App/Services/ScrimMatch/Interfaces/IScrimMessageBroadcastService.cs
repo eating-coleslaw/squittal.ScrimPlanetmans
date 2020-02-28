@@ -35,7 +35,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastPlayerLoginMessage(PlayerLoginMessage message);
         void BroadcastPlayerLogoutMessage(PlayerLogoutMessage message);
 
-        void BroadcastMatchStateUpdateMessage(string message); // TODO: implement MatchStateUpdateMessage class
+        void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message); // TODO: implement MatchStateUpdateMessage class
         void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message);
 
 

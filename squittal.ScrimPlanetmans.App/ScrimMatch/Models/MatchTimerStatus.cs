@@ -43,6 +43,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             return _secondsElapsed;
         }
         
+        public int ForceZeroRemaining()
+        {
+            Interlocked.Add(ref _secondsRemaining, -_secondsRemaining);
+            return _secondsRemaining;
+        }
+
+        public int ForceMaxElapsed()
+        {
+            Interlocked.Add(ref _secondsElapsed, _secondsRemaining);
+            return _secondsElapsed;
+        }
+
         public int GetSecondsMax()
         {
             return _secondsMax;

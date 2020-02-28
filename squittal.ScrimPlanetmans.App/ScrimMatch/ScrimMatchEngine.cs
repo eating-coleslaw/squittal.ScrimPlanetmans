@@ -41,6 +41,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         //private int _roundSecondsElapsed = 0;
 
+        private MatchState _matchState = MatchState.Uninitialized;
         
 
         public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
@@ -81,6 +82,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void ClearMatch()
         {
+            if (_isRunning)
+            {
+                EndRound();
+            }
+            
             _wsMonitor.DisableScoring();
             _wsMonitor.RemoveAllCharacterSubscriptions();
             
@@ -88,11 +94,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
+            _matchState = MatchState.Uninitialized;
             _currentRound = 0;
 
             _latestTimerTickMessage = null;
+
             // TODO: empty Teams, reset points, etc.
 
+            SendUpdateMessage();
         }
 
         public void ConfigureMatch(MatchConfiguration configuration)
@@ -100,22 +109,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             MatchConfiguration = configuration;
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
-
         }
 
         public void EndRound()
         {
             _isRunning = false;
+            _matchState = MatchState.Stopped;
 
             _wsMonitor.DisableScoring();
 
             // Stop the timer if forcing the round to end (as opposed to timer reaching 0)
             if (GetLatestTimerTickMessage().MatchTimerStatus.State != MatchTimerState.Stopped)
             {
-                _timer.Stop(); // TODO: change this to Halt, if Halt ends up getting implemented
+                //_timer.Stop(); // TODO: change this to Halt, if Halt ends up getting implemented
+                _timer.Halt();
             }
 
             _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
+
+            SendUpdateMessage();
         }
 
         public void InitializeNewMatch()
@@ -131,37 +143,48 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //_roundSecondsElapsed = 0;
 
             _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
-
         }
 
         public void StartRound()
         {
             _isRunning = true;
+            _matchState = MatchState.Running;
+
             _timer.Start();
             _wsMonitor.EnableScoring();
+
+            SendUpdateMessage();
         }
 
         public void PauseRound()
         {
             _isRunning = false;
+            _matchState = MatchState.Paused;
+
             _wsMonitor.DisableScoring();
             _timer.Pause();
+
+            SendUpdateMessage();
         }
 
         public void ResetRound()
         {
-            _timer.Reset(); // TODO: actually implement StatefulTimer.Reset
+            _timer.Reset();
             _wsMonitor.DisableScoring();
+
+            // TODO: reset Team and Player scores
         }
 
         public void ResumeRound()
         {
             _isRunning = true;
+            _matchState = MatchState.Running;
+
             _timer.Resume();
             _wsMonitor.EnableScoring();
-        }
 
-        
+            SendUpdateMessage();
+        }
 
         public void SubmitPlayersList()
         {
@@ -186,6 +209,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public bool IsRunning()
+        {
+            return _isRunning;
+        }
+
+        public int GetCurrentRound()
+        {
+            return _currentRound;
+        }
+
+        public MatchState GetMatchState()
+        {
+            return _matchState;
+        }
+
         public MatchTimerTickMessage GetLatestTimerTickMessage()
         {
             return _latestTimerTickMessage;
@@ -196,5 +234,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _latestTimerTickMessage = value;
         }
 
+        private void SendUpdateMessage()
+        {
+            _messageService.BroadcastMatchStateUpdateMessage(new MatchStateUpdateMessage(_matchState, _currentRound, DateTime.UtcNow, MatchConfiguration.Title));
+        }
     }
 }

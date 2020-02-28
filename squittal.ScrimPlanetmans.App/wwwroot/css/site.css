@@ -297,7 +297,7 @@ app {
     background-color: var(--sq-bg-white-lit);
     box-shadow: 2px 2px 5px -1px var(--sq-light-blue-gray);
 }
-    .header-card-container h3 {
+    .header-card-container h4 {
         color: var(--sq-ps2-primary);
     }
 
@@ -306,7 +306,7 @@ app {
         border-top: 2px solid var(--pink);
     }
 
-        .header-card-container.default h3 {
+        .header-card-container.default h4 {
             color: var(--pink);
         }
 
@@ -725,7 +725,8 @@ table.killfeed td {
         .leaderboard-table th.stacked-label span:nth-child(1) {
             display: block;
             position: relative;
-            top: 0.5rem;
+            /*top: 0.5rem;*/
+            top: 0.25rem;
         }
 
         .leaderboard-table th.stacked-label span.small {
@@ -818,7 +819,8 @@ td .inline-player-br {
 th.stacked-label span:first-child {
     display: block;
     position: relative;
-    top: 0.5rem;
+    /*top: 0.5rem;*/
+    top: 0.25rem;
 }
 
 th.stacked-label span.small {

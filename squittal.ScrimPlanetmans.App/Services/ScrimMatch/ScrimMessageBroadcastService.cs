@@ -38,6 +38,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public delegate void PlayerLogoutEventHandler(object sender, PlayerLogoutEventArgs e);
 
         public event EventHandler<MatchStateUpdateEventArgs> RaiseMatchStateUpdateEvent;
+        public delegate void MatchStateUpdateEventHandler(object sender, MatchStateUpdateEventArgs e);
 
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
 
@@ -51,7 +52,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         /***********************
          * Match State Change
          ***********************/
-        public void BroadcastMatchStateUpdateMessage(string message)
+        public void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message)
         {
             OnRaiseMatchStateUpdateEvent(new MatchStateUpdateEventArgs(message));
         }

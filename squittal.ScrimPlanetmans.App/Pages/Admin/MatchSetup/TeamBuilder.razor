@@ -29,7 +29,8 @@
     {
         <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary);">
             Team @($"{i_teamOrdinal}: {_team.Alias}")
-            <span style="font-size: 12px; font-weight: 500;">
+            @*<span style="font-size: 12px; font-weight: 500;">*@
+            <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
                 @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
                 <span style="font-weight: 700; font-size: larger;">
                     @(_team.EventAggregate.Points)
@@ -46,6 +47,29 @@
 
         <button type="submit" class="btn btn-primary">Submit</button>
     </EditForm>
+
+    @*@if  (_team != null && _teamOutfits.Any() && ScrimMatchEngine.GetMatchState() != MatchState.Uninitialized)
+    {
+        <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="margin-bottom: 0.5rem;">
+            <thead>
+                <tr>
+                    <th>K</th>
+                    <th>D</th>
+                    <th>P</th>
+                    <th>N</th>
+                </tr>
+            </thead>
+                    
+            <tbody>
+                <tr>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Kills);">@(_team.EventAggregate.Kills)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Deaths);">@(_team.EventAggregate.Deaths)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Points);">@(_team.EventAggregate.Points)</td>
+                    <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregate.NetScore);">@(_team.EventAggregate.NetScore)</td>
+                </tr>
+            </tbody>
+        </table>
+    }*@
 
 </div>
 
@@ -104,14 +128,14 @@
                                     <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
 
                                 </td>
-                                <td>@(member.EventAggregate.Kills)</td>
-                                <td>@(member.EventAggregate.Deaths)</td>
+                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
+                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
                                 @*<td>@(member.EventAggregate.RevivesGiven)r</td>*@
                                 @*<td>@(member.EventAggregate.DamageAssists)da</td>*@
                                 @*<td>@(member.EventAggregate.ObjectiveCaptureTicks)cap</td>*@
                                 @*<td>@(member.EventAggregate.ObjectiveDefenseTicks)def</td>*@
-                                <td>@(member.EventAggregate.Points)</td>
-                                <td style="font-weight: 700; font-size: larger;">@(member.EventAggregate.NetScore)</td>
+                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
+                                <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
 
                                 @* TODO: add button to remove player*@
 
@@ -711,5 +735,12 @@
         return (_team == null || !_teamOutfits.Any())
             ? "default"
             : SqCssHelper.GetFactionClassFromId(_team.FactionId);
+    }
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
     }
 }
