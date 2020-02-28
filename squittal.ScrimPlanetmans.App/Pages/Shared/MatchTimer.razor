@@ -6,7 +6,7 @@
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimMessageBroadcastService MessageService
 
-<p>@_clock (@_clockStatusDisplay)</p>
+<span>@_clock (@_clockStatusDisplay)</span>
 
 @if (_playSound)
 {
@@ -52,7 +52,6 @@
         {
             _canPlaySound = true;
         }
-
     }
 
     private void ReceiveMatchTimerTickEvent(object sender, MatchTimerTickEventArgs e)
@@ -60,7 +59,6 @@
         var message = e.Message;
 
         var status = message.MatchTimerStatus;
-        var info = message.Info;
 
         var state = status.State;
 
