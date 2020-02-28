@@ -28,9 +28,11 @@
 
     @*Round Length (seconds): <InputText id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal.ToString()" />*@
 
-    <TeamBuilder i_teamOrdinal=1 i_OnAdminLogTextAdded="LogAdminMessage" />
+    @*<TeamBuilder i_teamOrdinal=1 i_OnAdminLogTextAdded="LogAdminMessage" />*@
+    <TeamBuilder i_teamOrdinal=1 />
 
-    <TeamBuilder i_teamOrdinal=2 i_OnAdminLogTextAdded="LogAdminMessage" />
+    @*<TeamBuilder i_teamOrdinal=2 i_OnAdminLogTextAdded="LogAdminMessage" />*@
+    <TeamBuilder i_teamOrdinal=2 />
 
     <button class="btn btn-primary" @onclick="SubscribeToCensus">Subscribe!</button>
     <button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>

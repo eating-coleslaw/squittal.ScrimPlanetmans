@@ -111,8 +111,8 @@ else
     [Parameter]
     public int i_teamOrdinal { get; set; }
 
-    [Parameter]
-    public EventCallback<string> i_OnAdminLogTextAdded { get; set; }
+    //[Parameter]
+    //public EventCallback<string> i_OnAdminLogTextAdded { get; set; }
 
 
     /* Form & Input Variables */
@@ -172,7 +172,7 @@ else
     private void InitializeTeamData()
     {
         var message = $"Starting to reload Team {i_teamOrdinal} data...";
-        i_OnAdminLogTextAdded.InvokeAsync(message);
+        LogMessage(message);
 
         _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
 
@@ -385,7 +385,9 @@ else
 
     private void LogMessage(string message)
     {
-        i_OnAdminLogTextAdded.InvokeAsync(message);
+        MessageService.BroadcastSimpleMessage(message);
+
+        //i_OnAdminLogTextAdded.InvokeAsync(message);
     }
 
     /*****************
@@ -394,6 +396,12 @@ else
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
         var message = e.Message;
+
+        var player = message.Player;
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
 
         switch (message.ChangeType)
         {
@@ -407,16 +415,20 @@ else
         }
 
         //LogMessage(message.Info);
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 
     private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
     {
         var player = message.Player;
 
-        if (player.TeamOrdinal != i_teamOrdinal)
-        {
-            return;
-        }
+        //if (player.TeamOrdinal != i_teamOrdinal)
+        //{
+        //    return;
+        //}
 
         //_teamPlayers.Add(player);
 
@@ -434,17 +446,17 @@ else
             }
         }
 
-        LogMessage(message.Info);
+        //LogMessage(message.Info);
     }
 
     private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
     {
         var player = message.Player;
 
-        if (player.TeamOrdinal != i_teamOrdinal)
-        {
-            return;
-        }
+        //if (player.TeamOrdinal != i_teamOrdinal)
+        //{
+        //    return;
+        //}
 
         //_teamPlayers.RemoveAll(p => p.Id == player.Id);
 
@@ -457,7 +469,7 @@ else
             SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
 
-        LogMessage(message.Info);
+        //LogMessage(message.Info);
     }
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)

@@ -27,6 +27,7 @@
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
     }
 
     #region  Event Handling
@@ -46,8 +47,30 @@
         var info = e.Message.Info;
         LogMessage(info);
     }
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        //var message = e.Message;
+
+        var info = e.Message.Info;
+        LogMessage(info);
+
+        //switch (message.ChangeType)
+        //{
+        //    case TeamPlayerChangeType.Add:
+        //        HandleTeamPlayerChangeAdd(message);
+        //        break;
+
+        //    case TeamPlayerChangeType.Remove:
+        //        HandleTeamPlayerChangeRemove(message);
+        //        break;
+        //}
+
+        //LogMessage(message.Info);
+    }
     #endregion
 
+    #region Message Parsing
     private void ReceiveMessage(string message)
     {
         var payload = TryParseMessagePayload(message);
@@ -79,6 +102,8 @@
 
         return jMsg;
     }
+    #endregion
+
 
     private void LogMessage(string message)
     {
