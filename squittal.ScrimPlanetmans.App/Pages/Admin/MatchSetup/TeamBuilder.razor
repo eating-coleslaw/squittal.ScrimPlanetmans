@@ -67,6 +67,19 @@
         </EditForm>
     </div>
 
+    <div style="margin: 0.2rem 0;">
+        <EditForm Model="@_inputPlayer" OnValidSubmit="HandleAddPlayerSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            Add Player: <InputText id="matchTitle" @bind-Value="_inputPlayer" />
+
+            <button type="submit" class="btn btn-primary">
+                <span class="oi oi-plus" style="color: #ffffff; font-size: 0.7rem; top: 0;"></span> Add
+            </button>
+        </EditForm>
+    </div>
+
     @*@if  (_team != null && _teamOutfits.Any() && ScrimMatchEngine.GetMatchState() != MatchState.Uninitialized)
     {
         <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="margin-bottom: 0.5rem;">
@@ -165,6 +178,68 @@
     <SpinnerEllipsis /><span>second</span>
 }
 
+@if (_teamNonOutfitPlayers.Any() || _teamNonOutfitPlayersLoading.Any())
+{
+    <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(null)">
+
+        <h5 style="color: var(--sq-pink); margin-bottom: 0.1rem;">
+            <b>Other Players</b> (@_teamNonOutfitPlayers.Count() | @_teamNonOutfitPlayers.Count(p => p.IsOnline == true))
+        </h5>
+
+        <p style="margin: 0 0 0.1rem 0;">
+            @if (!_teamNonOutfitPlayers.Any())
+            {
+            <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglNoneOutfitPlayersVisibility">@(_extendNonOutfitPlayers ? "Hide Players" : "Show Players")</button>
+            }
+        </p>
+
+        <div class="sq-content">
+
+            @if (_extendNonOutfitPlayers && _teamNonOutfitPlayers.Any())
+            {
+                <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(null)" style="margin-bottom: 0.5rem;">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>K</th>
+                            <th>D</th>
+                            <th>P</th>
+                            <th>N</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        @foreach (var member in _teamNonOutfitPlayers)
+                        {
+                            <tr>
+                                <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
+                                <td  title="@member.NameFull [@(member.Id)]">
+                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
+                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+
+                                </td>
+                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
+                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
+                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
+                                <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
+
+                                @* TODO: add button to remove player*@
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            @if (_teamNonOutfitPlayersLoading.Any())
+            {
+                <SpinnerEllipsis /><span>first</span>
+            }
+        </div>
+    </div>
+}
+
 <p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
 
 
@@ -182,11 +257,18 @@
 
     private OutfitAlias _displayAlias = new OutfitAlias();
 
+    private string _inputPlayer = string.Empty;
+
+
     private List<string> _teamOutfitsLoadingMembers = new List<string>();
 
     private List<string> _teamOutfitsLoading = new List<string>();
 
     private List<string> _validOutfitAliasHistory = new List<string>();
+
+
+    private List<string> _teamNonOutfitPlayersLoading = new List<string>();
+
 
     /* Team & Players */
     private Team _team;
@@ -201,8 +283,12 @@
 
     private List<Player> _teamPlayersVisible = new List<Player>();
 
+    private List<Player> _teamNonOutfitPlayers = new List<Player>();
+
     /* UI & Layout Variables */
     private Dictionary<string, bool> _outfitPlayersExtendedMap = new Dictionary<string, bool>(); // <outfit alias, is player list expanded?>
+
+    private bool _extendNonOutfitPlayers = true;
 
     private int _defaultMaxPlayersToExtend = 6;
 
@@ -271,6 +357,11 @@
             {
                 _teamPlayersVisible.Add(player);
             }
+
+            if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+            {
+                _teamNonOutfitPlayers.Add(player);
+            }
         }
 
         foreach (var outfit in _teamOutfits)
@@ -279,7 +370,7 @@
             LogMessage(message);
 
             //_outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
-            if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower) > _defaultMaxPlayersToExtend)
+            if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless) > _defaultMaxPlayersToExtend)
             {
                 _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
             }
@@ -309,35 +400,14 @@
         {
             _teamOutfitsLoading.Add(newAliasLower);
 
-            //await InvokeAsync(() =>
-            //{
-            //    LogMessage($"LOADING ALIAS: [{newAliasLower}] added to list");
-            //    StateHasChanged();
-            //});
-
             newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
 
             if (newOutfit != null)
             {
-                //_teamOutfits.Add(newOutfit);
                 _validOutfitAliasHistory.Add(newAliasLower);
                 _inputAlias.Alias = string.Empty;
 
-                //_teamOutfitsLoading.Remove(newAliasLower);
-
-                //await InvokeAsync(() =>
-                //{
-                //    LogMessage("LOADING ALIAS: [{newAliasLower}] removed from list");
-                //    StateHasChanged();
-                //});
-
                 _teamOutfitsLoadingMembers.Add(newAliasLower);
-
-                //await InvokeAsync(() =>
-                //{
-                //    LogMessage("LOADING MEMBERS: [{newAliasLower}] added to list");
-                //    StateHasChanged();
-                //});
 
                 try
                 {
@@ -348,13 +418,8 @@
                 {
                     LogMessage($"<span style=\"color: red;\">Failed to add outfit {newAlias}: {ex}</span>");
                 }
-                _teamOutfitsLoading.Remove(newAliasLower);
 
-                //await InvokeAsync(() =>
-                //{
-                //    LogMessage("LOADING ALIAS: [{newAliasLower}] removed from list");
-                //    StateHasChanged();
-                //});
+                _teamOutfitsLoading.Remove(newAliasLower);
 
                 if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == newAliasLower) > _defaultMaxPlayersToExtend)
                 {
@@ -365,15 +430,7 @@
                     _outfitPlayersExtendedMap.Add(newAliasLower, true);
                 }
 
-                //_teamAliasDisplay1 = ScrimTeamsManager.GetTeamAliasDisplay(teamOrdinal);
-
                 _teamOutfitsLoadingMembers.Remove(newAliasLower);
-
-                //await InvokeAsync(() =>
-                //{
-                //    LogMessage("LOADING MEMBERS: [{newAliasLower}] removed from list");
-                //    StateHasChanged();
-                //});
             }
             else
             {
@@ -404,6 +461,43 @@
         });
     }
 
+    private async void HandleAddPlayerSubmit()
+    {
+        var input = _inputPlayer;
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return;
+        }
+
+        _teamNonOutfitPlayersLoading.Add(_inputPlayer);
+
+        try
+        {
+            var success = await ScrimTeamsManager.TryAddCharacterToTeam(i_teamOrdinal, input);
+
+            if (success)
+            {
+                _inputPlayer = string.Empty;
+                _teamNonOutfitPlayersLoading.Remove(_inputPlayer);
+            }
+            else
+            {
+                _teamNonOutfitPlayersLoading.Remove(_inputPlayer);
+
+                await InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _teamNonOutfitPlayersLoading.Remove(_inputPlayer);
+            LogMessage($"<span style=\"color: red;\">Failed to add character {input}: {ex}</span>");
+        }
+    }
+
     private async void RefreshOutfitPlayers(string aliasLower)
     {
         if (!_teamOutfitsLoadingMembers.Contains(aliasLower) && _teamOutfits.Any(o => o.AliasLower == aliasLower))
@@ -424,7 +518,7 @@
     {
         if (!_teamOutfitsLoading.Contains(aliasLower) && !_teamOutfitsLoadingMembers.Contains(aliasLower) && _teamOutfits.Any(o => o.AliasLower == aliasLower))
         {
-            var playersIds = _teamPlayers.Where(p => p.OutfitAliasLower == aliasLower).Select(p => p.Id).ToList();
+            var playersIds = _teamPlayers.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Select(p => p.Id).ToList();
             WebsocketMonitor.RemoveCharacterSubscriptions(playersIds);
 
             ScrimTeamsManager.RemoveOutfitFromTeam(aliasLower);
@@ -450,6 +544,12 @@
             _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
             StateHasChanged();
         }
+    }
+
+    private void TogglNoneOutfitPlayersVisibility()
+    {
+        _extendNonOutfitPlayers = !_extendNonOutfitPlayers;
+        //StateHasChanged();
     }
 
     private bool ShowOutfitPlayers(string aliasLower)
@@ -518,8 +618,16 @@
         if (player.IsOnline)
         {
             _teamPlayersOnline.Add(player);
-            //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
-            SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+
+            if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+            {
+                _teamNonOutfitPlayers.Add(player);
+            }
+            else
+            {
+                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
+                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+            }
 
             if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
             {
@@ -551,8 +659,16 @@
             _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
             _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
             _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
-            //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
-            SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+
+            if (player.IsOutfitless)
+            {
+                _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
+            }
+            else
+            {
+                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
+            }
         }
 
         //LogMessage(message.Info);
@@ -576,6 +692,11 @@
         if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
         {
             _teamPlayersVisible.Add(player);
+        }
+
+        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.IsOutfitless))
+        {
+            _teamNonOutfitPlayers.Add(player);
         }
 
         InvokeAsync(() =>
@@ -629,7 +750,7 @@
         {
             _teamPlayersOnline.Add(player);
 
-            if (_teamOutfits.Any(o => o.Id == player.OutfitId))
+            if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
             {
                 //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
                 SetOutfitMembersOnlineCount(player.OutfitAliasLower);
@@ -668,7 +789,7 @@
         {
             _teamPlayersOnline.Remove(player);
 
-            if (_teamOutfits.Any(o => o.Id == player.OutfitId))
+            if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
             {
                 SetOutfitMembersOnlineCount(player.OutfitAliasLower);
                 //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
@@ -731,7 +852,7 @@
         {
             return;
         }
-        outfit.MembersOnlineCount = _teamPlayersOnline.Where(p => p.OutfitAliasLower == aliasLower).Count();
+        outfit.MembersOnlineCount = _teamPlayersOnline.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
     }
 
     private void UpdateOutfitMembersOnlineCount(string aliasLower, int addend)

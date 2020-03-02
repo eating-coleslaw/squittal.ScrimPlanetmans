@@ -23,6 +23,16 @@ namespace squittal.ScrimPlanetmans.CensusServices
             return await query.GetAsync<CensusCharacterModel>();
         }
 
+        public async Task<CensusCharacterModel> GetCharacterByName(string characterName)
+        {
+            var query = _queryFactory.Create("character");
+            query.AddResolve("world");
+            query.ShowFields("character_id", "name.first", "faction_id", "world_id", "battle_rank.value", "battle_rank.percent_to_next", "certs.earned_points", "title_id", "prestige_level");
+            query.Where("name.first_lower").Equals(characterName.ToLower());
+
+            return await query.GetAsync<CensusCharacterModel>();
+        }
+
         public async Task<string> GetCharacterIdByName(string characterName)
         {
             var query = _queryFactory.Create("character_name");

@@ -44,5 +44,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void SetPlayerOnlineStatus(string characterId, bool isOnline);
         void SetPlayerLoadoutId(string characterId, int? loadoutId);
         bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer);
+        bool IsOutfitAvailable(string alias);
+        Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString);
     }
 }

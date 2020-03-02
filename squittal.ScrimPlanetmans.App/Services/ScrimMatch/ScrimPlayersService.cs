@@ -30,6 +30,18 @@ namespace squittal.ScrimPlanetmans.Services
             return new Player(character);
         }
 
+        public async Task<Player> GetPlayerFromCharacterName(string characterName)
+        {
+            var character = await _characters.GetCharacterByNameAsync(characterName);
+
+            if (character == null)
+            {
+                return null;
+            }
+
+            return new Player(character);
+        }
+
         public async Task<IEnumerable<Player>> GetPlayersFromOutfitAlias(string alias)
         {
             var censusMembers = await _outfits.GetOutfitMembersByAlias(alias);

@@ -29,6 +29,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string OutfitAlias { get; set; } = string.Empty;
         public string OutfitAliasLower { get; set; } = string.Empty;
 
+        public bool IsOutfitless { get; set; } = false;
+
         // Dynamic Attributes
         public int? LoadoutId { get; set; }
         public PlayerStatus Status { get; set; } = PlayerStatus.Unknown;

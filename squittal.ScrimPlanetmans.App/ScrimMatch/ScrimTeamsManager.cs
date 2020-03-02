@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.Services.Planetside;
@@ -132,6 +133,107 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //TODO: add event for "Team X Alias Change"
         }
 
+        public async Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString)
+        {
+            Regex idRegex = new Regex("[0-9]{19}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            bool isId = idRegex.Match(inputString).Success;
+
+            if (isId)
+            {
+                if (await TryAddCharacterIdToTeam(teamOrdinal, inputString))
+                {
+                    return true;
+                }
+            }
+
+            Regex nameRegex = new Regex("[A-Za-z0-9]{1,32}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            bool isName = nameRegex.Match(inputString).Success;
+
+            if (isName)
+            {
+                return await TryAddCharacterNameToTeam(teamOrdinal, inputString);
+            }
+
+            return false;
+        }
+
+
+        public async Task<bool> TryAddCharacterIdToTeam(int teamOrdinal, string characterId)
+        {
+            if (!IsCharacterAvailable(characterId))
+            {
+                return false;
+            }
+
+            var player = await _scrimPlayers.GetPlayerFromCharacterId(characterId);
+
+            if (player == null)
+            {
+                return false;
+            }
+
+            return TryAddPlayerToTeam(teamOrdinal, player);
+        }
+
+        public async Task<bool> TryAddCharacterNameToTeam(int teamOrdinal, string characterName)
+        {
+            var player = await _scrimPlayers.GetPlayerFromCharacterName(characterName);
+
+            if (player == null)
+            {
+                return false;
+            }
+
+            if (!IsCharacterAvailable(player.Id))
+            {
+                return false;
+            }
+
+            return TryAddPlayerToTeam(teamOrdinal, player);
+        }
+
+        private bool TryAddPlayerToTeam(int teamOrdinal, Player player)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            player.TeamOrdinal = team.TeamOrdinal;
+
+            player.IsOutfitless = IsPlayerOutfitless(player);
+
+            if (team.TryAddPlayer(player))
+            {
+                _allCharacterIds.Add(player.Id);
+                _allPlayers.Add(player);
+
+                if (team.FactionId == null)
+                {
+                    UpdateTeamFaction(teamOrdinal, player.FactionId);
+                }
+
+                SendTeamPlayerAddedMessage(player);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool IsPlayerOutfitless(Player player)
+        {
+            var aliasLower = player.OutfitAliasLower;
+
+            if (IsOutfitAvailable(aliasLower))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
 
         // Returns whether specified character was added to the specified team
         public async Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId)
@@ -429,6 +531,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             owningTeam = null;
+            return true;
+        }
+
+        public bool IsOutfitAvailable(string alias)
+        {
+            var team1 = _ordinalTeamMap[1];
+
+            if (team1.ContainsOutfit(alias))
+            {
+                return false;
+            }
+
+            var team2 = _ordinalTeamMap[2];
+            if (team2.ContainsOutfit(alias))
+            {
+                return false;
+            }
+
             return true;
         }
 

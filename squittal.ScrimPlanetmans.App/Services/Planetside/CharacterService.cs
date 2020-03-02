@@ -69,6 +69,20 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             */
         }
 
+        public async Task<Character> GetCharacterByNameAsync(string characterName)
+        {
+            var character = await _censusCharacter.GetCharacterByName(characterName);
+
+            if (character == null)
+            {
+                return null;
+            }
+
+            var censusEntity = ConvertToDbModel(character);
+
+            return censusEntity;
+        }
+
         public async Task<OutfitMember> GetCharacterOutfitAsync(string characterId)
         {
             var character = await GetCharacterAsync(characterId);
