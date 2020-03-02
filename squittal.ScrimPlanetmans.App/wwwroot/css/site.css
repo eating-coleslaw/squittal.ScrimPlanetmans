@@ -187,10 +187,33 @@ app {
 
 /****************************
 
-    squittal.LivePlanetmans
+    squittal.ScrimPlanetmans
 
 ****************************/
 
+.btn-primary {
+    border-radius: 0.2rem;
+    line-height: 1;
+    /*background-color: #e0397e;
+    border-color: #B32D64;*/
+    background-color: #e34f8c;
+    border-color: #e0397e;
+    transition: none;
+    font-size: 0.9rem;
+}
+
+    .btn-primary:hover {
+        /*background-color: #e34f8c;
+        border-color: #e0397e;*/
+        background-color: #e0397e;
+        border-color: #B32D64;
+    }
+
+/****************************
+
+    squittal.LivePlanetmans
+
+****************************/
 /*
     No-Link Brand Header
 */
