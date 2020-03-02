@@ -112,22 +112,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _logger.LogInformation($"Faction for Team {teamOrdinal} changed from {oldAbbrev} to {abbrev}");
         }
 
-        public void UpdateTeamAlias(int teamOrdinal, string alias)
+        public bool UpdateTeamAlias(int teamOrdinal, string alias, bool isCustom = false)
         {
             var team = _ordinalTeamMap[teamOrdinal];
             var oldAlias = team.Alias;
             
-            team.Alias = alias;
-
-            _logger.LogInformation($"Alias for Team {teamOrdinal} changed from {oldAlias} to {alias}");
+            //team.Alias = alias;
+            if (team.TrySetAlias(alias))
+            {
+                _logger.LogInformation($"Alias for Team {teamOrdinal} changed from {oldAlias} to {alias}");
+                return true;
+            }
+            else
+            {
+                _logger.LogInformation($"Couldn't change {team.NameInternal} display Alias: custom alias already set");
+                return false;
+            }
 
             //TODO: add event for "Team X Alias Change"
         }
 
-        //public void SubmitPlayersList()
-        //{
-        //    _wsMonitor.AddCharacterSubscriptions(_allCharacterIds);
-        //}
 
         // Returns whether specified character was added to the specified team
         public async Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId)
@@ -148,7 +152,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             //player.Team = team;
             player.TeamOrdinal = team.TeamOrdinal;
-
 
             if (team.TryAddPlayer(player))
             {
@@ -213,6 +216,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var anyPlayersAdded = false;
 
+            var lastPlayer = players.LastOrDefault();
+
             //TODO: track which players were added and which weren't
 
             foreach (var player in players)
@@ -225,7 +230,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
-                    SendTeamPlayerAddedMessage(player);
+                    var isLastPlayer = (player == lastPlayer);
+
+                    SendTeamPlayerAddedMessage(player, isLastPlayer);
 
                     anyPlayersAdded = true;
                 }
@@ -250,18 +257,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
+            var newPlayers = players.Where(p => IsCharacterAvailable(p.Id)).ToList();
+
+            if (!newPlayers.Any())
+            {
+                return false;
+            }
+
+            var lastPlayer = newPlayers.LastOrDefault();
+
             var anyPlayersAdded = false;
 
             //TODO: track which players were added and which weren't
 
-            foreach (var player in players)
+            foreach (var player in newPlayers)
             {
-                if (!IsCharacterAvailable(player.Id, out Team playerTeam))
-                {
-                    // TODO: broadcast "Couldn't Add Player to Team Message
-                    continue;
-                }
-                
+                //if (!IsCharacterAvailable(player.Id, out Team playerTeam))
+                //{
+                //    // TODO: broadcast "Couldn't Add Player to Team Message
+                //    continue;
+                //}
+
+                var isLastPlayer = (player == lastPlayer);
+
                 //player.Team = team;
                 player.TeamOrdinal = teamOrdinal; // team.TeamOrdinal;
 
@@ -270,7 +288,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
-                    SendTeamPlayerAddedMessage(player);
+                    SendTeamPlayerAddedMessage(player, isLastPlayer);
 
                     anyPlayersAdded = true;
                 }
@@ -373,6 +391,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return false;
+        }
+
+        public bool IsCharacterAvailable(string characterId)
+        {
+            var team1 = _ordinalTeamMap[1];
+
+            if (team1.ContainsPlayer(characterId))
+            {
+                return false;
+            }
+
+            var team2 = _ordinalTeamMap[2];
+            if (team2.ContainsPlayer(characterId))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public bool IsCharacterAvailable(string characterId, out Team owningTeam)
@@ -527,9 +563,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return TeamOutfitCount(teamOrdinal) > 0;
         }
 
-        private void SendTeamPlayerAddedMessage(Player player)
+        private void SendTeamPlayerAddedMessage(Player player, bool isLastOfOutfit = false)
         {
-            var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+            var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add, isLastOfOutfit);
             _messageService.BroadcastTeamPlayerChangeMessage(payload);
         }
 

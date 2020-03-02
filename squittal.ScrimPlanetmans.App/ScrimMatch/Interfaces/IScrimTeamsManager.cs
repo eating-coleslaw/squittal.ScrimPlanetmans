@@ -18,7 +18,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         IEnumerable<string> GetAllPlayerIds();
         IEnumerable<Player> GetParticipatingPlayers();
 
-        void UpdateTeamAlias(int teamOrdinal, string alias);
+        //void UpdateTeamAlias(int teamOrdinal, string alias);
+        bool UpdateTeamAlias(int teamOrdinal, string alias, bool isCustom = false);
 
         //void SubmitPlayersList();
 
@@ -31,6 +32,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool RemoveCharacterFromTeam(string characterId);
 
         bool IsCharacterAvailable(string characterId, out Team owningTeam);
+        bool IsCharacterAvailable(string characterId);
+
         bool IsOutfitAvailable(string alias, out Team owningTeam);
 
         int? GetTeamOrdinalFromPlayerId(string characterId);

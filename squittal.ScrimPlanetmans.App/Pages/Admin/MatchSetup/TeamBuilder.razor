@@ -21,9 +21,13 @@
 
 <div class="header-card-container @GetHeaderCardClass()">
     
-    @if (_team == null || !_teamOutfits.Any())
+    @if (_team == null)
     {
         <h4>Team @i_teamOrdinal</h4>
+    }
+    else if (!_teamOutfits.Any() )
+    {
+        <h4>Team @(i_teamOrdinal)@(_team.HasCustomAlias ? $": {_team.Alias}" : string.Empty)</h4>
     }
     else
     {
@@ -39,14 +43,30 @@
         </h4>
     }
 
-    <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    @* TODO: only display if match hasn't started yet*@
+    <div style="margin: 0.2rem 0;">
+        <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-        Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
+            Display Alias: <InputAlias id="alias1" @bind-Value="_displayAlias" />
 
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </EditForm>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </EditForm>
+    </div>
+
+    <div style="margin: 0.2rem 0;">
+        <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            Add Outfit: <InputAlias id="alias1" @bind-Value="_inputAlias" />
+
+            <button type="submit" class="btn btn-primary">
+                <span class="oi oi-plus" style="color: #ffffff; font-size: 0.7rem; top: 0;"></span> Add
+            </button>
+        </EditForm>
+    </div>
 
     @*@if  (_team != null && _teamOutfits.Any() && ScrimMatchEngine.GetMatchState() != MatchState.Uninitialized)
     {
@@ -98,7 +118,7 @@
 
             @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
             {
-                <SpinnerEllipsis />
+                <SpinnerEllipsis /><span>first</span>
             }
 
             else if (_teamPlayersVisible != null && _teamPlayersVisible.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
@@ -158,7 +178,7 @@
 }
 @if (_teamOutfitsLoading.Any())
 {
-    <SpinnerEllipsis />
+    <SpinnerEllipsis /><span>second</span>
 }
 
 
@@ -189,6 +209,8 @@
 
     /* Form & Input Variables */
     private OutfitAlias _inputAlias = new OutfitAlias();
+
+    private OutfitAlias _displayAlias = new OutfitAlias();
 
     private List<string> _teamOutfitsLoadingMembers = new List<string>();
 
@@ -395,6 +417,23 @@
         }
     }
 
+    private void HandleSetCustomDisplayAlias()
+    {
+        var newAlias = _displayAlias.Alias;
+
+        var success = _team.TrySetAlias(newAlias, true);
+
+        if (success)
+        {
+            _displayAlias.Alias = string.Empty;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
     private async void RefreshOutfitPlayers(string aliasLower)
     {
         if (!_teamOutfitsLoadingMembers.Contains(aliasLower) && _teamOutfits.Any(o => o.AliasLower == aliasLower))
@@ -516,6 +555,11 @@
             {
                 _teamPlayersVisible.Add(player);
             }
+        }
+
+        if (message.IsLastOfOutfit)
+        {
+            _teamOutfitsLoadingMembers.Remove(player.OutfitAliasLower);
         }
 
         //LogMessage(message.Info);

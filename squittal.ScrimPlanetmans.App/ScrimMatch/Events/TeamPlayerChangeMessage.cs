@@ -16,11 +16,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         public string OutfitAlias { get; set; } = string.Empty;
         public string OutfitAliasLower { get; set; } = string.Empty;
 
+        public bool IsOutfitless { get; set; } = false; // assume most players will be added via outfits
+        public bool IsLastOfOutfit { get; set; } = false;
+
         public TeamPlayerChangeType ChangeType { get; set; }
 
         public string Info { get => GetInfoMessage(); }
 
-        public TeamPlayerChangeMessage(Player player, TeamPlayerChangeType type)
+        public TeamPlayerChangeMessage(Player player, TeamPlayerChangeType type, bool isLastOfOutfit = false)
         {
             Player = player;
             ChangeType = type;
@@ -33,6 +36,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             OutfitId = player.OutfitId;
             OutfitAlias = player.OutfitAlias;
             OutfitAliasLower = player.OutfitAliasLower;
+
+            IsOutfitless = (!string.IsNullOrWhiteSpace(OutfitAliasLower));
+            IsLastOfOutfit = isLastOfOutfit;
         }
 
         private string GetInfoMessage()

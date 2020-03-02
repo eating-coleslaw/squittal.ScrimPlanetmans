@@ -23,6 +23,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public List<Player> ParticipatingPlayers { get; set; } = new List<Player>();
 
         public List<Outfit> Outfits { get => _outfits; }
+        public List<Player> NonOutfitCharacters { get; } = new List<Player>();
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
@@ -33,6 +34,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private List<string> _seedOutfitAliases = new List<string>();
         private List<string> _seedOutfitIds = new List<string>();
+
+        public bool HasCustomAlias { get; private set; } = false;
 
         private List<string> _playerIds = new List<string>();
         private List<string> _playerIdsOnline = new List<string>();
@@ -46,11 +49,27 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public Team(string alias, string nameInternal, int teamOrdinal)
         {
-            Alias = alias;
+            //Alias = alias;
+            TrySetAlias(alias, false);
             NameInternal = nameInternal;
             TeamOrdinal = teamOrdinal;
 
             //EventAggregate = new ScrimEventAggregate();
+        }
+
+        public bool TrySetAlias(string alias, bool isCustomAlias = false)
+        {
+            // Don't overwrite a custom display alias unless the new one is also custom
+            if (!HasCustomAlias || isCustomAlias)
+            {
+                Alias = alias;
+                HasCustomAlias = isCustomAlias;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public bool ContainsPlayer(string characterId)
