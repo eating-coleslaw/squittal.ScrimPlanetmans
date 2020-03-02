@@ -1035,6 +1035,14 @@ button.refresh {
 /*
     Squittal Layout
 */
+.sq-mini-card-12.default,
+.sq-mini-card-9.default,
+.sq-mini-card-6.default,
+.sq-mini-card-3.default {
+    background-color: var(--sq-bg-white-lit);
+    border-top: 2px solid var(--sq-pink-lighter-alpha-80);
+}
+
 .sq-mini-card-12,
 .sq-mini-card-9,
 .sq-mini-card-6,

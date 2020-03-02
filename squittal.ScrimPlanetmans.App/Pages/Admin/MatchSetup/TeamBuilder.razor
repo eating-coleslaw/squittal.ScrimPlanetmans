@@ -128,7 +128,7 @@
 
             @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
             {
-                <SpinnerEllipsis /><span>first</span>
+                <SpinnerEllipsis />
             }
 
             else if (_teamPlayersVisible != null && _teamPlayersVisible.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
@@ -175,19 +175,19 @@
 
 @if (_teamOutfitsLoading.Any())
 {
-    <SpinnerEllipsis /><span>second</span>
+    <SpinnerEllipsis />
 }
 
 @if (_teamNonOutfitPlayers.Any() || _teamNonOutfitPlayersLoading.Any())
 {
-    <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(null)">
+    <div class="sq-mini-card-12 default">
 
         <h5 style="color: var(--sq-pink); margin-bottom: 0.1rem;">
             <b>Other Players</b> (@_teamNonOutfitPlayers.Count() | @_teamNonOutfitPlayers.Count(p => p.IsOnline == true))
         </h5>
 
         <p style="margin: 0 0 0.1rem 0;">
-            @if (!_teamNonOutfitPlayers.Any())
+            @if (_teamNonOutfitPlayers.Any())
             {
             <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglNoneOutfitPlayersVisibility">@(_extendNonOutfitPlayers ? "Hide Players" : "Show Players")</button>
             }
@@ -197,7 +197,7 @@
 
             @if (_extendNonOutfitPlayers && _teamNonOutfitPlayers.Any())
             {
-                <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(null)" style="margin-bottom: 0.5rem;">
+                <table class="table-responsive-sm table-striped-light" style="margin-bottom: 0.5rem;">
                     <thead>
                         <tr>
                             <th></th>
@@ -212,7 +212,7 @@
                     <tbody>
                         @foreach (var member in _teamNonOutfitPlayers)
                         {
-                            <tr>
+                            <tr class="@SqCssHelper.GetFactionClassFromId(member.FactionId)">
                                 <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
                                 <td  title="@member.NameFull [@(member.Id)]">
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
@@ -234,7 +234,7 @@
 
             @if (_teamNonOutfitPlayersLoading.Any())
             {
-                <SpinnerEllipsis /><span>first</span>
+                <SpinnerEllipsis />
             }
         </div>
     </div>
@@ -470,7 +470,7 @@
             return;
         }
 
-        _teamNonOutfitPlayersLoading.Add(_inputPlayer);
+        _teamNonOutfitPlayersLoading.Add(input);
 
         try
         {
@@ -479,11 +479,11 @@
             if (success)
             {
                 _inputPlayer = string.Empty;
-                _teamNonOutfitPlayersLoading.Remove(_inputPlayer);
+                _teamNonOutfitPlayersLoading.Remove(input);
             }
             else
             {
-                _teamNonOutfitPlayersLoading.Remove(_inputPlayer);
+                _teamNonOutfitPlayersLoading.Remove(input);
 
                 await InvokeAsync(() =>
                 {
@@ -493,9 +493,14 @@
         }
         catch (Exception ex)
         {
-            _teamNonOutfitPlayersLoading.Remove(_inputPlayer);
+            _teamNonOutfitPlayersLoading.Remove(input);
             LogMessage($"<span style=\"color: red;\">Failed to add character {input}: {ex}</span>");
         }
+
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 
     private async void RefreshOutfitPlayers(string aliasLower)
@@ -606,26 +611,21 @@
     {
         var player = message.Player;
 
-        //if (player.TeamOrdinal != i_teamOrdinal)
-        //{
-        //    return;
-        //}
-
-        //_teamPlayers.Add(player);
-
-        _teamOutfitsLoading.Remove(player.OutfitAliasLower); //TEST TEST TEST TEST
+        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        {
+            _teamNonOutfitPlayers.Add(player);
+        }
+        else
+        {
+            _teamOutfitsLoading.Remove(player.OutfitAliasLower);
+        }
 
         if (player.IsOnline)
         {
             _teamPlayersOnline.Add(player);
 
-            if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+            if (!player.IsOutfitless)
             {
-                _teamNonOutfitPlayers.Add(player);
-            }
-            else
-            {
-                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
                 SetOutfitMembersOnlineCount(player.OutfitAliasLower);
             }
 

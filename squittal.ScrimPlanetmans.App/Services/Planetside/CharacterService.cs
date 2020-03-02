@@ -96,6 +96,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public static Character ConvertToDbModel(CensusCharacterModel censusModel)
         {
+            bool isOnline = censusModel.OnlineStatus > 0 ? true : false;
+
             return new Character
             {
                 Id = censusModel.CharacterId,
@@ -106,7 +108,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 BattleRank = censusModel.BattleRank.Value,
                 BattleRankPercentToNext = censusModel.BattleRank.PercentToNext,
                 CertsEarned = censusModel.Certs.EarnedPoints,
-                PrestigeLevel = censusModel.PrestigeLevel
+                PrestigeLevel = censusModel.PrestigeLevel,
+                IsOnline = isOnline
             };
         }
     }

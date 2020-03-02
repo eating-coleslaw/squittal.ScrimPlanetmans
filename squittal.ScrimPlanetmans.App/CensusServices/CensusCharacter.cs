@@ -17,7 +17,8 @@ namespace squittal.ScrimPlanetmans.CensusServices
         {
             var query = _queryFactory.Create("character");
             query.AddResolve("world");
-            query.ShowFields("character_id", "name.first", "faction_id", "world_id", "battle_rank.value", "battle_rank.percent_to_next", "certs.earned_points", "title_id", "prestige_level");
+            query.AddResolve("online_status");
+            query.ShowFields("character_id", "name.first", "faction_id", "world_id", "battle_rank.value", "battle_rank.percent_to_next", "certs.earned_points", "title_id", "prestige_level", "online_status");
             query.Where("character_id").Equals(characterId);
 
             return await query.GetAsync<CensusCharacterModel>();
@@ -27,7 +28,8 @@ namespace squittal.ScrimPlanetmans.CensusServices
         {
             var query = _queryFactory.Create("character");
             query.AddResolve("world");
-            query.ShowFields("character_id", "name.first", "faction_id", "world_id", "battle_rank.value", "battle_rank.percent_to_next", "certs.earned_points", "title_id", "prestige_level");
+            query.AddResolve("online_status");
+            query.ShowFields("character_id", "name.first", "faction_id", "world_id", "battle_rank.value", "battle_rank.percent_to_next", "certs.earned_points", "title_id", "prestige_level", "online_status");
             query.Where("name.first_lower").Equals(characterName.ToLower());
 
             return await query.GetAsync<CensusCharacterModel>();
