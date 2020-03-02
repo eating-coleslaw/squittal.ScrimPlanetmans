@@ -411,7 +411,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.TryRemoveOutfit(aliasLower);
 
-            var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower).ToList();
+            var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).ToList();
 
             if (players == null || !players.Any())
             {
