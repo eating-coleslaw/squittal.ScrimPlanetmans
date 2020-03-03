@@ -100,6 +100,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _latestTimerTickMessage = null;
 
             // TODO: empty Teams, reset points, etc.
+            _teamsManager.ClearAllTeams();
 
             SendUpdateMessage();
         }

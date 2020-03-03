@@ -31,6 +31,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool RemoveOutfitFromTeam(string aliasLower);
         bool RemoveCharacterFromTeam(string characterId);
 
+        void ClearAllTeams();
+        void ClearTeam(int teamOrdinal);
+
         bool IsCharacterAvailable(string characterId, out Team owningTeam);
         bool IsCharacterAvailable(string characterId);
 
@@ -46,5 +49,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer);
         bool IsOutfitAvailable(string alias);
         Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString);
+        
     }
 }

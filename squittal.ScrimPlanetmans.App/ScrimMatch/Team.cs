@@ -194,59 +194,5 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return rounds.Max();
         }
 
-        private void AddOutfitPlayersToTeam(Outfit outfit, IEnumerable<Character> characters)
-        {
-            var alias = outfit.Alias;
-            var outfitId = outfit.Id;
-            
-            if (!_seedOutfitAliases.Contains(alias))
-            {
-                _seedOutfitAliases.Add(alias);
-                _seedOutfitIds.Add(outfitId);
-
-                _outfits.Add(outfit);
-
-                var characterIds = characters.Select(c => c.Id).ToList();
-                var newCharacters = characters.Where(c => !PlayerIds.Contains(c.Id)).ToList();
-
-                _playerIds.AddRange(newCharacters.Select(c => c.Id));
-                _playerIdsOnline.AddRange(characters.Where(c => c.IsOnline == true).Select(c => c.Id));
-
-                foreach (var character in characters)
-                {
-                    var id = character.Id;
-                    
-                    if (!_playerIdMap.ContainsKey(id))
-                    {
-                        _playerIdMap.Add(id, character);
-                    }
-                    else
-                    {
-                        _playerIdMap[id] = character;
-                    }
-
-                    if (!_playerOutfitMap.ContainsKey(id))
-                    {
-                        _playerOutfitMap.Add(id, outfit);
-                    }
-                    else
-                    {
-                        _playerOutfitMap[id] = outfit;
-                    }
-
-                    if (character.IsOnline)
-                    {
-                        if (!_playerIdsOnline.Contains(id))
-                        {
-                            _playerIdsOnline.Add(id);
-                        }
-                    }
-                    else
-                    {
-                        _playerIdsOnline.Remove(id);
-                    }
-                }
-            }
-        }
     }
 }

@@ -20,8 +20,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
-        private readonly Team Team1;
-        private readonly Team Team2;
+        private Team Team1;
+        private Team Team2;
 
         private readonly Dictionary<int, Team> _ordinalTeamMap = new Dictionary<int, Team>();
 
@@ -494,6 +494,71 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return false;
         }
+
+        public void ClearAllTeams()
+        {
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
+            {
+                ClearTeam(teamOrdinal);
+            }
+        }
+
+        public void ClearTeam(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            var allAliases = team.Outfits.Select(o => o.AliasLower).ToList();
+
+            foreach (var alias in allAliases)
+            {
+                RemoveOutfitFromTeam(alias);
+            }
+            
+            // if there are no outfitless players, we're done
+            if (!team.Players.Any())
+            {
+                // TODO: broadcast "Finished Clearing Team" message
+                return;
+            }
+
+            var allPlayers = team.Players.ToList();
+
+            foreach (var player in allPlayers)
+            {
+                RemovePlayerFromTeam(player);
+            }
+
+            // TODO: broadcast "Finished Clearing Team" message
+
+            //var newTeam = new Team($"{_defaultAliasPreText}{teamOrdinal}", $"Team {teamOrdinal}", teamOrdinal);
+
+            //if (teamOrdinal == 1)
+            //{
+            //    Team1 = newTeam;
+            //}
+            //else if (teamOrdinal == 2)
+            //{
+            //    Team2 = newTeam;
+            //}
+            //else
+            //{
+            //    return;
+            //}
+
+            //var characterIdsToRemove = _allPlayers.Where(p => p.TeamOrdinal == teamOrdinal).Select(p => p.Id).ToList();
+
+            //_allCharacterIds.RemoveAll(cId => characterIdsToRemove.Contains(cId));
+            //_allPlayers.RemoveAll(p => characterIdsToRemove.Contains(p.Id));
+            //_participatingPlayers.RemoveAll(p => characterIdsToRemove.Contains(p.Id));
+
+            // TODO: send "Team Cleared" broadcast message
+        }
+
 
         public bool IsCharacterAvailable(string characterId)
         {
