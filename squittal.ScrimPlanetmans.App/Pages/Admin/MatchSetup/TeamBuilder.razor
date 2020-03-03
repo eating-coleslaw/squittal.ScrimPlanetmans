@@ -27,12 +27,12 @@
     }
     else if (!_teamOutfits.Any() && !_teamNonOutfitPlayers.Any())
     {
-        <h4>Team @(i_teamOrdinal)@(_team.HasCustomAlias ? $": {_team.Alias}" : string.Empty)</h4>
+        <h4>Team @(i_teamOrdinal)<span class="mono-font">@(_team.HasCustomAlias ? $": {_team.Alias}" : string.Empty)</span></h4>
     }
     else
     {
         <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary);">
-            Team @($"{i_teamOrdinal}: {_team.Alias}")
+            Team @($"{i_teamOrdinal}: ")<span class="mono-font">@_team.Alias</span>
             <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
                 @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
                 <span style="font-weight: 700; font-size: larger;">
@@ -112,7 +112,7 @@
     <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(outfit.FactionId)">
 
         <h5  class="@SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;"> @*margin-top: 0.5rem;*@
-            <b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
+            <b><span class="mono-font">[@outfit.Alias]</span> @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
         </h5>
 
         <p style="margin: 0 0 0.1rem 0;">
@@ -133,7 +133,7 @@
 
             else if (_teamPlayersVisible != null && _teamPlayersVisible.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
             {
-                <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
+                <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
                     <thead>
                         <tr>
                             <th></th>
@@ -197,7 +197,7 @@
 
             @if (_extendNonOutfitPlayers && _teamNonOutfitPlayers.Any())
             {
-                <table class="table-responsive-sm table-striped-light" style="margin-bottom: 0.5rem;">
+                <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem;">
                     <thead>
                         <tr>
                             <th></th>

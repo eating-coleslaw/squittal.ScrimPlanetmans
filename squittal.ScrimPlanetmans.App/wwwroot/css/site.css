@@ -191,6 +191,14 @@ app {
 
 ****************************/
 
+.mono-font {
+    font-family: "Roboto Mono", "Input Mono", Consolas, monospace !important;
+}
+
+.mono-font.smaller {
+    font-size: 0.75rem;
+}
+
 .btn-primary {
     border-radius: 0.2rem;
     line-height: 1;
@@ -396,7 +404,7 @@ No-Link Brand Header
 }
 
 .header-card-container {
-    font-family: 'Roboto Mono';
+    font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
     font-size: small;
     /*color: var(--sq-ps2-primary);*/
     margin-bottom: 0px;
@@ -466,11 +474,11 @@ No-Link Brand Header
     border-radius: 0.2rem;
     margin-left: auto;
     margin-top: 0.15rem;
-    font-family: 'Roboto Mono';
+    font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
 }
 
     .styled-select option {
-        font-family: 'Roboto Mono';
+        font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
         /*font-size: small;*/
     }
 
@@ -500,7 +508,7 @@ No-Link Brand Header
         padding: 0px;
         outline: 0;
         color: #007bff;
-        font-family: 'Roboto Mono';
+        font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
     }
 
         .styled-select select:hover, .styled-select select:active {
@@ -545,7 +553,7 @@ No-Link Brand Header
 
 
         .sq-card.details .player-header {
-            font-family: 'Roboto Mono';
+            font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
             display: grid;
             grid-template-columns: 1.5fr 1fr 80px;
             grid-template-rows: 1fr;
@@ -628,7 +636,7 @@ No-Link Brand Header
 
 
         .sq-card.details .details-body {
-            font-family: 'Roboto Mono';
+            font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
             padding: 0px 10px;
         }
 
@@ -654,7 +662,7 @@ No-Link Brand Header
                 }
 
         .sq-card.details .details-footer {
-            font-family: 'Roboto Mono';
+            font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
             position: absolute;
             bottom: 0.5rem;
             height: 1rem;
@@ -794,7 +802,7 @@ table.killfeed td {
     /*width: 100%;*/
     width: 90%;
     /*margin-top: -1rem;*/
-    font-family: 'Roboto Mono';
+    font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
     /*overflow-x: scroll;*/
 }
 
@@ -849,7 +857,7 @@ table.killfeed td {
         }
 
     .leaderboard-table tbody {
-        font-family: 'Roboto Mono';
+        font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
         /*font-size: small !important;*/
         font-size: 0.75rem !important;
     }

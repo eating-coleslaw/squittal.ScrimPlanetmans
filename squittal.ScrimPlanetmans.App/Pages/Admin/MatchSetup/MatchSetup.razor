@@ -32,7 +32,7 @@
 
             <div style="display: grid; grid-template-columns: 1fr 115px;">
                 <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
-                <div style="font-size: 14px; text-align: right;">
+                <div class="mono-font" style="font-size: 14px; text-align: right;">
                     <MatchTimer Debug=false/>
                 </div>
             </div>
@@ -74,11 +74,6 @@
             <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
                 <span class="oi oi-media-record"></span>Subscribe
             </button>
-
-
-            <div style="font-size: 14px; display: block;">
-                <MatchTimer />
-            </div>
 
             @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
             {
@@ -176,19 +171,12 @@
         //StateHasChanged();
     }
 
-    //private async Task StartMatch()
     private void StartMatch()
     {
         SubscribeToCensus();
 
-        //await MatchScorer.SetActiveRuleset();
-        //await ItemService.SetUpItemsListAsync();
-
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
         ScrimMatchEngine.Start();
-
-        //ScrimMatchEngine.InitializeNewRound();
-        //ScrimMatchEngine.StartRound();
 
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -200,8 +188,6 @@
         {
             StateHasChanged();
         });
-
-        //SateHasChanged();
     }
 
     private void EndRound()
