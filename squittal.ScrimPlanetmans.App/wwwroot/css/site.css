@@ -269,10 +269,10 @@ app {
     squittal.LivePlanetmans
 
 ****************************/
-        /*
-    No-Link Brand Header
+/*
+No-Link Brand Header
 */
-        .nolink-header {
+.nolink-header {
     width: 100%;
     /*background-color: transparent !important;*/
     background-color: var(--sq-bg-white-unlit) !important;
@@ -297,7 +297,7 @@ app {
         border-bottom: 0px solid transparent;
     }
 
-        .nolink-header a.active {
+        .nolink-header a:not(.external).active {
             /*background-color: rgba(255,255,255,0.25);*/
             /*color: white;*/
             /*background-color: var(--sq-logo-purple);*/
@@ -310,7 +310,7 @@ app {
             color: var(--pink);
         }
 
-        .nolink-header a:hover {
+        .nolink-header a:not(.external):hover {
             /*background-color: rgba(255,255,255,0.1);*/
             /*color: white;*/
             /*background-color: var(--sq-bg-white-unlit);
@@ -321,6 +321,36 @@ app {
             color: var(--sq-black);
             border-bottom: 0px solid transparent;
         }
+
+        .nolink-header a.external {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 0.25rem 1rem;
+            color: var(--sq-logo-purple);
+        }
+
+            .nolink-header a.external:active {
+                color: var(--sq-black);
+            }
+
+            .nolink-header a.external:hover {
+                color: var(--sq-blue);
+            }
+
+            .nolink-header a.external .oi {
+                position: relative;
+                top: 1px;
+                font-size: 1.2rem;
+                color: var(--sq-logo-purple);
+            }
+
+                .nolink-header a.external .oi:active,
+                .nolink-header a.external .oi:hover {
+                    color: var(--sq-pink);
+                    transform: scale(1.2);
+                    transform-origin: center;
+                }
 
     .nolink-header img {
         height: 1.5rem;
