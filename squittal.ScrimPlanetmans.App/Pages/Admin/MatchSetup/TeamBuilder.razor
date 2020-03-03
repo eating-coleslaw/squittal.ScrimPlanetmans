@@ -562,7 +562,7 @@
         if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
         {
             _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
-            StateHasChanged();
+            //StateHasChanged();
         }
     }
 
@@ -669,7 +669,7 @@
 
         //_teamPlayers.RemoveAll(p => p.Id == player.Id);
 
-        if (_teamPlayersOnline.Any(p => p.Id == player.Id) || _teamPlayersParticipating.Any(p => p.Id == player.Id))
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id) || _teamPlayersParticipating.Any(p => p.Id == player.Id) || _teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
             _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
@@ -709,7 +709,7 @@
             _teamPlayersVisible.Add(player);
         }
 
-        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.IsOutfitless))
+        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamNonOutfitPlayers.Add(player);
         }

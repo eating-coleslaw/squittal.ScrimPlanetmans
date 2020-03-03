@@ -45,101 +45,104 @@
         </div>
 
         @*<div style="width: 55%; float: right; font-size: 10px; max-height: 550px; word-wrap: normal; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace;">*@
-        <div class="col-lg-4">
+    <div class="col-lg-4">
 
-            <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
+        <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
 
-            @*<span>Status: @_isStreamServiceEnabled.ToString() (@_debug)</span>*@
+        @*<span>Status: @_isStreamServiceEnabled.ToString() (@_debug)</span>*@
 
-            <div style="font-size: 14px; display: block;">
-                <MatchTimer />
-            </div>
-
-            @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
-            {
-                <EditForm Model="@_matchConfiguration">
-
-                    <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
-                    <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
-
-                </EditForm>
-            }
-
-
-
-            @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
-            {
-                <button class="btn btn-primary" @onclick="StartMatch">
-                    <span class="oi oi-media-play"></span>Start Match
-                </button>
-            }
-            else if (_matchState == MatchState.Stopped && _currentRound >= 1)
-            {
-                <button class="btn btn-primary" @onclick="StartMatch">
-                    <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
-                </button>
-                <button class="btn btn-outline-primary" @onclick="ClearMatch">
-                    <span class="oi oi-eject"></span>Clear Match
-                </button>
-            }
-            else if (_matchState == MatchState.Paused)
-            {
-                <button class="btn btn-primary" @onclick="ResumeRound">
-                    <span class="oi oi-media-play"></span>Resume Round
-                </button>
-            }
-            else if (_matchState == MatchState.Running)
-            {
-                <button class="btn btn-primary" @onclick="PauseRound">
-                    <span class="oi oi-media-pause"></span>Pause Round
-                </button>
-                <button class="btn btn-outline-primary" @onclick="EndRound">
-                    <span class="oi oi-media-stop"></span> End Round
-                </button>
-            }
-
-            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>
-
-            @*<button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>*@
-
-
-            <AdminLog />
-            @*<p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
-            <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha);">
-                @if (_adminLogs.Any())
-                {
-                    foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200))
-                    {
-                        <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
-                    }
-
-                    if (_adminLogs.Count() > 200)
-                    {
-                        <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing 200 / @_adminLogs.Count)</p>
-                    }
-                }
-            </div>*@
-
-            <StreamLog />
-            @*<p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
-            <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha);">
-                @if (_streamLogs.Any())
-                {
-                    foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200))
-                    {
-                        <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
-                    }
-
-                    if (_streamLogs.Count() > 200)
-                    {
-                        <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing 200 / @_streamLogs.Count)</p>
-                    }
-                }
-            </div>*@
-
+        <div style="font-size: 14px; display: block;">
+            <MatchTimer />
         </div>
+
+        @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
+        {
+            <EditForm Model="@_matchConfiguration">
+
+                <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
+                <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
+
+            </EditForm>
+        }
+
+
+
+        @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
+        {
+            <button class="btn btn-primary" @onclick="StartMatch">
+                <span class="oi oi-media-play"></span>Start Match
+            </button>
+            <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                <span class="oi oi-eject"></span>Clear Match
+            </button>
+        }
+        else if (_matchState == MatchState.Stopped && _currentRound >= 1)
+        {
+            <button class="btn btn-primary" @onclick="StartMatch">
+                <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
+            </button>
+            <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                <span class="oi oi-eject"></span>Clear Match
+            </button>
+        }
+        else if (_matchState == MatchState.Paused)
+        {
+            <button class="btn btn-primary" @onclick="ResumeRound">
+                <span class="oi oi-media-play"></span>Resume Round
+            </button>
+        }
+        else if (_matchState == MatchState.Running)
+        {
+            <button class="btn btn-primary" @onclick="PauseRound">
+                <span class="oi oi-media-pause"></span>Pause Round
+            </button>
+            <button class="btn btn-outline-primary" @onclick="EndRound">
+                <span class="oi oi-media-stop"></span> End Round
+            </button>
+        }
+
+        <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+            <span class="oi oi-media-record"></span>Subscribe
+        </button>
+
+        @*<button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>*@
+
+
+        <AdminLog />
+        @*<p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
+        <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha);">
+            @if (_adminLogs.Any())
+            {
+                foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200))
+                {
+                    <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+                }
+
+                if (_adminLogs.Count() > 200)
+                {
+                    <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing 200 / @_adminLogs.Count)</p>
+                }
+            }
+        </div>*@
+
+        <StreamLog />
+        @*<p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
+        <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha);">
+            @if (_streamLogs.Any())
+            {
+                foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200))
+                {
+                    <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+                }
+
+                if (_streamLogs.Count() > 200)
+                {
+                    <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing 200 / @_streamLogs.Count)</p>
+                }
+            }
+        </div>*@
+
+    </div>
 
     </div>
 
@@ -302,7 +305,7 @@
 
     private void ClearMatch()
     {
-        if ((ScrimMatchEngine.GetMatchState() == MatchState.Stopped))
+        if ((ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized))
         {
             ScrimMatchEngine.ClearMatch();
 
