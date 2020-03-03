@@ -1125,7 +1125,8 @@ button.refresh {
 .sq-mini-card-6,
 .sq-mini-card-3 {
     line-height: 1rem;
-    margin: 0.3125rem 0;
+    /*margin: 0.3125rem 0;*/
+    margin: 0.5rem 0;
     padding: 0;
     background-color: var(--sq-ps2-primary-light-alpha-30);
     border-top: 2px solid var(--sq-ps2-primary-light);
