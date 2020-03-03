@@ -227,7 +227,7 @@ app {
 
     .btn-primary:not(:disabled):not(.disabled):focus,
     .btn-primary:not(:disabled):not(.disabled):focus:active {
-        box-shadow: 0 0 0 .1rem var(--sq-pink-lighter-alpha-80);
+        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-80);
     }
 
 .btn-outline-primary {
@@ -263,7 +263,7 @@ app {
 
     .btn-outline-primary:not(:disabled):not(.disabled):focus,
     .btn-outline-primary:not(:disabled):not(.disabled):focus:active {
-        box-shadow: 0 0 0 .1rem var(--sq-pink-lighter-alpha-80);
+        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-80);
     }
 
 /****************************
