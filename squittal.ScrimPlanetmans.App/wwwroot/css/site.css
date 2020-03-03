@@ -202,6 +202,7 @@ app {
     border-color: var(--sq-pink-darker);
     transition: none;
     font-size: 0.9rem;
+    margin-bottom: 0.2rem;
 }
 
     .btn-primary .oi {
@@ -239,6 +240,7 @@ app {
     border-color: var(--sq-pink);
     transition: none;
     font-size: 0.9rem;
+    margin-bottom: 0.2rem;
 }
 
     .btn-outline-primary .oi {

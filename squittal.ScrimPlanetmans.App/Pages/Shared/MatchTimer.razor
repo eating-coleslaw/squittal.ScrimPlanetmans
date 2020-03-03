@@ -6,7 +6,14 @@
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimMessageBroadcastService MessageService
 
-<span>@_clock (@_clockStatusDisplay)</span>
+@if (Debug)
+{
+    <span>@_clock (@_clockStatusDisplay)</span>
+}
+else
+{
+    <span>@_clock</span>
+}
 
 @if (_playSound)
 {
@@ -14,6 +21,9 @@
 }
 
 @code {
+    [Parameter]
+    public bool Debug { get; set; } = false;
+
     private string _clock = "--:--";
     private MatchTimerState _clockStatus = MatchTimerState.Uninitialized;
     private string _clockStatusDisplay
@@ -27,6 +37,7 @@
     bool _playSound = false;
     bool _playedSound = false;
     bool _canPlaySound = false;
+
 
     protected override void OnInitialized()
     {
