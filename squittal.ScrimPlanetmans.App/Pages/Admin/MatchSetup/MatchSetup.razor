@@ -66,9 +66,6 @@
             }
 
 
-            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>
 
             @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
             {
@@ -100,6 +97,10 @@
                     <span class="oi oi-media-stop"></span> End Round
                 </button>
             }
+
+            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>
 
             @*<button class="btn btn-primary" @onclick="EndCensusSubscription">STOP!</button>*@
 
