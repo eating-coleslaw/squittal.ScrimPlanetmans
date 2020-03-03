@@ -204,6 +204,11 @@ app {
     font-size: 0.9rem;
 }
 
+    .btn-primary .oi {
+        font-size: 0.7rem;
+        padding-right: 0.5rem;
+    }
+
     .btn-primary:not(:disabled):not(.disabled):hover,
     .btn-primary:not(:disabled):not(.disabled):active {
         /*background-color: #e34f8c;
@@ -214,8 +219,48 @@ app {
         border-color: var(--sq-pink-darker);
     }
 
+        .btn-primary:not(:disabled):not(.disabled):hover .oi,
+        .btn-primary:not(:disabled):not(.disabled):active.oi {
+            color: #FFFFFF;
+        }
+
     .btn-primary:not(:disabled):not(.disabled):focus,
     .btn-primary:not(:disabled):not(.disabled):focus:active {
+        box-shadow: 0 0 0 .1rem var(--sq-pink-lighter-alpha-80);
+    }
+
+.btn-outline-primary {
+    border-radius: 0.2rem;
+    line-height: 1;
+    /*background-color: var(--sq-pink-lighter);
+    border-color: var(--sq-pink-darker);*/
+    background-color: transparent;
+    color: var(--sq-pink);
+    border-color: var(--sq-pink);
+    transition: none;
+    font-size: 0.9rem;
+}
+
+    .btn-outline-primary .oi {
+        color: var(--sq-pink);
+        font-size: 0.7rem;
+        padding-right: 0.5rem;
+    }
+
+    .btn-outline-primary:not(:disabled):not(.disabled):hover,
+    .btn-outline-primary:not(:disabled):not(.disabled):active {
+        color: #FFFFFF;
+        background-color: var(--sq-pink);
+        border-color: var(--sq-pink-darker);
+    }
+
+        .btn-outline-primary:not(:disabled):not(.disabled):hover .oi,
+        .btn-outline-primary:not(:disabled):not(.disabled):active .oi {
+            color: #FFFFFF;
+        }
+
+    .btn-outline-primary:not(:disabled):not(.disabled):focus,
+    .btn-outline-primary:not(:disabled):not(.disabled):focus:active {
         box-shadow: 0 0 0 .1rem var(--sq-pink-lighter-alpha-80);
     }
 
