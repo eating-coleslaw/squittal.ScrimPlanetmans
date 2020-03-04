@@ -33,8 +33,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private string _defaultAliasPreText = "tm";
 
-        //private Dictionary<string, int> _characterTeamOrdinalMap;
-
 
         public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, IScrimMessageBroadcastService messageService, ILogger<ScrimTeamsManager> logger)
         {
@@ -118,7 +116,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = _ordinalTeamMap[teamOrdinal];
             var oldAlias = team.Alias;
             
-            //team.Alias = alias;
             if (team.TrySetAlias(alias))
             {
                 _logger.LogInformation($"Alias for Team {teamOrdinal} changed from {oldAlias} to {alias}");
@@ -252,7 +249,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var team = GetTeam(teamOrdinal);
 
-            //player.Team = team;
             player.TeamOrdinal = team.TeamOrdinal;
 
             if (team.TryAddPlayer(player))
@@ -290,7 +286,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            var team = GetTeam(teamOrdinal); //_ordinalTeamMap[teamOrdinal];
+            var team = GetTeam(teamOrdinal);
 
             if (!team.TryAddOutfit(outfit))
             {
@@ -324,8 +320,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             foreach (var player in players)
             {
-                //player.Team = team;
-                player.TeamOrdinal = teamOrdinal; // team.TeamOrdinal;
+                player.TeamOrdinal = teamOrdinal;
 
                 if (team.TryAddPlayer(player))
                 {
@@ -374,16 +369,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             foreach (var player in newPlayers)
             {
-                //if (!IsCharacterAvailable(player.Id, out Team playerTeam))
-                //{
-                //    // TODO: broadcast "Couldn't Add Player to Team Message
-                //    continue;
-                //}
-
                 var isLastPlayer = (player == lastPlayer);
 
-                //player.Team = team;
-                player.TeamOrdinal = teamOrdinal; // team.TeamOrdinal;
+                player.TeamOrdinal = teamOrdinal;
 
                 if (outfitTeam.TryAddPlayer(player))
                 {
@@ -463,14 +451,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public bool RemovePlayerFromTeam(Player player)
         {
-            //var player = GetPlayerFromId(characterId);
 
-            //if (player == null)
-            //{
-            //    return false;
-            //}
-
-            var team = GetTeam(player.TeamOrdinal); // player.Team;
+            var team = GetTeam(player.TeamOrdinal);
 
             if(team.TryRemovePlayer(player.Id))
             {
@@ -534,29 +516,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             // TODO: broadcast "Finished Clearing Team" message
-
-            //var newTeam = new Team($"{_defaultAliasPreText}{teamOrdinal}", $"Team {teamOrdinal}", teamOrdinal);
-
-            //if (teamOrdinal == 1)
-            //{
-            //    Team1 = newTeam;
-            //}
-            //else if (teamOrdinal == 2)
-            //{
-            //    Team2 = newTeam;
-            //}
-            //else
-            //{
-            //    return;
-            //}
-
-            //var characterIdsToRemove = _allPlayers.Where(p => p.TeamOrdinal == teamOrdinal).Select(p => p.Id).ToList();
-
-            //_allCharacterIds.RemoveAll(cId => characterIdsToRemove.Contains(cId));
-            //_allPlayers.RemoveAll(p => characterIdsToRemove.Contains(p.Id));
-            //_participatingPlayers.RemoveAll(p => characterIdsToRemove.Contains(p.Id));
-
-            // TODO: send "Team Cleared" broadcast message
         }
 
 
