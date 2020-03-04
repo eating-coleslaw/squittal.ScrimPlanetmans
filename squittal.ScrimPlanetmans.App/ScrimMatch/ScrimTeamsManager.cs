@@ -20,8 +20,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimTeamsManager> _logger;
 
-        private Team Team1;
-        private Team Team2;
+        private readonly Team Team1;
+        private readonly Team Team2;
 
         private readonly Dictionary<int, Team> _ordinalTeamMap = new Dictionary<int, Team>();
 
