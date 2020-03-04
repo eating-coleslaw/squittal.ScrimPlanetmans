@@ -91,31 +91,6 @@
             </EditForm>
         </div>
     }
-
-
-    @*@if  (_team != null && _teamOutfits.Any() && ScrimMatchEngine.GetMatchState() != MatchState.Uninitialized)
-    {
-        <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="margin-bottom: 0.5rem;">
-            <thead>
-                <tr>
-                    <th>K</th>
-                    <th>D</th>
-                    <th>P</th>
-                    <th>N</th>
-                </tr>
-            </thead>
-                    
-            <tbody>
-                <tr>
-                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Kills);">@(_team.EventAggregate.Kills)</td>
-                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Deaths);">@(_team.EventAggregate.Deaths)</td>
-                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Points);">@(_team.EventAggregate.Points)</td>
-                    <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregate.NetScore);">@(_team.EventAggregate.NetScore)</td>
-                </tr>
-            </tbody>
-        </table>
-    }*@
-
 </div>
 
 @if (_teamOutfits.Any())
@@ -230,10 +205,6 @@
                                     else
                                     {
                                         <td colspan="6" style="font-weight: 400;">Benched Players</td>
-                                        @*<th>K</th>
-                                        <th>D</th>
-                                        <th>P</th>
-                                        <th>N</th>*@
                                     }
 
                                     <th style="padding-right: 5px;width: 15px;"></th>
@@ -245,21 +216,6 @@
                                 </tr>
 
                             </thead>
-                        
-
-                            @*<tr style="border-bottom: 1px solid var(--sq-ps2-primary)">*@
-                                @*<td></td>*@
-                                @*<td colspan="7" style="font-weight: 600;">Benched Players</td>*@
-                                @*<td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>*@
-                                @*@if (_showRemovals)
-                                {
-                                    <td></td>
-                                }
-                            </tr>*@
 
                             <tbody>
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && p.IsBenched).ToList())
