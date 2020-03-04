@@ -38,6 +38,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsOnline { get; set; } = false;
         public bool IsActive { get; set; } = false;
         public bool IsParticipating { get; set; } = false;
+        public bool IsBenched { get; set; } = false;
 
 
         public Player(Character character)

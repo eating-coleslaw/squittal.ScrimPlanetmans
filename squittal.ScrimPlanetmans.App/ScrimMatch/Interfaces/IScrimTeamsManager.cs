@@ -42,13 +42,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         int? GetTeamOrdinalFromPlayerId(string characterId);
         bool DoPlayersShareTeam(string firstId, string secondId, out int? firstOrdinal, out int? secondOrdinal);
         bool IsPlayerTracked(string characterId);
-        void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
+        
         Team GetTeamFromOutfitAlias(string aliasLower);
-        void SetPlayerOnlineStatus(string characterId, bool isOnline);
-        void SetPlayerLoadoutId(string characterId, int? loadoutId);
+        
         bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer);
         bool IsOutfitAvailable(string alias);
         Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString);
-        
+
+        void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
+        void SetPlayerOnlineStatus(string characterId, bool isOnline);
+        void SetPlayerLoadoutId(string characterId, int? loadoutId);
+        void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
+        void SetPlayerBenchedStatus(string characterId, bool isBenched);
     }
 }

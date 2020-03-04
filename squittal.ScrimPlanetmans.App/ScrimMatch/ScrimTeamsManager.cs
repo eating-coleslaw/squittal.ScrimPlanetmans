@@ -699,6 +699,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             player.EventAggregate.Add(updates);
 
+            if (!player.IsBenched)
+            {
+                player.IsActive = true;
+            }
+
+            player.IsParticipating = true;
+
             if (!_participatingPlayers.Any(p => p.Id == player.Id))
             {
                 _participatingPlayers.Add(player);
@@ -728,9 +735,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             throw new NotImplementedException();
         }
 
+        #region Player Status Updates
         public void SetPlayerOnlineStatus(string characterId, bool isOnline)
         {
-            GetPlayerFromId(characterId).IsOnline = isOnline;
+            var player = GetPlayerFromId(characterId);
+            player.IsOnline = isOnline;
+
+            SendPlayerStatUpdateMessage(player);
+        }
+        
+        public void SetPlayerParticipatingStatus(string characterId, bool isParticipating)
+        {
+            var player = GetPlayerFromId(characterId);
+            player.IsParticipating = isParticipating;
+            player.IsActive = (!player.IsBenched && isParticipating);
+
+            SendPlayerStatUpdateMessage(player);
+        }
+
+        public void SetPlayerBenchedStatus(string characterId, bool isBenched)
+        {
+            var player = GetPlayerFromId(characterId);
+            player.IsBenched = isBenched;
+            player.IsActive = (!isBenched && player.IsParticipating);
+
+            SendPlayerStatUpdateMessage(player);
         }
 
         public void SetPlayerLoadoutId(string characterId, int? loadoutId)
@@ -740,14 +769,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            GetPlayerFromId(characterId).LoadoutId = loadoutId;
-        }
+            var player = GetPlayerFromId(characterId);
+           player.LoadoutId = loadoutId;
 
-        private bool TeamContainsOutfits(int teamOrdinal)
-        {
-            return TeamOutfitCount(teamOrdinal) > 0;
+            SendPlayerStatUpdateMessage(player);
         }
+        #endregion
 
+        #region Messaging
         private void SendTeamPlayerAddedMessage(Player player, bool isLastOfOutfit = false)
         {
             var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add, isLastOfOutfit);
@@ -765,6 +794,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var payload = new PlayerStatUpdateMessage(player);
             _messageService.BroadcastPlayerStatUpdateMessage(payload);
         }
+        #endregion
 
         public void Dispose()
         {
