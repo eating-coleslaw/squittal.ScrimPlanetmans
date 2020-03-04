@@ -136,33 +136,39 @@
                 <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th style="padding-right: 5px;width: 15px;"></th>
                             <th></th>
                             <th>K</th>
                             <th>D</th>
                             <th>P</th>
                             <th>N</th>
+                            <th style="width: 15px; padding-right: 5px;"></th>
                         </tr>
                     </thead>
                     
                     <tbody>
                         @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id).ToList())
                         {
-                            <tr>
-                                <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-                                <td  title="@member.NameFull [@(member.Id)]">
-                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+                        <tr>
+                            <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
+                            <td title="@member.NameFull [@(member.Id)]">
+                                <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
+                                <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
 
-                                </td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
-                                <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
+                            </td>
+                            <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
+                            <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
+                            <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
+                            <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
 
-                                @* TODO: add button to remove player*@
+                            @* TODO: add button to remove player*@
+                            <td style="width: 15px; text-align: right;">
+                                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
+                                    <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                                </button>
+                            </td>
 
-                            </tr>
+                        </tr>
                         }
                     </tbody>
                 </table>
@@ -200,13 +206,13 @@
                 <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem;">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th style="padding-right: 5px;width: 15px;"></th>
                             <th></th>
                             <th>K</th>
                             <th>D</th>
                             <th>P</th>
                             <th>N</th>
-                            <th></th>
+                            <th style="width: 15px; padding-right: 0;"></th>
                         </tr>
                     </thead>
                     
@@ -214,7 +220,7 @@
                         @foreach (var member in _teamNonOutfitPlayers)
                         {
                             <tr class="@SqCssHelper.GetFactionClassFromId(member.FactionId)">
-                                <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
+                                <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
                                 <td  title="@member.NameFull [@(member.Id)]">
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
                                     <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
@@ -224,8 +230,8 @@
                                 <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
                                 <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
                                 <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
-                                <td style="width: 30px;">
-                                    <button style="font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
+                                <td style="width: 15px; text-align: right;">
+                                    <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
                                         <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
                                     </button>
                                 </td>
