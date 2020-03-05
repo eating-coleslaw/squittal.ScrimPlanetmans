@@ -99,7 +99,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _latestTimerTickMessage = null;
 
-            // TODO: empty Teams, reset points, etc.
             _teamsManager.ClearAllTeams();
 
             SendUpdateMessage();
@@ -176,6 +175,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.DisableScoring();
 
             // TODO: reset Team and Player scores
+            _teamsManager.RollBackAllTeamStats(_currentRound);
+
+            _currentRound -= 1;
+
+            if (_currentRound == 0)
+            {
+                _matchState = MatchState.Uninitialized;
+                _latestTimerTickMessage = null;
+            }
+
+            SendUpdateMessage();
         }
 
         public void ResumeRound()

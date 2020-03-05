@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.Diagnostics;
+
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
     public class ScrimEventAggregateRoundTracker
@@ -99,10 +101,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 {
                     RoundHistory.Add(round, result);
                 }
-
             }
         }
-
 
         public void ResetRoundStats()
         {
@@ -134,22 +134,54 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
-        public void SaveRoundToHistory(int round)
+        public void SaveRoundToHistory(int currentRound)
         {
-            if (round < 1)
+            if (currentRound < 1)
             {
                 // TODO: throw error
                 return;
             }
 
-            var maxRound = GetHighestHistoryRound();
+            var maxBaseRound = GetHighestHistoryRound();
 
+            //var maxRound = maxBaseRound >= currentRound
+            //                ? maxBaseRound
+            //                : currentRound;
+
+            //Debug.WriteLine($"Saving Round to History: max={maxRound} current={currentRound} maxBase={maxBaseRound}");
+
+            //// Also fill in any missing rounds
+            //for (var round = 1; round == maxRound; round++)
+            //{
+            //    var result = new ScrimEventAggregate();
+
+            //    if (round == currentRound)
+            //    {
+            //        result.Add(RoundStats);
+            //    }
+
+            //    if (RoundHistory.TryGetValue(round, out var baseRound))
+            //    {
+            //        result.Add(baseRound);
+            //        RoundHistory[round] = result;
+            //    }
+            //    else
+            //    {
+            //        RoundHistory.Add(round, result);
+            //    }
+            //}
+
+            //Debug.WriteLine($"Saving Round to History: max={maxRound} current={currentRound} maxBase-Pre={maxBaseRound}maxBase-Post={GetHighestHistoryRound()}");
+
+
+            /*
             // Only allow updating the current round, or saving a new round
-            if (round != maxRound && round != (maxRound + 1))
+            if (currentRound != maxBaseRound && currentRound != (maxBaseRound + 1))
             {
                 // TODO: throw error
                 return;
             }
+            */
 
             var roundStats = new ScrimEventAggregate();
 
@@ -163,14 +195,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             //    }
             //}
 
-            if (RoundHistory.ContainsKey(round))
+            if (RoundHistory.ContainsKey(currentRound))
             {
-                RoundHistory[round] = roundStats;
+                RoundHistory[currentRound].Add(roundStats); // = roundStats;
             }
             else
             {
-                RoundHistory.Add(round, roundStats);
+                RoundHistory.Add(currentRound, roundStats);
             }
+            
 
             // TODO: take this into account elsewhere
             RoundStats = new ScrimEventAggregate();

@@ -193,12 +193,9 @@
                             {
                                 <tr>
                                     <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-                                    @*<td style="text-overflow: ellipsis;overflow: hidden;max-width: 200px;" title="@member.NameFull">@member.NameFull</td>*@
-                                    @*<td style="font-size:smaller; color: var(--bs-gray);">@member.Id</td>*@
                                     <td title="@member.NameFull [@(member.Id)]">
                                         <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
                                         <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
-
                                     </td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
@@ -208,16 +205,42 @@
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.UtilityAssists);">@(member.EventAggregate.UtilityAssists)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.ObjectiveDefenseTicks);">@(member.EventAggregate.ObjectiveDefenseTicks)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.ObjectiveCaptureTicks);">@(member.EventAggregate.ObjectiveCaptureTicks)</td>
-                                    @*<td>@(member.EventAggregate.RevivesGiven)r</td>*@
-                                    @*<td>@(member.EventAggregate.DamageAssists)da</td>*@
-                                    @*<td>@(member.EventAggregate.ObjectiveCaptureTicks)cap</td>*@
-                                    @*<td>@(member.EventAggregate.ObjectiveDefenseTicks)def</td>*@
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
                                     <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
-
-                                    @* TODO: add button to remove player*@
-
                                 </tr>
+
+                                <tr>
+                                    <td></td>
+                                    <td>CurrentRound</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.Kills);">@(member.EventAggregateTracker.RoundStats.Kills)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.Deaths);">@(member.EventAggregateTracker.RoundStats.Deaths)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.RevivesGiven);">@(member.EventAggregateTracker.RoundStats.RevivesGiven)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.RevivesTaken);">@(member.EventAggregateTracker.RoundStats.RevivesTaken)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.DamageAssists);">@(member.EventAggregateTracker.RoundStats.DamageAssists)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.UtilityAssists);">@(member.EventAggregateTracker.RoundStats.UtilityAssists)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.ObjectiveDefenseTicks);">@(member.EventAggregateTracker.RoundStats.ObjectiveDefenseTicks)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks);">@(member.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks)</td>
+                                    <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.Points);">@(member.EventAggregateTracker.RoundStats.Points)</td>
+                                    <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.NetScore);">@(member.EventAggregateTracker.RoundStats.NetScore)</td>
+                                </tr>
+
+                                @foreach (var round in member.EventAggregateTracker.RoundHistory.Keys.ToList())
+                                {
+                                    <tr>
+                                        <td></td>
+                                        <td>Round @round</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].Kills);">@(member.EventAggregateTracker.RoundHistory[round].Kills)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].Deaths);">@(member.EventAggregateTracker.RoundHistory[round].Deaths)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].RevivesGiven);">@(member.EventAggregateTracker.RoundHistory[round].RevivesGiven)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].RevivesTaken);">@(member.EventAggregateTracker.RoundHistory[round].RevivesTaken)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].DamageAssists);">@(member.EventAggregateTracker.RoundHistory[round].DamageAssists)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].UtilityAssists);">@(member.EventAggregateTracker.RoundHistory[round].UtilityAssists)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].ObjectiveDefenseTicks);">@(member.EventAggregateTracker.RoundHistory[round].ObjectiveDefenseTicks)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks);">@(member.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks)</td>
+                                        <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].Points);">@(member.EventAggregateTracker.RoundHistory[round].Points)</td>
+                                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].NetScore);">@(member.EventAggregateTracker.RoundHistory[round].NetScore)</td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>

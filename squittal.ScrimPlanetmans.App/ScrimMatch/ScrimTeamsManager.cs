@@ -530,6 +530,38 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // TODO: broadcast "Finished Clearing Team" message
         }
 
+        public void RollBackAllTeamStats(int currentRound)
+        {
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
+            {
+                RollBackTeamStats(teamOrdinal, currentRound);
+            }
+        }
+
+        public void RollBackTeamStats(int teamOrdinal, int currentRound)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            team.EventAggregateTracker.RollBackRound(currentRound);
+            
+            var players = team.ParticipatingPlayers.ToList();
+
+            foreach (var player in players)
+            {
+                player.EventAggregateTracker.RollBackRound(currentRound);
+
+                team.ParticipatingPlayers.RemoveAll(p => p.Id == player.Id);
+                _participatingPlayers.RemoveAll(p => p.Id == player.Id);
+
+                SendPlayerStatUpdateMessage(player);
+            }
+        }
+
 
         public bool IsCharacterAvailable(string characterId)
         {
@@ -711,7 +743,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void SaveTeamRoundEndScores(int teamOrdinal, int round)
         {
-            GetTeam(teamOrdinal).EventAggregateTracker.SaveRoundToHistory(round);
+            var team = GetTeam(teamOrdinal);
+
+            team.EventAggregateTracker.SaveRoundToHistory(round);
+
+            var players = team.ParticipatingPlayers.ToList();
+
+            foreach (var player in players)
+            {
+                player.EventAggregateTracker.SaveRoundToHistory(round);
+            }
         }
 
 

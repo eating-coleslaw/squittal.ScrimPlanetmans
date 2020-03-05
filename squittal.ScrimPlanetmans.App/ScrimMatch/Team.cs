@@ -176,6 +176,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             EventAggregateTracker = new ScrimEventAggregateRoundTracker();
         }
 
+        public void RollBackPlayerRoundStats(string characterId, int currentRound)
+        {
+            //var player = Players.FirstOrDefault(p => p.Id == characterId);
+
+            //player.EventAggregateTracker.RollBackRound(currentRound);
+            EventAggregateTracker.RollBackRound(currentRound);
+        }
+
         //public void AddEventAggregateUpdate(ScrimEventAggregate update)
         //{
         //    EventAggregate.Add(update);
