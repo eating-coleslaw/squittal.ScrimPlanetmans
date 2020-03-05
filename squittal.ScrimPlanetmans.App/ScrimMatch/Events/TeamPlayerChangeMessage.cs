@@ -60,6 +60,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         }
     }
 
+    // TODO: replace all instances of this with TeamChangeType
     public enum TeamPlayerChangeType
     {
         Default = 0,
@@ -69,4 +70,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         SubstitueOut = 4,
         SetActive = 5
     };
+
+    public enum TeamChangeType
+    {
+        Default = 0,
+        Add = 1,
+        Remove = 2
+    }
 }

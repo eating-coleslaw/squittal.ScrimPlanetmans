@@ -13,10 +13,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
 
-        public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
+        //public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
+        public ScrimEventAggregate EventAggregate
+        {
+            get
+            {
+                return EventAggregateTracker.TotalStats;
+            }
+        }
+
+        public ScrimEventAggregate EventAggregateRound { get; set; }
 
         // Each aggregate is only the points scored during the round number of the enytry's key
-        public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory = new Dictionary<int, ScrimEventAggregate>();
+        public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory { get; set; } = new Dictionary<int, ScrimEventAggregate>();
+
+        public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
         public List<Player> Players { get; } = new List<Player>();
         public List<Player> ActivePlayers { get; } = new List<Player>();
@@ -55,6 +66,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TeamOrdinal = teamOrdinal;
 
             //EventAggregate = new ScrimEventAggregate();
+            EventAggregateRound = new ScrimEventAggregate();
         }
 
         public bool TrySetAlias(string alias, bool isCustomAlias = false)
@@ -112,6 +124,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             EventAggregate.Subtract(player.EventAggregate);
 
+            EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
+
             return true;
         }
 
@@ -144,6 +158,35 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return true;
         }
+
+        public void AddStatsUpdate(ScrimEventAggregate update)
+        {
+            //EventAggregate.Add(update);
+            EventAggregateTracker.AddToCurrent(update);
+        }
+
+        public void SubtractStatsUpdate(ScrimEventAggregate update)
+        {
+            //EventAggregate.Subtract(update);
+            EventAggregateTracker.SubtractFromCurrent(update);
+        }
+
+        public void ClearEventAggregateHistory()
+        {
+            EventAggregateTracker = new ScrimEventAggregateRoundTracker();
+        }
+
+        //public void AddEventAggregateUpdate(ScrimEventAggregate update)
+        //{
+        //    EventAggregate.Add(update);
+        //    EventAggregateRound.Add(update);
+        //}
+
+        //public void SubtractEventAggregateUpdate(ScrimEventAggregate update)
+        //{
+        //    EventAggregate.Subtract(update);
+        //    EventAggregateRound.Subtract(update);
+        //}
 
         public void SaveRoundToEventAggregateHistory(int round)
         {

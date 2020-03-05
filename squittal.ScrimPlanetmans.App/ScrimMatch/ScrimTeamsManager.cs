@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Shared.Models;
+using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -286,6 +287,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
+            outfit.TeamOrdinal = teamOrdinal;
+
             var team = GetTeam(teamOrdinal);
 
             if (!team.TryAddOutfit(outfit))
@@ -303,6 +306,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 UpdateTeamFaction(teamOrdinal, outfit.FactionId);
             }
+
+            SendTeamOutfitAddedMessage(outfit);
 
             /* Add Outfit Players to Team */
             var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
@@ -397,7 +402,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
+            var outfit = team.Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+
             team.TryRemoveOutfit(aliasLower);
+
+            SendTeamOutfitRemovedMessage(outfit);
 
             var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).ToList();
 
@@ -504,6 +513,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // if there are no outfitless players, we're done
             if (!team.Players.Any())
             {
+                team.ClearEventAggregateHistory();
+
                 // TODO: broadcast "Finished Clearing Team" message
                 return;
             }
@@ -515,6 +526,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 RemovePlayerFromTeam(player);
             }
 
+            team.ClearEventAggregateHistory();
             // TODO: broadcast "Finished Clearing Team" message
         }
 
@@ -656,7 +668,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var player = GetPlayerFromId(characterId);
 
-            player.EventAggregate.Add(updates);
+            //player.EventAggregate.Add(updates);
+            player.AddStatsUpdate(updates);
 
             if (!player.IsBenched)
             {
@@ -672,9 +685,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var team = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId));
 
-            team.EventAggregate.Add(updates);
-
-            //var teamStats = team.EventAggregate;
+            //team.EventAggregate.Add(updates);
+            team.AddStatsUpdate(updates);
 
             if (!team.ParticipatingPlayers.Any(p => p.Id == player.Id))
             {
@@ -691,8 +703,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void SaveRoundEndScores(int round)
         {
-            throw new NotImplementedException();
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
+            {
+                SaveTeamRoundEndScores(teamOrdinal, round);
+            }
         }
+
+        public void SaveTeamRoundEndScores(int teamOrdinal, int round)
+        {
+            GetTeam(teamOrdinal).EventAggregateTracker.SaveRoundToHistory(round);
+        }
+
 
         #region Player Status Updates
         public void SetPlayerOnlineStatus(string characterId, bool isOnline)
@@ -746,6 +767,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var payload = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Remove);
             _messageService.BroadcastTeamPlayerChangeMessage(payload);
+        }
+
+        private void SendTeamOutfitAddedMessage(Outfit outfit)
+        {
+            var payload = new TeamOutfitChangeMessage(outfit, TeamChangeType.Add);
+            _messageService.BroadcastTeamOutfitChangeMessage(payload);
+        }
+
+        private void SendTeamOutfitRemovedMessage(Outfit outfit)
+        {
+            var payload = new TeamOutfitChangeMessage(outfit, TeamChangeType.Remove);
+            _messageService.BroadcastTeamOutfitChangeMessage(payload);
         }
 
         private void SendPlayerStatUpdateMessage(Player player)

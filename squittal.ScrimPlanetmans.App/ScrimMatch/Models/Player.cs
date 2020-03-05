@@ -13,10 +13,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         //public Team Team { get; set; }
         public int TeamOrdinal { get; set; }
 
-        public ScrimEventAggregate EventAggregate;
+        //public ScrimEventAggregate EventAggregate { get; set; }
+        //public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
+        public ScrimEventAggregate EventAggregate
+        {
+            get
+            {
+                return EventAggregateTracker.TotalStats;
+            }
+        }
+
+
+        public ScrimEventAggregate EventAggregateRound { get; set; }
 
         // Each aggregate is only the points scored during the round number of the enytry's key
         public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory = new Dictionary<int, ScrimEventAggregate>();
+
+        public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
         public string NameFull { get; set; }
         public string NameDisplay { get; set; }
@@ -53,7 +66,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitAlias = character.OutfitAlias;
             OutfitAliasLower = character.OutfitAliasLower;
 
-            EventAggregate = new ScrimEventAggregate();
+            //EventAggregate = new ScrimEventAggregate();
+            EventAggregateRound = new ScrimEventAggregate();
         }
 
         private static string GetTrimmedPlayerName(string name)
@@ -80,7 +94,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             {
                 return name;
             }
-            
+
             if (string.IsNullOrWhiteSpace(trimmed))
             {
                 trimmed = name;
@@ -99,6 +113,32 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NameAlias = alias;
             NameDisplay = NameAlias;
         }
+
+        public void AddStatsUpdate(ScrimEventAggregate update)
+        {
+            //EventAggregate.Add(update);
+            EventAggregateTracker.AddToCurrent(update);
+        }
+
+        public void SubtractStatsUpdate(ScrimEventAggregate update)
+        {
+            //EventAggregate.Subtract(update);
+            EventAggregateTracker.SubtractFromCurrent(update);
+        }
+
+        //public void AddEventAggregateUpdate(ScrimEventAggregate update)
+        //{
+        //    EventAggregate.Add(update);
+        //    EventAggregateRound.Add(update);
+        //}
+
+        //public void SubtractEventAggregateUpdate(ScrimEventAggregate update)
+        //{
+        //    EventAggregate.Subtract(update);
+        //    EventAggregateRound.Subtract(update);
+        //}
+
+
 
         public void SaveRoundToEventAggregateHistory(int round)
         {

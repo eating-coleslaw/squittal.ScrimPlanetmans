@@ -8,6 +8,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
 
         event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
+        event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
+
         event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         
         event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
@@ -25,6 +27,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastSimpleMessage(string message);
 
         void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message);
+        void BroadcastTeamOutfitChangeMessage(TeamOutfitChangeMessage message);
         void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message);
 
         void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message);

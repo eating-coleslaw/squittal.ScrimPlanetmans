@@ -54,5 +54,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void SetPlayerLoadoutId(string characterId, int? loadoutId);
         void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
         void SetPlayerBenchedStatus(string characterId, bool isBenched);
+        void SaveRoundEndScores(int round);
     }
 }

@@ -416,6 +416,8 @@
     protected override async Task OnInitializedAsync()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
@@ -738,6 +740,21 @@
         {
             StateHasChanged();
         });
+    }
+
+    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    {
+        var message = e.Message;
+        
+        if (message.ChangeType == TeamChangeType.Add)
+        {
+            _teamOutfitsLoading.Remove(message.Outfit.AliasLower);
+            
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
     }
 
     private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)

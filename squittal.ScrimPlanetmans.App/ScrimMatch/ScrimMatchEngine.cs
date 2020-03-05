@@ -126,6 +126,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _timer.Halt();
             }
 
+            _teamsManager.SaveRoundEndScores(_currentRound);
+
             _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
 
             SendUpdateMessage();

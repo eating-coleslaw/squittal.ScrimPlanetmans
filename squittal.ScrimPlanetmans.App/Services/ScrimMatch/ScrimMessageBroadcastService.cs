@@ -13,6 +13,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
         public delegate void TeamPlayerChangeEventHandler(object sender, TeamPlayerChangeEventArgs e);
+        
+        public event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
+        public delegate void TeamOutfitChangeEventHandler(object sender, TeamOutfitChangeEventArgs e);
 
         public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
@@ -41,7 +44,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public delegate void MatchStateUpdateEventHandler(object sender, MatchStateUpdateEventArgs e);
 
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
-
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
 
         public ScrimMessageBroadcastService(ILogger<ScrimMessageBroadcastService> logger)
@@ -164,6 +166,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
         {
             RaiseTeamPlayerChangeEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastTeamOutfitChangeMessage(TeamOutfitChangeMessage message)
+        {
+            OnRaiseTeamOutfitChangeEvent(new TeamOutfitChangeEventArgs(message));
+        }
+        protected virtual void OnRaiseTeamOutfitChangeEvent(TeamOutfitChangeEventArgs e)
+        {
+            RaiseTeamOutfitChangeEvent?.Invoke(this, e);
         }
     }
 }
