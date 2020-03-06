@@ -70,11 +70,4 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         SubstitueOut = 4,
         SetActive = 5
     };
-
-    public enum TeamChangeType
-    {
-        Default = 0,
-        Add = 1,
-        Remove = 2
-    }
 }
