@@ -18,7 +18,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             CurrentRound = currentRound;
             MatchTitle = matchTitle;
 
-            Info = $"Match \"{MatchTitle}\" State Changed: {Enum.GetName(typeof(MatchState), matchState)} | Round {CurrentRound}";
+            Info = $"Match \"{MatchTitle}\" State Changed: {Enum.GetName(typeof(MatchState), matchState).ToUpper()} | Round {CurrentRound}";
         }
     }
 }
