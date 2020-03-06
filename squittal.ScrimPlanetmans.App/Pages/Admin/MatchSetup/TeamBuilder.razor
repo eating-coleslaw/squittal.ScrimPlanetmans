@@ -690,11 +690,6 @@
         {
             _teamOutfitsLoadingMembers.Add(aliasLower);
 
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-
             var success = await ScrimTeamsManager.RefreshOutfitPlayers(aliasLower);
 
             _teamOutfitsLoadingMembers.Remove(aliasLower);
@@ -721,9 +716,6 @@
             _validOutfitAliasHistory.RemoveAll(alias => alias == aliasLower);
             _teamOutfits.RemoveAll(o => o.AliasLower == aliasLower);
 
-            //_teamPlayers.RemoveAll(p => p.OutfitAliasLower == aliasLower);
-            //_teamPlayersOnline.RemoveAll(p => p.OutfitAliasLower == aliasLower);
-            //_teamPlayersParticipating.RemoveAll(p => p.OutfitAliasLower == aliasLower);
             _outfitPlayersExtendedMap.Remove(aliasLower);
         }
     }
@@ -756,14 +748,12 @@
         if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
         {
             _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
-            //StateHasChanged();
         }
     }
 
     private void TogglNoneOutfitPlayersVisibility()
     {
         _extendNonOutfitPlayers = !_extendNonOutfitPlayers;
-        //StateHasChanged();
     }
 
     private bool ShowOutfitPlayers(string aliasLower)
@@ -781,8 +771,6 @@
     private void LogMessage(string message)
     {
         MessageService.BroadcastSimpleMessage(message);
-
-        //i_OnAdminLogTextAdded.InvokeAsync(message);
     }
 
     /*****************
@@ -809,7 +797,6 @@
                 break;
         }
 
-        //LogMessage(message.Info);
         InvokeAsync(() =>
         {
             StateHasChanged();
@@ -863,20 +850,11 @@
         {
             _teamOutfitsLoadingMembers.Remove(player.OutfitAliasLower);
         }
-
-        //LogMessage(message.Info);
     }
 
     private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
     {
         var player = message.Player;
-
-        //if (player.TeamOrdinal != i_teamOrdinal)
-        //{
-        //    return;
-        //}
-
-        //_teamPlayers.RemoveAll(p => p.Id == player.Id);
 
         if (_teamPlayersOnline.Any(p => p.Id == player.Id) || _teamPlayersParticipating.Any(p => p.Id == player.Id) || _teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
@@ -891,11 +869,8 @@
             else
             {
                 SetOutfitMembersOnlineCount(player.OutfitAliasLower);
-                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
             }
         }
-
-        //LogMessage(message.Info);
     }
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
@@ -927,8 +902,6 @@
         {
             StateHasChanged();
         });
-
-        //LogMessage(message.Info);
     }
 
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
@@ -968,15 +941,12 @@
             return;
         }
 
-        //player.IsOnline = true; // TODO: remove this once PlayerLogin message events are implemented
-
         if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
         {
             _teamPlayersOnline.Add(player);
 
             if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
             {
-                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, 1);
                 SetOutfitMembersOnlineCount(player.OutfitAliasLower);
             }
         }
@@ -987,8 +957,6 @@
         }
 
         var message = $"Team {i_teamOrdinal} Player LOGIN: {player.NameDisplay} [{player.Id}]";
-
-        //LogMessage(message);
 
         InvokeAsync(() =>
         {
@@ -1007,8 +975,6 @@
             return;
         }
 
-        //player.IsOnline = false; // TODO: remove this once PlayerLogin message events are implemented
-
         if (_teamPlayersOnline.Any(p => p.Id == player.Id))
         {
             _teamPlayersOnline.Remove(player);
@@ -1016,7 +982,6 @@
             if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
             {
                 SetOutfitMembersOnlineCount(player.OutfitAliasLower);
-                //UpdateOutfitMembersOnlineCount(player.OutfitAliasLower, -1);
             }
         }
 
@@ -1027,8 +992,6 @@
         }
 
         var message = $"Team {i_teamOrdinal} Player LOGOUT: {player.NameDisplay} [{player.Id}]";
-
-        //LogMessage(message);
 
         InvokeAsync(() =>
         {
