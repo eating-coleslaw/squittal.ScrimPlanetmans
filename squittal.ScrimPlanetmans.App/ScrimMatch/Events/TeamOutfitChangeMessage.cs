@@ -24,11 +24,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                 return string.Empty;
             }
 
-            var type = ChangeType != TeamChangeType.Default
-                            ? Enum.GetName(typeof(TeamChangeType), ChangeType).ToUpper()
-                            : string.Empty;
+            var type = Enum.GetName(typeof(TeamChangeType), ChangeType).ToUpper();
+            //var type = ChangeType != TeamChangeType.Default
+            //                ? Enum.GetName(typeof(TeamChangeType), ChangeType).ToUpper()
+            //                : string.Empty;
 
-            return $"Team {Outfit.TeamOrdinal} {type}: [{Outfit.Alias}] {Outfit.Name} [{Outfit.Id}]";
+            return $"Team {Outfit.TeamOrdinal} Outfit {type}: [{Outfit.Alias}] {Outfit.Name} [{Outfit.Id}]";
         }
     }
 }
