@@ -59,23 +59,8 @@
 
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
-        //var message = e.Message;
-
         var info = e.Message.Info;
         LogMessage(info);
-
-        //switch (message.ChangeType)
-        //{
-        //    case TeamPlayerChangeType.Add:
-        //        HandleTeamPlayerChangeAdd(message);
-        //        break;
-
-        //    case TeamPlayerChangeType.Remove:
-        //        HandleTeamPlayerChangeRemove(message);
-        //        break;
-        //}
-
-        //LogMessage(message.Info);
     }
 
     private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)

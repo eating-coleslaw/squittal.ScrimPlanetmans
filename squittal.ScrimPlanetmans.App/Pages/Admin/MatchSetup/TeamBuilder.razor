@@ -117,7 +117,7 @@
 
             <div class="sq-content">
 
-                @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
+                @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower)) @*&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))*@
                 {
                     <SpinnerEllipsis />
                 }
@@ -688,7 +688,16 @@
     {
         if (!_teamOutfitsLoadingMembers.Contains(aliasLower) && _teamOutfits.Any(o => o.AliasLower == aliasLower))
         {
+            _teamOutfitsLoadingMembers.Add(aliasLower);
+
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+
             var success = await ScrimTeamsManager.RefreshOutfitPlayers(aliasLower);
+
+            _teamOutfitsLoadingMembers.Remove(aliasLower);
 
             var alias = _teamOutfits.Where(o => o.AliasLower == aliasLower).Select(o => o.Alias).FirstOrDefault();
 
@@ -810,11 +819,11 @@
     private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
     {
         var message = e.Message;
-        
+
         if (message.ChangeType == TeamChangeType.Add)
         {
             _teamOutfitsLoading.Remove(message.Outfit.AliasLower);
-            
+
             InvokeAsync(() =>
             {
                 StateHasChanged();
@@ -899,12 +908,12 @@
             return;
         }
 
-        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        if (player.IsParticipating && !_teamPlayersParticipating.Any(p => p.Id == player.Id))
         {
             _teamPlayersParticipating.Add(player);
         }
 
-        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        if ((player.IsParticipating || player.IsOnline) && !_teamPlayersVisible.Any(p => p.Id == player.Id))
         {
             _teamPlayersVisible.Add(player);
         }

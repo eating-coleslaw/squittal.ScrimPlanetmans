@@ -167,8 +167,6 @@
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
         _debug = "GetCensusStreamStatus";
-
-        //StateHasChanged();
     }
 
     private void SubscribeToCensus()
@@ -177,8 +175,6 @@
         _debug = "SubscribeToCensus";
 
         LogAdminMessage($"Subscribed all characters to Stream Monitor!");
-
-        //StateHasChanged();
     }
 
     private void EndCensusSubscription()
@@ -187,8 +183,6 @@
         _debug = "EndCensusSubscription";
 
         LogAdminMessage($"Removed all characters from Stream Monitor!");
-
-        //StateHasChanged();
     }
 
     private void StartMatch()
@@ -201,8 +195,6 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
-
-        //LogAdminMessage($"Started new match: {_matchConfiguration.Title}"); // TODO: add team names to this
 
         InvokeAsync(() =>
         {

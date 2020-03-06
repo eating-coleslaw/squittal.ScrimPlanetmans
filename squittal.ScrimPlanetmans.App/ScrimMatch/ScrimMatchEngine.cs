@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
@@ -7,9 +6,6 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -22,14 +18,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly IStatefulTimer _timer;
 
-        //public Team Team1;
-        //public Team Team2;
-
         public MatchConfiguration MatchConfiguration { get; set; }
-
-        private Dictionary<int, Team> _ordinalTeamMap = new Dictionary<int, Team>();
-
-        private List<string> _allCharacterIds = new List<string>();
 
         private bool _isRunning = false;
 
@@ -52,13 +41,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService = messageService;
             _logger = logger;
 
-            //_timer.RaiseMatchTimerTickEvent += OnMatchTimerTick;
-
             _messageService.RaiseMatchTimerTickEvent += OnMatchTimerTick;
 
             MatchConfiguration = new MatchConfiguration();
-            //Team1 = _teamsManager.GetTeamOne();
-            //Team2 = _teamsManager.GetTeamTwo();
         }
 
         
@@ -121,7 +106,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // Stop the timer if forcing the round to end (as opposed to timer reaching 0)
             if (GetLatestTimerTickMessage().MatchTimerStatus.State != MatchTimerState.Stopped)
             {
-                //_timer.Stop(); // TODO: change this to Halt, if Halt ends up getting implemented
                 _timer.Halt();
             }
 
@@ -142,7 +126,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _currentRound += 1;
             
             _roundSecondsRemaining = _roundSecondsMax;
-            //_roundSecondsElapsed = 0;
 
             _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
         }
@@ -174,7 +157,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Reset();
             _wsMonitor.DisableScoring();
 
-            // TODO: reset Team and Player scores
             _teamsManager.RollBackAllTeamStats(_currentRound);
 
             _currentRound -= 1;
@@ -211,7 +193,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SetLatestTimerTickMessage(e.Message);
 
             var status = message.MatchTimerStatus;
-            var info = message.Info;
 
             var state = status.State;
 

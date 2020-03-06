@@ -361,6 +361,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var newPlayers = players.Where(p => IsCharacterAvailable(p.Id)).ToList();
 
+            var oldPlayers = players.Where(p => !newPlayers.Contains(p)).ToList();
+            foreach (var player in oldPlayers)
+            {
+                SetPlayerOnlineStatus(player.Id, player.IsOnline);
+            }
+
             if (!newPlayers.Any())
             {
                 return false;
@@ -725,11 +731,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 team.ParticipatingPlayers.Add(player);
             }
 
-            //teamStats.Add(updates);
-
             SendPlayerStatUpdateMessage(player);
 
-            // TODO: broadcast Player stats update
             // TODO: broadcast Team stats update
         }
 
