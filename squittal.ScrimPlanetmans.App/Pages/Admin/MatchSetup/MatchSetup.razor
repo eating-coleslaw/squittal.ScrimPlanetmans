@@ -37,6 +37,8 @@
                 </div>
             </div>
 
+
+            @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
             @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
             {
                 <button class="btn btn-primary" @onclick="StartMatch">
@@ -54,8 +56,11 @@
                 <button class="btn btn-primary" @onclick="StartMatch">
                     <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
                 </button>
-                <button class="btn btn-primary" @onclick="ResetRound">
-                    <span class="oi oi-media-play"></span>Reset Round
+                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                    <span class="oi oi-media-record"></span>Subscribe
+                </button>
+                <button class="btn btn-outline-primary" @onclick="ResetRound">
+                    <span class="oi oi-media-step-backward"></span>Reset Round
                 </button>
                 <button class="btn btn-outline-primary" @onclick="ClearMatch">
                     <span class="oi oi-eject"></span>Clear Match
@@ -64,7 +69,10 @@
             else if (_matchState == MatchState.Paused)
             {
                 <button class="btn btn-primary" @onclick="ResumeRound">
-                    <span class="oi oi-media-play"></span>Resume Round
+                    <span class="oi oi-media-play"></span>Resume
+                </button>
+                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                    <span class="oi oi-media-record"></span>Subscribe
                 </button>
             }
             else if (_matchState == MatchState.Running)
@@ -72,17 +80,20 @@
                 <button class="btn btn-primary" @onclick="PauseRound">
                     <span class="oi oi-media-pause"></span>Pause Round
                 </button>
+                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                    <span class="oi oi-media-record"></span>Subscribe
+                </button>
                 <button class="btn btn-outline-primary" @onclick="EndRound">
                     <span class="oi oi-media-stop"></span> End Round
                 </button>
             }
 
-            @if (_matchState != MatchState.Uninitialized || _currentRound != 0)
+            @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
             {
                 <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
                     <span class="oi oi-media-record"></span>Subscribe
                 </button>
-            }
+            }*@
 
             @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
             {
@@ -191,7 +202,7 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
 
-        LogAdminMessage($"Started new match: {_matchConfiguration.Title}"); // TODO: add team names to this
+        //LogAdminMessage($"Started new match: {_matchConfiguration.Title}"); // TODO: add team names to this
 
         InvokeAsync(() =>
         {
