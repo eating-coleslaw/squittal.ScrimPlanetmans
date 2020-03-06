@@ -56,7 +56,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                             ? " ONLINE"
                             : string.Empty;
 
-            return $"Team {Player.TeamOrdinal} {type}: {Player.NameDisplay} [{Player.Id}]{online}";
+            return $"Team {Player.TeamOrdinal} Player {type}: {Player.NameDisplay} [{Player.Id}]{online}";
         }
     }
 
