@@ -24,10 +24,12 @@
 
     protected override void OnInitialized()
     {
+        // TODO: use Interface for Info property of messages 
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
     }
 
@@ -74,6 +76,12 @@
         //}
 
         //LogMessage(message.Info);
+    }
+
+    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
     }
     #endregion
 
