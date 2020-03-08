@@ -12,7 +12,7 @@
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
-@inject IScrimTeamsManager ScrimTeamsEngine
+@inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchScorer MatchScorer
 @inject IItemService ItemService
@@ -375,7 +375,7 @@
     {
         var characterId = payload.Value<string>("character_id");
 
-        var player = ScrimTeamsEngine.GetPlayerFromId(characterId);
+        var player = ScrimTeamsManager.GetPlayerFromId(characterId);
 
         if (player == null)
         {
@@ -391,7 +391,7 @@
     {
         var characterId = payload.Value<string>("character_id");
 
-        var player = ScrimTeamsEngine.GetPlayerFromId(characterId);
+        var player = ScrimTeamsManager.GetPlayerFromId(characterId);
 
         if (player == null)
         {
