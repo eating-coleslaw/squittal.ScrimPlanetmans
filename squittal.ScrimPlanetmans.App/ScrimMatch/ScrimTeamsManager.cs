@@ -236,7 +236,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         // Returns whether specified character was added to the specified team
         public async Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId)
         {
-            if (!IsCharacterAvailable(characterId, out Team owningTeam))
+            if (!IsCharacterAvailable(characterId))
             {
                 return false;
             }
@@ -274,7 +274,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string aliasLower, string alias)
         {
-            if (!IsOutfitAvailable(aliasLower, out Team owningTeam))
+            if (!IsOutfitAvailable(aliasLower))
             {
                 return false;
             }
