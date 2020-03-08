@@ -27,12 +27,36 @@
     }
     else if (!_teamOutfits.Any() && !_teamNonOutfitPlayers.Any())
     {
-        <h4>Team @(i_teamOrdinal)<span class="mono-font">@(_team.HasCustomAlias ? $": {_team.Alias}" : string.Empty)</span></h4>
+        <h4>
+            @*Team @(i_teamOrdinal)<span class="mono-font">@(_team.HasCustomAlias ? $": {_team.Alias}" : string.Empty)</span>*@
+            Team @(i_teamOrdinal): 
+            <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias" style="display: inline; font-size: 1.2rem;" class="mono-font">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <InputAlias id="setAliasInput" @bind-Value="_displayAlias" style="width: 55px; color: inherit;" />
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-pencil"></span>Update
+                </button>
+            </EditForm>
+        </h4>
+
     }
     else
     {
         <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary);">
-            Team @($"{i_teamOrdinal}: ")<span class="mono-font">@_team.Alias</span>
+            Team @($"{i_teamOrdinal}: ")
+            <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias" style="display: inline; font-size: 1.2rem; color: inherit;" class="mono-font">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <InputAlias id="setAliasInput" @bind-Value="_displayAlias" style="width: 55px; color: inherit;" />
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-pencil"></span>Update
+                </button>
+            </EditForm>
             <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
                 @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
                 <span style="font-weight: 700; font-size: larger;">
@@ -43,8 +67,8 @@
     }
 
     @* TODO: only display if match hasn't started yet*@
-    <div style="margin: 0.2rem 0;">
-        <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias">
+    @*<div style="margin: 0.2rem 0;">
+        <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias" style="display: inline;">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -52,7 +76,7 @@
 
             <button type="submit" class="btn btn-primary">Update</button>
         </EditForm>
-    </div>
+    </div>*@
 
     <div style="margin: 0.2rem 0;">
         <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
@@ -480,6 +504,7 @@
      ***********/
     protected override async Task OnInitializedAsync()
     {
+        // TODO: move MessageService event subscriptions to OnInitialized
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
 
@@ -511,6 +536,8 @@
         {
             return;
         }
+
+        _displayAlias.Alias = _team.Alias;
 
         _teamOutfits = _team.Outfits;
 
@@ -631,7 +658,12 @@
 
         var success = _team.TrySetAlias(newAlias, true);
 
-        if (success)
+        //if (success)
+        //{
+        //    _displayAlias.Alias = string.Empty;
+        //}
+
+        if (!success)
         {
             _displayAlias.Alias = string.Empty;
         }
