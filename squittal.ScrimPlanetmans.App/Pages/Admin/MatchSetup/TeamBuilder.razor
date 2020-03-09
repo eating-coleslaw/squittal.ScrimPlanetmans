@@ -171,45 +171,6 @@
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && !p.IsBenched).ToList())
                                 {
                                     <TeamBuilderPlayerRow Player=@member  ShowRemovalControls=@_showRemovals />
-                                    @*
-                                    <tr>
-                                        <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-
-                                        <td title="@member.NameFull [@(member.Id)]">
-                                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
-                                        </td>
-
-                                        <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
-                                        <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
-                                        <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
-                                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
-
-                                        <td style="width: 15px; text-align: right;">
-                                            @if (member.IsBenched)
-                                            {
-                                                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandleSubPlayerIn(member.Id))" title="Substitute Player In">
-                                                    <span class="oi oi-account-login" style="font-size: 0.8rem; top: 1px;"></span>
-                                                </button>
-                                            }
-                                            else if (!member.IsBenched)
-                                            {
-                                                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandleSubPlayerOut(member.Id))" title="Substitute Player Out">
-                                                    <span class="oi oi-account-logout" style="font-size: 0.8rem; top: 1px;"></span>
-                                                </button>
-                                            }
-                                        </td>
-
-                                        @if (_showRemovals)
-                                        {
-                                            <td style="width: 15px; text-align: right;">
-                                                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
-                                                    <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                                                </button>
-                                            </td>
-                                        }
-                                    </tr>
-                                    *@
                                 }
                             </tbody>
                         </table>
@@ -248,36 +209,6 @@
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && p.IsBenched).ToList())
                                 {
                                     <TeamBuilderPlayerRow Player=@member  ShowRemovalControls=@_showRemovals />
-                                    @*
-                                    <tr>
-                                        <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-
-                                        <td title="@member.NameFull [@(member.Id)]">
-                                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
-                                        </td>
-
-                                        <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
-                                        <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
-                                        <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
-                                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
-
-                                        <td style="width: 15px; text-align: right;">
-                                            <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandleSubPlayerIn(member.Id))" title="Substitute Player In">
-                                                <span class="oi oi-account-login" style="font-size: 0.8rem; top: 1px;"></span>
-                                            </button>
-                                        </td>
-
-                                        @if (_showRemovals)
-                                        {
-                                            <td style="width: 15px; text-align: right;">
-                                                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
-                                                    <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                                                </button>
-                                            </td>
-                                        }
-                                    </tr>
-                                    *@
                                 }
                             </tbody>
                         </table>
@@ -312,7 +243,7 @@
 
             @if (_extendNonOutfitPlayers && _teamNonOutfitPlayers.Any(p => !p.IsBenched))
             {
-                <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-80);">
+                <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
                     <thead>
                         <tr>
                             <th style="padding-right: 5px;width: 15px;"></th>
@@ -333,45 +264,6 @@
                         @foreach (var member in _teamNonOutfitPlayers.Where(p => !p.IsBenched).ToList())
                         {
                             <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_showRemovals />
-                            @*
-                            <tr class="@SqCssHelper.GetFactionClassFromId(member.FactionId)">
-                                <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-
-                                <td title="@member.NameFull [@(member.Id)]">
-                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
-                                </td>
-
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
-                                <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
-
-                                <td style="width: 15px; text-align: right;">
-                                    @if (member.IsBenched)
-                                    {
-                                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandleSubPlayerIn(member.Id))" title="Substitute Player In">
-                                            <span class="oi oi-account-login" style="font-size: 0.7rem; top: 0;"></span>
-                                        </button>
-                                    }
-                                    else if (!member.IsBenched)
-                                    {
-                                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandleSubPlayerOut(member.Id))" title="Substitute Player Out">
-                                            <span class="oi oi-account-logout" style="font-size: 0.7rem; top: 0;"></span>
-                                        </button>
-                                    }
-                                </td>
-
-                                @if (_showRemovals)
-                                {
-                                    <td style="width: 15px; text-align: right;">
-                                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
-                                            <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                                        </button>
-                                    </td>
-                                }
-                            </tr>
-                            *@
                         }
                     </tbody>
                 </table>
@@ -379,10 +271,10 @@
 
             @if (_teamNonOutfitPlayers.Any(p => p.IsBenched))
             {
-                <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-80);">
+                <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
                     <thead>
 
-                        <tr style="border-bottom: 1px solid var(--sq-pink-lighter-alpha-80)">
+                        <tr style="border-bottom: 1px solid var(--sq-pink-lighter-alpha-50)">
                             @if (!_teamNonOutfitPlayers.Any(p => !p.IsBenched))
                             {
                                 <th colspan="2" style="font-weight: 400;">Benched Players</th>
@@ -410,36 +302,6 @@
                         @foreach (var member in _teamNonOutfitPlayers.Where(p => p.IsBenched).ToList())
                         {
                             <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_showRemovals />
-                            @*
-                            <tr class="@SqCssHelper.GetFactionClassFromId(member.FactionId)">
-                                <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
-
-                                <td title="@member.NameFull [@(member.Id)]">
-                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
-                                </td>
-
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
-                                <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
-                                <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
-
-                                <td style="width: 15px; text-align: right;">
-                                    <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandleSubPlayerIn(member.Id))" title="Substitute Player In">
-                                        <span class="oi oi-account-login" style="font-size: 0.8rem; top: 1px;"></span>
-                                    </button>
-                                </td>
-
-                                @if (_showRemovals)
-                                {
-                                    <td style="width: 15px; text-align: right;">
-                                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => RemovePlayer(member.Id))" title="Remove Player">
-                                            <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                                        </button>
-                                    </td>
-                                }
-                            </tr>
-                            *@
                         }
                     </tbody>
                 </table>
@@ -520,6 +382,9 @@
         // TODO: move MessageService event subscriptions to OnInitialized
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
@@ -851,14 +716,15 @@
         if (message.ChangeType == TeamChangeType.Add)
         {
             _teamOutfitsLoading.Remove(message.Outfit.AliasLower);
-
-            _displayAlias.Alias = _team.Alias;
-
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
         }
+
+        _displayAlias.Alias = _team.Alias;
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+
     }
 
     private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
@@ -954,23 +820,23 @@
 
     private void ReceiveMessage(string message)
     {
-        var payload = TryParseMessagePayload(message);
-        if (payload == null)
-        {
-            return;
-        }
+        //var payload = TryParseMessagePayload(message);
+        //if (payload == null)
+        //{
+        //    return;
+        //}
 
-        var eventName = payload.Value<string>("event_name");
+        //var eventName = payload.Value<string>("event_name");
 
-        if (eventName == "PlayerLogin")
-        {
-            HandlePlayerLoginPayload(payload);
-        }
+        //if (eventName == "PlayerLogin")
+        //{
+        //    HandlePlayerLoginPayload(payload);
+        //}
 
-        else if (eventName == "PlayerLogout")
-        {
-            HandlePlayerLogoutPayload(payload);
-        }
+        //else if (eventName == "PlayerLogout")
+        //{
+        //    HandlePlayerLogoutPayload(payload);
+        //}
     }
 
     private void HandlePlayerLoginPayload(JToken payload)
@@ -1066,12 +932,63 @@
 
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
     {
+        var player = e.Message.Player;
 
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Add(player);
+
+            if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
+            {
+                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+            }
+        }
+
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 
     private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
     {
+        var player = e.Message.Player;
 
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Remove(player);
+
+            if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
+            {
+                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
+            }
+        }
+
+        // Only remove the player from the visible list if they haven't done anything in the match
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
     #endregion
 

@@ -235,7 +235,7 @@ app {
 
     .btn-primary:not(:disabled):not(.disabled):focus,
     .btn-primary:not(:disabled):not(.disabled):focus:active {
-        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-80);
+        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
 
 .btn-outline-primary {
@@ -271,7 +271,7 @@ app {
 
     .btn-outline-primary:not(:disabled):not(.disabled):focus,
     .btn-outline-primary:not(:disabled):not(.disabled):focus:active {
-        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-80);
+        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
 
 /****************************
@@ -1125,7 +1125,8 @@ button.refresh {
 .sq-mini-card-6.default,
 .sq-mini-card-3.default {
     background-color: var(--sq-bg-white-lit);
-    border-top: 2px solid var(--sq-pink-lighter-alpha-80);
+    border: 1px solid var(--sq-pink-lighter-alpha-25);
+    border-top: 2px solid var(--sq-pink-lighter-alpha-50);
 }
 
 .sq-mini-card-12,
@@ -1137,6 +1138,7 @@ button.refresh {
     margin: 0.5rem 0;
     padding: 0;
     background-color: var(--sq-ps2-primary-light-alpha-30);
+    border: 1px solid var(--sq-ps2-primary-light-alpha-80);
     border-top: 2px solid var(--sq-ps2-primary-light);
     border-radius: 0.2rem;
     box-shadow: 2px 2px 5px -1px var(--sq-light-blue-gray);

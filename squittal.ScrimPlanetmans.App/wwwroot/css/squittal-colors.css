@@ -2,7 +2,8 @@
     --sq-pink: #e0397e;
     --sq-pink-darker: #B32D64;
     --sq-pink-lighter: #e34f8c;
-    --sq-pink-lighter-alpha-80: rgba(227, 79, 140, 0.5);
+    --sq-pink-lighter-alpha-50: rgba(227, 79, 140, 0.5);
+    --sq-pink-lighter-alpha-25: rgba(227, 79, 140, 0.25);
     --sq-light-blue-gray: #d4d4ff;
     --sq-light-blue-gray-alpha: #d4d4ff50;
     --sq-light-blue-gray-alpha-5a: #d4d4ff5a;
