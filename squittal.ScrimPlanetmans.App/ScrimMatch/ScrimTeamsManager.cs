@@ -418,7 +418,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.TryRemoveOutfit(aliasLower);
 
-            SendTeamOutfitRemovedMessage(outfit);
+            //SendTeamOutfitRemovedMessage(outfit);
 
             var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).ToList();
 
@@ -454,6 +454,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
                 UpdateTeamFaction(team.TeamOrdinal, null);
             }
+
+            SendTeamOutfitRemovedMessage(outfit);
 
             return anyPlayersRemoved;
         }
