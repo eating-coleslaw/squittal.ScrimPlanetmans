@@ -170,12 +170,14 @@
                             <tbody>
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && !p.IsBenched).ToList())
                                 {
+                                    <TeamBuilderPlayerRow Player=@member  ShowRemovalControls=@_showRemovals />
+                                    @*
                                     <tr>
                                         <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
 
                                         <td title="@member.NameFull [@(member.Id)]">
                                             <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+                                            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
                                         </td>
 
                                         <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
@@ -207,6 +209,7 @@
                                             </td>
                                         }
                                     </tr>
+                                    *@
                                 }
                             </tbody>
                         </table>
@@ -244,12 +247,14 @@
                             <tbody>
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && p.IsBenched).ToList())
                                 {
+                                    <TeamBuilderPlayerRow Player=@member  ShowRemovalControls=@_showRemovals />
+                                    @*
                                     <tr>
                                         <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
 
                                         <td title="@member.NameFull [@(member.Id)]">
                                             <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+                                            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
                                         </td>
 
                                         <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
@@ -272,6 +277,7 @@
                                             </td>
                                         }
                                     </tr>
+                                    *@
                                 }
                             </tbody>
                         </table>
@@ -304,7 +310,7 @@
 
         <div class="sq-content">
 
-            @if (_extendNonOutfitPlayers && _teamNonOutfitPlayers.Any())
+            @if (_extendNonOutfitPlayers && _teamNonOutfitPlayers.Any(p => !p.IsBenched))
             {
                 <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-80);">
                     <thead>
@@ -326,12 +332,14 @@
                     <tbody>
                         @foreach (var member in _teamNonOutfitPlayers.Where(p => !p.IsBenched).ToList())
                         {
+                            <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_showRemovals />
+                            @*
                             <tr class="@SqCssHelper.GetFactionClassFromId(member.FactionId)">
                                 <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
 
                                 <td title="@member.NameFull [@(member.Id)]">
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
                                 </td>
 
                                 <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
@@ -363,6 +371,7 @@
                                     </td>
                                 }
                             </tr>
+                            *@
                         }
                     </tbody>
                 </table>
@@ -400,12 +409,14 @@
                     <tbody>
                         @foreach (var member in _teamNonOutfitPlayers.Where(p => p.IsBenched).ToList())
                         {
+                            <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_showRemovals />
+                            @*
                             <tr class="@SqCssHelper.GetFactionClassFromId(member.FactionId)">
                                 <td style="padding-right: 5px; width: 15px;" title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
 
                                 <td title="@member.NameFull [@(member.Id)]">
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span>
                                 </td>
 
                                 <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
@@ -428,6 +439,7 @@
                                     </td>
                                 }
                             </tr>
+                            *@
                         }
                     </tbody>
                 </table>
@@ -502,7 +514,7 @@
     private int _renderedTeamOrdinal;
     #endregion
 
-# On-Load Methods
+    #region Initialization Methods
     protected override async Task OnInitializedAsync()
     {
         // TODO: move MessageService event subscriptions to OnInitialized
