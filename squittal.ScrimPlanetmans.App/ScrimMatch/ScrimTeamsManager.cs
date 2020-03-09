@@ -326,6 +326,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             foreach (var player in players)
             {
                 player.TeamOrdinal = teamOrdinal;
+                player.FactionId = (int)outfit.FactionId;
 
                 if (team.TryAddPlayer(player))
                 {
