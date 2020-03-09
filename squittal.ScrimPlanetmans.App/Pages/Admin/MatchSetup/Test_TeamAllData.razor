@@ -18,109 +18,140 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
+<div class="header-card-container @GetHeaderCardClass()">
 
-    <div class="header-card-container @GetHeaderCardClass()">
+    @if (_team == null || !_teamOutfits.Any())
+    {
+        <h4>Team @i_teamOrdinal</h4>
+    }
+    else
+    {
+        <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0;">
+            Team @($"{i_teamOrdinal}: {_team.Alias}")
+        </h4>
 
-        @if (_team == null || !_teamOutfits.Any())
-        {
-            <h4>Team @i_teamOrdinal</h4>
-        }
-        else
-        {
-            <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0;">
-                Team @($"{i_teamOrdinal}: {_team.Alias}")
-            </h4>
+        <table style="width: 100%; font-size: 0.75rem;" class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+            <thead style="vertical-align: bottom;">
+                <tr>
+                    <th></th>
+                    <th title="Kills">Kills</th>
+                    <th title="Deaths">Death</th>
+                    <th title="Kill Death Ratio">KDR</th>
+                    <th class="stacked-label med" title="Teamkills">
+                        <span class="small">Team<br></span>
+                        <span>Kills</span>
+                    </th>
+                    <th class="stacked-label med" title="Teamkill Deaths">
+                        <span class="small">Teamkill<br></span>
+                        <span>Deaths</span>
+                    </th>
+                    <th title="Suicides">Suicides</th>
+                    <th title="Headshot Ratio">HSR</th>
+                    <th class="stacked-label med" title="Headshot Deaths Ratio">
+                        <span class="small">Death<br></span>
+                        <span>HSR</span>
+                    </th>
+                    <th class="stacked-label med" title="Revives Given">
+                        <span class="small">Revives<br></span>
+                        <span>Given</span>
+                    </th>
+                    <th class="stacked-label med" title="Revives Taken">
+                        <span class="small">Revives<br></span>
+                        <span>Taken</span>
+                    </th>
+                    <th class="stacked-label med" title="Damage Assists">
+                        <span class="small">Damage<br></span>
+                        <span>Assists</span>
+                    </th>
+                    <th class="stacked-label med" title="Utility Assists">
+                        <span class="small">Utility<br></span>
+                        <span>Assists</span>
+                    </th>
+                    <th class="stacked-label med" title="Damage Assisted Deaths">
+                        <span class="small">Dmg Ass.<br></span>
+                        <span>Deaths</span>
+                    </th>
+                    <th class="stacked-label med" title="Utility Assisted Deaths">
+                        <span class="small">Util. Ass.<br></span>
+                        <span>Deaths</span>
+                    </th>
+                    <th class="stacked-label med" title="Objective Defense Ticks">
+                        <span class="small">Objective<br></span>
+                        <span>Defense</span>
+                    </th>
+                    <th class="stacked-label med" title="Objective Capture Ticks">
+                        <span class="small">Objective<br></span>
+                        <span>Capture</span>
+                    </th>
 
-            <table style="width: 100%; font-size: 0.75rem;" class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
-                <thead style="vertical-align: bottom;">
+                    <th title="Raw Points">Points</th>
+                    <th class="stacked-label med">
+                        <span class="small">Net<br></span>
+                        <span>Score</span>
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Total</td>
+                    <Test_PlayerStatsRow EventAggregate=@_team.EventAggregate PlayerId="team" />
+                    @*
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Kills);">@(_team.EventAggregate.Kills)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Deaths);">@(_team.EventAggregate.Deaths)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.RevivesGiven);">@(_team.EventAggregate.RevivesGiven)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.RevivesTaken);">@(_team.EventAggregate.RevivesTaken)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.DamageAssists);">@(_team.EventAggregate.DamageAssists)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.UtilityAssists);">@(_team.EventAggregate.UtilityAssists)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.ObjectiveDefenseTicks);">@(_team.EventAggregate.ObjectiveDefenseTicks)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.ObjectiveCaptureTicks);">@(_team.EventAggregate.ObjectiveCaptureTicks)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.Points);">@(_team.EventAggregate.Points)</td>
+                    <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregate.NetScore);">@(_team.EventAggregate.NetScore)</td>
+                    *@
+                </tr>
+
+                <tr>
+                    <td>Current</td>
+                    <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
+                    @*
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.Kills);">@(_team.EventAggregateTracker.RoundStats.Kills)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.Deaths);">@(_team.EventAggregateTracker.RoundStats.Deaths)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.RevivesGiven);">@(_team.EventAggregateTracker.RoundStats.RevivesGiven)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.RevivesTaken);">@(_team.EventAggregateTracker.RoundStats.RevivesTaken)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.DamageAssists);">@(_team.EventAggregateTracker.RoundStats.DamageAssists)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.UtilityAssists);">@(_team.EventAggregateTracker.RoundStats.UtilityAssists)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.ObjectiveDefenseTicks);">@(_team.EventAggregateTracker.RoundStats.ObjectiveDefenseTicks)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks);">@(_team.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.Points);">@(_team.EventAggregateTracker.RoundStats.Points)</td>
+                    <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.NetScore);">@(_team.EventAggregateTracker.RoundStats.NetScore)</td>
+                    *@
+                </tr>
+
+                @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
+                {
                     <tr>
-                        <th></th>
-                        <th>Kills</th>
-                        <th>Deaths</th>
-                        <th class="stacked-label med">
-                            <span class="small">Rev.<br></span>
-                            <span>Given</span>
-                        </th>
-                        <th class="stacked-label med">
-                            <span class="small">Rev.<br></span>
-                            <span>Taken</span>
-                        </th>
-                        <th class="stacked-label med">
-                            <span class="small">Dmg<br></span>
-                            <span>Ass.</span>
-                        </th>
-                        <th class="stacked-label med">
-                            <span class="small">Util.<br></span>
-                            <span>Ass.</span>
-                        </th>
-                        <th class="stacked-label med">
-                            <span class="small">Obj.<br></span>
-                            <span>Def.</span>
-                        </th>
-                        <th class="stacked-label med">
-                            <span class="small">Obj.<br></span>
-                            <span>Cap.</span>
-                        </th>
-
-                        <th>Points</th>
-                        <th class="stacked-label med">
-                            <span class="small">Net<br></span>
-                            <span>Score</span>
-                        </th>
+                        <td>Round @round</td>
+                        <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
+                        @*
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].Kills);">@(_team.EventAggregateTracker.RoundHistory[round].Kills)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].Deaths);">@(_team.EventAggregateTracker.RoundHistory[round].Deaths)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].RevivesGiven);">@(_team.EventAggregateTracker.RoundHistory[round].RevivesGiven)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].RevivesTaken);">@(_team.EventAggregateTracker.RoundHistory[round].RevivesTaken)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].DamageAssists);">@(_team.EventAggregateTracker.RoundHistory[round].DamageAssists)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].UtilityAssists);">@(_team.EventAggregateTracker.RoundHistory[round].UtilityAssists)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].ObjectiveDefenseTicks);">@(_team.EventAggregateTracker.RoundHistory[round].ObjectiveDefenseTicks)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks);">@(_team.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].Points);">@(_team.EventAggregateTracker.RoundHistory[round].Points)</td>
+                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].NetScore);">@(_team.EventAggregateTracker.RoundHistory[round].NetScore)</td>
+                        *@
                     </tr>
-                </thead>
+                }
+            </tbody>
+        </table>
 
-                <tbody>
-                    <tr>
-                        <td>Total</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.Kills);">@(_team.EventAggregate.Kills)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.Deaths);">@(_team.EventAggregate.Deaths)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.RevivesGiven);">@(_team.EventAggregate.RevivesGiven)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.RevivesTaken);">@(_team.EventAggregate.RevivesTaken)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.DamageAssists);">@(_team.EventAggregate.DamageAssists)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.UtilityAssists);">@(_team.EventAggregate.UtilityAssists)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.ObjectiveDefenseTicks);">@(_team.EventAggregate.ObjectiveDefenseTicks)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.ObjectiveCaptureTicks);">@(_team.EventAggregate.ObjectiveCaptureTicks)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregate.Points);">@(_team.EventAggregate.Points)</td>
-                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregate.NetScore);">@(_team.EventAggregate.NetScore)</td>
-                    </tr>
+    }
 
-                    <tr>
-                        <td>CurrentRound</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.Kills);">@(_team.EventAggregateTracker.RoundStats.Kills)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.Deaths);">@(_team.EventAggregateTracker.RoundStats.Deaths)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.RevivesGiven);">@(_team.EventAggregateTracker.RoundStats.RevivesGiven)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.RevivesTaken);">@(_team.EventAggregateTracker.RoundStats.RevivesTaken)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.DamageAssists);">@(_team.EventAggregateTracker.RoundStats.DamageAssists)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.UtilityAssists);">@(_team.EventAggregateTracker.RoundStats.UtilityAssists)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.ObjectiveDefenseTicks);">@(_team.EventAggregateTracker.RoundStats.ObjectiveDefenseTicks)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks);">@(_team.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks)</td>
-                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.Points);">@(_team.EventAggregateTracker.RoundStats.Points)</td>
-                        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.NetScore);">@(_team.EventAggregateTracker.RoundStats.NetScore)</td>
-                    </tr>
-
-                    @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
-                    {
-                        <tr>
-                            <td>Round @round</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].Kills);">@(_team.EventAggregateTracker.RoundHistory[round].Kills)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].Deaths);">@(_team.EventAggregateTracker.RoundHistory[round].Deaths)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].RevivesGiven);">@(_team.EventAggregateTracker.RoundHistory[round].RevivesGiven)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].RevivesTaken);">@(_team.EventAggregateTracker.RoundHistory[round].RevivesTaken)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].DamageAssists);">@(_team.EventAggregateTracker.RoundHistory[round].DamageAssists)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].UtilityAssists);">@(_team.EventAggregateTracker.RoundHistory[round].UtilityAssists)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].ObjectiveDefenseTicks);">@(_team.EventAggregateTracker.RoundHistory[round].ObjectiveDefenseTicks)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks);">@(_team.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks)</td>
-                            <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].Points);">@(_team.EventAggregateTracker.RoundHistory[round].Points)</td>
-                            <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].NetScore);">@(_team.EventAggregateTracker.RoundHistory[round].NetScore)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-
-        }
-
-    </div>
+</div>
 
 @if (_teamOutfits.Any())
 {
@@ -153,34 +184,57 @@
                             <tr>
                                 <th></th>
                                 <th></th>
-                                <th>Kills</th>
-                                <th>Deaths</th>
-                                <th class="stacked-label med">
-                                    <span class="small">Rev.<br></span>
+                                <th title="Kills">Kills</th>
+                                <th title="Deaths">Death</th>
+                                <th title="Kill Death Ratio">KDR</th>
+                                <th class="stacked-label med" title="Teamkills">
+                                    <span class="small">Team<br></span>
+                                    <span>Kills</span>
+                                </th>
+                                <th class="stacked-label med" title="Teamkill Deaths">
+                                    <span class="small">Teamkill<br></span>
+                                    <span>Deaths</span>
+                                </th>
+                                <th title="Suicides">Suicides</th>
+                                <th title="Headshot Ratio">HSR</th>
+                                <th class="stacked-label med" title="Headshot Deaths Ratio">
+                                    <span class="small">Death<br></span>
+                                    <span>HSR</span>
+                                </th>
+                                <th class="stacked-label med" title="Revives Given">
+                                    <span class="small">Revives<br></span>
                                     <span>Given</span>
                                 </th>
-                                <th class="stacked-label med">
-                                    <span class="small">Rev.<br></span>
+                                <th class="stacked-label med" title="Revives Taken">
+                                    <span class="small">Revives<br></span>
                                     <span>Taken</span>
                                 </th>
-                                <th class="stacked-label med">
-                                    <span class="small">Dmg<br></span>
-                                    <span>Ass.</span>
+                                <th class="stacked-label med" title="Damage Assists">
+                                    <span class="small">Damage<br></span>
+                                    <span>Assists</span>
                                 </th>
-                                <th class="stacked-label med">
-                                    <span class="small">Util.<br></span>
-                                    <span>Ass.</span>
+                                <th class="stacked-label med" title="Utility Assists">
+                                    <span class="small">Utility<br></span>
+                                    <span>Assists</span>
                                 </th>
-                                <th class="stacked-label med">
-                                    <span class="small">Obj.<br></span>
-                                    <span>Def.</span>
+                                <th class="stacked-label med" title="Damage Assisted Deaths">
+                                    <span class="small">Dmg Ass.<br></span>
+                                    <span>Deaths</span>
                                 </th>
-                                <th class="stacked-label med">
-                                    <span class="small">Obj.<br></span>
-                                    <span>Cap.</span>
+                                <th class="stacked-label med" title="Utility Assisted Deaths">
+                                    <span class="small">Util. Ass.<br></span>
+                                    <span>Deaths</span>
+                                </th>
+                                <th class="stacked-label med" title="Objective Defense Ticks">
+                                    <span class="small">Objective<br></span>
+                                    <span>Defense</span>
+                                </th>
+                                <th class="stacked-label med" title="Objective Capture Ticks">
+                                    <span class="small">Objective<br></span>
+                                    <span>Capture</span>
                                 </th>
 
-                                <th>Points</th>
+                                <th title="Raw Points">Points</th>
                                 <th class="stacked-label med">
                                     <span class="small">Net<br></span>
                                     <span>Score</span>
@@ -197,6 +251,8 @@
                                         <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
                                         <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
                                     </td>
+                                    <Test_PlayerStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id  />
+                                    @*
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.Kills);">@(member.EventAggregate.Kills)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.Deaths);">@(member.EventAggregate.Deaths)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.RevivesGiven);">@(member.EventAggregate.RevivesGiven)</td>
@@ -207,11 +263,14 @@
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.ObjectiveCaptureTicks);">@(member.EventAggregate.ObjectiveCaptureTicks)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregate.Points);">@(member.EventAggregate.Points)</td>
                                     <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregate.NetScore);">@(member.EventAggregate.NetScore)</td>
+                                    *@
                                 </tr>
 
                                 <tr>
                                     <td></td>
                                     <td>CurrentRound</td>
+                                    <Test_PlayerStatsRow EventAggregate=@member.EventAggregateTracker.RoundStats PlayerId=@member.Id />
+                                    @*
                                     <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.Kills);">@(member.EventAggregateTracker.RoundStats.Kills)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.Deaths);">@(member.EventAggregateTracker.RoundStats.Deaths)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.RevivesGiven);">@(member.EventAggregateTracker.RoundStats.RevivesGiven)</td>
@@ -222,6 +281,7 @@
                                     <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks);">@(member.EventAggregateTracker.RoundStats.ObjectiveCaptureTicks)</td>
                                     <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.Points);">@(member.EventAggregateTracker.RoundStats.Points)</td>
                                     <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregateTracker.RoundStats.NetScore);">@(member.EventAggregateTracker.RoundStats.NetScore)</td>
+                                        *@
                                 </tr>
 
                                 @foreach (var round in member.EventAggregateTracker.RoundHistory.Keys.ToList())
@@ -229,6 +289,8 @@
                                     <tr>
                                         <td></td>
                                         <td>Round @round</td>
+                                        <Test_PlayerStatsRow EventAggregate=@member.EventAggregateTracker.RoundHistory[round] PlayerId=@member.Id />
+                                        @*
                                         <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].Kills);">@(member.EventAggregateTracker.RoundHistory[round].Kills)</td>
                                         <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].Deaths);">@(member.EventAggregateTracker.RoundHistory[round].Deaths)</td>
                                         <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].RevivesGiven);">@(member.EventAggregateTracker.RoundHistory[round].RevivesGiven)</td>
@@ -239,6 +301,7 @@
                                         <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks);">@(member.EventAggregateTracker.RoundHistory[round].ObjectiveCaptureTicks)</td>
                                         <td style="opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].Points);">@(member.EventAggregateTracker.RoundHistory[round].Points)</td>
                                         <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(member.EventAggregateTracker.RoundHistory[round].NetScore);">@(member.EventAggregateTracker.RoundHistory[round].NetScore)</td>
+                                        *@
                                     </tr>
                                 }
                             }
