@@ -453,7 +453,7 @@
     //public EventCallback<string> i_OnAdminLogTextAdded { get; set; }
 
 
-    /* Form & Input Variables */
+    #region Form & Input Variables
     private OutfitAlias _inputAlias = new OutfitAlias();
 
     private OutfitAlias _displayAlias = new OutfitAlias();
@@ -469,9 +469,9 @@
 
 
     private List<string> _teamNonOutfitPlayersLoading = new List<string>();
+    #endregion
 
-
-    /* Team & Players */
+    #region Team & Players
     private Team _team;
 
     private List<Outfit> _teamOutfits = new List<Outfit>();
@@ -485,8 +485,9 @@
     private List<Player> _teamPlayersVisible = new List<Player>();
 
     private List<Player> _teamNonOutfitPlayers = new List<Player>();
+    #endregion
 
-    /* UI & Layout Variables */
+    #region UI & Layout Variables
     private Dictionary<string, bool> _outfitPlayersExtendedMap = new Dictionary<string, bool>(); // <outfit alias, is player list expanded?>
 
     private bool _extendNonOutfitPlayers = true;
@@ -494,14 +495,14 @@
     private int _defaultMaxPlayersToExtend = 6;
 
     private bool _showRemovals = false;
+    #endregion
 
-    /* Helpers */
+    #region Helpers
     private IEnumerable<World> _worlds;
     private int _renderedTeamOrdinal;
+    #endregion
 
-    /***********
-       Methods
-     ***********/
+# On-Load Methods
     protected override async Task OnInitializedAsync()
     {
         // TODO: move MessageService event subscriptions to OnInitialized
@@ -593,10 +594,9 @@
         message = $"Finished reloading Team {i_teamOrdinal} data";
         LogMessage(message);
     }
+    #endregion
 
-    /**********************************
-     *  Form Submission & Validation
-     **********************************/
+    #region  Form Submission & Validation
     private async void HandleValidOutfitAliasSubmit()
     {
         Outfit newOutfit;
@@ -770,11 +770,9 @@
     {
         ScrimTeamsManager.SetPlayerBenchedStatus(characterId, true);
     }
+    #endregion
 
-
-    /*************************
-     *  UI & Layout Controls
-     *************************/
+    #region  UI & Layout Controls
     private void ToggleOutfitPlayersVisibility(string aliasLower)
     {
         if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
@@ -804,10 +802,9 @@
     {
         MessageService.BroadcastSimpleMessage(message);
     }
+    #endregion
 
-    /*****************
-     *  Event Handling
-     *****************/
+    #region Event Handling
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
         var message = e.Message;
@@ -1064,7 +1061,7 @@
     {
 
     }
-
+    #endregion
 
     private void SetOutfitMembersOnlineCount(string aliasLower)
     {
