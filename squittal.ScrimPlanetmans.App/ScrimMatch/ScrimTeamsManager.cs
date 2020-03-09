@@ -375,6 +375,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var lastPlayer = newPlayers.LastOrDefault();
 
+            var outfitFactionID = outfitTeam.Outfits.Where(o => o.AliasLower == aliasLower)
+                                                    .Select(o => (int)o.FactionId)
+                                                    .FirstOrDefault();
+
             var anyPlayersAdded = false;
 
             //TODO: track which players were added and which weren't
@@ -384,6 +388,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 var isLastPlayer = (player == lastPlayer);
 
                 player.TeamOrdinal = teamOrdinal;
+                player.FactionId = outfitFactionID;
 
                 if (outfitTeam.TryAddPlayer(player))
                 {
