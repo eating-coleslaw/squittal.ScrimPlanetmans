@@ -11,6 +11,7 @@ using squittal.ScrimPlanetmans.Shared.Models;
 using System.Linq;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
@@ -39,6 +40,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     .OnMessage(OnMessage)
                    .OnDisconnect(OnDisconnect);
             //.Subscribe(CreateSubscription())
+
+            _messageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         }
 
 
@@ -89,6 +92,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
             };
 
             return subscription;
+        }
+
+        public void AddCharacterSubscription(string characterId)
+        {
+            if (CharacterSubscriptions.Contains(characterId))
+            {
+                return;
+            }
+
+            CharacterSubscriptions.Add(characterId);
         }
 
         public void AddCharacterSubscriptions(IEnumerable<string> characterIds)
@@ -297,6 +310,23 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private void SendSimpleMessage(string s)
         {
             _messageService.BroadcastSimpleMessage(s);
+        }
+
+        private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+        {
+            var message = e.Message;
+            var player = message.Player;
+
+            switch (message.ChangeType)
+            {
+                case TeamPlayerChangeType.Add:
+                    AddCharacterSubscription(player.Id);
+                    break;
+
+                case TeamPlayerChangeType.Remove:
+                    RemoveCharacterSubscription(player.Id);
+                    break;
+            }
         }
 
         public void Dispose()
