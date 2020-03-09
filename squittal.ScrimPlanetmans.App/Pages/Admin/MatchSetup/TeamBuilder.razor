@@ -843,6 +843,8 @@
         {
             _teamOutfitsLoading.Remove(message.Outfit.AliasLower);
 
+            _displayAlias.Alias = _team.Alias;
+
             InvokeAsync(() =>
             {
                 StateHasChanged();
