@@ -44,9 +44,9 @@
                 <button class="btn btn-primary" @onclick="StartMatch">
                     <span class="oi oi-media-play"></span>Start Match
                 </button>
-                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
                     <span class="oi oi-media-record"></span>Subscribe
-                </button>
+                </button>*@
                 <button class="btn btn-outline-primary" @onclick="ClearMatch">
                     <span class="oi oi-eject"></span>Clear Match
                 </button>
@@ -56,9 +56,9 @@
                 <button class="btn btn-primary" @onclick="StartMatch">
                     <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
                 </button>
-                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
                     <span class="oi oi-media-record"></span>Subscribe
-                </button>
+                </button>*@
                 <button class="btn btn-outline-primary" @onclick="ResetRound">
                     <span class="oi oi-media-step-backward"></span>Reset Round
                 </button>
@@ -71,18 +71,18 @@
                 <button class="btn btn-primary" @onclick="ResumeRound">
                     <span class="oi oi-media-play"></span>Resume
                 </button>
-                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
                     <span class="oi oi-media-record"></span>Subscribe
-                </button>
+                </button>*@
             }
             else if (_matchState == MatchState.Running)
             {
                 <button class="btn btn-primary" @onclick="PauseRound">
                     <span class="oi oi-media-pause"></span>Pause Round
                 </button>
-                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
                     <span class="oi oi-media-record"></span>Subscribe
-                </button>
+                </button>*@
                 <button class="btn btn-outline-primary" @onclick="EndRound">
                     <span class="oi oi-media-stop"></span> End Round
                 </button>
