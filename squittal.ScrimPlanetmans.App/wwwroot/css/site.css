@@ -243,7 +243,7 @@ app {
     line-height: 1;
     /*background-color: var(--sq-pink-lighter);
     border-color: var(--sq-pink-darker);*/
-    background-color: transparent;
+    background-color: #FFFFFF;
     color: var(--sq-pink);
     border-color: var(--sq-pink);
     transition: none;

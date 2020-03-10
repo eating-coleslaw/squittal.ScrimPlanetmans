@@ -33,110 +33,106 @@
 
         <div class="col-lg-4">
 
-            <div style="display: grid; grid-template-columns: 1fr 115px;">
-                <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
-                <div class="mono-font" style="font-size: 14px; text-align: right;">
-                    <MatchTimer Debug=false />
+            <div class="header-card-container default">
+                <div style="display: grid; grid-template-columns: 1fr 115px;">
+                    <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    <div class="mono-font" style="font-size: 18px; text-align: right;">
+                        <MatchTimer Debug=false />
+                    </div>
                 </div>
+
+
+                @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
+                @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
+                {
+                    <button class="btn btn-primary" @onclick="StartMatch">
+                        <span class="oi oi-media-play"></span>Start Match
+                    </button>
+                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                        <span class="oi oi-media-record"></span>Subscribe
+                    </button>*@
+                    <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                        <span class="oi oi-eject"></span>Clear Match
+                    </button>
+                }
+                else if (_matchState == MatchState.Stopped && _currentRound >= 1)
+                {
+                    <button class="btn btn-primary" @onclick="StartMatch">
+                        <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
+                    </button>
+                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                        <span class="oi oi-media-record"></span>Subscribe
+                    </button>*@
+                    <button class="btn btn-outline-primary" @onclick="ResetRound">
+                        <span class="oi oi-media-step-backward"></span>Reset Round
+                    </button>
+                    <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                        <span class="oi oi-eject"></span>Clear Match
+                    </button>
+                }
+                else if (_matchState == MatchState.Paused)
+                {
+                    <button class="btn btn-primary" @onclick="ResumeRound">
+                        <span class="oi oi-media-play"></span>Resume
+                    </button>
+                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                        <span class="oi oi-media-record"></span>Subscribe
+                    </button>*@
+                }
+                else if (_matchState == MatchState.Running)
+                {
+                    <button class="btn btn-primary" @onclick="PauseRound">
+                        <span class="oi oi-media-pause"></span>Pause Round
+                    </button>
+                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                        <span class="oi oi-media-record"></span>Subscribe
+                    </button>*@
+                    <button class="btn btn-outline-primary" @onclick="EndRound">
+                        <span class="oi oi-media-stop"></span> End Round
+                    </button>
+                }
+
+                @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
+                {
+                    <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                        <span class="oi oi-media-record"></span>Subscribe
+                    </button>
+                }*@
+
+                @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
+                {
+                    <EditForm Model="@_matchConfiguration">
+
+                        <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
+                        <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
+
+                        <p>Scrim Base: <InputSelect style="margin-right: 5px; width: 249px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
+                            <option value=@_noFacilitIdValue>No Base</option>
+
+                            @foreach (var zone in _mapZones)
+                            {
+                                <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;"/>
+
+                                @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                {
+                                    <option value=@region.Id label="@region.FacilityName">@region.FacilityName</option>
+                                }
+                            }
+                        </InputSelect>
+                        </p>
+
+                        <p>End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/></p>
+                    </EditForm>
+                }
             </div>
 
+            <div class="sq-mini-card-12">
+                <AdminLog />
+            </div>
 
-            @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
-            @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
-            {
-                <button class="btn btn-primary" @onclick="StartMatch">
-                    <span class="oi oi-media-play"></span>Start Match
-                </button>
-                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                    <span class="oi oi-media-record"></span>Subscribe
-                </button>*@
-                <button class="btn btn-outline-primary" @onclick="ClearMatch">
-                    <span class="oi oi-eject"></span>Clear Match
-                </button>
-            }
-            else if (_matchState == MatchState.Stopped && _currentRound >= 1)
-            {
-                <button class="btn btn-primary" @onclick="StartMatch">
-                    <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
-                </button>
-                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                    <span class="oi oi-media-record"></span>Subscribe
-                </button>*@
-                <button class="btn btn-outline-primary" @onclick="ResetRound">
-                    <span class="oi oi-media-step-backward"></span>Reset Round
-                </button>
-                <button class="btn btn-outline-primary" @onclick="ClearMatch">
-                    <span class="oi oi-eject"></span>Clear Match
-                </button>
-            }
-            else if (_matchState == MatchState.Paused)
-            {
-                <button class="btn btn-primary" @onclick="ResumeRound">
-                    <span class="oi oi-media-play"></span>Resume
-                </button>
-                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                    <span class="oi oi-media-record"></span>Subscribe
-                </button>*@
-            }
-            else if (_matchState == MatchState.Running)
-            {
-                <button class="btn btn-primary" @onclick="PauseRound">
-                    <span class="oi oi-media-pause"></span>Pause Round
-                </button>
-                @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                    <span class="oi oi-media-record"></span>Subscribe
-                </button>*@
-                <button class="btn btn-outline-primary" @onclick="EndRound">
-                    <span class="oi oi-media-stop"></span> End Round
-                </button>
-            }
-
-            @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
-            {
-                <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                    <span class="oi oi-media-record"></span>Subscribe
-                </button>
-            }*@
-
-            @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
-            {
-                <EditForm Model="@_matchConfiguration">
-
-                    <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
-                    <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
-
-                    @* TODO: put Facility Select List here *@
-
-                    <InputSelect class="btn-sm" style="margin-right: 5px; width: 249px;display: block;"  @bind-Value=@_matchConfiguration.FacilityIdString>
-                        <option value=@_noFacilitIdValue>No Base</option>
-
-                        @foreach (var zone in _mapZones)
-                        {
-                            <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;"/>
-
-                            @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                            {
-                                <option value=@region.Id label="@region.FacilityName">@region.FacilityName</option>
-                            }
-                        }
-                    </InputSelect>
-
-
-                    End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/>
-                </EditForm>
-
-                @*<input list="scrim-maps" type="text" style="width: 250px;" placeholder="Select base..." autocomplete="on"/>
-                <Test_MapRegionDataList />*@
-
-                @*<FacilitySelectList />*@
-
-
-
-            }
-
-            <AdminLog />
-
-            <StreamLog />
+            <div class="sq-mini-card-12">
+                <StreamLog />
+            </div>
 
         </div>
 

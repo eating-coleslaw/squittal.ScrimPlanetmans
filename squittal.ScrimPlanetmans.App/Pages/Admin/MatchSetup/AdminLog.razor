@@ -5,7 +5,7 @@
 @inject IScrimMessageBroadcastService MessageService
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
-<div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha);">
+<div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_adminLogs.Any())
     {
         foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200).ToList())

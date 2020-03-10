@@ -5,7 +5,7 @@
 @inject IScrimMessageBroadcastService MessageService
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
-<div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha);">
+<div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_streamLogs.Any())
     {
         foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200).ToList())
