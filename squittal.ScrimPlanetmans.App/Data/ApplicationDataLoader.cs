@@ -12,6 +12,7 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IItemService _itemService;
         private readonly IScrimRulesetManager _rulesetManager;
         private readonly IScrimMatchScorer _matchScorer;
+        private readonly IFacilityService _facilityService;
         private readonly ILogger<ApplicationDataLoader> _logger;
 
 
@@ -19,11 +20,13 @@ namespace squittal.ScrimPlanetmans.Data
             IItemService itemService,
             IScrimRulesetManager rulesetManager,
             IScrimMatchScorer matchScorer,
+            IFacilityService facilityService,
             ILogger<ApplicationDataLoader> logger)
         {
             _itemService = itemService;
             _rulesetManager = rulesetManager;
             _matchScorer = matchScorer;
+            _facilityService = facilityService;
             _logger = logger;
         }
 
@@ -39,6 +42,9 @@ namespace squittal.ScrimPlanetmans.Data
 
             var activeRulesetTask = _rulesetManager.SetupActiveRuleset();
             TaskList.Add(activeRulesetTask);
+
+            var scrimmableMapRegionsTask = _facilityService.SetUpScimmableMapRegionsAsync();
+            TaskList.Add(scrimmableMapRegionsTask);
 
             //var rulesetTask = _matchScorer.SetActiveRuleset();
             //TaskList.Add(rulesetTask);

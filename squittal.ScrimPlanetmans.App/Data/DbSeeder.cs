@@ -14,6 +14,7 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IZoneService _zoneService;
         private readonly IProfileService _profileService;
         private readonly IScrimRulesetManager _rulesetManager;
+        private readonly IFacilityService _facilityService;
 
         public DbSeeder(
             IWorldService worldService,
@@ -21,7 +22,8 @@ namespace squittal.ScrimPlanetmans.Data
             IItemService itemService,
             IZoneService zoneService,
             IProfileService profileService,
-            IScrimRulesetManager rulesetManager
+            IScrimRulesetManager rulesetManager,
+            IFacilityService facilityService
         )
         {
             _worldService = worldService;
@@ -30,6 +32,7 @@ namespace squittal.ScrimPlanetmans.Data
             _zoneService = zoneService;
             _profileService = profileService;
             _rulesetManager = rulesetManager;
+            _facilityService = facilityService;
         }
 
         public async Task OnApplicationStartup(CancellationToken cancellationToken)
@@ -57,6 +60,10 @@ namespace squittal.ScrimPlanetmans.Data
 
             Task defaultRulesetTask = _rulesetManager.SeedDefaultRuleset();
             TaskList.Add(defaultRulesetTask);
+
+            // Won't refresh if already populated
+            Task facilitiesTask = _facilityService.RefreshStore();
+            TaskList.Add(facilitiesTask);
 
             await Task.WhenAll(TaskList);
         }

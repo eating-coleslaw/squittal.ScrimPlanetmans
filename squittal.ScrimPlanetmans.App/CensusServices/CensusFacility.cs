@@ -25,9 +25,11 @@ namespace squittal.ScrimPlanetmans.CensusServices
 
         public async Task<IEnumerable<CensusFacilityTypeModel>> GetAllFacilityTypes()
         {
-            var query = _queryFactory.Create("facility_Type");
+            var query = _queryFactory.Create("facility_type");
 
             query.ShowFields("facility_type_id", "description");
+
+            query.SetLimit(100);
 
             return await query.GetBatchAsync<CensusFacilityTypeModel>();
         }

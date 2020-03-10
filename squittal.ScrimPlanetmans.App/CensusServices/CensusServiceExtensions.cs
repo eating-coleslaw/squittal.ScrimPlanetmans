@@ -8,6 +8,7 @@ namespace squittal.ScrimPlanetmans.CensusServices
         {
             services.AddSingleton<CensusCharacter>();
             services.AddSingleton<CensusFaction>();
+            services.AddSingleton<CensusFacility>();
             services.AddSingleton<CensusItem>();
             services.AddSingleton<CensusItemCategory>();
             services.AddSingleton<CensusLoadout>();
