@@ -15,9 +15,11 @@ namespace squittal.ScrimPlanetmans.Data
         #region Census DbSets
         //public DbSet<Character> Characters { get; set; }
         public DbSet<Faction> Factions { get; set; }
+        public DbSet<FacilityType> FacilityTypes { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<ItemCategory> ItemCategories { get; set; }
         public DbSet<Loadout> Loadouts { get; set; }
+        public DbSet<MapRegion> MapRegions { get; set; }
         //public DbSet<Outfit> Outfits { get; set; }
         //public DbSet<OutfitMember> OutfitMembers { get; set; }
         public DbSet<Profile> Profiles { get; set; }
@@ -45,9 +47,11 @@ namespace squittal.ScrimPlanetmans.Data
             #region Census Configuration
             //builder.ApplyConfiguration(new CharacterConfiguration());
             builder.ApplyConfiguration(new FactionConfiguration());
+            builder.ApplyConfiguration(new FacilityTypeConfiguration());
             builder.ApplyConfiguration(new ItemConfiguration());
             builder.ApplyConfiguration(new ItemCategoryConfiguration());
             builder.ApplyConfiguration(new LoadoutConfiguration());
+            builder.ApplyConfiguration(new MapRegionConfiguration());
             //builder.ApplyConfiguration(new OutfitConfiguration());
             //builder.ApplyConfiguration(new OutfitMemberConfiguration());
             builder.ApplyConfiguration(new ProfileConfiguration());
