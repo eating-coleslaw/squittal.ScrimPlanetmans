@@ -1,0 +1,56 @@
+﻿@using System.Linq;
+@using System.Collections.Generic;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using System.Diagnostics;
+
+@inject IFacilityService FacilityService
+@inject IZoneService ZoneService
+
+@if (_mapRegions.Any() && _zones.Any())
+{
+    <datalist id="scrim-maps">
+        @foreach(var zone in _mapZones)
+        {
+            @*<optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())">*@
+            <option style="font-weight: 600; color: var(--sq-pink-lighter); background-color: var(--sq-bg-white-unlit);" label="@(_zones?.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())">@(_zones?.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</option>
+
+            @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+            {
+                <option value="@region.FacilityName" label="@region.FacilityName">@region.FacilityName</option>
+            }
+        }
+    </datalist>
+}
+
+@code {
+    private List<MapRegion> _mapRegions { get; set; } = new List<MapRegion>();
+
+    private List<int> _mapZones { get; set; } = new List<int>();
+
+    private List<Zone> _zones { get; set; } = new List<Zone>();
+
+    protected override void OnInitialized()
+    {
+        _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
+
+        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var zones = await ZoneService.GetAllZonesAsync();
+        _zones = zones.ToList();
+
+        Debug.Write($"Loaded Zones");
+
+        foreach (var zone in _zones)
+        {
+            Debug.Write($"Loaded Zone {zone}: {zone.Name} ");
+        }
+
+        //_mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
+
+        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+    }
+}

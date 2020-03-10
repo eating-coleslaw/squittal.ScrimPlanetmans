@@ -25,24 +25,24 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Zone>> GetAllZonesAsync()
         {
-            var Zones = await _censusZone.GetAllZones();
-            if (Zones == null)
-            {
-                return null;
-            }
+            //var Zones = await _censusZone.GetAllZones();
+            //if (Zones == null)
+            //{
+            //    return null;
+            //}
 
-            var censusEntities = Zones.Select(ConvertToDbModel);
+            //var censusEntities = Zones.Select(ConvertToDbModel);
 
-            return censusEntities.ToList();
+            //return censusEntities.ToList();
 
-            /*
+
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
 
                 return await dbContext.Zones.ToListAsync();
             }
-            */
+
         }
 
         public async Task<Zone> GetZoneAsync(int ZoneId)

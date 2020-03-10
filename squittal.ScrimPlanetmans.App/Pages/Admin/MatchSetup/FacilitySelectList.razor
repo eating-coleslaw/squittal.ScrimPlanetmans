@@ -1,0 +1,79 @@
+﻿@using System.Linq;
+@using System.Collections.Generic;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using System.Diagnostics;
+@using squittal.ScrimPlanetmans.Models.ScrimEngine;
+
+@inject IFacilityService FacilityService
+@inject IZoneService ZoneService
+
+@if (_mapRegions == null || _zones == null)
+{
+    <div class="styled-select placeholder">Select Base...</div>
+}
+else
+{
+<EditForm Model="@_matchConfiguration">
+    @*<div class="styled-select" style="margin-left: 0; width: 250px;">*@
+        @*<select class="btn-sm" style="margin-right: 5px; width: 249px;" id="facilitySelect" @onchange="OnFacilityIdChange" placeholder="Select scrim base...">*@
+        <InputSelect class="btn-sm" style="margin-right: 5px; width: 249px;"  @bind-Value=@_matchConfiguration.FacilityIdString>
+
+            <option value=@_noFacilitIdValue>No Base</option>
+
+            @foreach (var zone in _mapZones)
+            {
+                <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;"/>
+
+                @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                {
+                    <option value=@region.Id label="@region.FacilityName">@region.FacilityName</option>
+                }
+            }
+        </InputSelect>
+    @*</div>*@
+</EditForm>
+}
+
+@code {
+    private List<MapRegion> _mapRegions { get; set; } = new List<MapRegion>();
+
+    private List<int> _mapZones { get; set; } = new List<int>();
+
+    private List<Zone> _zones { get; set; } = new List<Zone>();
+
+    private int _selectedFacilityId { get; set; }
+
+    private MatchConfiguration _matchConfiguration { get; set; } = new MatchConfiguration();
+
+    private string _noFacilitIdValue { get; set; } = "-1";
+
+    protected override void OnInitialized()
+    {
+        _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
+
+        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var zones = await ZoneService.GetAllZonesAsync();
+        _zones = zones.ToList();
+
+        Debug.Write($"Loaded Zones");
+
+        foreach (var zone in _zones)
+        {
+            Debug.Write($"Loaded Zone {zone}: {zone.Name} ");
+        }
+
+        //_mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
+
+        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+    }
+
+    void OnFacilityIdChange()
+    {
+
+    }
+}

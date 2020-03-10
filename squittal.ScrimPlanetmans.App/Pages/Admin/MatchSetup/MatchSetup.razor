@@ -9,6 +9,7 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Shared.Models.Planetside;
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
@@ -16,6 +17,8 @@
 @inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchScorer MatchScorer
 @inject IItemService ItemService
+@inject IFacilityService FacilityService
+@inject IZoneService ZoneService
 
 <div class="container-fluid">
     <div class="row">
@@ -102,7 +105,33 @@
                     <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
                     <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
+                    @* TODO: put Facility Select List here *@
+
+                    <InputSelect class="btn-sm" style="margin-right: 5px; width: 249px;display: block;"  @bind-Value=@_matchConfiguration.FacilityIdString>
+                        <option value=@_noFacilitIdValue>No Base</option>
+
+                        @foreach (var zone in _mapZones)
+                        {
+                            <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;"/>
+
+                            @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                            {
+                                <option value=@region.Id label="@region.FacilityName">@region.FacilityName</option>
+                            }
+                        }
+                    </InputSelect>
+
+
+                    End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/>
                 </EditForm>
+
+                @*<input list="scrim-maps" type="text" style="width: 250px;" placeholder="Select base..." autocomplete="on"/>
+                <Test_MapRegionDataList />*@
+
+                @*<FacilitySelectList />*@
+
+
+
             }
 
             <AdminLog />
@@ -122,6 +151,13 @@
     private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
     private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
 
+    #region Facility Select List Variables
+    private List<MapRegion> _mapRegions { get; set; } = new List<MapRegion>();
+    private List<int> _mapZones { get; set; } = new List<int>();
+    private List<Zone> _zones { get; set; } = new List<Zone>();
+    private string _noFacilitIdValue { get; set; } = "-1";
+    #endregion
+
     private bool _isStreamServiceEnabled { get; set; } = false;
 
     private string _debug { get; set; } = "init";
@@ -134,6 +170,9 @@
     protected override async Task OnInitializedAsync()
     {
         await GetCensusStreamStatus();
+
+        var zones = await ZoneService.GetAllZonesAsync();
+        _zones = zones.ToList();
     }
 
     protected override void OnInitialized()
@@ -156,6 +195,9 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
+
+        _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
+        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
     }
 
 
