@@ -9,11 +9,9 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
         [Required]
         public int FacilityId { get; set; }
 
-        public int ZoneId { get; set; }
         public string FacilityName { get; set; }
         public int FacilityTypeId { get; set; }
         public string FacilityType { get; set; }
-        public float? XPos { get; set; }
-        public float? YPos { get; set; }
+        public int ZoneId { get; set; }
     }
 }
