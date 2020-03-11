@@ -134,9 +134,6 @@
                     </EditForm>
                 }
 
-                @_debug
-                @_matchConfiguration.WorldIdString
-
             </div>
 
             <div class="sq-mini-card-12">
@@ -181,51 +178,7 @@
     protected override async Task OnInitializedAsync()
     {
         await GetCensusStreamStatus();
-        /*
-        if (!_worlds.Any() || !_zones.Any())
-        {
-
-            var TaskList = new List<Task>();
-
-            var streamStatusTask = GetCensusStreamStatus();
-            TaskList.Add(streamStatusTask);
-
-            //var zonesTask = ZoneService.GetAllZonesAsync();
-            //TaskList.Add(zonesTask);
-            //var zones = await ZoneService.GetAllZonesAsync();
-            //_zones = zones.ToList();
-
-            //var worldsTask =  WorldService.GetAllWorldsAsync();
-            //TaskList.Add(worldsTask);
-            //var worlds = await WorldService.GetAllWorldsAsync();
-            //_worlds = worlds.OrderByDescending(w => w.Name).ToList();
-
-            await Task.WhenAll(TaskList);
-
-            //_zones = zonesTask.Result.ToList();
-            //_worlds = worldsTask.Result.ToList();
-        }
-        */
-
-        //if (ScrimMatchEngine.MatchConfiguration != null)
-        //{
-        //    _debug = "Scrim Engine Configuration 1";
-        //    _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
-        //}
-        //else
-        //{
-        //    _debug = "New Configuration 2";
-        //    _matchConfiguration = new MatchConfiguration();
-        //}
-
-        //_isRunning = ScrimMatchEngine.IsRunning();
-        //_currentRound = ScrimMatchEngine.GetCurrentRound();
-        //_matchState = ScrimMatchEngine.GetMatchState();
-
-        //_mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
-        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
     }
-
 
     protected override void OnInitialized()
     {
@@ -251,20 +204,16 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
 
-        _zones = ZoneService.GetAllZones().ToList(); //.OrderByDescending(z => z.Name).ToList();
+        _zones = ZoneService.GetAllZones().ToList();
 
         _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
         _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
 
         _worlds = WorldService.GetAllWorlds().OrderBy(w => w.Name).ToList();
-
-        //_worlds = _worlds.OrderBy(w => w.Name).ToList();
     }
 
 
-    /*****************************************
-     *  Match & Subscription State Buttons
-     *****************************************/
+    #region  Match & Subscription State Buttons
     private async Task GetCensusStreamStatus()
     {
         var status = await WebsocketMonitor.GetStatus();
@@ -391,11 +340,7 @@
             });
         }
     }
-
-    private void OnChangeScrimWorldId(ChangeEventArgs e)
-    {
-        _matchConfiguration.TrySetWorldId(e.Value.ToString(), true, false);
-    }
+    #endregion
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
