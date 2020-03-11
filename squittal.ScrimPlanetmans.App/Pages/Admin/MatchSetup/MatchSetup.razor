@@ -108,7 +108,7 @@
                         <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
                         <p>
-                            Scrim Server: <InputSelect style="margin-right: 5px; width: 125px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.WorldIdString> <!--class="btn-sm"--> 
+                            Scrim Server: <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">  @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"--> 
                             @foreach (var world in _worlds)
                             {
                                 <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
@@ -390,6 +390,11 @@
                 StateHasChanged();
             });
         }
+    }
+
+    private void OnChangeScrimWorldId(ChangeEventArgs e)
+    {
+        _matchConfiguration.TrySetWorldId(e.Value.ToString(), true, false);
     }
 
     #region  Event Handling
