@@ -155,6 +155,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                             Process(experienceParam);
                         });
                         break;
+
+                    case "FacilityControl":
+                        var controlParam = jPayload.ToObject<FacilityControlPayload>(_payloadDeserializer);
+                        await Task.Run(() =>
+                        {
+                            Process(controlParam);
+                        });
+                        break;
                 }
             }
             catch (Exception ex)
@@ -165,6 +173,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region Payload Handling
 
+        #region Death Payload
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<ScrimDeathActionEvent> Process(DeathPayload payload)
         {
@@ -386,6 +395,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 _ => DeathEventType.Kill
             };
         }
+        #endregion
 
         #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
@@ -673,8 +683,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
         #endregion
 
+        //private Task<FacilityControl> Process(FacilityControlPayload payload)
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
-        private Task<FacilityControl> Process(FacilityControlPayload payload)
+        private void Process(FacilityControlPayload payload)
         {
             var dataModel = new FacilityControl
             {
@@ -688,7 +699,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ZoneId = payload.ZoneId.Value,
             };
 
-            return Task.FromResult(dataModel);
+            //return Task.FromResult(dataModel);
         }
 
         [CensusEventHandler("PlayerFacilityCapture", typeof(PlayerFacilityCapturePayload))]

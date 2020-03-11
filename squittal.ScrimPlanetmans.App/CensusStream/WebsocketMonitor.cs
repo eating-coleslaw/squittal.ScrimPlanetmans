@@ -28,6 +28,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public List<string> CharacterSubscriptions = new List<string>();
 
+        public int? SubscribedFacilityId;
+        public int? SubscribedWorldId;
 
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
@@ -42,6 +44,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             //.Subscribe(CreateSubscription())
 
             _messageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+            _messageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateEvent;
         }
 
 
@@ -141,6 +144,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
             CharacterSubscriptions.Clear();
         }
 
+        public void SetFacilitySubscription(int facilityId)
+        {
+            SubscribedFacilityId = facilityId;
+        }
+
+        public void SetWorldSubscription(int worldId)
+        {
+            SubscribedWorldId = worldId;
+        }
+
         public void EnableScoring()
         {
             _handler.EnabledScoring();
@@ -152,7 +165,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
 
-        public bool PayloadContainsSubscribedCharacter(JToken message)
+        private bool PayloadContainsSubscribedCharacter(JToken message)
         {
             var payload = message.SelectToken("payload");
 
@@ -185,6 +198,35 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
 
             return false;
+        }
+
+        private bool PayloadContainsSubscribedFacility(JToken message)
+        {
+            var payload = message.SelectToken("payload");
+
+            if (payload == null)
+            {
+                return false;
+            }
+
+            var facilityId = payload.Value<int?>("facility_id");
+            var worldId = payload.Value<int?>("world_id");
+
+
+            bool matchesFacility = false;
+            bool matchesWorld = false;
+
+            if (facilityId != null && facilityId > 0)
+            {
+                matchesFacility = facilityId == SubscribedFacilityId;
+            }
+
+            if (worldId != null && worldId > 0)
+            {
+                matchesWorld = worldId == SubscribedWorldId;
+            }
+
+            return (matchesFacility && matchesWorld);
         }
 
         public override async Task StartInternalAsync(CancellationToken cancellationToken)
@@ -266,7 +308,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLogoutMessage", message);
             //}
 
-            if (PayloadContainsSubscribedCharacter(jMsg))
+            if (PayloadContainsSubscribedCharacter(jMsg) || PayloadContainsSubscribedFacility(jMsg))
             {
                 //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
                 //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
@@ -327,6 +369,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     RemoveCharacterSubscription(player.Id);
                     break;
             }
+        }
+
+        private void ReceiveMatchConfigurationUpdateEvent(object sender, MatchConfigurationUpdateEventArgs e)
+        {
+            var message = e.Message;
+            var matchConfiguration = message.MatchConfiguration;
+
+            SubscribedFacilityId = matchConfiguration.FacilityId;
+            SubscribedWorldId = matchConfiguration.WorldId;
         }
 
         public void Dispose()
