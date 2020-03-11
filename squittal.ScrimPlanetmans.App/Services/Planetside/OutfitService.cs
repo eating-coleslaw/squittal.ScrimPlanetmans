@@ -231,7 +231,17 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public static Character ConvertToDbModel(CensusOutfitMemberCharacterModel member)
         {
-            bool isOnline = member.OnlineStatus > 0 ? true : false;
+            bool isOnline;
+
+            if (int.TryParse(member.OnlineStatus, out int onlineStatus))
+            {
+                isOnline = onlineStatus > 0 ? true : false;
+            }
+            else // "service_unavailable"
+            {
+                isOnline = false;
+            }
+            //bool isOnline = censusModel.OnlineStatus > 0 ? true : false;
 
             return new Character
             {

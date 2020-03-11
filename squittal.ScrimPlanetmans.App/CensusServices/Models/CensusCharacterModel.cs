@@ -12,7 +12,8 @@ namespace squittal.ScrimPlanetmans.CensusServices.Models
         public CharacterBattleRank BattleRank { get; set; }
         public CharacterCerts Certs { get; set; }
         public int WorldId { get; set; }
-        public int OnlineStatus { get; set; }
+        //public int OnlineStatus { get; set; }
+        public string OnlineStatus { get; set; }
         public int PrestigeLevel { get; set; }
 
         public class CharacterName
