@@ -102,20 +102,22 @@
 
                 @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
                 {
-                    <EditForm Model="@_matchConfiguration">
+                    <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
-                        <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
-                        <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
+                        <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
+                        <p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
-                        <p>
-                            Scrim Server: <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">  @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"--> 
+                        <div style="margin-bottom: 0.2rem;">
+                            <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
+                            
+                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">  @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"--> 
                             @foreach (var world in _worlds)
                             {
                                 <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
                             }
                             </InputSelect>
                             
-                            Scrim Base: <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
+                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
                             <option value=@_noFacilitIdValue>No Base</option>
 
                             @foreach (var zone in _mapZones)
@@ -128,9 +130,9 @@
                                 }
                             }
                             </InputSelect>
-                        </p>
+                        </div>
 
-                        <p>End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/></p>
+                        <p>End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/>@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
                     </EditForm>
                 }
 
