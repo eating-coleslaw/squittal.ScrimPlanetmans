@@ -18,7 +18,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly IStatefulTimer _timer;
 
-        public MatchConfiguration MatchConfiguration { get; set; }
+        public MatchConfiguration MatchConfiguration { get; set; } = new MatchConfiguration();
 
         private bool _isRunning = false;
 
@@ -43,7 +43,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _messageService.RaiseMatchTimerTickEvent += OnMatchTimerTick;
 
-            MatchConfiguration = new MatchConfiguration();
+            _messageService.RaiseTeamOutfitChangeEvent += OnTeamOutfitChangeEvent;
+            _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
+
+            //MatchConfiguration = new MatchConfiguration();
+            ClearMatch();
         }
 
         
@@ -86,7 +90,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _teamsManager.ClearAllTeams();
 
-            SendUpdateMessage();
+            SendMatchStateUpdateMessage();
+            SendMatchConfigurationUpdateMessage();
         }
 
         public void ConfigureMatch(MatchConfiguration configuration)
@@ -113,7 +118,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
 
-            SendUpdateMessage();
+            SendMatchStateUpdateMessage();
         }
 
         public void InitializeNewMatch()
@@ -138,7 +143,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Start();
             _wsMonitor.EnableScoring();
 
-            SendUpdateMessage();
+            SendMatchStateUpdateMessage();
         }
 
         public void PauseRound()
@@ -149,7 +154,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.DisableScoring();
             _timer.Pause();
 
-            SendUpdateMessage();
+            SendMatchStateUpdateMessage();
         }
 
         public void ResetRound()
@@ -167,7 +172,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _latestTimerTickMessage = null;
             }
 
-            SendUpdateMessage();
+            SendMatchStateUpdateMessage();
         }
 
         public void ResumeRound()
@@ -178,7 +183,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Resume();
             _wsMonitor.EnableScoring();
 
-            SendUpdateMessage();
+            SendMatchStateUpdateMessage();
         }
 
         public void SubmitPlayersList()
@@ -228,9 +233,91 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _latestTimerTickMessage = value;
         }
 
-        private void SendUpdateMessage()
+        private void OnTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+        {
+            if (MatchConfiguration.IsManualWorldId)
+            {
+                return;
+            }
+
+            int? worldId;
+
+            var message = e.Message;
+            var changeType = message.ChangeType;
+            bool isRollBack = false;
+
+            if (changeType == TeamChangeType.Add)
+            {
+                worldId = e.Message.Outfit.WorldId;
+            }
+            else
+            {
+                worldId = _teamsManager.GetNextWorldId(MatchConfiguration.WorldId);
+                isRollBack = true;
+            }
+
+            //var worldId = (int)e.Message.Outfit.WorldId;
+
+            if (worldId == null)
+            {
+                MatchConfiguration.ResetWorldId();
+                SendMatchConfigurationUpdateMessage();
+            }
+            else if (MatchConfiguration.TrySetWorldId((int)worldId, false, isRollBack))
+            {
+                SendMatchConfigurationUpdateMessage();
+            }
+        }
+
+        private void OnTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+        {
+            if (MatchConfiguration.IsManualWorldId)
+            {
+                return;
+            }
+
+            var message = e.Message;
+            var changeType = message.ChangeType;
+            var player = message.Player;
+
+            // Handle outfit removals via Team Outfit Change events
+            if (!player.IsOutfitless)
+            {
+                return;
+            }
+
+            int? worldId;
+            bool isRollBack = false;
+
+            if (changeType == TeamPlayerChangeType.Add)
+            {
+                worldId = player.WorldId;
+            }
+            else
+            {
+                worldId = _teamsManager.GetNextWorldId(MatchConfiguration.WorldId);
+                isRollBack = true;
+            }
+
+            if (worldId == null)
+            {
+                MatchConfiguration.ResetWorldId();
+                SendMatchConfigurationUpdateMessage();
+            }
+            else if (MatchConfiguration.TrySetWorldId((int)worldId, false, isRollBack))
+            {
+                SendMatchConfigurationUpdateMessage();
+            }
+        }
+
+        private void SendMatchStateUpdateMessage()
         {
             _messageService.BroadcastMatchStateUpdateMessage(new MatchStateUpdateMessage(_matchState, _currentRound, DateTime.UtcNow, MatchConfiguration.Title));
+        }
+
+        private void SendMatchConfigurationUpdateMessage()
+        {
+            _messageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(MatchConfiguration));
         }
     }
 }

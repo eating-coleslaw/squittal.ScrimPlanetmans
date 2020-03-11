@@ -40,8 +40,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<PlayerLogoutEventArgs> RaisePlayerLogoutEvent;
         public delegate void PlayerLogoutEventHandler(object sender, PlayerLogoutEventArgs e);
 
+
         public event EventHandler<MatchStateUpdateEventArgs> RaiseMatchStateUpdateEvent;
         public delegate void MatchStateUpdateEventHandler(object sender, MatchStateUpdateEventArgs e);
+
+        public event EventHandler<MatchConfigurationUpdateEventArgs> RaiseMatchConfigurationUpdateEvent;
+        public delegate void MatchConfigurationUpdateEventHandler(object sender, MatchConfigurationUpdateEventArgs e);
+
 
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
@@ -61,6 +66,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseMatchStateUpdateEvent(MatchStateUpdateEventArgs e)
         {
             RaiseMatchStateUpdateEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastMatchConfigurationUpdateMessage(MatchConfigurationUpdateMessage message)
+        {
+            OnRaiseMatchConfigurationUpdateEvent(new MatchConfigurationUpdateEventArgs(message));
+        }
+        protected virtual void OnRaiseMatchConfigurationUpdateEvent(MatchConfigurationUpdateEventArgs e)
+        {
+            RaiseMatchConfigurationUpdateEvent?.Invoke(this, e);
         }
 
         /**********************

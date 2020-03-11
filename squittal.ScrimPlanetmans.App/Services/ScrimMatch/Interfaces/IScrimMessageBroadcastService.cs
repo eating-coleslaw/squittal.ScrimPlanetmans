@@ -21,6 +21,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<PlayerLogoutEventArgs> RaisePlayerLogoutEvent;
 
         event EventHandler<MatchStateUpdateEventArgs> RaiseMatchStateUpdateEvent;
+        event EventHandler<MatchConfigurationUpdateEventArgs> RaiseMatchConfigurationUpdateEvent;
 
         event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
 
@@ -38,7 +39,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastPlayerLoginMessage(PlayerLoginMessage message);
         void BroadcastPlayerLogoutMessage(PlayerLogoutMessage message);
 
-        void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message); // TODO: implement MatchStateUpdateMessage class
+        void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message);
+        void BroadcastMatchConfigurationUpdateMessage(MatchConfigurationUpdateMessage message);
+
         void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message);
 
 

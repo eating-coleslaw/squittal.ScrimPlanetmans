@@ -56,5 +56,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void SetPlayerBenchedStatus(string characterId, bool isBenched);
         void SaveRoundEndScores(int round);
         void RollBackAllTeamStats(int currentRound);
+        int? GetNextWorldId(int previousWorldId);
     }
 }

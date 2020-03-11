@@ -46,7 +46,8 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimMessageBroadcastService, ScrimMessageBroadcastService>();
 
             services.AddTransient<IFactionService, FactionService>();
-            services.AddTransient<IZoneService, ZoneService>();
+            //services.AddTransient<IZoneService, ZoneService>();
+            services.AddSingleton<IZoneService, ZoneService>();
 
             // TODO: should ItemService and FacilityService be Singletons, due to their pre-loaded value lists?
             services.AddTransient<IItemService, ItemService>();

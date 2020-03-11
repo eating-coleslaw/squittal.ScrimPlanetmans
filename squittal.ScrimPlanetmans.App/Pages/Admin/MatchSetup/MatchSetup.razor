@@ -19,6 +19,7 @@
 @inject IItemService ItemService
 @inject IFacilityService FacilityService
 @inject IZoneService ZoneService
+@inject IWorldService WorldService
 
 <div class="container-fluid">
     <div class="row">
@@ -106,24 +107,36 @@
                         <p>Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
                         <p>Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
-                        <p>Scrim Base: <InputSelect style="margin-right: 5px; width: 249px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
+                        <p>
+                            Scrim Server: <InputSelect style="margin-right: 5px; width: 125px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.WorldIdString> <!--class="btn-sm"--> 
+                            @foreach (var world in _worlds)
+                            {
+                                <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
+                            }
+                            </InputSelect>
+                            
+                            Scrim Base: <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
                             <option value=@_noFacilitIdValue>No Base</option>
 
                             @foreach (var zone in _mapZones)
                             {
-                                <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;"/>
+                                <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
 
                                 @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
                                 {
-                                    <option value=@region.Id label="@region.FacilityName">@region.FacilityName</option>
+                                    <option value=@region.Id.ToString() label="@region.FacilityName">@region.FacilityName (@region.Id.ToString())</option>
                                 }
                             }
-                        </InputSelect>
+                            </InputSelect>
                         </p>
 
                         <p>End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/></p>
                     </EditForm>
                 }
+
+                @_debug
+                @_matchConfiguration.WorldIdString
+
             </div>
 
             <div class="sq-mini-card-12">
@@ -147,11 +160,13 @@
     private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
     private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
 
-    #region Facility Select List Variables
+    #region Facility & World Select List Variables
     private List<MapRegion> _mapRegions { get; set; } = new List<MapRegion>();
     private List<int> _mapZones { get; set; } = new List<int>();
     private List<Zone> _zones { get; set; } = new List<Zone>();
     private string _noFacilitIdValue { get; set; } = "-1";
+
+    private List<World> _worlds { get; set; } = new List<World>();
     #endregion
 
     private bool _isStreamServiceEnabled { get; set; } = false;
@@ -166,10 +181,51 @@
     protected override async Task OnInitializedAsync()
     {
         await GetCensusStreamStatus();
+        /*
+        if (!_worlds.Any() || !_zones.Any())
+        {
 
-        var zones = await ZoneService.GetAllZonesAsync();
-        _zones = zones.ToList();
+            var TaskList = new List<Task>();
+
+            var streamStatusTask = GetCensusStreamStatus();
+            TaskList.Add(streamStatusTask);
+
+            //var zonesTask = ZoneService.GetAllZonesAsync();
+            //TaskList.Add(zonesTask);
+            //var zones = await ZoneService.GetAllZonesAsync();
+            //_zones = zones.ToList();
+
+            //var worldsTask =  WorldService.GetAllWorldsAsync();
+            //TaskList.Add(worldsTask);
+            //var worlds = await WorldService.GetAllWorldsAsync();
+            //_worlds = worlds.OrderByDescending(w => w.Name).ToList();
+
+            await Task.WhenAll(TaskList);
+
+            //_zones = zonesTask.Result.ToList();
+            //_worlds = worldsTask.Result.ToList();
+        }
+        */
+
+        //if (ScrimMatchEngine.MatchConfiguration != null)
+        //{
+        //    _debug = "Scrim Engine Configuration 1";
+        //    _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
+        //}
+        //else
+        //{
+        //    _debug = "New Configuration 2";
+        //    _matchConfiguration = new MatchConfiguration();
+        //}
+
+        //_isRunning = ScrimMatchEngine.IsRunning();
+        //_currentRound = ScrimMatchEngine.GetCurrentRound();
+        //_matchState = ScrimMatchEngine.GetMatchState();
+
+        //_mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
+        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
     }
+
 
     protected override void OnInitialized()
     {
@@ -178,13 +234,16 @@
         //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
+        MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
+            _debug = "Scrim Engine Configuration 3";
             _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
         }
         else
         {
+            _debug = "New Configuration 4";
             _matchConfiguration = new MatchConfiguration();
         }
 
@@ -192,8 +251,14 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
 
+        _zones = ZoneService.GetAllZones().ToList(); //.OrderByDescending(z => z.Name).ToList();
+
         _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
         _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+        _worlds = WorldService.GetAllWorlds().OrderBy(w => w.Name).ToList();
+
+        //_worlds = _worlds.OrderBy(w => w.Name).ToList();
     }
 
 
@@ -204,13 +269,13 @@
     {
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
-        _debug = "GetCensusStreamStatus";
+        //_debug = "GetCensusStreamStatus";
     }
 
     private void SubscribeToCensus()
     {
         ScrimMatchEngine.SubmitPlayersList();
-        _debug = "SubscribeToCensus";
+        //_debug = "SubscribeToCensus";
 
         LogAdminMessage($"Subscribed all characters to Stream Monitor!");
     }
@@ -218,7 +283,7 @@
     private void EndCensusSubscription()
     {
         WebsocketMonitor.RemoveAllCharacterSubscriptions();
-        _debug = "EndCensusSubscription";
+        //_debug = "EndCensusSubscription";
 
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
@@ -348,6 +413,19 @@
             StateHasChanged();
         });
     }
+
+    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, MatchConfigurationUpdateEventArgs e)
+    {
+        var message = e.Message;
+
+        _matchConfiguration = message.MatchConfiguration;
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
 
     #endregion
 

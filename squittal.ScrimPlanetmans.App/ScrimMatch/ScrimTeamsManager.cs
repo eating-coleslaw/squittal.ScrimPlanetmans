@@ -98,6 +98,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _participatingPlayers;
         }
 
+        public int? GetNextWorldId(int previousWorldId)
+        {
+            if (_allPlayers.Any(p => p.WorldId == previousWorldId))
+            {
+                return previousWorldId;
+            }
+            else if (_allPlayers.Any())
+            {
+                return _allPlayers.Where(p => p.WorldId > 0).Select(p => p.WorldId).FirstOrDefault();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private void UpdateTeamFaction(int teamOrdinal, int? factionId)
         {
             var team = GetTeam(teamOrdinal);
@@ -327,6 +343,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 player.TeamOrdinal = teamOrdinal;
                 player.FactionId = (int)outfit.FactionId;
+                player.WorldId = (int)outfit.WorldId;
 
                 if (team.TryAddPlayer(player))
                 {
@@ -375,9 +392,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var lastPlayer = newPlayers.LastOrDefault();
 
-            var outfitFactionID = outfitTeam.Outfits.Where(o => o.AliasLower == aliasLower)
-                                                    .Select(o => (int)o.FactionId)
+            var outfit = outfitTeam.Outfits.Where(o => o.AliasLower == aliasLower)
+                                                    //.Select(o => (int)o.FactionId)
                                                     .FirstOrDefault();
+
+            var outfitFactionID = (int)outfit.FactionId;
+            var outfitWorldId = (int)outfit.WorldId;
 
             var anyPlayersAdded = false;
 
@@ -389,6 +409,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 player.TeamOrdinal = teamOrdinal;
                 player.FactionId = outfitFactionID;
+                player.WorldId = outfitWorldId;
 
                 if (outfitTeam.TryAddPlayer(player))
                 {
@@ -436,6 +457,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersRemoved = true;
                 }
             }
+
+
+            //TODO: handle updating Match Configuration's Server ID setting here
 
             if (team.Outfits.Any())
             {

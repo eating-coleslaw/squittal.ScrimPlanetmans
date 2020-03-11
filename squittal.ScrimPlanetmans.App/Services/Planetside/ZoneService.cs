@@ -16,6 +16,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly CensusZone _censusZone;
         private readonly ILogger<ZoneService> _logger;
 
+        private List<Zone> _zones = new List<Zone>();
+
         public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone, ILogger<ZoneService> logger)
         {
             _dbContextHelper = dbContextHelper;
@@ -42,13 +44,25 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 return await dbContext.Zones.ToListAsync();
             }
+        }
 
+        public IEnumerable<Zone> GetAllZones()
+        {
+            return _zones;
         }
 
         public async Task<Zone> GetZoneAsync(int ZoneId)
         {
             var Zones = await GetAllZonesAsync();
             return Zones.FirstOrDefault(e => e.Id == ZoneId);
+        }
+
+        public async Task SetupZonesList()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            _zones = await dbContext.Zones.ToListAsync();
         }
 
         public async Task RefreshStore()

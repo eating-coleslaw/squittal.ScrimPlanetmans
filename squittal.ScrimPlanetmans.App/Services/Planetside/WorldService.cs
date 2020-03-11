@@ -16,6 +16,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly CensusWorld _censusWorld;
         private readonly ILogger<ProfileService> _logger;
 
+        private List<World> _worlds = new List<World>();
+
         public WorldService(IDbContextHelper dbContextHelper, CensusWorld censusWorld, ILogger<ProfileService> logger)
         {
             _dbContextHelper = dbContextHelper;
@@ -47,10 +49,23 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         }
 
+        public IEnumerable<World> GetAllWorlds()
+        {
+            return _worlds;
+        }
+
         public async Task<World> GetWorldAsync(int worldId)
         {
             var worlds = await GetAllWorldsAsync();
             return worlds.FirstOrDefault(e => e.Id == worldId);
+        }
+
+        public async Task SetupWorldsList()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            _worlds = await dbContext.Worlds.Where(z => z.Id != 25).ToListAsync(); // RIP Briggs
         }
 
         public async Task RefreshStore()
