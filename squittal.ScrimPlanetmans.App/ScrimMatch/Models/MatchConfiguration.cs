@@ -47,8 +47,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         {
             _autoEvent.WaitOne();
 
-            var oldZoneIdString = WorldIdString;
-
             if (isManualValue)
             {
                 WorldIdString = worldIdString;
@@ -59,7 +57,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
                 return true;
             }
-            else if (!IsManualWorldId && (!IsWorldIdSet || isRollBack)) // worldIdString != oldZoneIdString)
+            else if (!IsManualWorldId && (!IsWorldIdSet || isRollBack))
             {
                 WorldIdString = worldIdString;
 
