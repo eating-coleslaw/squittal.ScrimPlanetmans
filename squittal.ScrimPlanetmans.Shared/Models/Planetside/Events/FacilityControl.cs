@@ -12,11 +12,14 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside.Events
         [Required]
         public DateTime Timestamp { get; set; }
 
-        public int ZoneId { get; set; }
+        public FacilityControlType Type { get; set; }
+        public int ControllingTeamOrdinal { get; set; }
+
         public int? NewFactionId { get; set; }
         public int? OldFactionId { get; set; }
         public int DurationHeld { get; set; }
         public string OutfitId { get; set; }
+        public int ZoneId { get; set; }
 
         // Voidwell-Specific Stuff
         //public float? ZoneControlVs { get; set; }
@@ -28,4 +31,11 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside.Events
         //public int? ZonePopulationTr { get; set; }
         //public int? ZonePopulationNs { get; set; }
     }
+
+    public enum FacilityControlType
+    {
+        Unknown = 0,
+        Capture = 1,
+        Defense = 2
+    };
 }

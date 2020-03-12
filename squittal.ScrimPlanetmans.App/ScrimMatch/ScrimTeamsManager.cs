@@ -88,6 +88,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public int? GetFirstTeamWithFactionId(int factionId)
+        {
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
+            {
+                var teamFactionId = GetTeam(teamOrdinal).FactionId;
+                if (factionId == teamFactionId)
+                {
+                    return teamOrdinal;
+                }
+            }
+
+            return null;
+        }
+
         public IEnumerable<string> GetAllPlayerIds()
         {
             return _allCharacterIds;
@@ -764,6 +778,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             SendPlayerStatUpdateMessage(player);
+
+            // TODO: broadcast Team stats update
+        }
+
+        public void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            team.AddStatsUpdate(updates);
 
             // TODO: broadcast Team stats update
         }

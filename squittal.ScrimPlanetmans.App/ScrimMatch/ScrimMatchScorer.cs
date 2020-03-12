@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System.Threading.Tasks;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -12,16 +14,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         private readonly IScrimRulesetManager _rulesets;
         private readonly IScrimTeamsManager _teamsManager;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
         private Ruleset _activeRuleset;
 
-        public ScrimMatchScorer(IScrimRulesetManager rulesets, IScrimTeamsManager teamsManager, ILogger<ScrimMatchEngine> logger)
+        // Variables for FacilityControl logic
+        private int _currentRound { get; set; } = 0;
+        private bool _wasFirstBaseControlDefense { get; set; } = false;
+
+        public ScrimMatchScorer(IScrimRulesetManager rulesets, IScrimTeamsManager teamsManager, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
             _rulesets = rulesets;
             _teamsManager = teamsManager;
+            _messageService = messageService;
             _logger = logger;
 
+            _messageService.RaiseMatchStateUpdateEvent += 
             //_activeRuleset = _rulesets.GetActiveRuleset();
         }
 
@@ -274,7 +283,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         #endregion Death Events
 
-
         #region Experience Events
         public int ScoreGainExperienceEvent(GainExperience expGain)
         {
@@ -371,9 +379,69 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #endregion Experience Events
 
         #region Objective Events
-        public int ScoreFacilityControlEvent(FacilityControl control)
+        public int ScoreFacilityControlEvent(FacilityControl control, out bool controlCounts)
         {
-            throw new NotImplementedException();
+            var teamOrdinal = control.ControllingTeamOrdinal;
+            var type = control.Type;
+
+            var team = _teamsManager.GetTeam(teamOrdinal);
+
+            if (!DoesFacilityControlCount(type, teamOrdinal))
+            {
+                controlCounts = false;
+                return 0;
+            }
+            else
+            {
+                controlCounts = true;
+            }
+
+            var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+
+            var actionType = (roundControlVictories == 0)
+                                ? ScrimActionType.FirstBaseCapture
+                                : ScrimActionType.SubsequentBaseCapture;
+
+            var points = GetActionRulePoints(actionType);
+
+            var teamUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+                BaseCaptures = (type == FacilityControlType.Capture ? 1 : 0),
+                BaseDefenses = (type == FacilityControlType.Defense ? 1 : 0)
+            };
+
+            _teamsManager.UpdateTeamStats(teamOrdinal, teamUpdate);
+            
+            return points;
+        }
+
+        private bool DoesFacilityControlCount(FacilityControlType type, int teamOrdinal)
+        {
+            var team = _teamsManager.GetTeam(teamOrdinal);
+
+            var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+
+            if (roundControlVictories == 0)
+            {
+                return true;
+            }
+
+            var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
+
+            return (type != previousScoredControlType);
+
+            /*
+            var roundDefenses = team.EventAggregateTracker.RoundStats.BaseDefenses;
+            if (type == FacilityControlType.Defense)
+            {
+                return roundDefenses == 0
+            }
+
+
+            var roundCaptures = team.EventAggregateTracker.RoundStats.BaseCaptures;
+            */
         }
 
         public int ScorePlayerFacilityCaptureEvent(PlayerFacilityCapture capture)
@@ -409,6 +477,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                     .Select(rule => rule.Points)
                                     .FirstOrDefault();
         }
-    
+
+        #region Message Handling
+        private void OnMatchStateUpdateEvent(object sender, MatchStateUpdateEventArgs e)
+        {
+            _currentRound = e.Message.CurrentRound;
+        }
+        #endregion
+
     }
 }

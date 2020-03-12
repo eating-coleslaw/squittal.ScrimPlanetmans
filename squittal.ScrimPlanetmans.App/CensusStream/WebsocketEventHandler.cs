@@ -687,7 +687,25 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private void Process(FacilityControlPayload payload)
         {
-            var dataModel = new FacilityControl
+            var oldFactionId = payload.OldFactionId;
+            var newFactionId = payload.NewFactionId;
+
+            var type = GetFacilityControlType(oldFactionId, newFactionId);
+
+            if (type == FacilityControlType.Unknown)
+            {
+                return;
+            }
+
+            var controllingTeamOrdinal = _teamsManager.GetFirstTeamWithFactionId(newFactionId);
+            if (controllingTeamOrdinal == null)
+            {
+                return;
+            }
+
+            // ControllingTeamOrdinal
+
+            var controlModel = new FacilityControl
             {
                 FacilityId = payload.FacilityId,
                 NewFactionId = payload.NewFactionId,
@@ -697,9 +715,40 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 Timestamp = payload.Timestamp,
                 WorldId = payload.WorldId,
                 ZoneId = payload.ZoneId.Value,
+                Type = type,
+                ControllingTeamOrdinal = (int)controllingTeamOrdinal
             };
 
+            _scorer.ScoreFacilityControlEvent(controlModel, out bool controlCounts);
+
+            if (!controlCounts)
+            {
+                return;
+            }
+
+            // TODO: broadcast Facility Control message
+
             //return Task.FromResult(dataModel);
+        }
+
+        private FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
+        {
+            if (newFactionId == null || newFactionId <= 0)
+            {
+                return FacilityControlType.Unknown;
+            }
+            else if (oldFactionId == null || oldFactionId <= 0)
+            {
+                return newFactionId == null
+                        ? FacilityControlType.Unknown
+                        : FacilityControlType.Capture;
+            }
+            else
+            {
+                return oldFactionId == newFactionId
+                            ? FacilityControlType.Defense
+                            : FacilityControlType.Capture;
+            }
         }
 
         [CensusEventHandler("PlayerFacilityCapture", typeof(PlayerFacilityCapturePayload))]

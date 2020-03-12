@@ -8,7 +8,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         int ScoreDeathEvent(ScrimDeathActionEvent death);
         int ScoreDeathEvent(Death death);
-        int ScoreFacilityControlEvent(FacilityControl control);
+        int ScoreFacilityControlEvent(FacilityControl control, out bool controlCounts);
         int ScorePlayerFacilityCaptureEvent(PlayerFacilityCapture capture);
         int ScorePlayerFacilityDefendEvent(PlayerFacilityDefend defense);
         int ScoreGainExperienceEvent(GainExperience expGain);

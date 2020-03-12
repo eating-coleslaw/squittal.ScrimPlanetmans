@@ -22,10 +22,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        public ScrimEventAggregate EventAggregateRound { get; set; }
+        //public ScrimEventAggregate EventAggregateRound { get; set; }
 
         // Each aggregate is only the points scored during the round number of the enytry's key
-        public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory { get; set; } = new Dictionary<int, ScrimEventAggregate>();
+        //public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory { get; set; } = new Dictionary<int, ScrimEventAggregate>();
 
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
@@ -66,7 +66,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TeamOrdinal = teamOrdinal;
 
             //EventAggregate = new ScrimEventAggregate();
-            EventAggregateRound = new ScrimEventAggregate();
+            //EventAggregateRound = new ScrimEventAggregate();
         }
 
         public bool TrySetAlias(string alias, bool isCustomAlias = false)
@@ -196,6 +196,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         //    EventAggregateRound.Subtract(update);
         //}
 
+        /*
         public void SaveRoundToEventAggregateHistory(int round)
         {
             if (round < 1)
@@ -232,7 +233,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 EventAggregateRoundHistory.Add(round, roundStats);
             }
         }
+        */
 
+        /*
         private int GetHighestEventAggregateHistoryRound()
         {
             var rounds = EventAggregateRoundHistory.Keys.ToArray();
@@ -244,6 +247,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return rounds.Max();
         }
+        */
 
     }
 }

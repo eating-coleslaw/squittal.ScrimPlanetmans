@@ -57,5 +57,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void SaveRoundEndScores(int round);
         void RollBackAllTeamStats(int currentRound);
         int? GetNextWorldId(int previousWorldId);
+        int? GetFirstTeamWithFactionId(int factionId);
+        void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates);
     }
 }

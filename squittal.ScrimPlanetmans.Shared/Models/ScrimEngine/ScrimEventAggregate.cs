@@ -1,4 +1,5 @@
-﻿using System;
+﻿using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
+using System;
 
 namespace squittal.ScrimPlanetmans.Shared.Models
 {
@@ -40,7 +41,17 @@ namespace squittal.ScrimPlanetmans.Shared.Models
                 return ObjectiveCaptureTicks + ObjectiveDefenseTicks;
             }
         }
-        public int BaseCaps { get; set; } = 0;
+        public int BaseDefenses { get; set; } = 0;
+        public int BaseCaptures { get; set; } = 0;
+        public int BaseControlVictories
+        {
+            get
+            {
+                return BaseDefenses + BaseCaptures;
+            }
+        }
+
+        public FacilityControlType PreviousScoredBaseControlType { get; set; } = FacilityControlType.Unknown;
 
         public int Events
         {
@@ -165,7 +176,17 @@ namespace squittal.ScrimPlanetmans.Shared.Models
             UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
             ObjectiveCaptureTicks += addend.ObjectiveCaptureTicks;
             ObjectiveDefenseTicks += addend.ObjectiveDefenseTicks;
-            BaseCaps += addend.BaseCaps;
+            BaseCaptures += addend.BaseCaptures;
+            BaseDefenses += addend.BaseDefenses;
+
+            if (addend.BaseCaptures > 0 && addend.BaseDefenses == 0)
+            {
+                PreviousScoredBaseControlType = FacilityControlType.Capture;
+            }
+            else if (addend.BaseDefenses > 0 && addend.BaseCaptures == 0)
+            {
+                PreviousScoredBaseControlType = FacilityControlType.Defense;
+            }
 
             return this;
         }
@@ -189,7 +210,24 @@ namespace squittal.ScrimPlanetmans.Shared.Models
             UtilityAssistedDeaths -= subtrahend.UtilityAssistedDeaths;
             ObjectiveCaptureTicks -= subtrahend.ObjectiveCaptureTicks;
             ObjectiveDefenseTicks -= subtrahend.ObjectiveDefenseTicks;
-            BaseCaps -= subtrahend.BaseCaps;
+            BaseCaptures -= subtrahend.BaseCaptures;
+            BaseDefenses -= subtrahend.BaseDefenses;
+
+            if (BaseControlVictories == 0)
+            {
+                PreviousScoredBaseControlType = FacilityControlType.Unknown;
+            }
+            else if ( subtrahend.BaseCaptures != 0 || subtrahend.BaseDefenses != 0)
+            {
+                if (PreviousScoredBaseControlType == FacilityControlType.Capture || BaseDefenses > BaseCaptures)
+                {
+                    PreviousScoredBaseControlType = FacilityControlType.Defense;
+                }
+                else if (PreviousScoredBaseControlType == FacilityControlType.Defense || BaseCaptures > BaseDefenses)
+                {
+                    PreviousScoredBaseControlType = FacilityControlType.Capture;
+                }
+            }
 
             return this;
         }
