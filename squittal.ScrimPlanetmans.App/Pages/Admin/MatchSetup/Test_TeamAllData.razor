@@ -34,6 +34,14 @@
             <thead style="vertical-align: bottom;">
                 <tr>
                     <th></th>
+                    <th class="stacked-label med" title="Base Captures">
+                        <span class="small">Base<br></span>
+                        <span>Captures</span>
+                    </th>
+                    <th class="stacked-label med" title="Base Defenses">
+                        <span class="small">Base<br></span>
+                        <span>Defenses</span>
+                    </th>
                     <th title="Kills">Kills</th>
                     <th title="Deaths">Death</th>
                     <th title="Kill Death Ratio">KDR</th>
@@ -95,20 +103,26 @@
             <tbody>
                 <tr>
                     <td>Total</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.BaseCaptures);">@(_team.EventAggregate.BaseCaptures)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregate.BaseDefenses);">@(_team.EventAggregate.BaseDefenses)</td>
                     <Test_PlayerStatsRow EventAggregate=@_team.EventAggregate PlayerId="team" />
                 </tr>
 
                 <tr>
                     <td>Current</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.BaseCaptures);">@(_team.EventAggregateTracker.RoundStats.BaseCaptures)</td>
+                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.BaseDefenses);">@(_team.EventAggregateTracker.RoundStats.BaseDefenses)</td>
                     <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
                 </tr>
 
                 @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
                 {
-                    <tr>
-                        <td>Round @round</td>
-                        <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
-                    </tr>
+            <tr>
+                <td>Round @round</td>
+                <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures);">@(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures)</td>
+                <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses);">@(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses)</td>
+                <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
+            </tr>
                 }
             </tbody>
         </table>
@@ -292,6 +306,7 @@
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         _worlds = await WorldService.GetAllWorldsAsync();
@@ -458,6 +473,22 @@
         if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
         {
             _teamPlayersVisible.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var team = message.Team;
+
+        if (team.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
         }
 
         InvokeAsync(() =>
