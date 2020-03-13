@@ -233,15 +233,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 matchesWorld = worldId == SubscribedWorldId;
             }
 
-            if (facilityId != null && matchesWorld)
-            {
-                _logger.LogInformation($"FacilityControl: facilityId={facilityId} worldId={worldId} target={SubscribedFacilityId} match={(matchesFacility && matchesWorld).ToString()}");
-            }
-            else if (matchesWorld)
-            {
-                _logger.LogInformation($"FacilityControl: {payload.ToString()}");
-            }
-
             return (matchesFacility && matchesWorld);
         }
 
