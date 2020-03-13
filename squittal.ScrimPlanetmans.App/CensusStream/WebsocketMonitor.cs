@@ -81,7 +81,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 "Death",
                 "PlayerLogin",
-                "PlayerLogout"
+                "PlayerLogout",
+                "FacilityControl"
             };
 
             eventNames.AddRange(ExperienceEventsBuilder.GetExperienceEvents());
