@@ -32,6 +32,7 @@
         MessageService.RaiseScrimReviveActionEvent += ReceiveReviveActionEvent;
         MessageService.RaiseScrimAssistActionEvent += ReceiveAssistActionEvent;
         MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveObjectiveTickActionEvent;
+        MessageService.RaiseScrimFacilityControlActionEvent += ReceiveScrimFacilityControlActionEvent;
     }
 
     #region  Event Handling
@@ -63,6 +64,14 @@
         var info = e.Message.Info;
         LogMessage(info);
     }
+    
+    private void ReceiveScrimFacilityControlActionEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+
     #endregion
 
 
