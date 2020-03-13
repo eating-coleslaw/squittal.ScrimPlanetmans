@@ -46,6 +46,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseTeamOutfitChangeEvent += OnTeamOutfitChangeEvent;
             _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
 
+            _messageService.RaiseScrimFacilityControlActionEvent += OnFacilityControlEvent;
+
             //MatchConfiguration = new MatchConfiguration();
             ClearMatch();
         }
@@ -307,6 +309,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             else if (MatchConfiguration.TrySetWorldId((int)worldId, false, isRollBack))
             {
                 SendMatchConfigurationUpdateMessage();
+            }
+        }
+
+        private void OnFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+        {
+            if (!MatchConfiguration.EndRoundOnFacilityCapture)
+            {
+                return;
+            }
+
+            var message = e.Message;
+            var controlEvent = message.FacilityControl;
+
+            if (controlEvent.FacilityId == MatchConfiguration.FacilityId && controlEvent.WorldId == MatchConfiguration.WorldId)
+            {
+                EndRound();
             }
         }
 
