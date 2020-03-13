@@ -387,6 +387,7 @@
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         _worlds = await WorldService.GetAllWorldsAsync();
@@ -805,6 +806,22 @@
         if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamNonOutfitPlayers.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var team = message.Team;
+
+        if (team.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
         }
 
         InvokeAsync(() =>
