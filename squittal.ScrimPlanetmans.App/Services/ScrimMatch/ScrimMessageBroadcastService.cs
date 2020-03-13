@@ -20,6 +20,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
+        public event EventHandler<TeamStatUpdateEventArgs> RaiseTeamStatUpdateEvent;
+        public delegate void TeamStatUpdateMessageEventHandler(object sender, TeamStatUpdateEventArgs e);
+
         public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
 
@@ -32,6 +35,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
         public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimObjectiveTickActionEventEventArgs e);
+        
+
+        public event EventHandler<ScrimFacilityControlActionEventEventArgs> RaiseScrimFacilityControlActionEvent;
+        public delegate void ScrimFacilityControlActionEventMessageEventHandler(object sender, ScrimFacilityControlActionEventEventArgs e);
 
 
         public event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
@@ -122,6 +129,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaisePlayerStatUpdateEvent?.Invoke(this, e);
         }
 
+        public void BroadcastTeamStatUpdateMessage(TeamStatUpdateMessage message)
+        {
+            OnRaiseTeamStatUpdateEvent(new TeamStatUpdateEventArgs(message));
+        }
+        protected virtual void OnRaiseTeamStatUpdateEvent(TeamStatUpdateEventArgs e)
+        {
+            RaiseTeamStatUpdateEvent?.Invoke(this, e);
+        }
+
         public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
         {
             OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
@@ -156,6 +172,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseScrimObjectiveTickActionEvent(ScrimObjectiveTickActionEventEventArgs e)
         {
             RaiseScrimObjectiveTickActionEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastScrimFacilityControlActionEventMessage(ScrimFacilityControlActionEventMessage message)
+        {
+            OnRaiseScrimFacilityControlActionEvent(new ScrimFacilityControlActionEventEventArgs(message));
+        }
+        protected virtual void OnRaiseScrimFacilityControlActionEvent(ScrimFacilityControlActionEventEventArgs e)
+        {
+            RaiseScrimFacilityControlActionEvent?.Invoke(this, e);
         }
 
         /***************************

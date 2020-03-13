@@ -156,6 +156,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         }
     }
 
+    public class ScrimFacilityControlActionEvent : ScrimActionEvent
+    {
+        public int FacilityId { get; set; }
+        public int WorldId { get; set; }
+        public string FacilityName { get; set; } = string.Empty;
+
+        //public FacilityControlType ControlType { get; set; }
+        public Shared.Models.Planetside.Events.FacilityControlType ControlType { get; set; }
+        public int ControllingTeamOrdinal { get; set; }
+        
+        public int Points { get; set; }
+
+
+        public int? NewFactionId { get; set; }
+        public int? OldFactionId { get; set; }
+        public int DurationHeld { get; set; }
+        public string OutfitId { get; set; }
+    }
+
     public class ScrimActionWeaponInfo
     {
         public int Id { get; set; }

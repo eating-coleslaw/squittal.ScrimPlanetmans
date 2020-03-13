@@ -789,6 +789,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.AddStatsUpdate(updates);
 
             // TODO: broadcast Team stats update
+            SendTeamStatUpdateMessage(team);
         }
 
         public void SaveRoundEndScores(int round)
@@ -885,6 +886,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var payload = new PlayerStatUpdateMessage(player);
             _messageService.BroadcastPlayerStatUpdateMessage(payload);
         }
+
+        private void SendTeamStatUpdateMessage(Team team)
+        {
+            var payload = new TeamStatUpdateMessage(team);
+            _messageService.BroadcastTeamStatUpdateMessage(payload);
+        }
+
         #endregion
 
         public void Dispose()

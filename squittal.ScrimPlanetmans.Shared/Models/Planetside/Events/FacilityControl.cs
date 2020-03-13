@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside.Events
         [Required]
         public DateTime Timestamp { get; set; }
 
-        public FacilityControlType Type { get; set; }
+        //public FacilityControlType Type { get; set; }
         public int ControllingTeamOrdinal { get; set; }
 
         public int? NewFactionId { get; set; }

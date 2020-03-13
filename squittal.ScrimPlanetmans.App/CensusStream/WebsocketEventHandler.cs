@@ -29,6 +29,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         //private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemService _itemService;
         private readonly ICharacterService _characterService;
+        private readonly IFacilityService _facilityService;
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IScrimMatchScorer _scorer;
         private readonly IScrimMessageBroadcastService _messageService;
@@ -48,13 +49,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
         });
 
-        public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer, IItemService itemService, IScrimMessageBroadcastService messageService, ILogger<WebsocketEventHandler> logger)
+        public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer, IItemService itemService, IFacilityService facilityService, IScrimMessageBroadcastService messageService, ILogger<WebsocketEventHandler> logger)
         {
             _teamsManager = teamsManager;
             _itemService = itemService;
             _messageService = messageService;
             //_dbContextHelper = dbContextHelper;
             _characterService = characterService;
+            _facilityService = facilityService;
             _scorer = scorer;
             _logger = logger;
 
@@ -692,7 +694,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var type = GetFacilityControlType(oldFactionId, newFactionId);
 
-            if (type == FacilityControlType.Unknown)
+            if (type == Shared.Models.Planetside.Events.FacilityControlType.Unknown)
             {
                 return;
             }
@@ -703,11 +705,21 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            // ControllingTeamOrdinal
+            var actionType = GetFacilityControlActionType(type, (int)controllingTeamOrdinal);
 
-            var controlModel = new FacilityControl
+            // "Outside Influence" doesn't really apply to base captures
+            if (actionType == ScrimActionType.None)
+            {
+                return;
+            }
+
+            var mapRegion = _facilityService.GetScrimmableMapRegionFromFacilityId(payload.FacilityId);
+
+            //var controlModel = new FacilityControl
+            var controlEvent = new ScrimFacilityControlActionEvent
             {
                 FacilityId = payload.FacilityId,
+                FacilityName = mapRegion.FacilityName,
                 NewFactionId = payload.NewFactionId,
                 OldFactionId = payload.OldFactionId,
                 DurationHeld = payload.DurationHeld,
@@ -715,40 +727,66 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 Timestamp = payload.Timestamp,
                 WorldId = payload.WorldId,
                 ZoneId = payload.ZoneId.Value,
-                Type = type,
-                ControllingTeamOrdinal = (int)controllingTeamOrdinal
+                ControllingTeamOrdinal = (int)controllingTeamOrdinal,
+                ControlType = type,
+                ActionType = actionType
             };
 
-            _scorer.ScoreFacilityControlEvent(controlModel, out bool controlCounts);
+            //_scorer.ScoreFacilityControlEvent(controlModel, out bool controlCounts);
 
-            if (!controlCounts)
+            if (_isScoringEnabled)
             {
-                return;
+                var points = _scorer.ScoreFacilityControlEvent(controlEvent);
+                controlEvent.Points = points;
             }
 
             // TODO: broadcast Facility Control message
+            _messageService.BroadcastScrimFacilityControlActionEventMessage(new ScrimFacilityControlActionEventMessage(controlEvent));
 
             //return Task.FromResult(dataModel);
         }
 
-        private FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
+        private Shared.Models.Planetside.Events.FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
         {
             if (newFactionId == null || newFactionId <= 0)
             {
-                return FacilityControlType.Unknown;
+                return Shared.Models.Planetside.Events.FacilityControlType.Unknown;
             }
             else if (oldFactionId == null || oldFactionId <= 0)
             {
                 return newFactionId == null
-                        ? FacilityControlType.Unknown
-                        : FacilityControlType.Capture;
+                        ? Shared.Models.Planetside.Events.FacilityControlType.Unknown
+                        : Shared.Models.Planetside.Events.FacilityControlType.Capture;
             }
             else
             {
                 return oldFactionId == newFactionId
-                            ? FacilityControlType.Defense
-                            : FacilityControlType.Capture;
+                            ? Shared.Models.Planetside.Events.FacilityControlType.Defense
+                            : Shared.Models.Planetside.Events.FacilityControlType.Capture;
             }
+        }
+
+        private ScrimActionType GetFacilityControlActionType(Shared.Models.Planetside.Events.FacilityControlType type, int teamOrdinal)
+        {
+            var team = _teamsManager.GetTeam(teamOrdinal);
+
+            var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+
+            //if (roundControlVictories == 0)
+            //{
+            //    return true;
+            //}
+
+            var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
+
+            if (type != previousScoredControlType && roundControlVictories != 0)
+            {
+                return ScrimActionType.None;
+            }
+
+            return (roundControlVictories == 0)
+                        ? ScrimActionType.FirstBaseCapture
+                        : ScrimActionType.SubsequentBaseCapture;
         }
 
         [CensusEventHandler("PlayerFacilityCapture", typeof(PlayerFacilityCapturePayload))]

@@ -11,11 +11,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
 
         event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
+        event EventHandler<TeamStatUpdateEventArgs> RaiseTeamStatUpdateEvent;
         
         event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
         event EventHandler<ScrimAssistActionEventEventArgs> RaiseScrimAssistActionEvent;
         event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
+        event EventHandler<ScrimFacilityControlActionEventEventArgs> RaiseScrimFacilityControlActionEvent;
 
         event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
         event EventHandler<PlayerLogoutEventArgs> RaisePlayerLogoutEvent;
@@ -30,11 +32,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message);
         void BroadcastTeamOutfitChangeMessage(TeamOutfitChangeMessage message);
         void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message);
+        void BroadcastTeamStatUpdateMessage(TeamStatUpdateMessage message);
 
         void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message);
         void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message);
         void BroadcastScrimAssistActionEventMessage(ScrimAssistActionEventMessage message);
         void BroadcastScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEventMessage message);
+        void BroadcastScrimFacilityControlActionEventMessage(ScrimFacilityControlActionEventMessage message);
 
         void BroadcastPlayerLoginMessage(PlayerLoginMessage message);
         void BroadcastPlayerLogoutMessage(PlayerLogoutMessage message);
@@ -43,7 +47,5 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastMatchConfigurationUpdateMessage(MatchConfigurationUpdateMessage message);
 
         void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message);
-
-
     }
 }
