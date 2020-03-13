@@ -83,6 +83,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             MatchConfiguration = new MatchConfiguration();
 
+            //_wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
+            //_wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
+
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
             _matchState = MatchState.Uninitialized;
@@ -101,6 +104,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             MatchConfiguration = configuration;
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
+
+            _wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
+            _wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
+
+            //SendMatchConfigurationUpdateMessage();
         }
 
         public void EndRound()

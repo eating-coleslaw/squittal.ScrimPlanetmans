@@ -126,7 +126,7 @@
 
                                 @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
                                 {
-                                    <option value=@region.Id.ToString() label="@region.FacilityName">@region.FacilityName (@region.Id.ToString())</option>
+                                    <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
                                 }
                             }
                             </InputSelect>

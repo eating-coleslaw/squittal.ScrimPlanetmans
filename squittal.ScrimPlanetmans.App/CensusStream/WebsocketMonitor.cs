@@ -210,6 +210,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return false;
             }
 
+            var eventName = payload.Value<string>("event_name");
+            if (eventName != "FacilityControl")
+            {
+                return false;
+            }
+
             var facilityId = payload.Value<int?>("facility_id");
             var worldId = payload.Value<int?>("world_id");
 
@@ -225,6 +231,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
             if (worldId != null && worldId > 0)
             {
                 matchesWorld = worldId == SubscribedWorldId;
+            }
+
+            if (facilityId != null && matchesWorld)
+            {
+                _logger.LogInformation($"FacilityControl: facilityId={facilityId} worldId={worldId} target={SubscribedFacilityId} match={(matchesFacility && matchesWorld).ToString()}");
+            }
+            else if (matchesWorld)
+            {
+                _logger.LogInformation($"FacilityControl: {payload.ToString()}");
             }
 
             return (matchesFacility && matchesWorld);
