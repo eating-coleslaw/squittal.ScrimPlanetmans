@@ -16,6 +16,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
     public enum ScrimActionType
     {
+        None = 0,
+        
         // Objectives: 10-19
         FirstBaseCapture = 10,
         SubsequentBaseCapture = 11,
