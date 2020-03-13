@@ -25,22 +25,22 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _logger = logger;
         }
 
-        public Task<MapRegion> GetMapRegion(int mapRegionId)
+        public Task<MapRegion> GetMapRegionAsync(int mapRegionId)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<MapRegion> GetMapRegionFromFacilityId(int facilityId)
+        public Task<MapRegion> GetMapRegionFromFacilityIdAsync(int facilityId)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<MapRegion> GetMapRegionFromFacilityName(string facilityName)
+        public Task<MapRegion> GetMapRegionFromFacilityNameAsync(string facilityName)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<MapRegion> GetMapRegionsByFacilityType(int facilityTypeId)
+        public Task<MapRegion> GetMapRegionsByFacilityTypeAsync(int facilityTypeId)
         {
             throw new System.NotImplementedException();
         }
@@ -48,6 +48,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         public IEnumerable<MapRegion> GetScrimmableMapRegions()
         {
             return _scrimmableMapRegions;
+        }
+
+        public MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId)
+        {
+            return _scrimmableMapRegions.FirstOrDefault(r => r.FacilityId == facilityId);
         }
 
         public async Task SetUpScimmableMapRegionsAsync()
