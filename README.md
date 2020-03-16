@@ -28,7 +28,8 @@ Using a registered Service ID permits unthrottled querying of the Census API. Wi
 
 2. Open `Control Panel > System and Security > System > Advanced system settings`. In the __System Properties__ window that opens, select the `Environment Variables...` button on the Advanced tab. The __Environment Variables__ window will open.
 
-3. Under __User veriables for *username*__, select `New..`. to add a new user variable with name "DaybreakGamesServiceKey" (without the quotes) and a value of your census API service key. Click OK to accept the new variable.
+3. Under __User veriables for <*Windows username*>__, select `New..`. to add a new user variable with name "DaybreakGamesServiceKey" (without the quotes) and a value of your census API service key. Click OK to accept the new variable.  
+   * Note: The "s:" prefix in an API query string is not part of the service key. For example, you would set the environment variable to `example`, not `s:example`.  
 
 ### _(For Development Only)_ Visual Studio 2019 (v16.4)
 
@@ -58,74 +59,51 @@ Run this as administrator to start the app. In a web browser navigate to the URL
 
 To stop the app _gracefully_, press `Ctrl+C` in the Command Prompt. Enter `Y` at the `Cancel batch job?` prompt.
 
-__StopSqlServer.bat__  
-Run this as administrator to stop the SQL Server service. You should do this after stopping the app.
-
-__StartSqlServer.bat__  
-Run this as administrator to start the SQL Server service. You shouldn't ever need to run this file if you're only running the app (i.e. not doing development), as RuntBat.bat automatically starts the SQL Server service if it's not already running.
-
 ## Maintenance
 
-__Update Weapon & Item Data__  
+### Update Weapon & Item Data  
+
 New weapons or items added to the game won't automatically be picked up by the app. Instead, stop the app, run `commands\DeleteItemSqlData.bat` as administrator, then restart the app. When the app restarts, these tables will be repopulated with the new weapons and items.
+
+__Before running the delete command__, verify that the census API Item collection is working. The following query should return a count of around 20,000: [http://census.daybreakgames.com/s:example/count/ps2:v2/item](http://census.daybreakgames.com/s:example/count/ps2:v2/item "Daybreak Games Item census collection count query")
 
 ## Troubleshooting
 
 If you don't see your issue below, please write up an Issue.
 
-### SQL Server Instance Not Found or Not Accessible
+### Failed to Connect: Service ID Not Registered
 
-When attempting to run the app, you get an error message like this:  
-`An error occured initializing the DB.
-Microsoft.Data.SqlClient.SqlException (0x80131904): A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified)`
+When attempting to run the app, you see error messages like the following:  
 
-This means that the SQL Database service has been stopped for some reason. Manually start the service, then try running the app again.
+    fail: squittal.ScrimPlanetmans.CensusStream.WebsocketMonitor[91435]
+      Failed to establish initial connection to Census. Will not attempt to reconnect.
+     System.Net.WebSockets.WebSocketException (0x80004005): The server returned status code '403'when status code '101' was expected.
 
-#### Start Service via StopSqlServer.bat
+    ...
 
-1. `Run squittal.LivePlanetmans\commands\StartSqlServer.bat` (or your `StopSqlServer.bat` shortcut) as administrator.
+    Unhandled exception. DaybreakGames.Census.Exceptions.CensusServerException: Provided Service ID is not registered.  A valid Service ID is required for continued api use. (http://census.daybreakgames.com/#devSignup)
 
-#### Start Service via Services App
+Below are the likely causes of this and how to address them.
 
-1. Open the __Services__ Windows app.
+#### Your Service Key is Not Valid
 
-2. Scroll down to __SQL Server (SQLEXPRESS)__. If the service has stopped, the Status column value will be blank.
+Using your service key in place of `example`, open the following query in a browser: [http://census.daybreakgames.com/s:example/count/ps2:v2/item](http://census.daybreakgames.com/s:example/count/ps2:v2/item "Daybreak Games Item census collection count query"). If the result is a message like `{"error":"Provided Service ID is not registered.  A valid Service ID is required for continued api use. (http://census.daybreakgames.com/#devSignup)"}`, instead of a count, then your service key is not valid.
 
-3. Select Start from the row's right-click menu to restart the service.
+* If you haven't yet received an email from Daybreak Games confirming the activation of your service key, then wait until you've received the confirmation email.
+* If your service key has worked in the past, then Daybreak Games may have deactivated it for some reason and you will likely need to [follow up with support](http://census.daybreakgames.com/#service-id] "Daybreak Games census API service key information").  
 
-### SQL Server Using Excessive Resources
+#### Environment Variable Entry Issue
 
-The SQL Server Windows NT process started suddenly taking up a large amount of CPU, Memory, or Disk resources even though you're not currently running the app.
+If your service key is definitely valid, then the problem is probably in your environment variable configuration.
 
-The SQL database & associated service are independant of the leaderboard app itself, and so they'll continue to run after the app is stopped. Manually stop the SQL Server service after closing the app, and restart it before running the app again.
+* The `DaybreakGamesServiceKey` variable should be in the section labeled `User variables for <your Windows username>`, not under the section labeled `System variables`.
+* The service key value should *not* include `s:`.
 
-#### Stop Service via StopSqlServer.bat
-
-1. `Run squittal.LivePlanetmans\commands\StopSqlServer.bat` (or your `StopSqlServer.bat` shortcut) as administrator.
-
-#### Stop Service via Services App
-
-1. Open the __Services__ Windows app.
-
-2. Scroll down to __SQL Server (SQLEXPRESS)__. If the service is running, it will show _Running_ in the Status column.
-
-3. Select `Stop` from the row's right-click menu to stop the service.
-
-#### Stop Service via Task Manager
-
-1. Ending the _SQL Server Windows NT_ process in __Task Manager__ will stop the appropriate services, freeing up system resources.
-
-#### Set Service to Manual Startup
-
-1. If the __SQL Server (SQLEXPRESS)__ service is set to start with your computer, it will show _Automatic_ under the Startup Type column. If you don't want this behavior, right-click and select `Properties`.
-
-2. Set Startup type to _Manual_.
-
-   You will need to ensure the service is running each time before starting the leaderboard app: select `Start` from the right-click menu.
 
 ## Credits & Technologies
 
-This is a project for me to learn C# & .NET, re-learn OOP, and practice designing reporting business logic and dashboard UI.
+This is a project for me to continue learning C# & .NET, and to improve upon the JS + Node.js scrim streaming overlay.
 
-* Backend is largely straight from Lampjaw's  [Voidwell.com](https://github.com/voidwell/Voidwell.DaybreakGames "Voidwell's backend github repository"), with some small modifications by me. Interacting with the Daybreak Games Census API and event streaming service are done with Lampjaw's [DaybreakGames.Census NuGet package](https://github.com/Lampjaw/DaybreakGames.Census "DaybreakGames.Census package github repository").
+* Backend is largely straight from Lampjaw's  [Voidwell.com](https://github.com/voidwell/Voidwell.DaybreakGames "Voidwell's backend github repository"), with some small modifications by me.
+* Interacting with the Daybreak Games Census API and event streaming service are done with Lampjaw's [DaybreakGames.Census NuGet package](https://github.com/Lampjaw/DaybreakGames.Census "DaybreakGames.Census package github repository").
 * Frontend/Client is ASP.NET Core Blazor
