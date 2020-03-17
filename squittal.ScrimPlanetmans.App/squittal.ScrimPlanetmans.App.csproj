@@ -28,10 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\squittal.ScrimPlanetmans.Shared\squittal.ScrimPlanetmans.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Pages\Admin\Rulesets\" />
   </ItemGroup>
 
