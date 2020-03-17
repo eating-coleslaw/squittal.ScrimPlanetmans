@@ -12,6 +12,7 @@ using System.Linq;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {

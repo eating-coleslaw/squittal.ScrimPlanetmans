@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
-using squittal.ScrimPlanetmans.Shared.Models;
+//using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
+//using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
-using squittal.ScrimPlanetmans.ScrimMatch.Messages;
-using System;
+//using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+//using System;
 using System.Linq;
 using System.Threading.Tasks;
+using squittal.ScrimPlanetmans.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -152,6 +153,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return points;
         }
 
+        /*
         public int ScoreDeathEvent(Death death)
         {
             var attackerId = death.AttackerCharacterId;
@@ -275,14 +277,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return points;
         }
-
+        */
         #endregion Death Events
 
         #region Experience Events
+        /*
         public int ScoreGainExperienceEvent(GainExperience expGain)
         {
             throw new NotImplementedException();
         }
+        */
 
         public int ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
@@ -410,8 +414,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 Points = points,
                 NetScore = points,
-                BaseCaptures = (type == Shared.Models.Planetside.Events.FacilityControlType.Capture ? 1 : 0),
-                BaseDefenses = (type == Shared.Models.Planetside.Events.FacilityControlType.Defense ? 1 : 0)
+                BaseCaptures = (type == FacilityControlType.Capture ? 1 : 0),
+                BaseDefenses = (type == FacilityControlType.Defense ? 1 : 0)
             };
 
             _teamsManager.UpdateTeamStats(teamOrdinal, teamUpdate);
@@ -419,7 +423,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return points;
         }
 
-        private bool DoesFacilityControlCount(Shared.Models.Planetside.Events.FacilityControlType type, int teamOrdinal)
+        private bool DoesFacilityControlCount(FacilityControlType type, int teamOrdinal)
         {
             var team = _teamsManager.GetTeam(teamOrdinal);
 
@@ -445,17 +449,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var roundCaptures = team.EventAggregateTracker.RoundStats.BaseCaptures;
             */
         }
-
-        public int ScorePlayerFacilityCaptureEvent(PlayerFacilityCapture capture)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int ScorePlayerFacilityDefendEvent(PlayerFacilityDefend defense)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion Objective Events
 
         #region Misc. Non-Scored Events

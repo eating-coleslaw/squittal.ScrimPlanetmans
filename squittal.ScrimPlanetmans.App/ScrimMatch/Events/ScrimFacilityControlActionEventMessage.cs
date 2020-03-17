@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var teamOrdinal = FacilityControl.ControllingTeamOrdinal;
 
             var actionDisplay = GetEnumValueName(FacilityControl.ActionType);
-            var controlTypeDisplay = Enum.GetName(typeof(Shared.Models.Planetside.Events.FacilityControlType), FacilityControl.ControlType).ToUpper();
+            var controlTypeDisplay = Enum.GetName(typeof(FacilityControlType), FacilityControl.ControlType).ToUpper();
 
             var facilityName = FacilityControl.FacilityName;
             var facilityId = FacilityControl.FacilityId;

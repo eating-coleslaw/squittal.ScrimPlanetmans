@@ -10,14 +10,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
+using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
-using squittal.ScrimPlanetmans.Shared.Models;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
+//using squittal.ScrimPlanetmans.Shared.Models;
+//using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+//using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
 
 //using Microsoft.EntityFrameworkCore;
 //using squittal.ScrimPlanetmans.Data;
@@ -685,7 +686,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
         #endregion
 
-        //private Task<FacilityControl> Process(FacilityControlPayload payload)
+        #region FacilityControl Payloads
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private void Process(FacilityControlPayload payload)
         {
@@ -694,7 +695,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var type = GetFacilityControlType(oldFactionId, newFactionId);
 
-            if (type == Shared.Models.Planetside.Events.FacilityControlType.Unknown)
+            if (type == FacilityControlType.Unknown)
             {
                 return;
             }
@@ -746,27 +747,27 @@ namespace squittal.ScrimPlanetmans.CensusStream
             //return Task.FromResult(dataModel);
         }
 
-        private Shared.Models.Planetside.Events.FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
+        private FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
         {
             if (newFactionId == null || newFactionId <= 0)
             {
-                return Shared.Models.Planetside.Events.FacilityControlType.Unknown;
+                return FacilityControlType.Unknown;
             }
             else if (oldFactionId == null || oldFactionId <= 0)
             {
                 return newFactionId == null
-                        ? Shared.Models.Planetside.Events.FacilityControlType.Unknown
-                        : Shared.Models.Planetside.Events.FacilityControlType.Capture;
+                        ? FacilityControlType.Unknown
+                        : FacilityControlType.Capture;
             }
             else
             {
                 return oldFactionId == newFactionId
-                            ? Shared.Models.Planetside.Events.FacilityControlType.Defense
-                            : Shared.Models.Planetside.Events.FacilityControlType.Capture;
+                            ? FacilityControlType.Defense
+                            : FacilityControlType.Capture;
             }
         }
 
-        private ScrimActionType GetFacilityControlActionType(Shared.Models.Planetside.Events.FacilityControlType type, int teamOrdinal)
+        private ScrimActionType GetFacilityControlActionType(FacilityControlType type, int teamOrdinal)
         {
             var team = _teamsManager.GetTeam(teamOrdinal);
 
@@ -788,39 +789,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         ? ScrimActionType.FirstBaseCapture
                         : ScrimActionType.SubsequentBaseCapture;
         }
-
-        [CensusEventHandler("PlayerFacilityCapture", typeof(PlayerFacilityCapturePayload))]
-        private Task<PlayerFacilityCapture> Process(PlayerFacilityCapturePayload payload)
-        {
-            var dataModel = new PlayerFacilityCapture
-            {
-                CharacterId = payload.CharacterId,
-                FacilityId = payload.FacilityId,
-                OutfitId = payload.OutfitId == "0" ? null : payload.OutfitId,
-                Timestamp = payload.Timestamp,
-                WorldId = payload.WorldId,
-                ZoneId = payload.ZoneId.Value
-            };
-
-            return Task.FromResult(dataModel);
-        }
-
-        [CensusEventHandler("PlayerFacilityDefend", typeof(PlayerFacilityDefendPayload))]
-        private Task<PlayerFacilityDefend> Process(PlayerFacilityDefendPayload payload)
-        {
-            var dataModel = new PlayerFacilityDefend
-            {
-                CharacterId = payload.CharacterId,
-                FacilityId = payload.FacilityId,
-                OutfitId = payload.OutfitId == "0" ? null : payload.OutfitId,
-                Timestamp = payload.Timestamp,
-                WorldId = payload.WorldId,
-                ZoneId = payload.ZoneId.Value
-            };
-
-            return Task.FromResult(dataModel);
-        }
         #endregion
+
+        #endregion Payload Handling
 
         public void Dispose()
         {

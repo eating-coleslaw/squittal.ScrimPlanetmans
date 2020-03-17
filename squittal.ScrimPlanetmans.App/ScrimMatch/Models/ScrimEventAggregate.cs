@@ -1,7 +1,6 @@
-﻿using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
-using System;
+﻿using System;
 
-namespace squittal.ScrimPlanetmans.Shared.Models
+namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
     public class ScrimEventAggregate
     {

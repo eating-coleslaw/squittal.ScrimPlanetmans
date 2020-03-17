@@ -1,5 +1,4 @@
-﻿using squittal.ScrimPlanetmans.Shared.Models;
-using System;
+﻿using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
@@ -162,8 +161,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int WorldId { get; set; }
         public string FacilityName { get; set; } = string.Empty;
 
-        //public FacilityControlType ControlType { get; set; }
-        public Shared.Models.Planetside.Events.FacilityControlType ControlType { get; set; }
+        public FacilityControlType ControlType { get; set; }
+        //public Shared.Models.Planetside.Events.FacilityControlType ControlType { get; set; }
         public int ControllingTeamOrdinal { get; set; }
         
         public int Points { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace squittal.ScrimPlanetmans.Shared.Models
+﻿namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
     public enum DeathEventType
     {
