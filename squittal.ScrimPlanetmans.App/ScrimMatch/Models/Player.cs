@@ -1,8 +1,5 @@
-﻿using squittal.ScrimPlanetmans.Shared.Models;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+﻿using squittal.ScrimPlanetmans.Models.Planetside;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {

@@ -111,7 +111,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("ScrimAction");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.Faction", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.Faction", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -133,7 +133,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("Faction");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.Item", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.Item", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -167,7 +167,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("Item");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.ItemCategory", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.ItemCategory", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -180,7 +180,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("ItemCategory");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.Loadout", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.Loadout", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -199,7 +199,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("Loadout");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.Profile", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.Profile", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -221,7 +221,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("Profile");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.World", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.World", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -234,7 +234,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("World");
                 });
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Shared.Models.Planetside.Zone", b =>
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.Zone", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");

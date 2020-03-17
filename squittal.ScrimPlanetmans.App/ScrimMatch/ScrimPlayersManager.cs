@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
-using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;
+using squittal.ScrimPlanetmans.Models.Planetside;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using squittal.ScrimPlanetmans.Models.Forms;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {

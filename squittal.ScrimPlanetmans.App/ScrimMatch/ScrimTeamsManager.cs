@@ -8,8 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.Services.Planetside;
-using squittal.ScrimPlanetmans.Shared.Models;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+using squittal.ScrimPlanetmans.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
+namespace squittal.ScrimPlanetmans.Models.Planetside
 {
-    public class Title
+    public class ItemCategory
     {
         [Required]
         public int Id { get; set; }

@@ -2,6 +2,7 @@
 //using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
 //using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 //using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 //using System;

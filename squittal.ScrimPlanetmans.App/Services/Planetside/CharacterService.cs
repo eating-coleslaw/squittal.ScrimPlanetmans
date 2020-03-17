@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+using squittal.ScrimPlanetmans.Models.Planetside;
 
 //using System.Linq;
 //using Microsoft.EntityFrameworkCore;

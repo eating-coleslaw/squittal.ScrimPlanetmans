@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
+namespace squittal.ScrimPlanetmans.Models.Planetside
 {
     public class Character
     {
@@ -23,11 +23,9 @@ namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
         public int CertsEarned { get; set; }
         public int PrestigeLevel { get; set; }
 
-        public Title Title { get; set; }
         public World World { get; set; }
         public Faction Faction { get; set; }
 
-        public CharacterTime Time { get; set; }
         public OutfitMember OutfitMember { get; set; }
     }
 }

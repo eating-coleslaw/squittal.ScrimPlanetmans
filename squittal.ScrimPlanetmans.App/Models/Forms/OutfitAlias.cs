@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace squittal.ScrimPlanetmans.Shared.Models.ScrimEngine
+namespace squittal.ScrimPlanetmans.Models.Forms
 {
     public class OutfitAlias
     {

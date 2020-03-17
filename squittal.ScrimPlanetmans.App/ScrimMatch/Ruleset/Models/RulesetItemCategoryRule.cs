@@ -1,4 +1,4 @@
-﻿using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+﻿using squittal.ScrimPlanetmans.Models.Planetside;
 using System.ComponentModel.DataAnnotations;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models

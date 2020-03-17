@@ -1,5 +1,4 @@
 ﻿using DaybreakGames.Census.Stream;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using squittal.ScrimPlanetmans.CensusStream.Models;
@@ -7,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using squittal.ScrimPlanetmans.Shared.Models;
 using System.Linq;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;

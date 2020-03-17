@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using squittal.ScrimPlanetmans.Data.DataConfigurations;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+using squittal.ScrimPlanetmans.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.Data
 {

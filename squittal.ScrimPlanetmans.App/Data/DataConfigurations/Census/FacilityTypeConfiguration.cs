@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using squittal.ScrimPlanetmans.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 {

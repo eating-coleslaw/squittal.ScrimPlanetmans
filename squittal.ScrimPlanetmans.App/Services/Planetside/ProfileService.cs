@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
-using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+using squittal.ScrimPlanetmans.Models.Planetside;
 using System;
 using System.Collections.Generic;
 using System.Linq;

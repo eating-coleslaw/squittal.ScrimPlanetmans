@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;

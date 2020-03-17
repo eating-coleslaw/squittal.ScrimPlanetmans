@@ -1,4 +1,4 @@
-﻿using squittal.ScrimPlanetmans.Shared.Models.Planetside;
+﻿using squittal.ScrimPlanetmans.Models.Planetside;
 using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages

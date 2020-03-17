@@ -1,5 +1,4 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-using squittal.ScrimPlanetmans.Shared.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

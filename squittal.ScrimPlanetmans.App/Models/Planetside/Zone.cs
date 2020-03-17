@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace squittal.ScrimPlanetmans.Shared.Models.Planetside
+namespace squittal.ScrimPlanetmans.Models.Planetside
 {
     public class Zone
     {

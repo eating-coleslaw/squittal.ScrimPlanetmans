@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace squittal.ScrimPlanetmans.Models.Planetside
+namespace squittal.ScrimPlanetmans.Models.Planetside.Events
 {
-    public class PlayerLogout
+    public class PlayerLogin
     {
         [Required]
         public string CharacterId { get; set; }
