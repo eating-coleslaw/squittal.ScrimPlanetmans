@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -22,6 +23,12 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.ShowFields("faction_id", "name", "image_id", "code_tag", "user_selectable");
 
             return await query.GetBatchAsync<CensusFactionModel>();
+        }
+
+        public async Task<int> GetFactionsCount()
+        {
+            var results = await GetAllFactions();
+            return results.Count();
         }
     }
 }

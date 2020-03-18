@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -22,6 +23,12 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.ShowFields("profile_id", "profile_type_id", "faction_id", "name", "image_id");
 
             return await query.GetBatchAsync<CensusProfileModel>();
+        }
+
+        public async Task<int> GetProfilesCount()
+        {
+            var results = await GetAllProfilesAsync();
+            return results.Count();
         }
     }
 }

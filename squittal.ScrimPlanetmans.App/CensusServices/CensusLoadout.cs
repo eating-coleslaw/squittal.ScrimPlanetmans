@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -21,6 +22,12 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.ShowFields("loadout_id", "profile_id", "faction_id", "code_name");
 
             return await query.GetBatchAsync<CensusLoadoutModel>();
+        }
+
+        public async Task<int> GetLoadoutsCount()
+        {
+            var results = await GetAllLoadoutsAsync();
+            return results.Count();
         }
     }
 }

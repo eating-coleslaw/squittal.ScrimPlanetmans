@@ -51,7 +51,9 @@ namespace squittal.ScrimPlanetmans.App
 
             // TODO: should ItemService and FacilityService be Singletons, due to their pre-loaded value lists?
             services.AddTransient<IItemService, ItemService>();
+            services.AddTransient<IItemCategoryService, ItemCategoryService>();
             services.AddSingleton<IFacilityService, FacilityService>();
+            services.AddTransient<IFacilityTypeService, FacilityTypeService>();
 
             services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
 
@@ -59,6 +61,7 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<ICharacterService, CharacterService>();
             services.AddSingleton<IOutfitService, OutfitService>();
             services.AddSingleton<IProfileService, ProfileService>();
+            services.AddTransient<ILoadoutService, LoadoutService>();
 
             services.AddSingleton<ScrimTeamsManagerService>();
             services.AddSingleton<PlanetsideDataService>();
@@ -82,6 +85,8 @@ namespace squittal.ScrimPlanetmans.App
             services.AddHostedService<DbSeederHostedService>();
 
             services.AddHostedService<ApplicationDataLoaderHostedService>();
+
+            services.AddTransient<DatabaseMaintenanceService>();
 
             services.AddSingleton<WeatherForecastService>();
         }

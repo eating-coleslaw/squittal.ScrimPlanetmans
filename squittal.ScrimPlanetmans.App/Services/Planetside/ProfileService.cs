@@ -302,5 +302,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             _loadoutSemaphore.Dispose();
         }
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusProfile.GetProfilesCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.Profiles.CountAsync();
+        }
     }
 }

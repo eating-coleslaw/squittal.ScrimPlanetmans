@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IFactionService
+    public interface IFactionService : ICountableStoreService, IUpdateable
     {
         Task<IEnumerable<Faction>> GetAllFactionsAsync();
         string GetFactionAbbrevFromId(int factionId);
         Task<Faction> GetFactionAsync(int factionId);
-        Task RefreshStore();
+        //Task RefreshStore();
     }
 }

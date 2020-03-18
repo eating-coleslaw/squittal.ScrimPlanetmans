@@ -119,5 +119,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 Name = censusModel.Name.English
             };
         }
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusWorld.GetWorldsCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.Worlds.CountAsync();
+        }
     }
 }

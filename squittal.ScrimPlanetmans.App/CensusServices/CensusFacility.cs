@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -32,6 +33,19 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.SetLimit(100);
 
             return await query.GetBatchAsync<CensusFacilityTypeModel>();
+        }
+
+        public async Task<int> GetMapRegionsCount()
+        {
+            var results = await GetAllMapRegions();
+
+            return results.Count();
+        }
+
+        public async Task<int> GetFacilityTypesCount()
+        {
+            var results = await GetAllFacilityTypes();
+            return results.Count();
         }
     }
 }

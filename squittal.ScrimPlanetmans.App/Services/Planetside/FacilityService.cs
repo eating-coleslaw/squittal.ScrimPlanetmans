@@ -200,5 +200,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 ZoneId = censusModel.ZoneId
             };
         }
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusFacility.GetMapRegionsCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.MapRegions.CountAsync();
+        }
     }
 }

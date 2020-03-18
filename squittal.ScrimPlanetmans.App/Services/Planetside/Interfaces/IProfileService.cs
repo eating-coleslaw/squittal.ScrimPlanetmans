@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IProfileService
+    public interface IProfileService : ICountableStoreService, IUpdateable
     {
         Task<IEnumerable<Profile>> GetAllProfilesAsync();
         Task<IEnumerable<Loadout>> GetAllLoadoutsAsync();
         Task<Profile> GetProfileFromLoadoutIdAsync(int loadoutId);
         Task<Dictionary<int, Profile>> GetLoadoutMapping();
-        Task RefreshStore();
+        //Task RefreshStore();
     }
 }

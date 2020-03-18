@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -20,6 +21,12 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.SetLanguage("en");
 
             return await query.GetBatchAsync<CensusWorldModel>();
+        }
+
+        public async Task<int> GetWorldsCount()
+        {
+            var results = await GetAllWorlds();
+            return results.Count();
         }
     }
 }

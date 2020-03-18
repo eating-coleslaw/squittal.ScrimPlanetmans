@@ -260,6 +260,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 Name = itemCategory.Name.English
             };
         }
-        
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusItem.GetItemsCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.Items.CountAsync();
+        }
     }
 }

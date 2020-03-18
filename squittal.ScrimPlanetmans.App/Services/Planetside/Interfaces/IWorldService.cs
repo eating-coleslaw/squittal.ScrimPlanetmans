@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IWorldService // : IUpdateable
+    public interface IWorldService : ICountableStoreService, IUpdateable
     {
         Task<IEnumerable<World>> GetAllWorldsAsync();
         IEnumerable<World> GetAllWorlds();
         Task<World> GetWorldAsync(int worldId);
-        Task RefreshStore();
+        //Task RefreshStore();
         Task SetupWorldsList();
     }
 }

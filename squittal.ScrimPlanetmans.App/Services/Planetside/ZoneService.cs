@@ -119,5 +119,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 HexSize = censusModel.HexSize
             };
         }
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusZone.GetZonesCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.Zones.CountAsync();
+        }
     }
 }

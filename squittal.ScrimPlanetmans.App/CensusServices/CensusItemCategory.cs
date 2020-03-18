@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -22,6 +23,13 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.ShowFields("item_category_id", "name");
 
             return await query.GetBatchAsync<CensusItemCategoryModel>();
+        }
+
+        public async Task<int> GetItemCategoriesCount()
+        {
+            var results = await GetAllItemCategories();
+
+            return results.Count();
         }
     }
 }

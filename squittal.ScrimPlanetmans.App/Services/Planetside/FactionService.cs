@@ -117,5 +117,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 UserSelectable = censusModel.UserSelectable
             };
         }
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusFaction.GetFactionsCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.Factions.CountAsync();
+        }
     }
 }

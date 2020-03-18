@@ -1,6 +1,7 @@
 ﻿using DaybreakGames.Census;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusServices
@@ -22,6 +23,13 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.ShowFields("item_id", "item_type_id", "item_category_id", "is_vehicle_weapon", "name", "description", "faction_id", "max_stack_size", "image_id");
 
             return await query.GetBatchAsync<CensusItemModel>();
+        }
+
+        public async Task<int> GetItemsCount()
+        {
+            var results = await GetAllItems();
+
+            return results.Count();
         }
     }
 }
