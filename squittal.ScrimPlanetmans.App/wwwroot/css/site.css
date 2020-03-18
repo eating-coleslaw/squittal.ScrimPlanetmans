@@ -274,6 +274,41 @@ app {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
 
+.btn-icon-primary {
+    line-height: 1;
+    background-color: transparent;
+    color: var(--sq-pink-lighter);
+    /*border: none;*/
+    border-color: transparent;
+    padding: 0;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+}
+
+    .btn-icon-primary .oi {
+        color: var(--sq-pink);
+        font-size: 0.7rem;
+    }
+
+    .btn-icon-primary:not(:disabled):not(.disabled):hover,
+    .btn-icon-primary:not(:disabled):not(.disabled):active {
+        color: var(--sq-pink);
+        /*background-color: var(--sq-pink);*/
+    }
+
+        .btn-icon-primary:not(:disabled):not(.disabled):hover .oi,
+        .btn-icon-primary:not(:disabled):not(.disabled):active .oi {
+            color: var(--sq-pink);
+        }
+
+    /*.btn-icon-primary:not(:disabled):not(.disabled):focus,
+    .btn-icon-primary:not(:disabled):not(.disabled):focus:active {
+        box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
+    }*/
+
+
+
+
 /****************************
 
     squittal.LivePlanetmans
@@ -429,6 +464,24 @@ No-Link Brand Header
             /*color: var(--pink);*/
             color: var(--sq-pink);
         }
+
+        .header-card-container.default .table-striped-light {
+            /*font-size: medium;*/
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .header-card-container.default .table-striped-light thead th {
+            font-weight: 400;
+        }
+
+        .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1) {
+            background-color: var(--sq-light-blue-gray-alpha);
+        }
+
+            .header-card-container.default .table-striped-light tbody tr .btn {
+                margin-top: 0.2rem;
+            }
 
 
 
@@ -1571,4 +1624,47 @@ dl.labeled-stats-grid {
                 font-size: 1rem;
             }
 
+
+.spin {
+    -moz-animation: spin 0.6s infinite;
+    -webkit-animation: spin 0.6s infinite;
+    animation: spin 0.6s infinite;
+    transform-origin: center;
+}
+
+.spinnable:hover {
+    -moz-animation: spin 10s linear infinite;
+    -webkit-animation: spin 10s linear infinite;
+    animation: spin 10s linear infinite;
+}
+
+@-moz-keyframes spin {
+    from {
+        -moz-transform: rotate(0deg);
+    }
+
+    to {
+        -moz-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
 

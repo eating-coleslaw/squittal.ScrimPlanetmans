@@ -94,7 +94,7 @@ namespace squittal.ScrimPlanetmans.Services
 
             foreach (var comparisonRow in Comparisons)
             {
-                TaskList.Add(comparisonRow.SetCount());
+                TaskList.Add(comparisonRow.SetCounts());
             }
 
             await Task.WhenAll(TaskList);

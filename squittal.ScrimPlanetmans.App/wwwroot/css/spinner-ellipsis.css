@@ -45,6 +45,20 @@
             background: var(--sq-ps2-tr-primary);
         }
 
+td .spinner-ellipsis {
+    position: relative;
+    width: 64px;
+    /*height: 2rem;*/
+    height: 1rem;
+    /*margin: 0.5rem auto 2rem auto;*/
+    margin: 0.2rem auto 0.2rem auto;
+}
+
+    td .spinner-ellipsis .dot {
+        top: 3px;
+    }
+
+
 @keyframes spinner-ellipsis-grow {
     0% {
         transform: scale(0);
