@@ -15,7 +15,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusItemCategory _censusItemCategory;
         private readonly CensusItem _censusItem;
+        private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ItemService> _logger;
+
+        public string BackupSqlScriptFileName => "dbo.Item.Table.sql";
+
 
         private List<Item> _items = new List<Item>();
         private List<Item> _weapons = new List<Item>();
@@ -43,11 +47,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             145 // ANT Utility
         };
 
-        public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem, ILogger<ItemService> logger)
+        public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem, ISqlScriptRunner sqlScriptRunner, ILogger<ItemService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusItemCategory = censusItemCategory;
             _censusItem = censusItem;
+            _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
         }
 
@@ -272,6 +277,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var dbContext = factory.GetDbContext();
 
             return await dbContext.Items.CountAsync();
+        }
+
+        public void RefreshStoreFromBackup()
+        {
+            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
     }
 }

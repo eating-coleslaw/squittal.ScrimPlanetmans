@@ -86,6 +86,8 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddHostedService<ApplicationDataLoaderHostedService>();
 
+            services.AddTransient<ISqlScriptRunner, SqlScriptRunner>();
+
             services.AddTransient<DatabaseMaintenanceService>();
 
             services.AddSingleton<WeatherForecastService>();

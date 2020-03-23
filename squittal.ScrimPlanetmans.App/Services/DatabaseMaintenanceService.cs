@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
-
 
 namespace squittal.ScrimPlanetmans.Services
 {
@@ -42,7 +40,8 @@ namespace squittal.ScrimPlanetmans.Services
             ILoadoutService loadoutService,
             IZoneService zoneService,
             IWorldService worldService,
-            IFactionService factionService)
+            IFactionService factionService
+            )
         {
             _facilityService = facilityService;
             _facilityTypeService = facilityTypeService;
@@ -54,15 +53,15 @@ namespace squittal.ScrimPlanetmans.Services
             _worldService = worldService;
             _factionService = factionService;
 
-            _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService, _facilityService);
-            _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService);
-            _items = new CensusStoreDataComparisonRow("Items", _itemService, _itemService);
-            _itemCategories = new CensusStoreDataComparisonRow("Item Categories", _itemCategoryService);
-            _profiles = new CensusStoreDataComparisonRow("Profiles", _profileService, _profileService);
-            _loadouts = new CensusStoreDataComparisonRow("Loadouts", _loadoutService);
-            _zones = new CensusStoreDataComparisonRow("Zones", _zoneService, _zoneService);
-            _worlds = new CensusStoreDataComparisonRow("Worlds", _worldService, _worldService);
-            _factions = new CensusStoreDataComparisonRow("Factions", _factionService, _factionService);
+            _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService, _facilityService, _facilityService);
+            _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService, _facilityTypeService);
+            _items = new CensusStoreDataComparisonRow("Items", _itemService, _itemService, _itemService);
+            _itemCategories = new CensusStoreDataComparisonRow("Item Categories", _itemCategoryService, _itemCategoryService);
+            _profiles = new CensusStoreDataComparisonRow("Profiles", _profileService, _profileService, _profileService);
+            _loadouts = new CensusStoreDataComparisonRow("Loadouts", _loadoutService, _loadoutService);
+            _zones = new CensusStoreDataComparisonRow("Zones", _zoneService, _zoneService, _zoneService);
+            _worlds = new CensusStoreDataComparisonRow("Worlds", _worldService, _worldService, _worldService);
+            _factions = new CensusStoreDataComparisonRow("Factions", _factionService, _factionService, _factionService);
 
             Comparisons.Add(_mapRegions);
             Comparisons.Add(_facilityTypes);
@@ -100,13 +99,25 @@ namespace squittal.ScrimPlanetmans.Services
             await Task.WhenAll(TaskList);
         }
 
-        public async Task RefreshAll()
+        public async Task RefreshAllFromCensus()
         {
             var TaskList = new List<Task>();
 
             foreach (var comparisonRow in Comparisons)
             {
-                TaskList.Add(comparisonRow.RefreshStore());
+                TaskList.Add(comparisonRow.RefreshStoreFromCensus());
+            }
+
+            await Task.WhenAll(TaskList);
+        }
+
+        public async Task RefreshAllFromBackup()
+        {
+            var TaskList = new List<Task>();
+
+            foreach (var comparisonRow in Comparisons)
+            {
+                TaskList.Add(comparisonRow.RefreshStoreFromBackup());
             }
 
             await Task.WhenAll(TaskList);

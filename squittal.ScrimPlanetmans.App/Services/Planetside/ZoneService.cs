@@ -14,14 +14,20 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusZone _censusZone;
+
+        private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ZoneService> _logger;
+
+        public string BackupSqlScriptFileName => "dbo.Zone.Table.sql";
+
 
         private List<Zone> _zones = new List<Zone>();
 
-        public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone, ILogger<ZoneService> logger)
+        public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone, ISqlScriptRunner sqlScriptRunner, ILogger<ZoneService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusZone = censusZone;
+            _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
         }
 
@@ -131,6 +137,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var dbContext = factory.GetDbContext();
 
             return await dbContext.Zones.CountAsync();
+        }
+
+        public void RefreshStoreFromBackup()
+        {
+            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
     }
 }

@@ -8,9 +8,9 @@ namespace squittal.ScrimPlanetmans.Models
 {
     public class CensusStoreDataComparisonRow
     {
-        private readonly ICountableStoreService _countService;
-
+        private readonly ICountableStore _countService;
         private readonly IUpdateable _refreshService;
+        private readonly ILocallyBackedStore _localBackupService;
         
         public string Name { get; set; }
         public int StoreCount { get; set; } = 0;
@@ -25,17 +25,19 @@ namespace squittal.ScrimPlanetmans.Models
 
         // TODO: add CancellationTokens
 
-        public CensusStoreDataComparisonRow(string name, ICountableStoreService countService)
+        public CensusStoreDataComparisonRow(string name, ICountableStore countService, ILocallyBackedStore localBackupService)
         {
             Name = name;
             _countService = countService;
+            _localBackupService = localBackupService;
             IsRefreshable = false;
         }
 
-        public CensusStoreDataComparisonRow(string name, ICountableStoreService countService, IUpdateable refreshService)
+        public CensusStoreDataComparisonRow(string name, ICountableStore countService, ILocallyBackedStore localBackupService, IUpdateable refreshService)
         {
             Name = name;
             _countService = countService;
+            _localBackupService = localBackupService;
             _refreshService = refreshService;
             IsRefreshable = true;
         }
@@ -43,9 +45,6 @@ namespace squittal.ScrimPlanetmans.Models
         public async Task SetCounts()
         {
             _autoEvent.WaitOne();
-
-            //await SetStoreCount();
-            //await SetCensusCount();
 
             var TaskList = new List<Task>();
 
@@ -58,12 +57,6 @@ namespace squittal.ScrimPlanetmans.Models
             await Task.WhenAll(TaskList);
 
             _autoEvent.Set();
-
-            //if (_countService != null)
-            //{
-            //    StoreCount = await _countService.GetStoreCountAsync();
-            //    CensusCount = await _countService.GetCensusCountAsync();
-            //}
         }
 
         public async Task SetStoreCount(bool noLock = false)
@@ -106,7 +99,7 @@ namespace squittal.ScrimPlanetmans.Models
             }
         }
 
-        public async Task RefreshStore()
+        public async Task RefreshStoreFromCensus()
         {
             _autoEvent.WaitOne();
             if (IsRefreshable && !IsRefreshingStore)
@@ -119,6 +112,20 @@ namespace squittal.ScrimPlanetmans.Models
 
             await SetStoreCount();
             await SetCensusCount();
+        }
+
+        public async Task RefreshStoreFromBackup()
+        {
+            _autoEvent.WaitOne();
+            if (!IsRefreshingStore)
+            {
+                IsRefreshingStore = true;
+                _localBackupService.RefreshStoreFromBackup();
+                IsRefreshingStore = false;
+            }
+            _autoEvent.Set();
+
+            await SetStoreCount();
         }
     }
 }

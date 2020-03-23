@@ -10,12 +10,17 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusItemCategory _censusItemCategory;
+        private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ItemCategoryService> _logger;
 
-        public ItemCategoryService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, ILogger<ItemCategoryService> logger)
+        public string BackupSqlScriptFileName => "dbo.ItemCategory.Table.sql";
+
+
+        public ItemCategoryService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, ISqlScriptRunner sqlScriptRunner, ILogger<ItemCategoryService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusItemCategory = censusItemCategory;
+            _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
         }
 
@@ -30,6 +35,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var dbContext = factory.GetDbContext();
 
             return await dbContext.ItemCategories.CountAsync();
+        }
+
+        public void RefreshStoreFromBackup()
+        {
+            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
     }
 }

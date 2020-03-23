@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IItemService : ICountableStoreService, IUpdateable
+    public interface IItemService : ICountableStore, ILocallyBackedStore, IUpdateable
     {
         Task<Item> GetItem(int itemId);
         Task<IEnumerable<int>> GetItemCategoryIdsAsync();

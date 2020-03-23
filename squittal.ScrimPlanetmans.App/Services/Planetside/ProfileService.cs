@@ -17,17 +17,22 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusProfile _censusProfile;
         private readonly CensusLoadout _censusLoadout;
+        private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ProfileService> _logger;
+
+        public string BackupSqlScriptFileName => "dbo.Profile.Table.sql";
+
 
         private Dictionary<int, Profile> _loadoutMapping = new Dictionary<int, Profile>();
 
         private readonly SemaphoreSlim _loadoutSemaphore = new SemaphoreSlim(1);
 
-        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, CensusLoadout censusLoadout, ILogger<ProfileService> logger)
+        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, CensusLoadout censusLoadout, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusProfile = censusProfile;
             _censusLoadout = censusLoadout;
+            _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
         }
 
@@ -314,6 +319,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var dbContext = factory.GetDbContext();
 
             return await dbContext.Profiles.CountAsync();
+        }
+
+        public void RefreshStoreFromBackup()
+        {
+            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
     }
 }

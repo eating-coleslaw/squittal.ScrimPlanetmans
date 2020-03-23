@@ -8,7 +8,7 @@
 <div class="container-fluid">
     <div class="row">
 
-        <div class="col-lg-6">
+        <div class="col-lg-7">
 
             <div class="header-card-container default">
 
@@ -23,6 +23,7 @@
                             <th colspan="2" style="text-align: right;">Database<br/>Count</th>
                             <th colspan="2" style="text-align: right;">Census<br />Count</th>
                             <th></th>
+                            <th></th>
                         </tr>
                     </thead>
 
@@ -34,10 +35,6 @@
 
                             @if (comparison.IsLoadingStoreCount)
                             {
-                                @*<td colspan="2" style="min-width: 160px;">
-                                    <SpinnerEllipsis />
-                                </td>*@
-
                                 <td style="text-align: right; width: 80px; color: var(--sq-pink-lighter-alpha-50);">
                                     --
                                 </td>
@@ -61,10 +58,6 @@
 
                             @if (comparison.IsLoadingCensusCount)
                             {
-                                @*<td colspan="2">
-                                    <SpinnerEllipsis />
-                                </td>*@
-
                                 <td style="text-align: right; width: 80px; color: var(--sq-pink-lighter-alpha-50);">
                                     --
                                 </td>
@@ -88,20 +81,30 @@
 
                             @if (comparison.IsRefreshingStore)
                             {
-                                @*<td colspan="1" style="min-width: 160px;">
-                                    <SpinnerEllipsis />
-                                </td>*@
-                                <td style="min-width: 160px;">
-                                    <div class="btn btn-icon-primary" style="margin-left: calc(50% - 10px); margin-top: 0.2rem; margin-bottom: 0.2rem;">
+                                <td colspan="2" style="min-width: 160px;">
+                                    <div class="btn btn-icon-primary" style="margin-left: calc(50% - 10px); padding-top: 0.375rem; padding-bottom: 0.375rem; margin-top: 0.2rem; margin-bottom: 0.2rem;">
                                         <span class="oi oi-reload spin"></span>
                                     </div>
                                 </td>
                             }
                             else
                             {
+                                @if (comparison.IsRefreshable)
+                                {
+                                    <td style="text-align: right; min-width: 160px;">
+                                        <button class="btn btn-outline-primary" @onclick="(() => UpdateDatabaseFromCensus(comparison))" title="Update @comparison.Name database from census API">
+                                            <span class="oi oi-cloud-download"></span>Update from Census
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td style="text-align: center;">--</td>
+                                }
+
                                 <td style="text-align: right; min-width: 160px;">
-                                    <button class="btn btn-outline-primary" @onclick="(() => UpdateDatabase(comparison))" title="Update @comparison.Name database from census API">
-                                        <span class="oi oi-cloud-download"></span>Update from Census
+                                    <button class="btn btn-outline-primary" @onclick="(() => UpdateDatabaseFromBackup(comparison))" title="Update @comparison.Name database from census API">
+                                        <span class="oi oi-spreadsheet"></span>Update from Backup
                                     </button>
                                 </td>
                             }
@@ -126,55 +129,30 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //await DbMaintenance.SetAllCounts();
-
-        //_comparisons = DbMaintenance.Comparisons;
         await DbMaintenance.InitializeCounts();
-
     }
 
     private async Task RefreshCensusCount(CensusStoreDataComparisonRow comparison)
     {
         var censusCountTask = comparison.SetCensusCount();
-
-        //await InvokeAsync(() =>
-        //    StateHasChanged()
-        //);
-
         await censusCountTask;
-
-        //await InvokeAsync(() =>
-        //    StateHasChanged()
-        //);
     }
 
     private async Task RefreshStoreCount(CensusStoreDataComparisonRow comparison)
     {
         var storeCountTask = comparison.SetStoreCount();
-
-        //await InvokeAsync(() =>
-        //    StateHasChanged()
-        //);
-
         await storeCountTask;
-
-        //await InvokeAsync(() =>
-        //    StateHasChanged()
-        //);
     }
 
-    private async Task UpdateDatabase(CensusStoreDataComparisonRow comparison)
+    private async Task UpdateDatabaseFromCensus(CensusStoreDataComparisonRow comparison)
     {
-        var updateStoreTask = comparison.RefreshStore();
-
-        //await InvokeAsync(() =>
-        //    StateHasChanged()
-        //);
-
+        var updateStoreTask = comparison.RefreshStoreFromCensus();
         await updateStoreTask;
+    }
 
-        //await InvokeAsync(() =>
-        //    StateHasChanged()
-        //);
+    private async Task UpdateDatabaseFromBackup(CensusStoreDataComparisonRow comparison)
+    {
+        var updateStoreTask = comparison.RefreshStoreFromBackup();
+        await updateStoreTask;
     }
 }
