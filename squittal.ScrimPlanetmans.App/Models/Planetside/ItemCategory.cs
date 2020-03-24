@@ -8,5 +8,9 @@ namespace squittal.ScrimPlanetmans.Models.Planetside
         public int Id { get; set; }
 
         public string Name { get; set; }
+
+        public bool IsWeaponCategory { get; set; }
+
+        public ItemCategoryDomain Domain { get; set; }
     }
 }

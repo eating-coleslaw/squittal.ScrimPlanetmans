@@ -28,7 +28,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private List<ItemCategory> _itemCategories = new List<ItemCategory>();
 
-        private readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
+        private static readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
         {
             99,  // Camo
             101, // Vehicles
@@ -51,7 +51,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             148  // ANT Harvesting Tool
         };
 
-        private readonly List<int> _infantryItemCategoryIds = new List<int>()
+        private static readonly List<int> _infantryItemCategoryIds = new List<int>()
         {
             2,   // Knife
             3,   // Pistol
@@ -74,7 +74,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             157  // Hybrid Rifle
         };
 
-        private readonly List<int> _groundVehicleItemCategoryIds = new List<int>()
+        private static readonly List<int> _maxItemCategoryIds = new List<int>()
+        {
+            9,  // AV MAX (Left)
+            10, // AI MAX (Left)
+            16, // Flak MAX
+            20, // AA MAX (Right)
+            21, // AV MAX (Right)
+            22, // AI MAX (Right)
+            23  // AA MAX (Left)
+        };
+
+        private static readonly List<int> _groundVehicleItemCategoryIds = new List<int>()
         {
             109, // Flash Primary Weapon
             114, // Harasser Top Gunner
@@ -90,7 +101,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             144  // ANT Top Turret
         };
 
-        private readonly List<int> _airVehicleItemCategoryIds = new List<int>()
+        private static readonly List<int> _airVehicleItemCategoryIds = new List<int>()
         {
             110, // Galaxy Left Weapon
             111, // Galaxy Tail Weapon
@@ -106,6 +117,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             127, // Scythe Nose Cannon
             128, // Scythe Wing Mount
             138  // Valkyrie Nose Gunner
+        };
+
+        private static readonly List<int> _lockedItemCategoryIds = new List<int>()
+        {
+            15  // Flamethrower MAX
         };
 
         public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem, ISqlScriptRunner sqlScriptRunner, ILogger<ItemService> logger)
@@ -365,11 +381,53 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private static ItemCategory ConvertToDbModel(CensusItemCategoryModel itemCategory)
         {
+            var id = itemCategory.ItemCategoryId;
+
+            var isWeaponCategory = GetIsWeaponItemCategory(id);
+            var domain = GetItemCategoryDomain(id);
+
             return new ItemCategory
             {
-                Id = itemCategory.ItemCategoryId,
-                Name = itemCategory.Name.English
+                Id = id,
+                Name = itemCategory.Name.English,
+                IsWeaponCategory = isWeaponCategory,
+                Domain = domain
             };
+        }
+
+        private static bool GetIsWeaponItemCategory(int itemCategoryId)
+        {
+            return _nonWeaponItemCategoryIds.Contains(itemCategoryId)
+                        ? false
+                        : true;
+        }
+
+        private static ItemCategoryDomain GetItemCategoryDomain(int itemCategoryId)
+        {
+            if (_infantryItemCategoryIds.Contains(itemCategoryId))
+            {
+                return ItemCategoryDomain.Infantry;
+            }
+            else if (_maxItemCategoryIds.Contains(itemCategoryId))
+            {
+                return ItemCategoryDomain.Max;
+            }
+            else if (_groundVehicleItemCategoryIds.Contains(itemCategoryId))
+            {
+                return ItemCategoryDomain.GroundVehicle;
+            }
+            else if (_airVehicleItemCategoryIds.Contains(itemCategoryId))
+            {
+                return ItemCategoryDomain.AirVehicle;
+            }
+            else if (_lockedItemCategoryIds.Contains(itemCategoryId))
+            {
+                return ItemCategoryDomain.Locked;
+            }
+            else
+            {
+                return ItemCategoryDomain.Other;
+            }
         }
 
         public async Task<int> GetCensusCountAsync()
