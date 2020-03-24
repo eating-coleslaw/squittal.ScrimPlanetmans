@@ -57,6 +57,9 @@
     <None Update="Data\SQL\dbo.Zone.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_ItemCategoryDomainAndIsWeapon.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

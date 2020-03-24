@@ -24,8 +24,8 @@ BEGIN
                         THEN @iAirVehicle
                       WHEN Id IN ( 15 )
                         THEN @iLocked
-                      ELSE @iOther
-    WHERE Doaim = @iDefaultDomainValue;
+                      ELSE @iOther END
+    WHERE Domain = @iDefaultDomainValue;
 END;
 
 -- Column exists and caller has permission to view the object
@@ -33,8 +33,8 @@ IF COL_LENGTH('ItemCategory', 'IsWeaponCategory') IS NOT NULL
 BEGIN
   UPDATE ItemCategory
     SET IsWeaponCategory = CASE WHEN Id IN ( 99,  101, 103, 105, 106, 107, 108, 133, 134, 135, 136, 137, 139, 140, 141, 142, 143, 145, 148 )
-                                  THEN FALSE
-                                  ELSE TRUE;
+                                  THEN 0
+                                ELSE 1 END;
 END;
 
 SET NOCOUNT OFF;
