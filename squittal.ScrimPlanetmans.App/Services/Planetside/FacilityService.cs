@@ -59,7 +59,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return _scrimmableMapRegions.FirstOrDefault(r => r.FacilityId == facilityId);
         }
 
-        public async Task SetUpScimmableMapRegionsAsync()
+        public async Task SetUpScrimmableMapRegionsAsync()
         {
             var realZones = new List<int> { 2, 4, 6, 8 };
             var scrimFacilityTypes = new List<int> { 5, 6}; // Small Outpost, Large Outpost

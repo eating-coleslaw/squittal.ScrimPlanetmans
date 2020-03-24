@@ -16,6 +16,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId);
 
         //Task RefreshStore();
-        Task SetUpScimmableMapRegionsAsync();
+        Task SetUpScrimmableMapRegionsAsync();
     }
 }
