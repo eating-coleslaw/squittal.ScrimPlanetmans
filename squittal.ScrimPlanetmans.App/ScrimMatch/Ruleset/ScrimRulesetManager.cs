@@ -111,7 +111,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ActiveRuleset.ActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
             ActiveRuleset.ItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
 
-            _logger.LogError($"Active ruleset loaded: {ActiveRuleset.Name}");
+            foreach (var rule in ActiveRuleset.ItemCategoryRules)
+            {
+                rule.ItemCategory = _itemService.GetWeaponItemCategory(rule.ItemCategoryId);
+            }
+
+            _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
         }
 
         public async Task<Ruleset> GetDefaultRuleset()
@@ -244,11 +249,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 var defaultItemCategoryRules = GetDefaultItemCategoryRules();
                 var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
                 var allItemCategoryIds = await _itemService.GetItemCategoryIdsAsync();
+                var allWeaponItemCategoryIds = await _itemService.GetWeaponItemCategoryIdsAsync();
 
                 var allItemCategoryRules = new List<RulesetItemCategoryRule>();
 
                 foreach (var categoryId in allItemCategoryIds)
                 {
+                    var isWeaponItemCategoryId = (allWeaponItemCategoryIds.Contains(categoryId)); 
+                    
                     var storeEntity = storeItemCategoryRules?.FirstOrDefault(r => r.ItemCategoryId == categoryId);
                     var defaultEntity = defaultItemCategoryRules.FirstOrDefault(r => r.ItemCategoryId == categoryId);
 
@@ -260,7 +268,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                             createdItemCategoryRules.Add(defaultEntity);
                             allItemCategoryRules.Add(defaultEntity);
                         }
-                        else
+                        else if (isWeaponItemCategoryId)
                         {
                             var newEntity = BuildRulesetItemCategoryRule(defaultRulesetId, categoryId, 0);
                             createdItemCategoryRules.Add(newEntity);
@@ -270,10 +278,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     }
                     else
                     {
-                        storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
+                        if (isWeaponItemCategoryId)
+                        {
+                            storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
 
-                        dbContext.RulesetItemCategoryRules.Update(storeEntity);
-                        allItemCategoryRules.Add(storeEntity);
+                            dbContext.RulesetItemCategoryRules.Update(storeEntity);
+                            allItemCategoryRules.Add(storeEntity);
+                        }
+                        else
+                        {
+                            dbContext.RulesetItemCategoryRules.Remove(storeEntity);
+                        }
                     }
                 }
 
@@ -324,7 +339,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 19,  //Battle Rifle
                 24,  //Crossbow
                 100, //Infantry
-                102 //Infantry Weapons
+                102  //Infantry Weapons
             };
         }
 

@@ -40,16 +40,19 @@ namespace squittal.ScrimPlanetmans.Data
         {
             List<Task> TaskList = new List<Task>();
 
-            var itemsListTask = _itemService.SetUpItemsListAsync();
-            TaskList.Add(itemsListTask);
+            //var itemsListTask = _itemService.SetUpItemsListAsync();
+            //TaskList.Add(itemsListTask);
 
-            var weaponsListTask = _itemService.SetUpWeaponsListAsnyc();
-            TaskList.Add(weaponsListTask);
+            //var weaponsListTask = _itemService.SetUpWeaponsListAsnyc();
+            //TaskList.Add(weaponsListTask);
+
+            var weaponCategoriesListTask = _itemService.SetUpWeaponCategoriesListAsync();
+            TaskList.Add(weaponCategoriesListTask);
 
             var activeRulesetTask = _rulesetManager.SetupActiveRuleset();
             TaskList.Add(activeRulesetTask);
 
-            var scrimmableMapRegionsTask = _facilityService.SetUpScimmableMapRegionsAsync();
+            var scrimmableMapRegionsTask = _facilityService.SetUpScrimmableMapRegionsAsync();
             TaskList.Add(scrimmableMapRegionsTask);
 
             var worldsTask = _worldService.SetupWorldsList();
@@ -62,6 +65,8 @@ namespace squittal.ScrimPlanetmans.Data
             //TaskList.Add(rulesetTask);
 
             await Task.WhenAll(TaskList);
+
+            //await _rulesetManager.SetupActiveRuleset();
 
             await _matchScorer.SetActiveRuleset();
         }

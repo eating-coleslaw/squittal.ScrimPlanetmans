@@ -1,0 +1,94 @@
+﻿@page "/rulesets"
+
+@using squittal.ScrimPlanetmans.ScrimMatch
+@using squittal.ScrimPlanetmans.ScrimMatch.Models
+@using System.Text.RegularExpressions
+@inject IScrimRulesetManager RulesetManager
+
+@if (_activeRuleset == null)
+{
+    <SpinnerEllipsis />
+}
+else
+{
+    <h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>
+    <p>Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
+
+    <p>Item Category Rules:</p>
+
+    @if (_activeRuleset.ItemCategoryRules != null && _activeRuleset.ItemCategoryRules.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>ID</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var itemCategoryRule in _activeRuleset.ItemCategoryRules)
+                {
+                    if (@itemCategoryRule.ItemCategory != null)
+                    {
+                    <tr>
+                        <td>@itemCategoryRule.ItemCategory.Name</td>
+                        <td>@itemCategoryRule.ItemCategory.Id</td>
+                        <td>@itemCategoryRule.Points</td>
+                    </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No item category rules...</p>
+    }
+
+    <p>Scrim Acttion Rules:</p>
+
+    @if (_activeRuleset.ActionRules != null && _activeRuleset.ActionRules.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>ID</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var actionRule in _activeRuleset.ActionRules)
+                {
+                    <tr>
+                        <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
+                        <td>@actionRule.ScrimActionType.ToString()</td>
+                        <td>@actionRule.Points</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No scrim action rules...</p>
+    }
+
+}
+
+@code {
+    private Ruleset _activeRuleset { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _activeRuleset = await RulesetManager.GetActiveRuleset();
+    }
+
+    private string GetActionRuleDescription(ScrimActionType actionType)
+    {
+        var name = Enum.GetName(typeof(ScrimActionType), actionType);
+        
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+}

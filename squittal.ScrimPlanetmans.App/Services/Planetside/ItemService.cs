@@ -24,11 +24,14 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private List<Item> _items = new List<Item>();
         private List<Item> _weapons = new List<Item>();
 
+        private List<ItemCategory> _weaponCategories = new List<ItemCategory>();
+
         private List<ItemCategory> _itemCategories = new List<ItemCategory>();
 
-        private readonly List<int> _nonWeaponItemCategories = new List<int>()
+        private readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
         {
-            99, // Camo
+            99,  // Camo
+            101, // Vehicles
             103, // Infantry Gear
             105, // Vehicle Gear
             106, // Armor Camo
@@ -44,7 +47,65 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             141, // Boosts & Utilities
             142, // Consolidated Decal
             143, // Attachments
-            145 // ANT Utility
+            145, // ANT Utility
+            148  // ANT Harvesting Tool
+        };
+
+        private readonly List<int> _infantryItemCategoryIds = new List<int>()
+        {
+            2,   // Knife
+            3,   // Pistol
+            4,   // Shotgun,
+            5,   // SMG
+            6,   // LMG
+            7,   // Assault Rifle
+            8,   // Carbine
+            11,  // Sniper Rifle
+            12,  // Scout Rifle
+            13,  // Rocket Launcher
+            14,  // Heavy Weapon
+            17,  // Grenade
+            18,  // Explosive
+            19,  // Battle Rifle
+            24,  // Crossbow
+            100, // Infantry
+            102, // Infantry Weapons
+            147, // Aerial Combat Weapon (i.e. rocklet rifles)
+            157  // Hybrid Rifle
+        };
+
+        private readonly List<int> _groundVehicleItemCategoryIds = new List<int>()
+        {
+            109, // Flash Primary Weapon
+            114, // Harasser Top Gunner
+            118, // Lightning Primary Weapon 
+            119, // Magrider Gunner Weapon
+            120, // Magrider Primary Weapon
+            123, // Prowler Gunner Weapon
+            124, // Prowler Primary Weapon
+            129, // Sunderer Front Gunner
+            130, // Sunderer Rear Gunner
+            131, // Vanguard Gunner Weapon
+            132, // Vanguard Primary Weapon
+            144  // ANT Top Turret
+        };
+
+        private readonly List<int> _airVehicleItemCategoryIds = new List<int>()
+        {
+            110, // Galaxy Left Weapon
+            111, // Galaxy Tail Weapon
+            112, // Galaxy Right Weapon
+            113, // Galaxy Top Weapon
+            115, // Liberator Belly Weapon
+            116, // Liberator Nose Cannon
+            117, // Liberator Tail Weapon
+            121, // Mosquito Nose Cannon
+            122, // Mosquito Wing Mount
+            125, // Reaver Nose Cannon
+            126, // Reaver Wing Mount
+            127, // Scythe Nose Cannon
+            128, // Scythe Wing Mount
+            138  // Valkyrie Nose Gunner
         };
 
         public ItemService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, CensusItem censusItem, ISqlScriptRunner sqlScriptRunner, ILogger<ItemService> logger)
@@ -81,10 +142,17 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
+            if (_itemCategories == null || !_itemCategories.Any())
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
 
-            return await dbContext.ItemCategories.Select(ic => ic.Id).ToListAsync();
+                _itemCategories = await dbContext.ItemCategories.ToListAsync();
+
+                //return await dbContext.ItemCategories.Select(ic => ic.Id).ToListAsync();
+            }
+
+            return _itemCategories.Select(ic => ic.Id).ToList();
         }
 
 
@@ -106,11 +174,36 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        public Item GetWeaponFromItemId(int id)
+        public Item GetWeaponItem(int id)
         {
             // TODO: handle "Unknown" weapon deaths/kills, like Fatalities
             
             return _weapons.FirstOrDefault(w => w.Id == id);
+        }
+
+        public ItemCategory GetWeaponItemCategory(int itemCategoryId)
+        {
+            return _weaponCategories.FirstOrDefault(w => w.Id == itemCategoryId);
+        }
+
+        public IEnumerable<ItemCategory> GetWeaponItemCategories()
+        {
+            return _weaponCategories.ToList();
+        }
+
+        public async Task<IEnumerable<int>> GetWeaponItemCategoryIdsAsync()
+        {
+            if (_weaponCategories == null || !_weaponCategories.Any())
+            {
+                await SetUpWeaponCategoriesListAsync();
+            }
+
+            return GetWeaponItemCategoryIds();
+        }
+
+        public IEnumerable<int> GetWeaponItemCategoryIds()
+        {
+            return _weaponCategories.Select(wc => wc.Id).ToList();
         }
 
         public async Task SetUpWeaponsListAsnyc()
@@ -121,14 +214,27 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var dbContext = factory.GetDbContext();
 
                 _weapons = await dbContext.Items
-                                        .Where(i => i.ItemCategoryId.HasValue && !_nonWeaponItemCategories.Contains((int)i.ItemCategoryId))
+                                        .Where(i => i.ItemCategoryId.HasValue && !_nonWeaponItemCategoryIds.Contains((int)i.ItemCategoryId))
                                         .ToListAsync();
+            }
+        }
+
+        public async Task SetUpWeaponCategoriesListAsync()
+        {
+            if (_weaponCategories == null || !_weaponCategories.Any())
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                _weaponCategories = await dbContext.ItemCategories
+                                            .Where(i => !_nonWeaponItemCategoryIds.Contains(i.Id))
+                                            .ToListAsync();
             }
         }
 
         public IEnumerable<int> GetNonWeaponItemCateogryIds()
         {
-            return _nonWeaponItemCategories;
+            return _nonWeaponItemCategoryIds;
         }
 
         public async Task RefreshStore()
