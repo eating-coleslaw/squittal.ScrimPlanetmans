@@ -328,18 +328,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return new int[]
             {
-                2,   //Knife
-                3,   //Pistol
-                5,   //SMG
-                6,   //LMG
-                7,   //Assault Rifle
-                8,   //Carbine
-                11,  //Sniper Rifle
-                12,  //Scout Rifle
-                19,  //Battle Rifle
-                24,  //Crossbow
-                100, //Infantry
-                102  //Infantry Weapons
+                2,   // Knife
+                3,   // Pistol
+                5,   // SMG
+                6,   // LMG
+                7,   // Assault Rifle
+                8,   // Carbine
+                11,  // Sniper Rifle
+                12,  // Scout Rifle
+                19,  // Battle Rifle
+                24,  // Crossbow
+                100, // Infantry
+                102, // Infantry Weapons
+                157  // Hybrid Rifle
             };
         }
 
