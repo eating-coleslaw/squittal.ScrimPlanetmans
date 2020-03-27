@@ -70,7 +70,14 @@
                             else
                             {
                                 <td style="text-align: right; width: 80px;">
-                                    @comparison.CensusCount
+                                    @if (comparison.CensusCount == -1)
+                                    {
+                                        <span class="oi oi-warning" title="Census API returned an error"></span>
+                                    }
+                                    else
+                                    {
+                                        @comparison.CensusCount
+                                    }
                                 </td>
                                 <td>
                                     <button class="btn btn-icon-primary" @onclick="(() => RefreshCensusCount(comparison))" title="Refresh @comparison.Name census entity count">

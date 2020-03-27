@@ -98,18 +98,44 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 return;
             }
 
-            var facilityTypes = await _censusFacility.GetAllFacilityTypes();
 
-            if (facilityTypes != null)
+            IEnumerable<CensusFacilityTypeModel> facilityTypes = new List<CensusFacilityTypeModel>();
+
+            try
+            {
+                facilityTypes = await _censusFacility.GetAllFacilityTypes();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Facility Types");
+                return;
+            }
+
+            //var facilityTypes = await _censusFacility.GetAllFacilityTypes();
+
+            if (facilityTypes != null && facilityTypes.Any())
             {
                 await UpsertRangeAsync(facilityTypes.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Facility Types store: {facilityTypes.Count()} entries");
             }
 
-            var mapRegions = await _censusFacility.GetAllMapRegions();
 
-            if (mapRegions != null)
+            IEnumerable<CensusMapRegionModel> mapRegions = new List<CensusMapRegionModel>();
+
+            try
+            {
+                mapRegions = await _censusFacility.GetAllMapRegions();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Map Regions");
+                return;
+            }
+
+            //var mapRegions = await _censusFacility.GetAllMapRegions();
+
+            if (mapRegions != null && mapRegions.Any())
             {
                 await UpsertRangeAsync(mapRegions.Select(ConvertToDbModel));
 

@@ -89,7 +89,20 @@ namespace squittal.ScrimPlanetmans.Models
             if (_countService != null && !IsLoadingCensusCount)
             {
                 IsLoadingCensusCount = true;
-                CensusCount = await _countService.GetCensusCountAsync();
+
+                int censusCount;
+
+                try
+                {
+                    censusCount = await _countService.GetCensusCountAsync();
+                }
+                catch
+                {
+                    censusCount = -1;
+                }
+
+                CensusCount = censusCount;
+
                 IsLoadingCensusCount = false;
             }
 

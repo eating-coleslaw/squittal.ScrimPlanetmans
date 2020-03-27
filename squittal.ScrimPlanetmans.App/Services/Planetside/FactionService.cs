@@ -71,11 +71,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task RefreshStore()
         {
-            var createdEntities = new List<Faction>();
+            IEnumerable<CensusFactionModel> factions = new List<CensusFactionModel>();
 
-            var factions = await _censusFaction.GetAllFactions();
+            try
+            {
+                factions = await _censusFaction.GetAllFactions();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Factions");
+                return;
+            }
 
-            if (factions != null)
+            //var factions = await _censusFaction.GetAllFactions();
+
+            if (factions != null && factions.Any())
             {
                 var censusEntities = factions.Select(ConvertToDbModel);
 
@@ -84,6 +94,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                     var dbContext = factory.GetDbContext();
 
                     var storedEntities = await dbContext.Factions.ToListAsync();
+                    
+                    var createdEntities = new List<Faction>();
 
                     foreach (var censusEntity in censusEntities)
                     {

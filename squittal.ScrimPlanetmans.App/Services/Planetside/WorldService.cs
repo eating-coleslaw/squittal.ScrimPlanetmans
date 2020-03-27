@@ -77,10 +77,22 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             var result = new List<World>();
             var createdEntities = new List<World>();
+
+            IEnumerable<CensusWorldModel> worlds = new List<CensusWorldModel>();
+
+            try
+            {
+                worlds = await _censusWorld.GetAllWorlds();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failes: get all Worlds");
+                return;
+            }
+
+            //var worlds = await _censusWorld.GetAllWorlds();
             
-            var worlds = await _censusWorld.GetAllWorlds();
-            
-            if (worlds != null)
+            if (worlds != null && worlds.Any())
             {
                 var censusEntities = worlds.Select(ConvertToDbModel);
 

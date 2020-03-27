@@ -76,11 +76,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var result = new List<Zone>();
             var createdEntities = new List<Zone>();
 
-            var Zones = await _censusZone.GetAllZones();
+            IEnumerable<CensusZoneModel> zones = new List<CensusZoneModel>();
 
-            if (Zones != null)
+            try
             {
-                var censusEntities = Zones.Select(ConvertToDbModel);
+                zones = await _censusZone.GetAllZones();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failes: get all Zones");
+                return;
+            }
+
+            if (zones != null && zones.Any())
+            {
+                var censusEntities = zones.Select(ConvertToDbModel);
 
                 using (var factory = _dbContextHelper.GetFactory())
                 {

@@ -277,19 +277,44 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 return;
             }
-            
-            var itemCategories = await _censusItemCategory.GetAllItemCategories();
 
-            if (itemCategories != null)
+
+            IEnumerable<CensusItemCategoryModel> itemCategories = new List<CensusItemCategoryModel>();
+
+            try
+            {
+                itemCategories = await _censusItemCategory.GetAllItemCategories();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Item Categories");
+            }
+
+            //var itemCategories = await _censusItemCategory.GetAllItemCategories();
+
+            if (itemCategories != null && itemCategories.Any())
             {
                 await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
             }
 
-            var items = await _censusItem.GetAllItems();
 
-            if (items != null)
+            IEnumerable<CensusItemModel> items = new List<CensusItemModel>();
+
+            try
+            {
+                items = await _censusItem.GetAllItems();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Items");
+                return;
+            }
+
+            //var items = await _censusItem.GetAllItems();
+
+            if (items != null && items.Any())
             {
                 await UpsertRangeAsync(items.Select(ConvertToDbModel));
 

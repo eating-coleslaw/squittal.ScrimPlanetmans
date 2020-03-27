@@ -164,18 +164,42 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task RefreshStore()
         {
-            var censusProfiles = await _censusProfile.GetAllProfilesAsync();
+            IEnumerable<CensusProfileModel> censusProfiles = new List<CensusProfileModel>();
 
-            if (censusProfiles != null)
+            try
+            {
+                censusProfiles = await _censusProfile.GetAllProfilesAsync();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Profiles");
+            }
+
+            //var censusProfiles = await _censusProfile.GetAllProfilesAsync();
+
+            if (censusProfiles != null && censusProfiles.Any())
             {
                 await UpsertRangeAsync(censusProfiles.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Profiles store");
             }
 
-            var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
 
-            if (censusLoadouts != null)
+            IEnumerable<CensusLoadoutModel> censusLoadouts = new List<CensusLoadoutModel>();
+
+            try
+            {
+                censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
+            }
+            catch
+            {
+                _logger.LogError("Census API query failed: get all Loadouts");
+                return;
+            }
+
+            //var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
+
+            if (censusLoadouts != null && censusLoadouts.Any())
             {
                 var allLoadouts = new List<CensusLoadoutModel>();
 
