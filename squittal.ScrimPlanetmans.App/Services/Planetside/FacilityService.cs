@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private List<MapRegion> _scrimmableMapRegions = new List<MapRegion>();
 
-        public string BackupSqlScriptFileName => "dbo.Facility.Table.sql";
+        public string BackupSqlScriptFileName => "dbo.MapRegion.Table.sql";
 
         public FacilityService(IDbContextHelper dbContextHelper, CensusFacility censusFacility, ISqlScriptRunner sqlScriptRunner, ILogger<FacilityService> logger)
         {
