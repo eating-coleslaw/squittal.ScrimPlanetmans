@@ -6,7 +6,5 @@ namespace squittal.ScrimPlanetmans.Services
     {
         Task<int> GetCensusCountAsync();
         Task<int> GetStoreCountAsync();
-
-        //Task RefreshStore();
     }
 }

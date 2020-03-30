@@ -33,18 +33,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<World>> GetAllWorldsAsync()
         {
-            //var worlds = await _censusWorld.GetAllWorlds();
-
-            //if (worlds == null)
-            //{
-            //    return null;
-            //}
-
-            //var censusEntities = worlds.Select(ConvertToDbModel);
-
-            //return censusEntities.ToList();
-
-
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
@@ -111,8 +99,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 _logger.LogError("Census API query failed: get all Worlds. Refreshing store from backup...");
                 return false;
             }
-
-            //var worlds = await _censusWorld.GetAllWorlds();
             
             if (worlds != null && worlds.Any())
             {

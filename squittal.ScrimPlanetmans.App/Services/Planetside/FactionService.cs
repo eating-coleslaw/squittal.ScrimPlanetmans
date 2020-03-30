@@ -30,18 +30,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Faction>> GetAllFactionsAsync()
         {
-            //var factions = await _censusFaction.GetAllFactions();
-
-            //if (factions == null)
-            //{
-            //    return null;
-            //}
-
-            //var censusEntities = factions.Select(ConvertToDbModel);
-
-            //return censusEntities;
-
-
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
@@ -104,8 +92,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 _logger.LogError("Census API query failed: get all Factions. Refreshing store from backup...");
                 return false;
             }
-
-            //var factions = await _censusFaction.GetAllFactions();
 
             if (factions != null && factions.Any())
             {

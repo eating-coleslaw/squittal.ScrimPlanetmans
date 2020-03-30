@@ -72,9 +72,6 @@ namespace squittal.ScrimPlanetmans.Data
             Task scrimActionTask = _rulesetManager.SeedScrimActionModels();
             TaskList.Add(scrimActionTask);
 
-            //Task defaultRulesetTask = _rulesetManager.SeedDefaultRuleset();
-            //TaskList.Add(defaultRulesetTask);
-
             Task facilitiesTask = _facilityService.RefreshStore(true, true);
             TaskList.Add(facilitiesTask);
             

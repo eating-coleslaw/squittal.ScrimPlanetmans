@@ -168,45 +168,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        public async Task<bool> RefreshStoreFromCensus() //(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
+        public async Task<bool> RefreshStoreFromCensus()
         {
-            //bool anyCategories = false;
-            //var categoriesToBackfill = new List<ItemCategory>();
-            //var allCategoriesToUpsert = new List<ItemCategory>();
-
-            //if (onlyQueryCensusIfEmpty)
-            //{
-            //    using var factory = _dbContextHelper.GetFactory();
-            //    var dbContext = factory.GetDbContext();
-
-            //    anyCategories = await dbContext.ItemCategories.AnyAsync();
-
-            //    if (anyCategories)
-            //    {
-            //        categoriesToBackfill = await dbContext.ItemCategories
-            //                                                .Where(ic => ic.Domain == ItemCategoryDomain.Default)
-            //                                                .ToListAsync();
-
-            //        if (!categoriesToBackfill.Any())
-            //        {
-            //            return;
-            //        }
-
-            //        foreach (var category in categoriesToBackfill)
-            //        {
-            //            category.IsWeaponCategory = GetIsWeaponItemCategory(category.Id);
-            //            category.Domain = GetItemCategoryDomain(category.Id);
-            //        }
-
-            //        await UpsertRangeAsync(categoriesToBackfill);
-
-            //        _logger.LogInformation($"Backfilled Item Categories store: {categoriesToBackfill.Count()} entries updated");
-
-            //        return;
-            //    }
-            //}
-
-
             IEnumerable<CensusItemCategoryModel> itemCategories = new List<CensusItemCategoryModel>();
 
             try
@@ -218,8 +181,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 _logger.LogError("Census API query failed: get all Item Categories. Refreshing store from backup...");
                 return false;
             }
-
-            //var itemCategories = await _censusItemCategory.GetAllItemCategories();
 
             if (itemCategories != null && itemCategories.Any())
             {
@@ -233,10 +194,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 return false;
             }
-            //else if (canUseBackupScript)
-            //{
-                //RefreshStoreFromBackup();
-            //}
         }
 
         private async Task UpsertRangeAsync(IEnumerable<ItemCategory> censusEntities)

@@ -1,5 +1,4 @@
-﻿
-using squittal.ScrimPlanetmans.Services;
+﻿using squittal.ScrimPlanetmans.Services;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

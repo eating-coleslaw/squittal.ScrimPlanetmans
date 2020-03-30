@@ -40,12 +40,6 @@ namespace squittal.ScrimPlanetmans.Data
         {
             List<Task> TaskList = new List<Task>();
 
-            //var itemsListTask = _itemService.SetUpItemsListAsync();
-            //TaskList.Add(itemsListTask);
-
-            //var weaponsListTask = _itemService.SetUpWeaponsListAsnyc();
-            //TaskList.Add(weaponsListTask);
-
             var weaponCategoriesListTask = _itemService.SetUpWeaponCategoriesListAsync();
             TaskList.Add(weaponCategoriesListTask);
 
@@ -61,12 +55,7 @@ namespace squittal.ScrimPlanetmans.Data
             var zonesTask = _zoneService.SetupZonesList();
             TaskList.Add(zonesTask);
 
-            //var rulesetTask = _matchScorer.SetActiveRuleset();
-            //TaskList.Add(rulesetTask);
-
             await Task.WhenAll(TaskList);
-
-            //await _rulesetManager.SetupActiveRuleset();
 
             await _matchScorer.SetActiveRuleset();
         }

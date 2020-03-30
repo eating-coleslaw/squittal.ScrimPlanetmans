@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IFacilityService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
+    public interface IFacilityService : ILocallyBackedCensusStore
     {
         Task<MapRegion> GetMapRegionAsync(int mapRegionId);
         Task<MapRegion> GetMapRegionFromFacilityIdAsync(int facilityId);
@@ -14,8 +14,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         IEnumerable<MapRegion> GetScrimmableMapRegions();
         MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId);
-
-        //Task RefreshStore();
         Task SetUpScrimmableMapRegionsAsync();
     }
 }

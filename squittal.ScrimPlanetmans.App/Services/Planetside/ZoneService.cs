@@ -33,17 +33,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Zone>> GetAllZonesAsync()
         {
-            //var Zones = await _censusZone.GetAllZones();
-            //if (Zones == null)
-            //{
-            //    return null;
-            //}
-
-            //var censusEntities = Zones.Select(ConvertToDbModel);
-
-            //return censusEntities.ToList();
-
-
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();

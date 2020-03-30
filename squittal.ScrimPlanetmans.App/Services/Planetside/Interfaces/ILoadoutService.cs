@@ -1,10 +1,6 @@
-﻿using System.Threading.Tasks;
-
-namespace squittal.ScrimPlanetmans.Services.Planetside
+﻿namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface ILoadoutService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
+    public interface ILoadoutService : ILocallyBackedCensusStore
     {
-        //Task<int> GetCensusCountAsync();
-        //Task<int> GetStoreCountAsync();
     }
 }
