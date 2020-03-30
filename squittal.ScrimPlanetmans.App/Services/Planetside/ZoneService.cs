@@ -71,6 +71,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _zones = await dbContext.Zones.ToListAsync();
         }
 
+        // TODO: actually implement onlyQueryCensusIfEmpty = true
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        {
+            await RefreshStore();
+        }
+
         public async Task RefreshStore()
         {
             var result = new List<Zone>();

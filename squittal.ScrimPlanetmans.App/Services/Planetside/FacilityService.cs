@@ -73,6 +73,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                                                     .ToListAsync();
         }
 
+        // TODO: actually implement, and split move Facility Type refresh to FacilityTypeService
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        {
+            await RefreshStore();
+        }
+
         public async Task RefreshStore()
         {
             bool refreshStore = true;

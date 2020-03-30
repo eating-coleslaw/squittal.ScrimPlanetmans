@@ -69,6 +69,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             };
         }
 
+        // TODO: actually implement onlyQueryCensusIfEmpty = true
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        {
+            await RefreshStore();
+        }
+
         public async Task RefreshStore()
         {
             IEnumerable<CensusFactionModel> factions = new List<CensusFactionModel>();

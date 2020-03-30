@@ -253,6 +253,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return _nonWeaponItemCategoryIds;
         }
 
+        // TODO: actually implement onlyQueryCensusIfEmpty = true
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        {
+            await RefreshStore();
+        }
+
         public async Task RefreshStore()
         {
             bool refreshStore = true;
@@ -271,6 +277,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
 
                 refreshStore = (anyItems == false || anyCategories == false);
+
+                if (!refreshStore)
+                {
+
+                }
             }
             
             if (refreshStore != true)

@@ -162,6 +162,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             };
         }
 
+        // TODO: actually implement onlyQueryCensusIfEmpty = true, and move Loadout refresh to LoadoutService
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        {
+            await RefreshStore();
+        }
+
         public async Task RefreshStore()
         {
             IEnumerable<CensusProfileModel> censusProfiles = new List<CensusProfileModel>();

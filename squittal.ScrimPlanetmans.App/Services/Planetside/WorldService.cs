@@ -73,6 +73,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _worlds = await dbContext.Worlds.Where(z => z.Id != 25).ToListAsync(); // RIP Briggs
         }
 
+        // TODO: actually implement onlyQueryCensusIfEmpty = true
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        {
+            await RefreshStore();
+        }
+
         public async Task RefreshStore()
         {
             var result = new List<World>();

@@ -6,6 +6,6 @@ namespace squittal.ScrimPlanetmans.Services
     {
         //string ServiceName { get; }
         //TimeSpan UpdateInterval { get; }
-        Task RefreshStore();
+        Task RefreshStore(bool onlyQueryCensusIfEmpty = false);
     }
 }
