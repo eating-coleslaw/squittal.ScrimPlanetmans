@@ -2,6 +2,7 @@
 {
     public enum ItemCategoryDomain
     {
+        Default = -1,
         Infantry = 1,
         Max = 2,
         GroundVehicle = 3,
