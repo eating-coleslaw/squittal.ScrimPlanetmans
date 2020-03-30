@@ -254,61 +254,78 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         }
 
         // TODO: actually implement onlyQueryCensusIfEmpty = true
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
-            await RefreshStore();
-        }
-
-        public async Task RefreshStore()
-        {
-            bool refreshStore = true;
-            bool anyItems = false;
-            bool anyCategories = false;
-
-            using (var factory = _dbContextHelper.GetFactory())
+            if (onlyQueryCensusIfEmpty)
             {
+                using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                anyItems = await dbContext.Items.AnyAsync();
-
-                if (anyItems == true)
+                var anyItems = await dbContext.Items.AnyAsync();
+                if (anyItems)
                 {
-                    anyCategories = await dbContext.ItemCategories.AnyAsync();
-                }
-
-                refreshStore = (anyItems == false || anyCategories == false);
-
-                if (!refreshStore)
-                {
-
+                    return;
                 }
             }
+
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
+            {
+                RefreshStoreFromBackup();
+            }
+        }
+
+        public async Task<bool> RefreshStoreFromCensus()
+        {
+            //bool refreshStore = true;
+            //bool anyItems = false;
+            //bool anyCategories = false;
+
+            //using (var factory = _dbContextHelper.GetFactory())
+            //{
+            //    var dbContext = factory.GetDbContext();
+
+            //    anyItems = await dbContext.Items.AnyAsync();
+
+            //    if (anyItems == true)
+            //    {
+            //        anyCategories = await dbContext.ItemCategories.AnyAsync();
+            //    }
+
+            //    refreshStore = (anyItems == false || anyCategories == false);
+
+            //    if (!refreshStore)
+            //    {
+
+            //    }
+            //}
             
-            if (refreshStore != true)
-            {
-                return;
-            }
+            //if (refreshStore != true)
+            //{
+            //    return;
+            //}
 
 
-            IEnumerable<CensusItemCategoryModel> itemCategories = new List<CensusItemCategoryModel>();
+            //IEnumerable<CensusItemCategoryModel> itemCategories = new List<CensusItemCategoryModel>();
 
-            try
-            {
-                itemCategories = await _censusItemCategory.GetAllItemCategories();
-            }
-            catch
-            {
-                _logger.LogError("Census API query failed: get all Item Categories");
-            }
+            //try
+            //{
+            //    itemCategories = await _censusItemCategory.GetAllItemCategories();
+            //}
+            //catch
+            //{
+            //    _logger.LogError("Census API query failed: get all Item Categories. Refreshing store from backup...");
+            //}
 
-            //var itemCategories = await _censusItemCategory.GetAllItemCategories();
+            ////var itemCategories = await _censusItemCategory.GetAllItemCategories();
 
-            if (itemCategories != null && itemCategories.Any())
-            {
-                await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
+            //if (itemCategories != null && itemCategories.Any())
+            //{
+            //    await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
 
-                _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
-            }
+            //    _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
+            //}
 
 
             IEnumerable<CensusItemModel> items = new List<CensusItemModel>();
@@ -319,8 +336,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Items");
-                return;
+                _logger.LogError("Census API query failed: get all Items. Refreshing store from backup...");
+                return false;
             }
 
             //var items = await _censusItem.GetAllItems();
@@ -329,7 +346,13 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 await UpsertRangeAsync(items.Select(ConvertToDbModel));
 
-                _logger.LogInformation($"Refreshed Items store: {itemCategories.Count()} entries");
+                _logger.LogInformation($"Refreshed Items store: {items.Count()} entries");
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
         
@@ -366,38 +389,38 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
         
-        private async Task UpsertRangeAsync(IEnumerable<ItemCategory> censusEntities)
-        {
-            var createdEntities = new List<ItemCategory>();
+        //private async Task UpsertRangeAsync(IEnumerable<ItemCategory> censusEntities)
+        //{
+        //    var createdEntities = new List<ItemCategory>();
 
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
+        //    using (var factory = _dbContextHelper.GetFactory())
+        //    {
+        //        var dbContext = factory.GetDbContext();
 
-                var storedEntities = await dbContext.ItemCategories.ToListAsync();
+        //        var storedEntities = await dbContext.ItemCategories.ToListAsync();
 
-                foreach (var censusEntity in censusEntities)
-                {
-                    var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
-                    if (storeEntity == null)
-                    {
-                        createdEntities.Add(censusEntity);
-                    }
-                    else
-                    {
-                        storeEntity = censusEntity;
-                        dbContext.ItemCategories.Update(storeEntity);
-                    }
-                }
+        //        foreach (var censusEntity in censusEntities)
+        //        {
+        //            var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
+        //            if (storeEntity == null)
+        //            {
+        //                createdEntities.Add(censusEntity);
+        //            }
+        //            else
+        //            {
+        //                storeEntity = censusEntity;
+        //                dbContext.ItemCategories.Update(storeEntity);
+        //            }
+        //        }
 
-                if (createdEntities.Any())
-                {
-                    await dbContext.ItemCategories.AddRangeAsync(createdEntities);
-                }
+        //        if (createdEntities.Any())
+        //        {
+        //            await dbContext.ItemCategories.AddRangeAsync(createdEntities);
+        //        }
 
-                await dbContext.SaveChangesAsync();
-            }
-        }
+        //        await dbContext.SaveChangesAsync();
+        //    }
+        //}
         
         private static Item ConvertToDbModel(CensusItemModel item)
         {
@@ -415,56 +438,56 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             };
         }
 
-        private static ItemCategory ConvertToDbModel(CensusItemCategoryModel itemCategory)
-        {
-            var id = itemCategory.ItemCategoryId;
+        //private static ItemCategory ConvertToDbModel(CensusItemCategoryModel itemCategory)
+        //{
+        //    var id = itemCategory.ItemCategoryId;
 
-            var isWeaponCategory = GetIsWeaponItemCategory(id);
-            var domain = GetItemCategoryDomain(id);
+        //    var isWeaponCategory = GetIsWeaponItemCategory(id);
+        //    var domain = GetItemCategoryDomain(id);
 
-            return new ItemCategory
-            {
-                Id = id,
-                Name = itemCategory.Name.English,
-                IsWeaponCategory = isWeaponCategory,
-                Domain = domain
-            };
-        }
+        //    return new ItemCategory
+        //    {
+        //        Id = id,
+        //        Name = itemCategory.Name.English,
+        //        IsWeaponCategory = isWeaponCategory,
+        //        Domain = domain
+        //    };
+        //}
 
-        private static bool GetIsWeaponItemCategory(int itemCategoryId)
-        {
-            return _nonWeaponItemCategoryIds.Contains(itemCategoryId)
-                        ? false
-                        : true;
-        }
+        //private static bool GetIsWeaponItemCategory(int itemCategoryId)
+        //{
+        //    return _nonWeaponItemCategoryIds.Contains(itemCategoryId)
+        //                ? false
+        //                : true;
+        //}
 
-        private static ItemCategoryDomain GetItemCategoryDomain(int itemCategoryId)
-        {
-            if (_infantryItemCategoryIds.Contains(itemCategoryId))
-            {
-                return ItemCategoryDomain.Infantry;
-            }
-            else if (_maxItemCategoryIds.Contains(itemCategoryId))
-            {
-                return ItemCategoryDomain.Max;
-            }
-            else if (_groundVehicleItemCategoryIds.Contains(itemCategoryId))
-            {
-                return ItemCategoryDomain.GroundVehicle;
-            }
-            else if (_airVehicleItemCategoryIds.Contains(itemCategoryId))
-            {
-                return ItemCategoryDomain.AirVehicle;
-            }
-            else if (_lockedItemCategoryIds.Contains(itemCategoryId))
-            {
-                return ItemCategoryDomain.Locked;
-            }
-            else
-            {
-                return ItemCategoryDomain.Other;
-            }
-        }
+        //private static ItemCategoryDomain GetItemCategoryDomain(int itemCategoryId)
+        //{
+        //    if (_infantryItemCategoryIds.Contains(itemCategoryId))
+        //    {
+        //        return ItemCategoryDomain.Infantry;
+        //    }
+        //    else if (_maxItemCategoryIds.Contains(itemCategoryId))
+        //    {
+        //        return ItemCategoryDomain.Max;
+        //    }
+        //    else if (_groundVehicleItemCategoryIds.Contains(itemCategoryId))
+        //    {
+        //        return ItemCategoryDomain.GroundVehicle;
+        //    }
+        //    else if (_airVehicleItemCategoryIds.Contains(itemCategoryId))
+        //    {
+        //        return ItemCategoryDomain.AirVehicle;
+        //    }
+        //    else if (_lockedItemCategoryIds.Contains(itemCategoryId))
+        //    {
+        //        return ItemCategoryDomain.Locked;
+        //    }
+        //    else
+        //    {
+        //        return ItemCategoryDomain.Other;
+        //    }
+        //}
 
         public async Task<int> GetCensusCountAsync()
         {

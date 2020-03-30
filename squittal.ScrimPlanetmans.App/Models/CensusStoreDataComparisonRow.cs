@@ -25,6 +25,15 @@ namespace squittal.ScrimPlanetmans.Models
 
         // TODO: add CancellationTokens
 
+        public CensusStoreDataComparisonRow(string name, ILocallyBackedCensusStore locallyBackedCensusStore)
+        {
+            Name = name;
+            _countService = locallyBackedCensusStore;
+            _localBackupService = locallyBackedCensusStore;
+            _refreshService = locallyBackedCensusStore;
+            IsRefreshable = true;
+        }
+
         public CensusStoreDataComparisonRow(string name, ICountableStore countService, ILocallyBackedStore localBackupService)
         {
             Name = name;

@@ -123,35 +123,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _logger = logger;
         }
 
-        public async Task<int> GetCensusCountAsync()
-        {
-            return await _censusItemCategory.GetItemCategoriesCount();
-        }
-
-        public async Task<int> GetStoreCountAsync()
-        {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
-
-            return await dbContext.ItemCategories.CountAsync();
-        }
-
-        public void RefreshStoreFromBackup()
-        {
-            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
-        }
-
-        //public async Task RefreshStore()
-        //{
-        //    //await RefreshStore(false);
-        //    await RefreshStore(true); // TODO: for testing only!
-        //}
-
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
             bool anyCategories = false;
             var categoriesToBackfill = new List<ItemCategory>();
-            var allCategoriesToUpsert = new List<ItemCategory>();
 
             if (onlyQueryCensusIfEmpty)
             {
@@ -185,6 +160,52 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
             }
 
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
+            {
+                RefreshStoreFromBackup();
+            }
+        }
+
+        public async Task<bool> RefreshStoreFromCensus() //(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
+        {
+            //bool anyCategories = false;
+            //var categoriesToBackfill = new List<ItemCategory>();
+            //var allCategoriesToUpsert = new List<ItemCategory>();
+
+            //if (onlyQueryCensusIfEmpty)
+            //{
+            //    using var factory = _dbContextHelper.GetFactory();
+            //    var dbContext = factory.GetDbContext();
+
+            //    anyCategories = await dbContext.ItemCategories.AnyAsync();
+
+            //    if (anyCategories)
+            //    {
+            //        categoriesToBackfill = await dbContext.ItemCategories
+            //                                                .Where(ic => ic.Domain == ItemCategoryDomain.Default)
+            //                                                .ToListAsync();
+
+            //        if (!categoriesToBackfill.Any())
+            //        {
+            //            return;
+            //        }
+
+            //        foreach (var category in categoriesToBackfill)
+            //        {
+            //            category.IsWeaponCategory = GetIsWeaponItemCategory(category.Id);
+            //            category.Domain = GetItemCategoryDomain(category.Id);
+            //        }
+
+            //        await UpsertRangeAsync(categoriesToBackfill);
+
+            //        _logger.LogInformation($"Backfilled Item Categories store: {categoriesToBackfill.Count()} entries updated");
+
+            //        return;
+            //    }
+            //}
+
 
             IEnumerable<CensusItemCategoryModel> itemCategories = new List<CensusItemCategoryModel>();
 
@@ -194,7 +215,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Item Categories");
+                _logger.LogError("Census API query failed: get all Item Categories. Refreshing store from backup...");
+                return false;
             }
 
             //var itemCategories = await _censusItemCategory.GetAllItemCategories();
@@ -204,7 +226,17 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
+
+                return true;
             }
+            else
+            {
+                return false;
+            }
+            //else if (canUseBackupScript)
+            //{
+                //RefreshStoreFromBackup();
+            //}
         }
 
         private async Task UpsertRangeAsync(IEnumerable<ItemCategory> censusEntities)
@@ -289,6 +321,24 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 return ItemCategoryDomain.Other;
             }
+        }
+
+        public async Task<int> GetCensusCountAsync()
+        {
+            return await _censusItemCategory.GetItemCategoriesCount();
+        }
+
+        public async Task<int> GetStoreCountAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.ItemCategories.CountAsync();
+        }
+
+        public void RefreshStoreFromBackup()
+        {
+            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
     }
 }

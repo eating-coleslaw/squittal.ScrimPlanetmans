@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IZoneService : ICountableStore, ILocallyBackedStore, IUpdateable
+    public interface IZoneService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
     {
         IEnumerable<Zone> GetAllZones();
         Task<IEnumerable<Zone>> GetAllZonesAsync();

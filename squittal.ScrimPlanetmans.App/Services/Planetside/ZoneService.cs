@@ -71,13 +71,29 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _zones = await dbContext.Zones.ToListAsync();
         }
 
-        // TODO: actually implement onlyQueryCensusIfEmpty = true
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
-            await RefreshStore();
+            if (onlyQueryCensusIfEmpty)
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var anyZones = await dbContext.Zones.AnyAsync();
+                if (anyZones)
+                {
+                    return;
+                }
+            }
+
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
+            {
+                RefreshStoreFromBackup();
+            }
         }
 
-        public async Task RefreshStore()
+        public async Task<bool> RefreshStoreFromCensus()
         {
             var result = new List<Zone>();
             var createdEntities = new List<Zone>();
@@ -90,8 +106,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failes: get all Zones");
-                return;
+                _logger.LogError("Census API query failed: get all Zones. Refreshing store from backup...");
+                return false;
             }
 
             if (zones != null && zones.Any())
@@ -127,6 +143,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                     _logger.LogInformation($"Refreshed Zones store");
                 }
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

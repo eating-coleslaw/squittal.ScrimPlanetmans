@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IFactionService : ICountableStore, ILocallyBackedStore, IUpdateable
+    public interface IFactionService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
     {
         Task<IEnumerable<Faction>> GetAllFactionsAsync();
         string GetFactionAbbrevFromId(int factionId);

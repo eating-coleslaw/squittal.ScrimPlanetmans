@@ -53,15 +53,15 @@ namespace squittal.ScrimPlanetmans.Services
             _worldService = worldService;
             _factionService = factionService;
 
-            _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService, _facilityService, _facilityService);
-            _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService, _facilityTypeService);
-            _items = new CensusStoreDataComparisonRow("Items", _itemService, _itemService, _itemService);
-            _itemCategories = new CensusStoreDataComparisonRow("Item Categories", _itemCategoryService, _itemCategoryService, _itemCategoryService);
-            _profiles = new CensusStoreDataComparisonRow("Profiles", _profileService, _profileService, _profileService);
-            _loadouts = new CensusStoreDataComparisonRow("Loadouts", _loadoutService, _loadoutService);
-            _zones = new CensusStoreDataComparisonRow("Zones", _zoneService, _zoneService, _zoneService);
-            _worlds = new CensusStoreDataComparisonRow("Worlds", _worldService, _worldService, _worldService);
-            _factions = new CensusStoreDataComparisonRow("Factions", _factionService, _factionService, _factionService);
+            _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService); //, _facilityService, _facilityService);
+            _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService); //, _facilityTypeService, _facilityTypeService);
+            _items = new CensusStoreDataComparisonRow("Items", _itemService); //, _itemService, _itemService);
+            _itemCategories = new CensusStoreDataComparisonRow("Item Categories", _itemCategoryService); //, _itemCategoryService, _itemCategoryService);
+            _profiles = new CensusStoreDataComparisonRow("Profiles", _profileService); //, _profileService, _profileService);
+            _loadouts = new CensusStoreDataComparisonRow("Loadouts", _loadoutService); //, _loadoutService, _loadoutService);
+            _zones = new CensusStoreDataComparisonRow("Zones", _zoneService); //, _zoneService, _zoneService);
+            _worlds = new CensusStoreDataComparisonRow("Worlds", _worldService); //, _worldService, _worldService);
+            _factions = new CensusStoreDataComparisonRow("Factions", _factionService); //, _factionService, _factionService);
 
             Comparisons.Add(_mapRegions);
             Comparisons.Add(_facilityTypes);

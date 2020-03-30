@@ -1,6 +1,6 @@
 ﻿namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IFacilityTypeService : ICountableStore, ILocallyBackedStore
+    public interface IFacilityTypeService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
     {
         //Task<int> GetCensusCountAsync();
         //Task<int> GetStoreCountAsync();

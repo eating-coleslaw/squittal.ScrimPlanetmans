@@ -73,58 +73,74 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                                                     .ToListAsync();
         }
 
-        // TODO: actually implement, and split move Facility Type refresh to FacilityTypeService
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
-            await RefreshStore();
-        }
-
-        public async Task RefreshStore()
-        {
-            bool refreshStore = true;
-            bool anyMapRegions = false;
-            bool anyFacilityTypes = false;
-
-            using (var factory = _dbContextHelper.GetFactory())
+            if (onlyQueryCensusIfEmpty)
             {
+                using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                anyMapRegions = await dbContext.MapRegions.AnyAsync();
-
-                if (anyMapRegions == true)
+                var anyMapRegions = await dbContext.MapRegions.AnyAsync();
+                if (anyMapRegions)
                 {
-                    anyFacilityTypes = await dbContext.FacilityTypes.AnyAsync();
+                    return;
                 }
-
-                refreshStore = (anyMapRegions == false || anyFacilityTypes == false);
             }
 
-            if (refreshStore != true)
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
             {
-                return;
+                RefreshStoreFromBackup();
             }
+        }
+
+        public async Task<bool> RefreshStoreFromCensus()
+        {
+            //bool refreshStore = true;
+            //bool anyMapRegions = false;
+            //bool anyFacilityTypes = false;
+
+            //using (var factory = _dbContextHelper.GetFactory())
+            //{
+            //    var dbContext = factory.GetDbContext();
+
+            //    anyMapRegions = await dbContext.MapRegions.AnyAsync();
+
+            //    if (anyMapRegions == true)
+            //    {
+            //        anyFacilityTypes = await dbContext.FacilityTypes.AnyAsync();
+            //    }
+
+            //    refreshStore = (anyMapRegions == false || anyFacilityTypes == false);
+            //}
+
+            //if (refreshStore != true)
+            //{
+            //    return;
+            //}
 
 
-            IEnumerable<CensusFacilityTypeModel> facilityTypes = new List<CensusFacilityTypeModel>();
+            //IEnumerable<CensusFacilityTypeModel> facilityTypes = new List<CensusFacilityTypeModel>();
 
-            try
-            {
-                facilityTypes = await _censusFacility.GetAllFacilityTypes();
-            }
-            catch
-            {
-                _logger.LogError("Census API query failed: get all Facility Types");
-                return;
-            }
+            //try
+            //{
+            //    facilityTypes = await _censusFacility.GetAllFacilityTypes();
+            //}
+            //catch
+            //{
+            //    _logger.LogError("Census API query failed: get all Facility Types");
+            //    return;
+            //}
 
-            //var facilityTypes = await _censusFacility.GetAllFacilityTypes();
+            ////var facilityTypes = await _censusFacility.GetAllFacilityTypes();
 
-            if (facilityTypes != null && facilityTypes.Any())
-            {
-                await UpsertRangeAsync(facilityTypes.Select(ConvertToDbModel));
+            //if (facilityTypes != null && facilityTypes.Any())
+            //{
+            //    await UpsertRangeAsync(facilityTypes.Select(ConvertToDbModel));
 
-                _logger.LogInformation($"Refreshed Facility Types store: {facilityTypes.Count()} entries");
-            }
+            //    _logger.LogInformation($"Refreshed Facility Types store: {facilityTypes.Count()} entries");
+            //}
 
 
             IEnumerable<CensusMapRegionModel> mapRegions = new List<CensusMapRegionModel>();
@@ -135,8 +151,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Map Regions");
-                return;
+                _logger.LogError("Census API query failed: get all Map Regions. Refreshing store from backup...");
+                return false;
             }
 
             //var mapRegions = await _censusFacility.GetAllMapRegions();
@@ -146,41 +162,48 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(mapRegions.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Map Regions store: {mapRegions.Count()} entries");
+
+                return true;
             }
-        }
-
-        private async Task UpsertRangeAsync(IEnumerable<FacilityType> censusEntities)
-        {
-            var createdEntities = new List<FacilityType>();
-
-            using (var factory = _dbContextHelper.GetFactory())
+            else
             {
-                var dbContext = factory.GetDbContext();
-
-                var storedEntities = await dbContext.FacilityTypes.ToListAsync();
-
-                foreach (var censusEntity in censusEntities)
-                {
-                    var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
-                    if (storeEntity == null)
-                    {
-                        createdEntities.Add(censusEntity);
-                    }
-                    else
-                    {
-                        storeEntity = censusEntity;
-                        dbContext.FacilityTypes.Update(storeEntity);
-                    }
-                }
-
-                if (createdEntities.Any())
-                {
-                    await dbContext.FacilityTypes.AddRangeAsync(createdEntities);
-                }
-
-                await dbContext.SaveChangesAsync();
+                return false;
             }
+
         }
+
+        //private async Task UpsertRangeAsync(IEnumerable<FacilityType> censusEntities)
+        //{
+        //    var createdEntities = new List<FacilityType>();
+
+        //    using (var factory = _dbContextHelper.GetFactory())
+        //    {
+        //        var dbContext = factory.GetDbContext();
+
+        //        var storedEntities = await dbContext.FacilityTypes.ToListAsync();
+
+        //        foreach (var censusEntity in censusEntities)
+        //        {
+        //            var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
+        //            if (storeEntity == null)
+        //            {
+        //                createdEntities.Add(censusEntity);
+        //            }
+        //            else
+        //            {
+        //                storeEntity = censusEntity;
+        //                dbContext.FacilityTypes.Update(storeEntity);
+        //            }
+        //        }
+
+        //        if (createdEntities.Any())
+        //        {
+        //            await dbContext.FacilityTypes.AddRangeAsync(createdEntities);
+        //        }
+
+        //        await dbContext.SaveChangesAsync();
+        //    }
+        //}
 
         private async Task UpsertRangeAsync(IEnumerable<MapRegion> censusEntities)
         {
@@ -215,14 +238,14 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        private FacilityType ConvertToDbModel(CensusFacilityTypeModel censusModel)
-        {
-            return new FacilityType
-            {
-                Id = censusModel.FacilityTypeId,
-                Description = censusModel.Description
-            };
-        }
+        //private FacilityType ConvertToDbModel(CensusFacilityTypeModel censusModel)
+        //{
+        //    return new FacilityType
+        //    {
+        //        Id = censusModel.FacilityTypeId,
+        //        Description = censusModel.Description
+        //    };
+        //}
 
         private MapRegion ConvertToDbModel(CensusMapRegionModel censusModel)
         {

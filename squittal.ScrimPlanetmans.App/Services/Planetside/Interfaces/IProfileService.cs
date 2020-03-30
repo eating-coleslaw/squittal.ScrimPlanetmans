@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IProfileService : ICountableStore, ILocallyBackedStore, IUpdateable
+    public interface IProfileService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
     {
         Task<IEnumerable<Profile>> GetAllProfilesAsync();
         Task<IEnumerable<Loadout>> GetAllLoadoutsAsync();

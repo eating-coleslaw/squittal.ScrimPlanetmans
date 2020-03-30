@@ -69,13 +69,29 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             };
         }
 
-        // TODO: actually implement onlyQueryCensusIfEmpty = true
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
-            await RefreshStore();
+            if (onlyQueryCensusIfEmpty)
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var anyFactions = await dbContext.Factions.AnyAsync();
+                if (anyFactions)
+                {
+                    return;
+                }
+            }
+
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
+            {
+                RefreshStoreFromBackup();
+            }
         }
 
-        public async Task RefreshStore()
+        public async Task<bool> RefreshStoreFromCensus()
         {
             IEnumerable<CensusFactionModel> factions = new List<CensusFactionModel>();
 
@@ -85,8 +101,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Factions");
-                return;
+                _logger.LogError("Census API query failed: get all Factions. Refreshing store from backup...");
+                return false;
             }
 
             //var factions = await _censusFaction.GetAllFactions();
@@ -126,6 +142,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                     _logger.LogInformation($"Refreshed Factions store");
                 }
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

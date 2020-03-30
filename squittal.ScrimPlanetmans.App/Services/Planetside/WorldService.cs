@@ -73,13 +73,29 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _worlds = await dbContext.Worlds.Where(z => z.Id != 25).ToListAsync(); // RIP Briggs
         }
 
-        // TODO: actually implement onlyQueryCensusIfEmpty = true
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
-            await RefreshStore();
+            if (onlyQueryCensusIfEmpty)
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var anyWorlds = await dbContext.Worlds.AnyAsync();
+                if (anyWorlds)
+                {
+                    return;
+                }
+            }
+
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
+            {
+                RefreshStoreFromBackup();
+            }
         }
 
-        public async Task RefreshStore()
+        public async Task<bool> RefreshStoreFromCensus()
         {
             var result = new List<World>();
             var createdEntities = new List<World>();
@@ -92,8 +108,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failes: get all Worlds");
-                return;
+                _logger.LogError("Census API query failed: get all Worlds. Refreshing store from backup...");
+                return false;
             }
 
             //var worlds = await _censusWorld.GetAllWorlds();
@@ -129,8 +145,14 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                     await dbContext.SaveChangesAsync();
 
-                    _logger.LogInformation($"Refreshed Worlds store;");
+                    _logger.LogInformation($"Refreshed Worlds store");
                 }
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

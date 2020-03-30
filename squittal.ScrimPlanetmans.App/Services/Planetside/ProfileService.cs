@@ -60,30 +60,28 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Loadout>> GetAllLoadoutsAsync()
         {
-            var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
+            //var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
 
-            if (censusLoadouts == null)
-            {
-                return null;
-            }
+            //if (censusLoadouts == null)
+            //{
+            //    return null;
+            //}
 
-            var allLoadouts = new List<CensusLoadoutModel>();
+            //var allLoadouts = new List<CensusLoadoutModel>();
 
-            allLoadouts.AddRange(censusLoadouts.ToList());
-            allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
+            //allLoadouts.AddRange(censusLoadouts.ToList());
+            //allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
 
-            var censusEntities = allLoadouts.Select(ConvertToDbModel);
+            //var censusEntities = allLoadouts.Select(ConvertToDbModel);
 
-            return censusEntities.ToList();
+            //return censusEntities.ToList();
 
-            /*
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
 
-                return await dbContext.Loadouts.ToListAsync();
-            }
-            */
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.Loadouts.ToListAsync();
+
         }
 
         public async Task<Profile> GetProfileFromLoadoutIdAsync(int loadoutId)
@@ -163,12 +161,29 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         }
 
         // TODO: actually implement onlyQueryCensusIfEmpty = true, and move Loadout refresh to LoadoutService
-        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false)
+        public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
-            await RefreshStore();
+            if (onlyQueryCensusIfEmpty)
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var anyProfiles = await dbContext.Profiles.AnyAsync();
+                if (anyProfiles)
+                {
+                    return;
+                }
+            }
+
+            var success = await RefreshStoreFromCensus();
+
+            if (!success && canUseBackupScript)
+            {
+                RefreshStoreFromBackup();
+            }
         }
 
-        public async Task RefreshStore()
+        public async Task<bool> RefreshStoreFromCensus()
         {
             IEnumerable<CensusProfileModel> censusProfiles = new List<CensusProfileModel>();
 
@@ -178,7 +193,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Profiles");
+                _logger.LogError("Census API query failed: get all Profiles. Refreshing store from backup...");
+                return false;
             }
 
             //var censusProfiles = await _censusProfile.GetAllProfilesAsync();
@@ -188,34 +204,40 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(censusProfiles.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Profiles store");
+
+                return true;
             }
-
-
-            IEnumerable<CensusLoadoutModel> censusLoadouts = new List<CensusLoadoutModel>();
-
-            try
+            else
             {
-                censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
-            }
-            catch
-            {
-                _logger.LogError("Census API query failed: get all Loadouts");
-                return;
+                return false;
             }
 
-            //var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
 
-            if (censusLoadouts != null && censusLoadouts.Any())
-            {
-                var allLoadouts = new List<CensusLoadoutModel>();
+            //IEnumerable<CensusLoadoutModel> censusLoadouts = new List<CensusLoadoutModel>();
 
-                allLoadouts.AddRange(censusLoadouts.ToList());
-                allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
+            //try
+            //{
+            //    censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
+            //}
+            //catch
+            //{
+            //    _logger.LogError("Census API query failed: get all Loadouts");
+            //    return;
+            //}
 
-                await UpsertRangeAsync(allLoadouts.AsEnumerable().Select(ConvertToDbModel));
+            ////var censusLoadouts = await _censusLoadout.GetAllLoadoutsAsync();
 
-                _logger.LogInformation($"Refreshed Loadouts store");
-            }
+            //if (censusLoadouts != null && censusLoadouts.Any())
+            //{
+            //    var allLoadouts = new List<CensusLoadoutModel>();
+
+            //    allLoadouts.AddRange(censusLoadouts.ToList());
+            //    allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
+
+            //    await UpsertRangeAsync(allLoadouts.AsEnumerable().Select(ConvertToDbModel));
+
+            //    _logger.LogInformation($"Refreshed Loadouts store");
+            //}
         }
 
         private async Task UpsertRangeAsync(IEnumerable<Profile> censusEntities)
@@ -251,49 +273,49 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
-        private async Task UpsertRangeAsync(IEnumerable<Loadout> censusEntities)
-        {
-            var createdEntities = new List<Loadout>();
+        //private async Task UpsertRangeAsync(IEnumerable<Loadout> censusEntities)
+        //{
+        //    var createdEntities = new List<Loadout>();
 
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
+        //    using (var factory = _dbContextHelper.GetFactory())
+        //    {
+        //        var dbContext = factory.GetDbContext();
 
-                var storedEntities = await dbContext.Loadouts.ToListAsync();
+        //        var storedEntities = await dbContext.Loadouts.ToListAsync();
 
-                foreach (var censusEntity in censusEntities)
-                {
-                    var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
-                    if (storeEntity == null)
-                    {
-                        createdEntities.Add(censusEntity);
-                    }
-                    else
-                    {
-                        storeEntity = censusEntity;
-                        dbContext.Loadouts.Update(storeEntity);
-                    }
-                }
+        //        foreach (var censusEntity in censusEntities)
+        //        {
+        //            var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
+        //            if (storeEntity == null)
+        //            {
+        //                createdEntities.Add(censusEntity);
+        //            }
+        //            else
+        //            {
+        //                storeEntity = censusEntity;
+        //                dbContext.Loadouts.Update(storeEntity);
+        //            }
+        //        }
 
-                if (createdEntities.Any())
-                {
-                    await dbContext.Loadouts.AddRangeAsync(createdEntities);
-                }
+        //        if (createdEntities.Any())
+        //        {
+        //            await dbContext.Loadouts.AddRangeAsync(createdEntities);
+        //        }
 
-                await dbContext.SaveChangesAsync();
-            }
-        }
+        //        await dbContext.SaveChangesAsync();
+        //    }
+        //}
 
-        private Loadout ConvertToDbModel(CensusLoadoutModel censusModel)
-        {
-            return new Loadout
-            {
-                Id = censusModel.LoadoutId,
-                ProfileId = censusModel.ProfileId,
-                FactionId = censusModel.FactionId,
-                CodeName = censusModel.CodeName,
-            };
-        }
+        //private Loadout ConvertToDbModel(CensusLoadoutModel censusModel)
+        //{
+        //    return new Loadout
+        //    {
+        //        Id = censusModel.LoadoutId,
+        //        ProfileId = censusModel.ProfileId,
+        //        FactionId = censusModel.FactionId,
+        //        CodeName = censusModel.CodeName,
+        //    };
+        //}
 
         private Profile ConvertToDbModel(CensusProfileModel censusModel)
         {
@@ -307,31 +329,31 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             };
         }
 
-        private IEnumerable<CensusLoadoutModel> GetFakeNsCensusLoadoutModels()
-        {
-            var nsLoadouts = new List<CensusLoadoutModel>
-            {
-                GetNewCensusLoadoutModel(28, 190, 4, "NS Infiltrator"),
-                GetNewCensusLoadoutModel(29, 191, 4, "NS Light Assault"),
-                GetNewCensusLoadoutModel(30, 192, 4, "NS Combat Medic"),
-                GetNewCensusLoadoutModel(31, 193, 4, "NS Engineer"),
-                GetNewCensusLoadoutModel(32, 194, 4, "NS Heavy Assault"),
-                GetNewCensusLoadoutModel(45, 252, 4, "NS Defector")
-            };
+        //private IEnumerable<CensusLoadoutModel> GetFakeNsCensusLoadoutModels()
+        //{
+        //    var nsLoadouts = new List<CensusLoadoutModel>
+        //    {
+        //        GetNewCensusLoadoutModel(28, 190, 4, "NS Infiltrator"),
+        //        GetNewCensusLoadoutModel(29, 191, 4, "NS Light Assault"),
+        //        GetNewCensusLoadoutModel(30, 192, 4, "NS Combat Medic"),
+        //        GetNewCensusLoadoutModel(31, 193, 4, "NS Engineer"),
+        //        GetNewCensusLoadoutModel(32, 194, 4, "NS Heavy Assault"),
+        //        GetNewCensusLoadoutModel(45, 252, 4, "NS Defector")
+        //    };
 
-            return nsLoadouts;
-        }
+        //    return nsLoadouts;
+        //}
 
-        private CensusLoadoutModel GetNewCensusLoadoutModel(int loadoutId, int profileId, int factionId, string codeName)
-        {
-            return new CensusLoadoutModel()
-            {
-                LoadoutId = loadoutId,
-                ProfileId = profileId,
-                FactionId = factionId,
-                CodeName = codeName
-            };
-        }
+        //private CensusLoadoutModel GetNewCensusLoadoutModel(int loadoutId, int profileId, int factionId, string codeName)
+        //{
+        //    return new CensusLoadoutModel()
+        //    {
+        //        LoadoutId = loadoutId,
+        //        ProfileId = profileId,
+        //        FactionId = factionId,
+        //        CodeName = codeName
+        //    };
+        //}
 
         public void Dispose()
         {
