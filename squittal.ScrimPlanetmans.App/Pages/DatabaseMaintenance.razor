@@ -129,6 +129,7 @@
 @code {
     private List<CensusStoreDataComparisonRow> _comparisons = new List<CensusStoreDataComparisonRow>();
 
+
     protected override void OnInitialized()
     {
         _comparisons = DbMaintenance.Comparisons;
@@ -159,7 +160,8 @@
 
     private async Task UpdateDatabaseFromBackup(CensusStoreDataComparisonRow comparison)
     {
-        var updateStoreTask = comparison.RefreshStoreFromBackup();
-        await updateStoreTask;
+        await Task.Run(() =>
+            comparison.RefreshStoreFromBackup()
+        );
     }
 }
