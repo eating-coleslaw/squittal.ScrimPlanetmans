@@ -1,5 +1,6 @@
 ﻿@page "/rulesets"
 
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models.Planetside
 @using squittal.ScrimPlanetmans.ScrimMatch
 @using squittal.ScrimPlanetmans.ScrimMatch.Models
@@ -12,141 +13,141 @@
         <div class="col-lg-8">
 
 
-                @if (_activeRuleset == null)
-                {
-                    <SpinnerEllipsis />
-                }
-                else
-                {
-                    <div class="header-card-container default">
-                        <h4>Ruleset Editor</h4>
+            @if (_activeRuleset == null)
+            {
+                <SpinnerEllipsis />
+            }
+            else
+            {
+                <div class="header-card-container default">
+                    <h4>Ruleset Editor</h4>
 
-                        @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
-                        <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
-                        <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
+                    @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
+                    <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
+                    <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
 
+                </div>
+
+                <div style="display: flex;">
+
+                    <div class="sq-mini-card-6 default">
+                        <h5>Item Category Rules</h5>
+
+                        <div class="sq-content">
+                            @if (_activeRuleset.ItemCategoryRules != null && _activeRuleset.ItemCategoryRules.Any())
+                            {
+                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
+                                    <EditForm Model="@_showInfantry">
+                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
+                                        <DataAnnotationsValidator />
+                                        <ValidationSummary />
+
+                                        Infantry <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" />
+                                    </EditForm>
+                                </div>
+
+                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
+                                    <EditForm Model="@_showMax">
+                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
+                                        <DataAnnotationsValidator />
+                                        <ValidationSummary />
+
+                                        MAX <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" />
+                                    </EditForm>
+                                </div>
+
+                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
+                                    <EditForm Model="@_showGroundVehicle">
+                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
+                                        <DataAnnotationsValidator />
+                                        <ValidationSummary />
+
+                                        Ground <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" />
+                                    </EditForm>
+                                </div>
+
+                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
+                                    <EditForm Model="@_showAirVehicle">
+                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
+                                        <DataAnnotationsValidator />
+                                        <ValidationSummary />
+
+                                        Air <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" />
+                                    </EditForm>
+                                </div>
+
+                                <table class="table-responsive-sm table-striped-light default">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th style="text-align: right;">ID</th>
+                                            <th>Domain</th>
+                                            <th style="text-align: right;">Points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var itemCategoryRule in _activeRuleset.ItemCategoryRules.OrderBy(icr => icr.ItemCategory.Domain).ToList())
+                                        {
+                                            //if (itemCategoryRule.ItemCategory != null && itemCategoryRule.ItemCategory.Domain != ItemCategoryDomain.Locked)
+                                            if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
+                                            {
+                                                <tr>
+                                                    <td>@itemCategoryRule.ItemCategory.Name</td>
+                                                    <td style="text-align: right;">@itemCategoryRule.ItemCategory.Id</td>
+                                                    <td>@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
+                                                    <td style="text-align: right; opacity: @GetValueOpacity(itemCategoryRule.Points);">@itemCategoryRule.Points</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p>No item category rules...</p>
+                            }
+                        </div>
                     </div>
 
-                    <div style="display: flex;">
-                        
-                        <div class="sq-mini-card-6 default">
-                            <h5>Item Category Rules</h5>
 
-                            <div class="sq-content">
-                                @if (_activeRuleset.ItemCategoryRules != null && _activeRuleset.ItemCategoryRules.Any())
-                                {
-                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
-                                        <EditForm Model="@_showInfantry">
-                                            @*OnValidSubmit="HandleAddPlayerSubmit"*@
-                                            <DataAnnotationsValidator />
-                                            <ValidationSummary />
+                    <div class="sq-mini-card-6 default">
+                        <h5>Scrim Action Rules</h5>
 
-                                            Infantry <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" />
-                                        </EditForm>
-                                    </div>
-
-                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
-                                        <EditForm Model="@_showMax">
-                                            @*OnValidSubmit="HandleAddPlayerSubmit"*@
-                                            <DataAnnotationsValidator />
-                                            <ValidationSummary />
-
-                                            MAX <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" />
-                                        </EditForm>
-                                    </div>
-
-                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
-                                        <EditForm Model="@_showGroundVehicle">
-                                            @*OnValidSubmit="HandleAddPlayerSubmit"*@
-                                            <DataAnnotationsValidator />
-                                            <ValidationSummary />
-
-                                            Ground <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" />
-                                        </EditForm>
-                                    </div>
-
-                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
-                                        <EditForm Model="@_showAirVehicle">
-                                            @*OnValidSubmit="HandleAddPlayerSubmit"*@
-                                            <DataAnnotationsValidator />
-                                            <ValidationSummary />
-
-                                            Air <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" />
-                                        </EditForm>
-                                    </div>
-
-                                    <table class="table-responsive-sm table-striped-light default">
-                                        <thead>
-                                            <tr>
-                                                <th></th>
-                                                <th style="text-align: right;">ID</th>
-                                                <th>Domain</th>
-                                                <th style="text-align: right;">Points</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var itemCategoryRule in _activeRuleset.ItemCategoryRules.OrderBy(icr => icr.ItemCategory.Domain).ToList())
+                        <div class="sq-content">
+                            @if (_activeRuleset.ActionRules != null && _activeRuleset.ActionRules.Any())
+                            {
+                                <table class="table-responsive-sm table-striped-light default">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th style="text-align: right;">ID</th>
+                                            <th style="text-align: right;">Points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var actionRule in _activeRuleset.ActionRules)
+                                        {
+                                            @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
                                             {
-                                                //if (itemCategoryRule.ItemCategory != null && itemCategoryRule.ItemCategory.Domain != ItemCategoryDomain.Locked)
-                                                if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
-                                                {
-                                                    <tr>
-                                                        <td>@itemCategoryRule.ItemCategory.Name</td>
-                                                        <td style="text-align: right;">@itemCategoryRule.ItemCategory.Id</td>
-                                                        <td>@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
-                                                        <td style="text-align: right; opacity: @GetValueOpacity(itemCategoryRule.Points);">@itemCategoryRule.Points</td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                }
-                                else
-                                {
-                                    <p>No item category rules...</p>
-                                }
-                            </div>
-                        </div>
-
-
-                        <div class="sq-mini-card-6 default">
-                            <h5>Scrim Action Rules</h5>
-
-                            <div class="sq-content">
-                                @if (_activeRuleset.ActionRules != null && _activeRuleset.ActionRules.Any())
-                                {
-                                    <table class="table-responsive-sm table-striped-light default">
-                                        <thead>
-                                            <tr>
-                                                <th></th>
-                                                <th style="text-align: right;">ID</th>
-                                                <th style="text-align: right;">Points</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var actionRule in _activeRuleset.ActionRules)
-                                            {
-                                                @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
-                                                {
                                                 <tr>
                                                     <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
                                                     <td style="text-align: right;">@((int)actionRule.ScrimActionType)</td>
                                                     <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points);">@actionRule.Points</td>
                                                 </tr>
-                                                }
                                             }
-                                        </tbody>
-                                    </table>
-                                }
-                                else
-                                {
-                                    <p>No scrim action rules...</p>
-                                }
-                            </div>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p>No scrim action rules...</p>
+                            }
                         </div>
                     </div>
-                }
-            
+                </div>
+            }
+
         </div>
     </div>
 </div>
@@ -161,7 +162,7 @@
     private bool _showAirVehicle = false;
 
     private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
-    {
+{
         ScrimActionType.None,
         ScrimActionType.OutsideInterference,
         ScrimActionType.Unknown

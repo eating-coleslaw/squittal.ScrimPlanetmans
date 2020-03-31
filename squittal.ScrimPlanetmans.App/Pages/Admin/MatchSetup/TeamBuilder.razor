@@ -1,4 +1,5 @@
 ﻿@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.CensusStream;
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.Forms;
@@ -8,9 +9,6 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@*@using squittal.ScrimPlanetmans.Shared.Models.ScrimEngine;*@
-@*@using squittal.ScrimPlanetmans.Shared.Models.Planetside;*@
-@using System.Diagnostics;
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor WebsocketMonitor
@@ -22,7 +20,7 @@
 
 
 <div class="header-card-container @GetHeaderCardClass()">
-    
+
     @if (_team == null)
     {
         <h4>Team @i_teamOrdinal</h4>
@@ -31,7 +29,7 @@
     {
         <h4>
             @*Team @(i_teamOrdinal)<span class="mono-font">@(_team.HasCustomAlias ? $": {_team.Alias}" : string.Empty)</span>*@
-            Team @(i_teamOrdinal): 
+            Team @(i_teamOrdinal):
             <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias" style="display: inline; font-size: 1.2rem;" class="mono-font">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
@@ -70,15 +68,15 @@
 
     @* TODO: only display if match hasn't started yet*@
     @*<div style="margin: 0.2rem 0;">
-        <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias" style="display: inline;">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+            <EditForm Model="@_displayAlias" OnValidSubmit="HandleSetCustomDisplayAlias" style="display: inline;">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-            Display Alias: <InputAlias id="setAliasInput" @bind-Value="_displayAlias" />
+                Display Alias: <InputAlias id="setAliasInput" @bind-Value="_displayAlias" />
 
-            <button type="submit" class="btn btn-primary">Update</button>
-        </EditForm>
-    </div>*@
+                <button type="submit" class="btn btn-primary">Update</button>
+            </EditForm>
+        </div>*@
 
     <div style="margin: 0.2rem 0;">
         <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
@@ -106,14 +104,15 @@
         </EditForm>
     </div>
 
-    @if  (_teamOutfits.Any() || _teamNonOutfitPlayers.Any())
+    @if (_teamOutfits.Any() || _teamNonOutfitPlayers.Any())
     {
         <div style="margin: 0.2rem 0;" title="Unlock to show buttons for removing outfits and players from this team">
-            <EditForm Model="@_showRemovals">  @*OnValidSubmit="HandleAddPlayerSubmit"*@
+            <EditForm Model="@_showRemovals">
+                @*OnValidSubmit="HandleAddPlayerSubmit"*@
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                Show Removal Controls: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals"/>
+                Show Removal Controls: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" />
             </EditForm>
         </div>
     }
@@ -125,7 +124,8 @@
     {
         <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(outfit.FactionId)">
 
-            <h5  class="@SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;"> @*margin-top: 0.5rem;*@
+            <h5 class="@SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;">
+                @*margin-top: 0.5rem;*@
                 <b><span class="mono-font">[@outfit.Alias]</span> @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
             </h5>
 
@@ -143,7 +143,7 @@
 
             <div class="sq-content">
 
-                @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower)) @*&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))*@
+                @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower))@*&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))*@
                 {
                     <SpinnerEllipsis />
                 }
@@ -172,7 +172,7 @@
                             <tbody>
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && !p.IsBenched).ToList())
                                 {
-                                    <TeamBuilderPlayerRow Player=@member  ShowRemovalControls=@_showRemovals />
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_showRemovals />
                                 }
                             </tbody>
                         </table>
@@ -182,7 +182,7 @@
                     {
                         <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
                             <thead>
-                            
+
                                 <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
                                     @if (!_teamPlayersVisible.Any(p => p.OutfitId == outfit.Id && !p.IsBenched))
                                     {
@@ -210,7 +210,7 @@
                             <tbody>
                                 @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id && p.IsBenched).ToList())
                                 {
-                                    <TeamBuilderPlayerRow Player=@member  ShowRemovalControls=@_showRemovals />
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_showRemovals />
                                 }
                             </tbody>
                         </table>
@@ -237,7 +237,7 @@
         <p style="margin: 0 0 0.1rem 0;">
             @if (_teamNonOutfitPlayers.Any())
             {
-            <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglNoneOutfitPlayersVisibility">@(_extendNonOutfitPlayers ? "Hide Players" : "Show Players")</button>
+                <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglNoneOutfitPlayersVisibility">@(_extendNonOutfitPlayers ? "Hide Players" : "Show Players")</button>
             }
         </p>
 

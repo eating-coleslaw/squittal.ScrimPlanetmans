@@ -1,4 +1,5 @@
 ﻿@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.CensusStream;
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.ScrimMatch;
@@ -117,12 +118,12 @@
 
                 @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
                 {
-            <tr>
-                <td>Round @round</td>
-                <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures);">@(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures)</td>
-                <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses);">@(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses)</td>
-                <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
-            </tr>
+                    <tr>
+                        <td>Round @round</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures);">@(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses);">@(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses)</td>
+                        <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
+                    </tr>
                 }
             </tbody>
         </table>
@@ -229,7 +230,7 @@
                                         <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
                                         <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
                                     </td>
-                                    <Test_PlayerStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id  />
+                                    <Test_PlayerStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id />
                                 </tr>
 
                                 <tr>
