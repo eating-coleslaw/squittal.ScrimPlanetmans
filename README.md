@@ -47,7 +47,7 @@ Several of these must be run as administrator (`Right Click > Run as administrat
   2. __Set the shortcut to run as administrator__  
      `Right Click on the shortcut > Shortcut tab > Click the Advanced... button at the bottom > Check the _Run as administrator_ box`.
 
-### What to Do
+### Getting Started
 
 __BuildApp.bat__  
 Run this if it's the first time running the app, or you just synced changes from the repository.
@@ -59,13 +59,49 @@ Run this as administrator to start the app. In a web browser navigate to the URL
 
 To stop the app _gracefully_, press `Ctrl+C` in the Command Prompt. Enter `Y` at the `Cancel batch job?` prompt.
 
+__Review Database Population__  
+The app uses census data stored in a local database for a variety of purposes, the most important of which is <u>scoring</u>. On first startup, the database automatically attempts to populate from the Census API. If that fails, it backup scripts are used to populate the database. It's crucial to verify that the database is properly set up before trying to run a match.
+
+1. On the Database Maintenance page (`/DbAdmin`), everything in the Database Count column should have a non-zero value. If that's not the case, refer to the Maintenance section below for steps to correct a collection.
+
+2. On the Rulesets page (`Rulesets`), there should be an Item Category Rules table and a Scrim Action Rules table, both populated with values. If the Item Category Rules table is empty, verify that the Item Category database collection is populated. If it's empty, populate it from the Census or Backup, then restart the app.
+
+### Match Setup
+
+Configure and monitor scrim matches from the Match Setup page (`/Admin`). It's divided into three sections: Team 1, Team 2, Match Controls.
+
+#### Team Setup
+
+In the top box for each team, you can:
+
+* Set the display alias for the team. It will default to the alias of the first outfit added to the team, but can be overriden. Press the `Update` button to save your changes.
+
+* Add outfits (yes, multiple per team if you want!) to the team via their outfit alias (case-insensitive). Only one instance of an outfit can be in a match.
+
+* Add individual players to the team via their character name or character ID. Only one instance of a player can be in a match. You can't add a player as an individual if their outfit is already in the match, but you can add a player and then later add their outfit to the match (the player will remain as "outfitless" in terms of match configuration).
+
+* Toggle showing removal controls for the team. The removal controls let you remove entire outfits or specific players from the team. The Show Removal Controls check box is only visible if there are any players on the team (either in outfits or as outfitless). By default, this is set to false - hide removal controls.
+
+Each outfit added gets a card in their team's column, listing all of their players. All indivually added players are grouped in the team's Other Players card.
+
 ## Maintenance
 
-### Update Weapon & Item Data  
+### Update Local Data
 
-New weapons or items added to the game won't automatically be picked up by the app. Instead, stop the app, run `commands\DeleteItemSqlData.bat` as administrator, then restart the app. When the app restarts, these tables will be repopulated with the new weapons and items.
+The app uses census data stored in a local database for a variety of purposes. This means that new weapons, items, bases, etc. added to the game won't automatically be picked up. The Database Maintenance page (`/DbAdmin`) is your tool for keeping your local database up to date.
 
-__Before running the delete command__, verify that the census API Item collection is working. The following query should return a count of around 20,000: [http://census.daybreakgames.com/s:example/count/ps2:v2/item](http://census.daybreakgames.com/s:example/count/ps2:v2/item "Daybreak Games Item census collection count query")
+#### The Database Maintenance Table
+
+| Column | Description |
+|--------|-------------|
+| Collection | The name of the data set, generally aligning with the Census API terminology |
+| Database Count | The number of entities for this collection currently in your local database. Should not be zero, and should match the Census Count value (with some exceptions<b>\*</b>). Click the refresh icon to recalculate the count |
+| Census Count | The number of entities for this collection returned by the Census API. If zero or a warning icon, then this collection is broken in the Census API. Click the refresh icon to query the Census API for an updated count |
+| Update from Census | Click this button to populate the local database with new values from the Census API and update existing values with data from the Census API. If the Census API is broken or returning no results for a collection, the local database will not be truncated or otherwise harmed |
+| Update from Backup | Click this button to populate the local database from a hard-coded set of values for the collection. The database collection will be emptied before it's re-populated |
+
+__\*__ The Loadouts collection has more database entities than in the Census API because the Census API is missing the NSO classes.
+
 
 ## Troubleshooting
 
