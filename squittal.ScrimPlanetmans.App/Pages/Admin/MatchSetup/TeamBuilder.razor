@@ -480,41 +480,71 @@
         {
             _teamOutfitsLoading.Add(newAliasLower);
 
-            newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
-
-            if (newOutfit != null)
+            try
             {
-                _validOutfitAliasHistory.Add(newAliasLower);
-                _inputAlias.Alias = string.Empty;
+                newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
 
-                _teamOutfitsLoadingMembers.Add(newAliasLower);
-
-                try
+                if (newOutfit != null)
                 {
+                    _validOutfitAliasHistory.Add(newAliasLower);
+                    _inputAlias.Alias = string.Empty;
+
+                    _teamOutfitsLoadingMembers.Add(newAliasLower);
+
                     var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
-                }
-                //catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException er)
-                catch (Exception ex)
-                {
-                    LogMessage($"<span style=\"color: red;\">Failed to add outfit {newAlias}: {ex}</span>");
-                }
+                    //try
+                    //{
+                    //    var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
+                    //}
+                    ////catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException er)
+                    //catch (Exception ex)
+                    //{
+                    //    LogMessage($"<span style=\"color: red;\">Failed to add outfit {newAlias}: {ex}</span>");
+                    //}
 
-                _teamOutfitsLoading.Remove(newAliasLower);
+                    _teamOutfitsLoading.Remove(newAliasLower);
 
-                if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == newAliasLower) > _defaultMaxPlayersToExtend)
-                {
-                    _outfitPlayersExtendedMap.Add(newAliasLower, false);
+                    if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == newAliasLower) > _defaultMaxPlayersToExtend)
+                    {
+                        _outfitPlayersExtendedMap.Add(newAliasLower, false);
+                    }
+                    else
+                    {
+                        _outfitPlayersExtendedMap.Add(newAliasLower, true);
+                    }
+
+                    _teamOutfitsLoadingMembers.Remove(newAliasLower);
                 }
                 else
                 {
-                    _outfitPlayersExtendedMap.Add(newAliasLower, true);
-                }
+                    _teamOutfitsLoading.Remove(newAliasLower);
 
-                _teamOutfitsLoadingMembers.Remove(newAliasLower);
+                    await InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
+                }
             }
-            else
+            catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
             {
+                //_teamNonOutfitPlayersLoading.Remove(newAliasLower);
                 _teamOutfitsLoading.Remove(newAliasLower);
+                _teamOutfitsLoadingMembers.Remove(newAliasLower);
+
+                LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>. The Census API Outfit service may be broken: {ex}</span>");
+
+                await InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+            catch (Exception ex)
+            {
+                //_teamNonOutfitPlayersLoading.Remove(newAliasLower);
+                _teamOutfitsLoading.Remove(newAliasLower);
+                _teamOutfitsLoadingMembers.Remove(newAliasLower);
+
+                LogMessage($"<span style=\"color: red;\"><b>Failed to add outfit [{newAliasLower}]</b>: {ex}</span>");
 
                 await InvokeAsync(() =>
                 {
@@ -570,6 +600,12 @@
                     StateHasChanged();
                 });
             }
+        }
+        catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+        {
+            _teamNonOutfitPlayersLoading.Remove(input);
+
+            LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>. The Census API Character service may be broken: {ex}</span>");
         }
         catch (Exception ex)
         {
