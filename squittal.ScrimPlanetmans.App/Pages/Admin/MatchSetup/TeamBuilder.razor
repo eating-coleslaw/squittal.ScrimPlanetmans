@@ -492,15 +492,6 @@
                     _teamOutfitsLoadingMembers.Add(newAliasLower);
 
                     var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
-                    //try
-                    //{
-                    //    var success = await ScrimTeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
-                    //}
-                    ////catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException er)
-                    //catch (Exception ex)
-                    //{
-                    //    LogMessage($"<span style=\"color: red;\">Failed to add outfit {newAlias}: {ex}</span>");
-                    //}
 
                     _teamOutfitsLoading.Remove(newAliasLower);
 
@@ -527,7 +518,6 @@
             }
             catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
             {
-                //_teamNonOutfitPlayersLoading.Remove(newAliasLower);
                 _teamOutfitsLoading.Remove(newAliasLower);
                 _teamOutfitsLoadingMembers.Remove(newAliasLower);
 
@@ -540,11 +530,10 @@
             }
             catch (Exception ex)
             {
-                //_teamNonOutfitPlayersLoading.Remove(newAliasLower);
                 _teamOutfitsLoading.Remove(newAliasLower);
                 _teamOutfitsLoadingMembers.Remove(newAliasLower);
 
-                LogMessage($"<span style=\"color: red;\"><b>Failed to add outfit [{newAliasLower}]</b>: {ex}</span>");
+                LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>: {ex}</span>");
 
                 await InvokeAsync(() =>
                 {
@@ -610,7 +599,7 @@
         catch (Exception ex)
         {
             _teamNonOutfitPlayersLoading.Remove(input);
-            LogMessage($"<span style=\"color: red;\">Failed to add character {input}: {ex}</span>");
+            LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>: {ex}</span>");
         }
 
         await InvokeAsync(() =>
