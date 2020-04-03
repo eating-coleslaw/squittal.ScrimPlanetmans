@@ -18,7 +18,7 @@ This is the database provider used to store data for the app.
 
 3. On the following screen, select the LocalDb package and note the download location. Click Download.
 
-4. Find the download location and run SqlLocalDb.exe. Go through it with all of the default options.
+4. __Find the download location and run SqlLocalDb.exe.__ Go through it with all of the default options.
 
 ### Daybreak Games Service ID
 

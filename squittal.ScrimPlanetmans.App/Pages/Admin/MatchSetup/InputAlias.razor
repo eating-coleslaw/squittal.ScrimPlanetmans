@@ -7,20 +7,20 @@
 @code {
     static Regex Regex = new Regex("[A-Za-z0-9]{1,4}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    //protected override string FormatValueAsString(OutfitAlias value) => value.Alias;
+    protected override string FormatValueAsString(OutfitAlias value) => value.Alias;
 
-    //protected override bool TryParseValueFromString(string value, out OutfitAlias result, out string validationErrorMessage)
-    //{
-    //    Match match = Regex.Match(value);
-    //    if (!match.Success)
-    //    {
-    //        validationErrorMessage = "Invalid outfit alias";
-    //        result = new OutfitAlias();
-    //        return false;
-    //    }
+    protected override bool TryParseValueFromString(string value, out OutfitAlias result, out string validationErrorMessage)
+    {
+        //Match match = Regex.Match(value);
+        //if (!match.Success)
+        //{
+        //    validationErrorMessage = "Invalid outfit alias";
+        //    result = new OutfitAlias();
+        //    return false;
+        //}
 
-    //    validationErrorMessage = null;
-    //    result = new OutfitAlias(value);
-    //    return true;
-    //}
+        validationErrorMessage = null;
+        result = new OutfitAlias(value);
+        return true;
+    }
 }
