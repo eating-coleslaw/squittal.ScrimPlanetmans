@@ -169,10 +169,20 @@ app {
         top: 0;
     }
 
-    .main > div {
+    /*.main > div {
+        //padding-left: 2rem !important;
+        padding-left: 3rem !important;
+        padding-right: 1.5rem !important;
+    }*/
+    
+    .main .content {
         /*padding-left: 2rem !important;*/
         padding-left: 3rem !important;
         padding-right: 1.5rem !important;
+    }
+
+    .main .overlay {
+        background-color: red;
     }
 
     .navbar-toggler {
