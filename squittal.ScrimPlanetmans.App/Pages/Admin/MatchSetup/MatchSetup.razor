@@ -106,7 +106,8 @@
                 {
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
-                        <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
+                        @*<p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>*@
+                        <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" /></p>
                         <p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
                         <div style="margin-bottom: 0.2rem;">
@@ -344,7 +345,17 @@
             });
         }
     }
-    #endregion
+
+    private void OnChangeMatchTitle(string newTitle)
+    {
+        var oldTitle = _matchConfiguration.Title;
+        if (newTitle != oldTitle)
+        {
+            _matchConfiguration.Title = newTitle;
+            MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+        }
+    }
+    #endregion Match & Subscription State Buttons
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
