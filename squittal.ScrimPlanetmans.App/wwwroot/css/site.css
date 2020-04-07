@@ -1,6 +1,7 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 @import url('squittal-colors.css');
 @import url('spinner-ellipsis.css');
+@import url('overlay.css');
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -182,7 +183,7 @@ app {
     }
 
     .main .overlay {
-        background-color: red;
+        /*background-color: red;*/
     }
 
     .navbar-toggler {

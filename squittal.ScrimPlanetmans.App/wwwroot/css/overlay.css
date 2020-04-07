@@ -1,0 +1,93 @@
+﻿.overlay {
+}
+
+    .overlay.wrapper {
+        display: grid;
+        grid-template-columns: 25% 50% 25%;
+        grid-template-rows: 32px 1fr;
+        grid-template-areas: "top  top    top" "left center right";
+        grid-gap: 4px;
+        background-image: url("../images/overlay_test_background.jpg");
+        background-color: transparent;
+        background-position: center center;
+    }
+
+/**********************
+    Match Title
+***********************/
+.overlay .title {
+    grid-area: top;
+    text-align: center;
+    background-color: orange;
+    margin: 0;
+}
+
+    .overlay .title.styled {
+        text-transform: uppercase;
+        font-size: 16px;
+        line-height: 14px;
+        letter-spacing: 5px;
+        font-style: oblique;
+        font-family: "Noto Sans", "Roboto Sans", "Segoe UI", sans-serif;
+        font-weight: 700;
+        text-shadow: 0 0 1px var(--sq-black);
+        color: #FAF6FC;
+    }
+
+/**********************
+    Team Players
+***********************/
+.overlay .players {
+    /*background-color: mediumorchid;*/
+}
+
+    .overlay .players1 {
+        grid-area: left;
+        text-align: left;
+    }
+
+    .overlay .players2 {
+        grid-area: right;
+        text-align: right;
+
+    }
+
+/*======================
+    Center Content
+========================*/
+.overlay .center {
+    background-color: darkcyan;
+    grid-area: center;
+    display: grid;
+    grid-template-rows: 40px 96px 1fr;
+    grid-template-areas:
+        "scoreboard"
+        "killfeed"
+        "report";
+    grid-gap: 4px;
+}
+
+
+/**********************
+    Scoreboard
+***********************/
+    .overlay .center .scoreboard {
+        grid-area: scoreboard;
+        background-color: aqua;
+    }
+
+/**********************
+    Killfeed
+***********************/
+    .overlay .center .killfeed {
+        grid-area: killfeed;
+        background-color: aquamarine;
+    }
+
+/**********************
+    Stats Report
+***********************/
+    .overlay .center .report {
+        grid-area: report;
+        background-color: chartreuse;
+    }

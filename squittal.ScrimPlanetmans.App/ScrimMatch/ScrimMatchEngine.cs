@@ -108,7 +108,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
             _wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
 
-            //SendMatchConfigurationUpdateMessage();
+            SendMatchConfigurationUpdateMessage(); // TODO: why was this commented out before?
         }
 
         public void EndRound()

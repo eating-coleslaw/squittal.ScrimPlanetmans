@@ -1,0 +1,256 @@
+﻿@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+<div class="players @($"players{i_teamOrdinal}")">
+    @if (_teamPlayersVisible.Any())
+    {
+        <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
+            <thead>
+                <tr>
+                    @*<th style="padding-right: 5px;width: 15px;"></th>*@
+                    <th></th>
+                    <th>K</th>
+                    <th>D</th>
+                    <th>P</th>
+                    <th>N</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var member in _teamPlayersVisible)
+                {
+                    <tr>
+                        <td title="@member.NameFull [@(member.Id)]">
+                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
+                        </td>
+
+                        <td>@(member.EventAggregate.Kills)</td>
+                        <td>@(member.EventAggregate.Deaths)</td>
+                        <td>@(member.EventAggregate.Points)</td>
+                        <td>@(member.EventAggregate.NetScore)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    #region Team & Players
+    private Team _team;
+
+    private List<Outfit> _teamOutfits = new List<Outfit>();
+
+    private List<Player> _teamPlayers = new List<Player>();
+
+    private List<Player> _teamPlayersOnline = new List<Player>();
+
+    private List<Player> _teamPlayersParticipating = new List<Player>();
+
+    private List<Player> _teamPlayersVisible = new List<Player>();
+
+    private List<Player> _teamNonOutfitPlayers = new List<Player>();
+    #endregion
+
+    #region Helpers
+    private int _renderedTeamOrdinal;
+    #endregion
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+            InitializeTeamData();
+        }
+    }
+
+    private void InitializeTeamData()
+    {
+        _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
+
+        if (_team == null)
+        {
+            return;
+        }
+
+        foreach (var player in _team.Players)
+        {
+            TryAddPlayerToVisiblePlayers(player);
+        }
+
+        //_teamPlayersParticipating = _team.ParticipatingPlayers;
+
+        //_teamPlayersVisible.AddRange(_team.ParticipatingPlayers.Where(p => !p.IsBenched));
+
+        //_teamPlayersVisible.AddRange(_team.Players.Where(p => !p.IsBenched && (p.IsOnline || p.IsParticipating)));
+    }
+    #endregion
+
+    #region Event Handling
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        switch (message.ChangeType)
+        {
+            case TeamPlayerChangeType.Add:
+                HandleTeamPlayerChangeAdd(message);
+                break;
+
+            case TeamPlayerChangeType.Remove:
+                HandleTeamPlayerChangeRemove(message);
+                break;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        if (TryAddPlayerToVisiblePlayers(player))
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (ShouldShowPlayer(player))
+        {
+            TryAddPlayerToVisiblePlayers(player);
+        }
+        else
+        {
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (TryAddPlayerToVisiblePlayers(player))
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        // TODO: what players should be visible by default?
+
+        // Only remove the player from the visible list if they haven't done anything in the match
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion
+
+    private bool TryAddPlayerToVisiblePlayers(Player player)
+    {
+        if (CanAddPlayerToVisiblePlayers(player))
+        {
+            _teamPlayersVisible.Add(player);
+            return true;
+        }
+        return false;
+    }
+
+    private bool CanAddPlayerToVisiblePlayers(Player player)
+    {
+        //return (player.IsParticipating || player.IsOnline) && !player.IsBenched && !_teamPlayersVisible.Any(p => p.Id == player.Id);
+        return ShouldShowPlayer(player) && !_teamPlayersVisible.Any(p => p.Id == player.Id);
+    }
+
+    private bool ShouldShowPlayer(Player player)
+    {
+        return (player.IsParticipating || player.IsOnline) && !player.IsBenched;
+    }
+}
