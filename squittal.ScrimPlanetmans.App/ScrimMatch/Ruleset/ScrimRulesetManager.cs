@@ -207,16 +207,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 }
 
 
-
                 // Action Rules
                 var defaultActionRules = GetDefaultActionRules();
                 var createdActionRules = new List<RulesetActionRule>();
                 var allActionRules = new List<RulesetActionRule>();
 
-                foreach (var actionType in GetScrimActionTypes())
+                var allActionEnumValues = GetScrimActionTypes();
+
+                var allActionValues = new List<ScrimActionType>();
+                allActionValues.AddRange(allActionEnumValues);
+                allActionValues.AddRange(storeActionRules.Select(ar => ar.ScrimActionType).Where(a => !allActionValues.Contains(a)).ToList());
+
+                foreach (var actionType in allActionValues)
                 {
                     var storeEntity = storeActionRules?.FirstOrDefault(r => r.ScrimActionType == actionType);
                     var defaultEntity = defaultActionRules.FirstOrDefault(r => r.ScrimActionType == actionType);
+
+                    var isValidAction = allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType);
 
                     if (storeEntity == null)
                     {
@@ -232,11 +239,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                             allActionRules.Add(newEntity);
                         }
                     }
-                    else
+                    else if (isValidAction)
                     {
                         storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
                         dbContext.RulesetActionRules.Update(storeEntity);
                         allActionRules.Add(storeEntity);
+                    }
+                    else
+                    {
+                        dbContext.RulesetActionRules.Remove(storeEntity);
                     }
                 }
 
@@ -412,23 +423,61 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 var createdEntities = new List<ScrimAction>();
 
+                var allActionTypeValues = new List<ScrimActionType>();
+
                 var enumValues = (ScrimActionType[])Enum.GetValues(typeof(ScrimActionType));
+
+                allActionTypeValues.AddRange(enumValues);
 
                 var storeEntities = await dbContext.ScrimActions.ToListAsync();
 
-                foreach (var value in enumValues)
+                allActionTypeValues.AddRange(storeEntities.Where(a => !allActionTypeValues.Contains(a.Action)).Select(a => a.Action).ToList());
+
+                allActionTypeValues.Distinct().ToList();
+
+                foreach (var value in allActionTypeValues)
                 {
+                    try
+                    {
+
                     var storeEntity = storeEntities.FirstOrDefault(e => e.Action == value);
+                    var isValidEnum = enumValues.Any(enumValue => enumValue == value);
+
                     if (storeEntity == null)
                     {
                         createdEntities.Add(ConvertToDbModel(value));
                     }
-                    else
+                    else if (isValidEnum)
                     {
                         storeEntity = ConvertToDbModel(value);
                         dbContext.ScrimActions.Update(storeEntity);
                     }
+                    else
+                    {
+                        dbContext.ScrimActions.Remove(storeEntity);
+                    }
+                    }
+                    catch (Exception)
+                    {
+                        //
+                    }
                 }
+
+                //foreach (var value in enumValues)
+                //{
+                //    var storeEntity = storeEntities.FirstOrDefault(e => e.Action == value);
+                //    if (storeEntity == null)
+                //    {
+                //        createdEntities.Add(ConvertToDbModel(value));
+                //    }
+                //    else
+                //    {
+                //        storeEntity = ConvertToDbModel(value);
+                //        dbContext.ScrimActions.Update(storeEntity);
+                //    }
+                //}
+
+
 
                 if (createdEntities.Any())
                 {
