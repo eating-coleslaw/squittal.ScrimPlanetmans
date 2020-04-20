@@ -14,7 +14,7 @@ namespace squittal.ScrimPlanetmans.CensusServices
             services.AddSingleton<CensusLoadout>();
             services.AddSingleton<CensusOutfit>();
             services.AddSingleton<CensusProfile>();
-            services.AddSingleton<CensusTitle>();
+            services.AddSingleton<CensusVehicle>();
             services.AddSingleton<CensusWorld>();
             services.AddSingleton<CensusZone>();
 

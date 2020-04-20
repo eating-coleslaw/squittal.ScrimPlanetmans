@@ -23,6 +23,8 @@ namespace squittal.ScrimPlanetmans.Data
         //public DbSet<Outfit> Outfits { get; set; }
         //public DbSet<OutfitMember> OutfitMembers { get; set; }
         public DbSet<Profile> Profiles { get; set; }
+        public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<VehicleFaction> VehicleFactions { get; set; }
         public DbSet<World> Worlds { get; set; }
         public DbSet<Zone> Zones { get; set; }
         #endregion
@@ -55,6 +57,8 @@ namespace squittal.ScrimPlanetmans.Data
             //builder.ApplyConfiguration(new OutfitConfiguration());
             //builder.ApplyConfiguration(new OutfitMemberConfiguration());
             builder.ApplyConfiguration(new ProfileConfiguration());
+            builder.ApplyConfiguration(new VehicleConfiguration());
+            builder.ApplyConfiguration(new VehicleFactionConfiguration());
             builder.ApplyConfiguration(new WorldConfiguration());
             builder.ApplyConfiguration(new ZoneConfiguration());
             #endregion

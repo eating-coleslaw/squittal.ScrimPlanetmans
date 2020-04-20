@@ -49,11 +49,13 @@ namespace squittal.ScrimPlanetmans.App
             //services.AddTransient<IZoneService, ZoneService>();
             services.AddSingleton<IZoneService, ZoneService>();
 
-            // TODO: should ItemService and FacilityService be Singletons, due to their pre-loaded value lists?
+            // TODO: should ItemService, FacilityService, and VehicleService be Singletons, due to their pre-loaded value lists?
             services.AddTransient<IItemService, ItemService>();
             services.AddTransient<IItemCategoryService, ItemCategoryService>();
             services.AddSingleton<IFacilityService, FacilityService>();
             services.AddTransient<IFacilityTypeService, FacilityTypeService>();
+            services.AddTransient<IVehicleService, VehicleService>();
+            services.AddTransient<IVehicleFactionService, VehicleFactionService>();
 
             services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
 
