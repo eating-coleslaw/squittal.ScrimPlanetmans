@@ -1,0 +1,56 @@
+﻿@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@if (i_player != null)
+{
+    if (i_teamOrdinal == 1)
+    {
+        <TeamPlayerStatusRowLoadout i_player=i_player/>
+        <TeamPlayerStatusRowDetails i_player=i_player/>
+    }
+    else if (i_teamOrdinal == 2)
+    {
+        <TeamPlayerStatusRowDetails i_player=i_player />
+        <TeamPlayerStatusRowLoadout i_player=i_player />
+    }
+}
+
+
+@code {
+    [Parameter]
+    public Player i_player { get; set; }
+
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    private string _renderedPlayerId;
+    private int _renderedTeamOrdinal { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (i_player.Id != _renderedPlayerId)
+        {
+            _renderedPlayerId = i_player.Id;
+            
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+
+        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+}

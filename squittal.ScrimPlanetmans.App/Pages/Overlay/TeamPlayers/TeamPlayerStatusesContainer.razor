@@ -2,6 +2,7 @@
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
@@ -14,13 +15,17 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
-<div class="players @($"players{i_teamOrdinal}")">
+<div class="players @($"players{i_teamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
     @if (_teamPlayersVisible.Any())
     {
-        <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
+        @foreach (var member in _teamPlayersVisible)
+        {
+            <TeamPlayerStatusRow i_teamOrdinal=i_teamOrdinal i_player=member />
+        }
+
+        @*<table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
             <thead>
                 <tr>
-                    @*<th style="padding-right: 5px;width: 15px;"></th>*@
                     <th></th>
                     <th>K</th>
                     <th>D</th>
@@ -44,7 +49,7 @@
                     </tr>
                 }
             </tbody>
-        </table>
+        </table>*@
     }
 </div>
 @code {

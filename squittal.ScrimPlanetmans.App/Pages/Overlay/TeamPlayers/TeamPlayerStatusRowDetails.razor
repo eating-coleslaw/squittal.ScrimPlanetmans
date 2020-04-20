@@ -1,0 +1,106 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimMessageBroadcastService MessageService
+
+<div class="playerStatusContainer">
+    <div class="score" >@i_player.EventAggregate.NetScore</div>
+    <div class="name">@i_player.NameDisplay</div>
+    <div class="eventMask" ></div>
+</div>
+
+@code {
+    [Parameter]
+    public Player i_player { get; set; }
+
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    private string _renderedPlayerId;
+    private string _renderedName;
+    private int _renderedNetScore;
+
+    protected override void OnInitialized()
+    {
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        CheckForChanges(i_player);
+    }
+
+    #region Event Handling
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player != i_player)
+        {
+            return;
+        }
+
+        CheckForChanges(player);
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        return; // TODO: add special styling/animation for this event?
+
+        //var player = e.Message.Player;
+
+        //if (player != i_player)
+        //{
+        //    return;
+        //}
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        return; // TODO: add special styling/animation for this event?
+
+        //var player = e.Message.Player;
+
+        //if (player != i_player)
+        //{
+        //    return;
+        //}
+    }
+    #endregion
+
+    private void CheckForChanges(Player player)
+    {
+        bool stateHasChanged = false;
+
+        if (player.Id != _renderedPlayerId)
+        {
+            _renderedPlayerId = player.Id;
+            stateHasChanged = true;
+        }
+
+        if (player.NameDisplay != _renderedName)
+        {
+            _renderedName = player.NameDisplay;
+            stateHasChanged = true;
+        }
+
+        if (player.EventAggregate.NetScore != _renderedNetScore)
+        {
+            _renderedNetScore = player.EventAggregate.NetScore;
+            stateHasChanged = true;
+        }
+
+        if (stateHasChanged)
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+}

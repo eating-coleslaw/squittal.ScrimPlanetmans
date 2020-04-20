@@ -1,34 +1,51 @@
-﻿.overlay {
+﻿@import url('squittal-colors.css');
+
+.main.overlay {
+    background-image: url("../images/overlay_test_background.jpg");
+    background-color: transparent;
+    background-position: center center;
+    margin: 4px 8px 8px 8px;
+    font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
+    font-weight: 600;
 }
 
     .overlay.wrapper {
-        display: grid;
-        grid-template-columns: 25% 50% 25%;
+        /*display: grid;*/
+        /*grid-template-columns: 25% 50% 25%;
         grid-template-rows: 32px 1fr;
-        grid-template-areas: "top  top    top" "left center right";
-        grid-gap: 4px;
-        background-image: url("../images/overlay_test_background.jpg");
+        grid-template-areas:
+            "top  top    top"
+            "left center right";
+        grid-gap: 4px;*/
+        /*background-image: url("../images/overlay_test_background.jpg");
         background-color: transparent;
-        background-position: center center;
+        background-position: center center;*/
     }
 
 /**********************
     Match Title
 ***********************/
-.overlay .title {
-    grid-area: top;
-    text-align: center;
-    background-color: orange;
-    margin: 0;
-}
+    .overlay .title-container {
+        position: relative;
+        /*left: calc(50% - 175px);*/
+        /*grid-area: top;*/
+        text-align: center;
+        /*background-color: orange;*/
+        margin: 0;
+    }
 
-    .overlay .title.styled {
+    .overlay .title-container .title-text {
+        display: inline-block;
+        /*vertical-align: middle;*/
+        vertical-align: baseline;
+        margin: 0;
         text-transform: uppercase;
         font-size: 16px;
         line-height: 14px;
         letter-spacing: 5px;
-        font-style: oblique;
-        font-family: "Noto Sans", "Roboto Sans", "Segoe UI", sans-serif;
+        /*font-style: oblique;*/
+        /*font-family: "Noto Sans", "Roboto Sans", "Segoe UI", sans-serif;*/
+        font-family: "Roboto", "Segoe UI", sans-serif;
         font-weight: 700;
         text-shadow: 0 0 1px var(--sq-black);
         color: #FAF6FC;
@@ -37,34 +54,187 @@
 /**********************
     Team Players
 ***********************/
-.overlay .players {
-    /*background-color: mediumorchid;*/
+    .overlay .players {
+        white-space: nowrap;
+        width: calc(22% - 70px - 30px);
+        box-sizing: border-box;
+        /*background-color: mediumorchid;*/
+        display: grid;
+        grid-row-gap: 4px;
+        font-weight: 500;
+        font-size: 18px;
+        color: var(--sq-ps2-primary);
+    }
+
+        .overlay .players.players1 {
+            /*grid-area: left;*/
+            float: left;
+            grid-template-columns: 32px 1fr;
+            text-align: left;
+        }
+
+        .overlay .players.players2 {
+            /*grid-area: right;*/
+            float: right;
+            grid-template-columns: 1fr 32px;
+            text-align: right;
+        }
+
+        .overlay .players .playerStatusContainer {
+            display: grid;
+            /*grid-template-rows: 25px 3px;*/
+            grid-template-rows: 24px 4px;
+            background-color: #1F233090;
+            border: 1px solid #0F1320;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .overlay .players.players1 .playerStatusContainer {
+            grid-template-columns: 1fr 70px;
+            grid-template-areas:
+                "name score"
+                "event event";
+            background: -moz-linear-gradient(-10deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            background: linear-gradient(-10deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            background: -webkit-linear-gradient(-10deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
+        }
+
+            .overlay .players.players1 .playerStatusContainer:nth-child(2) {
+                border-top-right-radius: 5px;
+            }
+
+            .overlay .players.players1 .playerStatusContainer:nth-last-child(1) {
+                border-bottom-left-radius: 5px;
+            }
+
+        .overlay .players.players2 .playerStatusContainer {
+            grid-template-columns: 70px 1fr;
+            grid-template-areas:
+                "score name"
+                "event event";
+            background: -moz-linear-gradient(170deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            background: linear-gradient(170deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            background: -webkit-linear-gradient(170deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
+        }
+
+            .overlay .players.players2 .playerStatusContainer:nth-child(1) {
+                border-top-left-radius: 5px;
+            }
+
+            .overlay .players.players2 .playerStatusContainer:nth-last-child(2) {
+                border-bottom-right-radius: 5px;
+            }
+
+        .overlay .players .playerStatusContainer .name {
+            grid-area: name;
+            display: inline-block;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .overlay .players .playerStatusContainer .score {
+            grid-area: score;
+            display: inline-block;
+            box-sizing: border-box;
+            z-index: 1;
+        }
+
+        .overlay .players.players1 .playerStatusContainer .score {
+            text-align: right;
+        }
+
+        .overlay .players.players2 .playerStatusContainer .score {
+            text-align: left;
+        }
+
+        .overlay .players.players1 .playerStatusContainer .name,
+        .overlay .players.players2 .playerStatusContainer .score {
+            padding-left: 4px;
+        }
+
+        .overlay .players.players2 .playerStatusContainer .name,
+        .overlay .players.players1 .playerStatusContainer .score {
+            padding-right: 4px;
+        }
+
+        .overlay .players .playerStatusContainer .eventMask {
+            grid-area: event;
+            height: 5px;
+            position: relative;
+            overflow: hidden;
+            margin-top: -2px;
+            z-index: 0;
+        }
+
+            .overlay .players .playerStatusContainer .eventMask:empty {
+                border-top-color: transparent;
+                border-right-color: transparent;
+                border-left-color: transparent;
+                border-style: outset;
+                border-bottom-color: transparent;
+            }
+
+        .overlay .players .playerLoadoutIcon {
+            display: inline-block;
+            background-image: url('../images/even_borders/Icon_white_unknown_no_border_32.png');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            height: 24px;
+            width: 24px;
+            margin-top: 2px;
+            justify-self: center;
+            filter: drop-shadow(0px 0px 2px var(--sq-ps2-primary), rgba(20, 20, 20, 0.8));
+            opacity: 0.9;
+        }
+
+.ps2-icon.medic {
+    background-image: url('../images/Icon_white_combatMedic_32.png') !important;
 }
 
-    .overlay .players1 {
-        grid-area: left;
-        text-align: left;
-    }
+.ps2-icon.la {
+    background-image: url('../images/Icon_white_lightAssault_32.png') !important;
+}
 
-    .overlay .players2 {
-        grid-area: right;
-        text-align: right;
+.ps2-icon.infil {
+    background-image: url('../images/Icon_white_infiltrator_32.png') !important;
+}
 
-    }
+.ps2-icon.heavy {
+    background-image: url('../images/Icon_white_heavyAssault_32.png') !important;
+}
+
+.ps2-icon.engy {
+    background-image: url('../images/Icon_white_engineer_32.png') !important;
+}
+
+.ps2-icon.max {
+    background-image: url('../images/Icon_white_max_32.png') !important;
+}
+
+.ps2-icon.unknown {
+    background-image: url('../images/Icon_white_unknown_32.png') !important;
+}
+
+
 
 /*======================
     Center Content
 ========================*/
 .overlay .center {
-    background-color: darkcyan;
-    grid-area: center;
+    /*background-color: darkcyan;
+    /*grid-area: center;
     display: grid;
     grid-template-rows: 40px 96px 1fr;
     grid-template-areas:
         "scoreboard"
         "killfeed"
         "report";
-    grid-gap: 4px;
+    grid-gap: 4px;*/
 }
 
 
@@ -72,8 +242,241 @@
     Scoreboard
 ***********************/
     .overlay .center .scoreboard {
-        grid-area: scoreboard;
-        background-color: aqua;
+        /*grid-area: scoreboard;
+        background-color: aqua;*/
+        border-radius: 1px;
+        color: rgb(245, 245, 255);
+        max-width: 475px;
+        margin-left: auto;
+        margin-right: auto;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+        .overlay .center .scoreboard .outfitScoresContainer {
+            display: inline-block;
+            box-sizing: inherit;
+            border-radius: 1px;
+            -moz-transition: height 0.5s cubic-bezier(.86,0,.07,1);
+            -webkit-transition: height 0.5s cubic-bezier(.86,0,.07,1);
+            transition: height 0.5s cubic-bezier(.86,0,.07,1);
+            color: rgb(35, 35, 35);
+        }
+
+            .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow {
+                display: inline-block;
+                /*height: 35px;*/
+                border-top-width: 2px;
+                border-top-style: solid;
+                /*border-top-color: var(--faction-primary-color, rgb(20, 20, 20));*/
+                border-top-color: var(--sq-ps2-primary, rgb(20, 20, 20));
+                -moz-transition: border 0.5s cubic-bezier(.86,0,.07,1);
+                -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
+                transition: border 0.5s cubic-bezier(.86,0,.07,1);
+                border-bottom: 1px solid rgb(26, 26, 26) !important;
+                box-sizing: inherit;
+                background-color: rgb(35, 35, 35);
+                font-size: 24px;
+                /**/
+                line-height: 1.25;
+                height: 32px;
+            }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 {
+                    box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
+                    border-left: 1px solid rgb(26, 26, 26) !important;
+                    background: -webkit-linear-gradient(-10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                    background: linear-gradient(-10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 {
+                    box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
+                    border-right: 1px solid rgb(26, 26, 26) !important;
+                    background: -webkit-linear-gradient(10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                    background: linear-gradient(10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow .outfitScore {
+                    display: inline-block;
+                    min-width: 80px;
+                    box-sizing: inherit;
+                    /**/
+                    color: var(--sq-bg-white-lit);
+                    height: 30px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore {
+                    text-align: right;
+                    padding-right: 5px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitScore {
+                    text-align: left;
+                    padding-left: 5px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow .outfitAlias {
+                    text-align: left;
+                    display: inline-block;
+                    width: 70px;
+                    font-weight: 500;
+                    box-sizing: inherit;
+                    /*color: var(--faction-flavor-color, rgb(35, 35, 35));*/
+                    color: var(--sq-ps2-primary-light, rgb(35, 35, 35));
+                    -moz-transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
+                    -moz-transition-delay: 1.5s;
+                    -webkit-transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
+                    -webkit-transition-delay: 1.5s;
+                    transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
+                    transition-delay: 1.5s;
+                    -moz-animation: flashTextShadow;
+                    -moz-animation-duration: 1.75s;
+                    -moz-animation-delay: 1.75s;
+                    -webkit-animation: flashTextShadow;
+                    -webkit-animation-duration: 1.75s;
+                    -webkit-animation-delay: 1.75s;
+                    animation: flashTextShadow;
+                    animation-duration: 1.75s;
+                    animation-delay: 1.75s;
+                    /**/
+                    height: 30px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitAlias {
+                    padding-left: 3px;
+                    border-bottom-left-radius: 1px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitAlias {
+                    text-align: right;
+                    padding-right: 3px;
+                    border-bottom-right-radius: 1px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow .wedge {
+                    border-bottom: 5px solid transparent !important;
+                    display: inline;
+                    border-left-color: transparent;
+                    border-right-color: transparent;
+                    -moz-transition: border 0.5s cubic-bezier(.86,0,.07,1);
+                    -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
+                    transition: border 0.5s cubic-bezier(.86,0,.07,1);
+                    box-sizing: inherit;
+                    /*border-top: 3px solid var(--sq-ps2-primary);*/
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .wedge {
+                    /*border-right-width: 10px;*/
+                    border-right-style: solid;
+                    /*border-right-color: var(--faction-primary-color, rgb(20, 20, 20));*/
+                    border-right-color: var(--sq-ps2-primary, rgb(20, 20, 20));
+                    /**/
+                    border-right-width: 11px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .wedge {
+                    /*border-left-width: 10px;*/
+                    border-left-style: solid;
+                    /*border-left-color: var(--faction-primary-color, rgb(20, 20, 20));*/
+                    border-left-color: var(--sq-ps2-primary, rgb(20, 20, 20));
+                    /**/
+                    border-left-width: 11px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow .factionLabel {
+                    font-size: 10px;
+                    display: inline-block;
+                    line-height: 1;
+                    /*height: 19px;*/
+                    /*padding-top: 8px;*/
+                    /*text-align: center;*/
+                    /*vertical-align: top;*/
+                    width: 0px;
+                    position: relative;
+                    box-sizing: inherit;
+                    color: rgb(20, 20, 20);
+                    -moz-transition-delay: 0.5s;
+                    -moz-transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+                    -webkit-transition-delay: 0.5s;
+                    -webkit-transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+                    transition-delay: 0.5s;
+                    transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+                    /**/
+                    height: 32px;
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .factionLabel {
+                    border-bottom-left-radius: 1px;
+                    left: -8.5px;
+                    color: var(--faction-flavor-color, rgb(245, 245, 255));
+                }
+
+                .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .factionLabel {
+                    border-bottom-right-radius: 1px;
+                    left: 2px;
+                    color: var(--faction-flavor-color, rgb(245, 245, 255));
+                }
+
+
+.inactiveWhiteText {
+    color: rgba(35, 35, 35, 0.2);
+    -moz-transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+    -moz-transition-delay: 0.5s;
+    -webkit-transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+    -webkit-transition-delay: 0.5s;
+    transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+    transition-delay: 0.5s;
+}
+
+.activeWhiteText {
+    color: rgb(245, 245, 255);
+    -moz-transition: color 0.75s cubic-bezier(.68,-0.55,.27,1.55);
+    -moz-transition-delay: 0.5s;
+    -webkit-transition: color 0.75s cubic-bezier(.68,-0.55,.27,1.55);
+    -webkit-transition-delay: 0.5s;
+    transition: color 0.75s cubic-bezier(.68,-0.55,.27,1.55);
+    transition-delay: 0.5s;
+}
+
+
+/* TIMER STUFF */
+.timerContainer {
+    display: inline-block;
+    background-color: rgb(35, 35, 35);
+    -moz-transition: height 1s, width 1s ease-in-out;
+    -webkit-transition: height 1s, width 1s ease-in-out;
+    transition: height 1s, width 1s ease-in-out;
+    vertical-align: top;
+    /*height: 39.5px;*/
+    box-sizing: inherit;
+    border-left-color: rgb(255, 216, 58);
+    border-right-color: rgb(255, 216, 58);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-left-style: solid;
+    border-right-style: solid;
+    border-bottom: 2px solid rgb(26, 26, 26);
+    border-top: 2px solid rgb(26, 26, 26);
+    color: rgb(245, 245, 255);
+    background: linear-gradient(180deg, rgba(20, 20, 20, 1) 0%, rgba(20, 20, 20, 0.9) 10%, rgba(35, 35, 35, 0.9) 100%);
+    /**/
+    height: 36.5px;
+}
+
+    .timerContainer .timer-text {
+        text-align: center;
+        /*vertical-align: top;*/
+        padding-left: 5px;
+        padding-right: 5px;
+        box-sizing: inherit;
+        /*font-size: 38px;*/
+        -moz-transition: color 1s, font-size 1s, padding 2s cubic-bezier(.86,0,.07,1);
+        -webkit-transition: color 1s, font-size 1s, padding 2s cubic-bezier(.86,0,.07,1);
+        transition: color 1s, font-size 1s, padding 2s cubic-bezier(.86,0,.07,1);
+        /*line-height: 0.95;*/
+        /**/
+        font-size: 32px;
+        line-height: 1;
     }
 
 /**********************
