@@ -223,7 +223,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     var storeEntity = storeActionRules?.FirstOrDefault(r => r.ScrimActionType == actionType);
                     var defaultEntity = defaultActionRules.FirstOrDefault(r => r.ScrimActionType == actionType);
 
-                    var isValidAction = allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType);
+                    var isValidAction = (storeEntity != null)
+                                            ? allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType)
+                                            : true;
 
                     if (storeEntity == null)
                     {
