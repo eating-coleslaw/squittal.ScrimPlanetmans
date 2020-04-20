@@ -357,26 +357,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 BuildRulesetActionRule(ScrimActionType.InfantrySuicide, -3),
                 BuildRulesetActionRule(ScrimActionType.MaxTeamkillMax, -15),
                 BuildRulesetActionRule(ScrimActionType.MaxTeamkillInfantry, -3),
-                BuildRulesetActionRule(ScrimActionType.MaxSuicide, -12)
+                BuildRulesetActionRule(ScrimActionType.MaxSuicide, -12),
+                BuildRulesetActionRule(ScrimActionType.MaxKillInfantry, 0),
+                BuildRulesetActionRule(ScrimActionType.MaxKillMax, 0),
+                BuildRulesetActionRule(ScrimActionType.InfantryKillInfantry, 0, true)
             };
         }
 
-        private RulesetActionRule BuildRulesetActionRule(int rulesetId, ScrimActionType actionType, int points = 0)
+        private RulesetActionRule BuildRulesetActionRule(int rulesetId, ScrimActionType actionType, int points = 0, bool deferToItemCategoryRules = false)
         {
             return new RulesetActionRule
             {
                 RulesetId = rulesetId,
                 ScrimActionType = actionType,
-                Points = points
+                Points = points,
+                DeferToItemCategoryRules = deferToItemCategoryRules
             };
         }
 
-        private RulesetActionRule BuildRulesetActionRule(ScrimActionType actionType, int points = 0)
+        private RulesetActionRule BuildRulesetActionRule(ScrimActionType actionType, int points = 0, bool deferToItemCategoryRules = false)
         {
             return new RulesetActionRule
             {
                 ScrimActionType = actionType,
-                Points = points
+                Points = points,
+                DeferToItemCategoryRules = deferToItemCategoryRules
             };
         }
 

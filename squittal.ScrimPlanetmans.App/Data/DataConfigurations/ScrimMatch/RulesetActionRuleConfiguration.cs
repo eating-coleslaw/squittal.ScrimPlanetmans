@@ -22,6 +22,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
                 .HasForeignKey(rule => rule.RulesetId);
 
             builder.Property(e => e.Points).HasDefaultValue(0);
+            builder.Property(e => e.DeferToItemCategoryRules).HasDefaultValue(false);
         }
     }
 }
