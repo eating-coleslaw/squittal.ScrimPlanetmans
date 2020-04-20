@@ -18,6 +18,8 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IScrimRulesetManager _rulesetManager;
         private readonly IFacilityService _facilityService;
         private readonly IFacilityTypeService _facilityTypeService;
+        private readonly IVehicleService _vehicleService;
+        private readonly IVehicleFactionService _vehicleFactionService;
 
         public DbSeeder(
             IWorldService worldService,
@@ -29,7 +31,9 @@ namespace squittal.ScrimPlanetmans.Data
             ILoadoutService loadoutService,
             IScrimRulesetManager rulesetManager,
             IFacilityService facilityService,
-            IFacilityTypeService facilityTypeService
+            IFacilityTypeService facilityTypeService,
+            IVehicleService vehicleService,
+            IVehicleFactionService vehicleFactionService
         )
         {
             _worldService = worldService;
@@ -42,6 +46,8 @@ namespace squittal.ScrimPlanetmans.Data
             _rulesetManager = rulesetManager;
             _facilityService = facilityService;
             _facilityTypeService = facilityTypeService;
+            _vehicleService = vehicleService;
+            _vehicleFactionService = vehicleFactionService;
         }
 
         public async Task OnApplicationStartup(CancellationToken cancellationToken)
@@ -77,6 +83,12 @@ namespace squittal.ScrimPlanetmans.Data
             
             Task facilityTypesTask = _facilityTypeService.RefreshStore(true, true);
             TaskList.Add(facilityTypesTask);
+
+            Task vehicleTask = _vehicleService.RefreshStore(true, false);
+            TaskList.Add(vehicleTask);
+
+            Task vehicleFactionTask = _vehicleFactionService.RefreshStore(true, false);
+            TaskList.Add(vehicleFactionTask);
 
             await Task.WhenAll(TaskList);
 

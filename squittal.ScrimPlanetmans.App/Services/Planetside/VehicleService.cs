@@ -83,8 +83,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var anyItems = await dbContext.Items.AnyAsync();
-                if (anyItems)
+                var anyVehicles = await dbContext.Vehicles.AnyAsync();
+                if (anyVehicles)
                 {
                     return;
                 }
@@ -114,6 +114,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             if (vehicles != null && vehicles.Any())
             {
+                var testList = vehicles.Select(ConvertToDbModel);
+                
                 await UpsertRangeAsync(vehicles.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Vehicles store: {vehicles.Count()} entries");
@@ -162,17 +164,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             throw new NotImplementedException();
         }
 
-        private Vehicle ConvertToDbModel(CensusVehicleModel censusModel)
+        private static Vehicle ConvertToDbModel(CensusVehicleModel censusModel)
         {
             return new Vehicle
             {
                 Id = censusModel.VehicleId,
-                Name = censusModel.Name.English,
-                Description = censusModel.Description.English,
+                Name = censusModel.Name?.English,
+                Description = censusModel.Description?.English,
                 TypeId = censusModel.TypeId,
                 TypeName = censusModel.TypeName,
                 Cost = censusModel.Cost,
-                CostResourceId = censusModel.CostResourceId
+                CostResourceId = censusModel.CostResourceId,
+                ImageId = censusModel.ImageId
             };
         }
     }

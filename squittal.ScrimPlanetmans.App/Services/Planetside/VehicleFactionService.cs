@@ -65,8 +65,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var anyItems = await dbContext.Items.AnyAsync();
-                if (anyItems)
+                var anyVehicleFactions = await dbContext.VehicleFactions.AnyAsync();
+                if (anyVehicleFactions)
                 {
                     return;
                 }
@@ -144,7 +144,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             throw new NotImplementedException();
         }
 
-        private VehicleFaction ConvertToDbModel(CensusVehicleFactionModel censusModel)
+        private static VehicleFaction ConvertToDbModel(CensusVehicleFactionModel censusModel)
         {
             return new VehicleFaction
             {

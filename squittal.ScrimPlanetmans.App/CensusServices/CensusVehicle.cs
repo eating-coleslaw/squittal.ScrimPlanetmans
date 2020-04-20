@@ -17,10 +17,17 @@ namespace squittal.ScrimPlanetmans.CensusServices
 
         public async Task<IEnumerable<CensusVehicleModel>> GetAllVehicles()
         {
+            //var query = _queryFactory.Create("vehicle");
+            //query.SetLanguage("en");
+
+            //query.ShowFields("vehicle_id", "name", "description", "cost", "cost_resource_id");
+
+            //return await query.GetBatchAsync<CensusVehicleModel>();
+
             var query = _queryFactory.Create("vehicle");
             query.SetLanguage("en");
 
-            query.ShowFields("vehicle_id", "name", "description", "type_id", "type_name", "cost", "cost_resource_id");
+            query.ShowFields("vehicle_id", "name", "description", "type_id", "type_name", "cost", "cost_resource_id", "image_id");
 
             return await query.GetBatchAsync<CensusVehicleModel>();
         }
