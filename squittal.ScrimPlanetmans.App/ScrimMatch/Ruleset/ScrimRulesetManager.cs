@@ -41,13 +41,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
-        public async Task<Ruleset> GetActiveRuleset()
+        public async Task<Ruleset> GetActiveRuleset(bool forceRefresh = false)
         {
             if (ActiveRuleset == null)
             {
                 return await GetDefaultRuleset();
             }
-            else if (!ActiveRuleset.ActionRules.Any() || !ActiveRuleset.ItemCategoryRules.Any())
+            else if (forceRefresh || !ActiveRuleset.ActionRules.Any() || !ActiveRuleset.ItemCategoryRules.Any())
             {
                 await SetupActiveRuleset();
                 return ActiveRuleset;

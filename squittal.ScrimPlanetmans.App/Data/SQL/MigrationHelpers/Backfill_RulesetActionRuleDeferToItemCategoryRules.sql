@@ -11,7 +11,7 @@ BEGIN
   UPDATE RulesetActionRule
     SET DeferToItemCategoryRules = 1
     WHERE RulesetId = @iDefaultRulesetId
-      AND ScrimActionType = @iInfantryKillInfantryActionTypeId
+      AND ScrimActionType = @iInfantryKillInfantryActionType
 END;
 
 SET NOCOUNT OFF;
