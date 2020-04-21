@@ -244,7 +244,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     else if (isValidAction)
                     {
                         storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
-                        storeEntity.DeferToItemCategoryRules = defaultEntity.DeferToItemCategoryRules;
+
+                        if (defaultEntity != null)
+                        {
+                            storeEntity.DeferToItemCategoryRules = defaultEntity.DeferToItemCategoryRules;
+                        }
+
                         dbContext.RulesetActionRules.Update(storeEntity);
                         allActionRules.Add(storeEntity);
                     }
