@@ -32,6 +32,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly IItemService _itemService;
         private readonly ICharacterService _characterService;
         private readonly IFacilityService _facilityService;
+        private readonly IVehicleService _vehicleService;
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IScrimMatchScorer _scorer;
         private readonly IScrimMessageBroadcastService _messageService;
@@ -51,7 +52,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
         });
 
-        public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer, IItemService itemService, IFacilityService facilityService, IScrimMessageBroadcastService messageService, ILogger<WebsocketEventHandler> logger)
+        public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer,
+            IItemService itemService, IFacilityService facilityService, IVehicleService vehicleService, 
+            IScrimMessageBroadcastService messageService, ILogger<WebsocketEventHandler> logger)
         {
             _teamsManager = teamsManager;
             _itemService = itemService;
@@ -59,6 +62,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             //_dbContextHelper = dbContextHelper;
             _characterService = characterService;
             _facilityService = facilityService;
+            _vehicleService = vehicleService;
             _scorer = scorer;
             _logger = logger;
 
@@ -166,6 +170,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         {
                             Process(controlParam);
                         });
+                        break;
+
+                    case "VehicleDestroy":
+                        var vehicleDestroyParam = jPayload.ToObject<VehicleDestroyPayload>(_payloadDeserializer);
+                        await Process(vehicleDestroyParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(vehicleDestroyParam);
+                        //});
                         break;
                 }
             }
@@ -400,6 +413,297 @@ namespace squittal.ScrimPlanetmans.CensusStream
             };
         }
         #endregion
+
+        #region Vehicle Destroy Payloads
+        [CensusEventHandler("VehicleDestroy", typeof(VehicleDestroyPayload))]
+        private async Task<ScrimVehicleDestructionActionEvent> Process(VehicleDestroyPayload payload)
+        {
+            string attackerId = payload.AttackerCharacterId;
+            string victimId = payload.CharacterId;
+
+            bool isValidAttackerId = (attackerId != null && attackerId.Length > 18);
+            bool isValidVictimId = (victimId != null && victimId.Length > 18);
+
+            Player attackerPlayer;
+            Player victimPlayer;
+
+            ScrimVehicleDestructionActionEvent destructionEvent = new ScrimVehicleDestructionActionEvent
+            {
+                Timestamp = payload.Timestamp,
+                ZoneId = payload.ZoneId,
+            };
+
+            var weaponItem = await _itemService.GetItem((int)payload.AttackerWeaponId);
+            if (weaponItem != null)
+            {
+                destructionEvent.Weapon = new ScrimActionWeaponInfo
+                {
+                    Id = weaponItem.Id,
+                    ItemCategoryId = (int)weaponItem.ItemCategoryId,
+                    Name = weaponItem.Name,
+                    IsVehicleWeapon = weaponItem.IsVehicleWeapon
+                };
+            }
+
+            var attackerVehicle = await _vehicleService.GetVehicleInfoAsync((int)payload.AttackerVehicleId);
+            if (attackerVehicle != null)
+            {
+                destructionEvent.AttackerVehicle = new ScrimActionVehicleInfo(attackerVehicle);
+            }
+
+            var victimVehicle = await _vehicleService.GetVehicleInfoAsync(payload.VehicleId);
+            if (victimVehicle != null)
+            {
+                destructionEvent.VictimVehicle = new ScrimActionVehicleInfo(victimVehicle);
+            }
+
+
+            try
+            {
+                if (isValidAttackerId == true)
+                {
+                    destructionEvent.AttackerCharacterId = attackerId;
+                    destructionEvent.AttackerLoadoutId = payload.AttackerLoadoutId;
+
+                    attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
+                    destructionEvent.AttackerPlayer = attackerPlayer;
+
+                    if (attackerPlayer != null)
+                    {
+                        _teamsManager.SetPlayerLoadoutId(attackerId, destructionEvent.AttackerLoadoutId);
+
+                    }
+                }
+
+                if (isValidVictimId == true)
+                {
+                    destructionEvent.VictimCharacterId = victimId;
+
+                    victimPlayer = _teamsManager.GetPlayerFromId(victimId);
+                    destructionEvent.VictimPlayer = victimPlayer;
+                }
+
+                destructionEvent.DeathType = GetVehicleDestructionDeathType(destructionEvent);
+
+                destructionEvent.ActionType = GetVehicleDestructionScrimActionType(destructionEvent);
+
+
+                if (destructionEvent.ActionType != ScrimActionType.OutsideInterference)
+                {
+                    //destructionEvent.DeathType = GetDeathEventType(destructionEvent.ActionType);
+
+                    if (destructionEvent.DeathType == DeathEventType.Suicide)
+                    {
+                        destructionEvent.AttackerPlayer = destructionEvent.VictimPlayer;
+                        destructionEvent.AttackerCharacterId = destructionEvent.VictimCharacterId;
+                    }
+
+                    if (_isScoringEnabled)
+                    {
+                        //_scorer.ScoreDeathEvent(dataModel);
+                        var points = _scorer.ScoreVehicleDestructionEvent(destructionEvent);
+                        destructionEvent.Points = points;
+                    }
+                }
+
+                //_messageService.BroadcastScrimDeathActionEventMessage(new ScrimDeathActionEventMessage(deathEvent));
+
+                return destructionEvent;
+            }
+            catch (Exception)
+            {
+                //Ignore
+                return null;
+            }
+        }
+
+        private DeathEventType GetVehicleDestructionDeathType(ScrimVehicleDestructionActionEvent destruction)
+        {
+            var sameTeam = _teamsManager.DoPlayersShareTeam(destruction.AttackerPlayer, destruction.VictimPlayer);
+            var samePlayer = (destruction.AttackerPlayer == destruction.VictimPlayer || destruction.AttackerPlayer == null);
+
+            if (samePlayer)
+            {
+                return DeathEventType.Suicide;
+            }
+            else if (sameTeam)
+            {
+                return DeathEventType.Teamkill;
+            }
+            else
+            {
+                return DeathEventType.Kill;
+            }
+        }
+        
+        private ScrimActionType GetVehicleDestructionScrimActionType(ScrimVehicleDestructionActionEvent destruction)
+        {
+            
+            // TODO: determine what a bailed-then-crashed undamaged vehicle looks like
+            // Determine if this is involves a non-tracked player
+            if ((destruction.AttackerPlayer == null && !string.IsNullOrWhiteSpace(destruction.AttackerCharacterId))
+                    || (destruction.VictimPlayer == null && !string.IsNullOrWhiteSpace(destruction.VictimCharacterId)))
+            {
+                return ScrimActionType.OutsideInterference;
+            }
+
+            var attackerIsVehicle = (destruction.Weapon.IsVehicleWeapon || (destruction.AttackerVehicle != null && destruction.AttackerVehicle.Type != VehicleType.Unknown));
+
+            var attackerIsMax = destruction.AttackerLoadoutId == null
+                                                ? false
+                                                : ProfileService.IsMaxLoadoutId(destruction.AttackerLoadoutId);
+
+            var attackerIsInfantry = (!attackerIsVehicle && !attackerIsMax);
+
+            //var sameTeam = _teamsManager.DoPlayersShareTeam(destruction.AttackerPlayer, destruction.VictimPlayer);
+            //var samePlayer = (destruction.AttackerPlayer == destruction.VictimPlayer || destruction.AttackerPlayer == null);
+
+            if (destruction.DeathType == DeathEventType.Suicide)
+            {
+                return destruction.VictimVehicle.Type switch
+                {
+                    //VehicleType.Flash => ScrimActionType.Suicide
+                    //VehicleType.Harasser => ScrimActionType.
+                    //VehicleType.ANT => ScrimActionType.
+                    //VehicleType.Sunderer => ScrimActionType.
+                    //VehicleType.Lightning => ScrimActionType.
+                    //VehicleType.MBT => ScrimActionType.
+                    VehicleType.Interceptor => ScrimActionType.InterceptorSuicide,
+                    VehicleType.ESF => ScrimActionType.EsfSuicide,
+                    VehicleType.Valkyrie => ScrimActionType.ValkyrieSuicide,
+                    VehicleType.Liberator => ScrimActionType.LiberatorSuicide,
+                    VehicleType.Galaxy => ScrimActionType.GalaxySuicide,
+                    VehicleType.Bastion => ScrimActionType.BastionSuicide,
+                    _ => ScrimActionType.Unknown,
+                };
+            }
+            else if (destruction.DeathType == DeathEventType.Teamkill)
+            {
+                if (attackerIsVehicle)
+                {
+                    return destruction.VictimVehicle.Type switch
+                    {
+                        //VehicleType.Flash => ScrimActionType.Suicide
+                        //VehicleType.Harasser => ScrimActionType.
+                        //VehicleType.ANT => ScrimActionType.
+                        //VehicleType.Sunderer => ScrimActionType.
+                        //VehicleType.Lightning => ScrimActionType.
+                        //VehicleType.MBT => ScrimActionType.
+                        VehicleType.Interceptor => ScrimActionType.VehicleTeamDestroyInterceptor,
+                        VehicleType.ESF => ScrimActionType.VehicleTeamDestroyEsf,
+                        VehicleType.Valkyrie => ScrimActionType.VehicleTeamDestroyValkyrie,
+                        VehicleType.Liberator => ScrimActionType.VehicleTeamDestroyLiberator,
+                        VehicleType.Galaxy => ScrimActionType.VehicleTeamDestroyGalaxy,
+                        VehicleType.Bastion => ScrimActionType.VehicleTeamDestroyBastion,
+                        _ => ScrimActionType.Unknown,
+                    };
+                }
+                else if (attackerIsMax)
+                {
+                    return destruction.VictimVehicle.Type switch
+                    {
+                        //VehicleType.Flash => ScrimActionType.Suicide
+                        //VehicleType.Harasser => ScrimActionType.
+                        //VehicleType.ANT => ScrimActionType.
+                        //VehicleType.Sunderer => ScrimActionType.
+                        //VehicleType.Lightning => ScrimActionType.
+                        //VehicleType.MBT => ScrimActionType.
+                        VehicleType.Interceptor => ScrimActionType.MaxTeamDestroyInterceptor,
+                        VehicleType.ESF => ScrimActionType.MaxTeamDestroyEsf,
+                        VehicleType.Valkyrie => ScrimActionType.MaxTeamDestroyValkyrie,
+                        VehicleType.Liberator => ScrimActionType.MaxTeamDestroyLiberator,
+                        VehicleType.Galaxy => ScrimActionType.MaxTeamDestroyGalaxy,
+                        VehicleType.Bastion => ScrimActionType.MaxTeamDestroyBastion,
+                        _ => ScrimActionType.Unknown,
+                    };
+                }
+                else // attackerIsInfantry
+                {
+                    return destruction.VictimVehicle.Type switch
+                    {
+                        //VehicleType.Flash => ScrimActionType.
+                        //VehicleType.Harasser => ScrimActionType.
+                        //VehicleType.ANT => ScrimActionType.
+                        //VehicleType.Sunderer => ScrimActionType.
+                        //VehicleType.Lightning => ScrimActionType.
+                        //VehicleType.MBT => ScrimActionType.
+                        VehicleType.Interceptor => ScrimActionType.InfantryTeamDestroyInterceptor,
+                        VehicleType.ESF => ScrimActionType.InfantryTeamDestroyEsf,
+                        VehicleType.Valkyrie => ScrimActionType.InfantryTeamDestroyValkyrie,
+                        VehicleType.Liberator => ScrimActionType.InfantryTeamDestroyLiberator,
+                        VehicleType.Galaxy => ScrimActionType.InfantryTeamDestroyGalaxy,
+                        VehicleType.Bastion => ScrimActionType.InfantryTeamDestroyBastion,
+                        _ => ScrimActionType.Unknown,
+                    };
+                }
+            }
+            else if (destruction.DeathType == DeathEventType.Kill)
+            {
+                if (attackerIsVehicle)
+                {
+                    return destruction.VictimVehicle.Type switch
+                    {
+                        //VehicleType.Flash => ScrimActionType.Suicide
+                        //VehicleType.Harasser => ScrimActionType.
+                        //VehicleType.ANT => ScrimActionType.
+                        //VehicleType.Sunderer => ScrimActionType.
+                        //VehicleType.Lightning => ScrimActionType.
+                        //VehicleType.MBT => ScrimActionType.
+                        VehicleType.Interceptor => ScrimActionType.VehicleDestroyInterceptor,
+                        VehicleType.ESF => ScrimActionType.VehicleDestroyEsf,
+                        VehicleType.Valkyrie => ScrimActionType.VehicleDestroyValkyrie,
+                        VehicleType.Liberator => ScrimActionType.VehicleDestroyLiberator,
+                        VehicleType.Galaxy => ScrimActionType.VehicleDestroyGalaxy,
+                        VehicleType.Bastion => ScrimActionType.VehicleDestroyBastion,
+                        _ => ScrimActionType.Unknown,
+                    };
+                }
+                else if (attackerIsMax)
+                {
+                    return destruction.VictimVehicle.Type switch
+                    {
+                        //VehicleType.Flash => ScrimActionType.Suicide
+                        //VehicleType.Harasser => ScrimActionType.
+                        //VehicleType.ANT => ScrimActionType.
+                        //VehicleType.Sunderer => ScrimActionType.
+                        //VehicleType.Lightning => ScrimActionType.
+                        //VehicleType.MBT => ScrimActionType.
+                        VehicleType.Interceptor => ScrimActionType.MaxDestroyInterceptor,
+                        VehicleType.ESF => ScrimActionType.MaxDestroyEsf,
+                        VehicleType.Valkyrie => ScrimActionType.MaxDestroyValkyrie,
+                        VehicleType.Liberator => ScrimActionType.MaxDestroyLiberator,
+                        VehicleType.Galaxy => ScrimActionType.MaxDestroyGalaxy,
+                        VehicleType.Bastion => ScrimActionType.MaxDestroyBastion,
+                        _ => ScrimActionType.Unknown,
+                    };
+                }
+                else // attackerIsInfantry
+                {
+                    return destruction.VictimVehicle.Type switch
+                    {
+                        //VehicleType.Flash => ScrimActionType.
+                        //VehicleType.Harasser => ScrimActionType.
+                        //VehicleType.ANT => ScrimActionType.
+                        //VehicleType.Sunderer => ScrimActionType.
+                        //VehicleType.Lightning => ScrimActionType.
+                        //VehicleType.MBT => ScrimActionType.
+                        VehicleType.Interceptor => ScrimActionType.InfantryDestroyInterceptor,
+                        VehicleType.ESF => ScrimActionType.InfantryDestroyEsf,
+                        VehicleType.Valkyrie => ScrimActionType.InfantryDestroyValkyrie,
+                        VehicleType.Liberator => ScrimActionType.InfantryDestroyLiberator,
+                        VehicleType.Galaxy => ScrimActionType.InfantryDestroyGalaxy,
+                        VehicleType.Bastion => ScrimActionType.InfantryDestroyBastion,
+                        _ => ScrimActionType.Unknown,
+                    };
+                }
+            }
+            else
+            {
+                return ScrimActionType.Unknown;
+            }
+        }
+
+        #endregion Vehicle Destroy Payloads
 
         #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]

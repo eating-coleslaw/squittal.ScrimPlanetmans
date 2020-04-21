@@ -26,6 +26,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
 
+        public event EventHandler<ScrimVehicleDestructionActionEventEventArgs> RaiseScrimVehicleDestructionActionEvent;
+        public delegate void ScrimVehicleDestructionActionEventMessageEventHandler(object sender, ScrimVehicleDestructionActionEventEventArgs e);
 
         public event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
         public delegate void ScrimReviveActionEventMessageEventHandler(object sender, ScrimReviveActionEventEventArgs e);
@@ -145,6 +147,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
         {
             RaiseScrimDeathActionEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message)
+        {
+            OnRaiseScrimVehicleDestructionActionEvent(new ScrimVehicleDestructionActionEventEventArgs(message));
+        }
+        protected virtual void OnRaiseScrimVehicleDestructionActionEvent(ScrimVehicleDestructionActionEventEventArgs e)
+        {
+            RaiseScrimVehicleDestructionActionEvent?.Invoke(this, e);
         }
 
         public void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message)

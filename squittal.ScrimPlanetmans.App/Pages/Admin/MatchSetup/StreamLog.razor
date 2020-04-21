@@ -28,6 +28,7 @@
     {
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaiseScrimDeathActionEvent += ReceiveDeathActionEvent;
+        MessageService.RaiseScrimVehicleDestructionActionEvent += ReceiveVehicleDestructionActionEvent;
 
         MessageService.RaiseScrimReviveActionEvent += ReceiveReviveActionEvent;
         MessageService.RaiseScrimAssistActionEvent += ReceiveAssistActionEvent;
@@ -42,6 +43,12 @@
     }
 
     private void ReceiveDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+    private void ReceiveVehicleDestructionActionEvent(object sender, ScrimVehicleDestructionActionEventEventArgs e)
     {
         var info = e.Message.Info;
         LogMessage(info);

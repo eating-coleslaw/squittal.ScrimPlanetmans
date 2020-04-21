@@ -31,13 +31,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //_activeRuleset = _rulesets.GetActiveRuleset();
         }
 
-        #region Death Events
         public async Task SetActiveRuleset()
         {
             //_activeRuleset = await _rulesets.GetDefaultRuleset();
             _activeRuleset = await _rulesets.GetActiveRuleset();
         }
 
+        #region Death Events
         public int ScoreDeathEvent(ScrimDeathActionEvent death)
         {
             switch (death.DeathType)
@@ -73,10 +73,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 var actionType = death.ActionType;
                 points = GetActionRulePoints(actionType);
-                //points = _activeRuleset.ActionRules
-                //                            .Where(rule => rule.ScrimActionType == actionType)
-                //                            .Select(rule => rule.Points)
-                //                            .FirstOrDefault();
             }
 
             var isHeadshot = (death.IsHeadshot ? 1 : 0);
@@ -281,6 +277,155 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
         */
         #endregion Death Events
+
+        #region Vehicle Destruction Events
+        public int ScoreVehicleDestructionEvent(ScrimVehicleDestructionActionEvent destruction)
+        {
+            return destruction.DeathType switch
+            {
+                DeathEventType.Kill => ScoreVehicleDestruction(destruction),
+                DeathEventType.Suicide => ScoreVehicleTeamDestruction(destruction),
+                DeathEventType.Teamkill => ScoreVehicleSuicideDestruction(destruction),
+                _ => 0,
+            };
+        }
+
+        private int ScoreVehicleDestruction(ScrimVehicleDestructionActionEvent destruction)
+        {
+            int points;
+
+            if (GetDeferToItemCategoryPoints(destruction.ActionType))
+            {
+                var categoryId = destruction.Weapon.ItemCategoryId;
+                points = _activeRuleset.ItemCategoryRules
+                                            .Where(rule => rule.ItemCategoryId == categoryId)
+                                            .Select(rule => rule.Points)
+                                            .FirstOrDefault();
+            }
+            else
+            {
+                var actionType = destruction.ActionType;
+                points = GetActionRulePoints(actionType);
+            }
+
+            var attackerUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+            };
+
+            attackerUpdate.Add(GetVehicleDestroyedEventAggregate(destruction.VictimVehicle.Type));
+
+            var victimUpdate = new ScrimEventAggregate()
+            {
+                NetScore = -points,
+            };
+
+            victimUpdate.Add(GetVehicleLostEventAggregate(destruction.VictimVehicle.Type));
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(destruction.AttackerPlayer.Id, attackerUpdate);
+            _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
+
+            return points;
+
+        }
+
+        private int ScoreVehicleSuicideDestruction(ScrimVehicleDestructionActionEvent destruction)
+        {
+            int points;
+
+            if (GetDeferToItemCategoryPoints(destruction.ActionType))
+            {
+                var categoryId = destruction.Weapon.ItemCategoryId;
+                points = _activeRuleset.ItemCategoryRules
+                                            .Where(rule => rule.ItemCategoryId == categoryId)
+                                            .Select(rule => rule.Points)
+                                            .FirstOrDefault();
+            }
+            else
+            {
+                var actionType = destruction.ActionType;
+                points = GetActionRulePoints(actionType);
+            }
+
+            var victimUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+            };
+
+            victimUpdate.Add(GetVehicleLostEventAggregate(destruction.VictimVehicle.Type));
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
+
+            return points;
+        }
+
+        private int ScoreVehicleTeamDestruction(ScrimVehicleDestructionActionEvent destruction)
+        {
+            int points;
+
+            if (GetDeferToItemCategoryPoints(destruction.ActionType))
+            {
+                var categoryId = destruction.Weapon.ItemCategoryId;
+                points = _activeRuleset.ItemCategoryRules
+                                            .Where(rule => rule.ItemCategoryId == categoryId)
+                                            .Select(rule => rule.Points)
+                                            .FirstOrDefault();
+            }
+            else
+            {
+                var actionType = destruction.ActionType;
+                points = GetActionRulePoints(actionType);
+            }
+
+            var attackerUpdate = new ScrimEventAggregate()
+            {
+                Points = points,
+                NetScore = points,
+            };
+
+            var victimUpdate = GetVehicleLostEventAggregate(destruction.VictimVehicle.Type);
+
+            // Player Stats update automatically updates the appropriate team's stats
+            _teamsManager.UpdatePlayerStats(destruction.AttackerPlayer.Id, attackerUpdate);
+            _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
+
+            return points;
+        }
+
+        private ScrimEventAggregate GetVehicleDestroyedEventAggregate(VehicleType vehicleType)
+        {
+            return new ScrimEventAggregate()
+            {
+                VehiclesDestroyed = 1,
+
+                InterceptorsDestroyed = vehicleType == VehicleType.Interceptor ? 1 : 0,
+                EsfsDestroyed = vehicleType == VehicleType.ESF ? 1 : 0,
+                ValkyriesDestroyed = vehicleType == VehicleType.Valkyrie ? 1 : 0,
+                LiberatorsDestroyed = vehicleType == VehicleType.Liberator ? 1 : 0,
+                GalaxiesDestroyed = vehicleType == VehicleType.Galaxy ? 1 : 0,
+                BastionsDestroyed = vehicleType == VehicleType.Bastion ? 1 : 0
+            };
+        }
+
+        private ScrimEventAggregate GetVehicleLostEventAggregate(VehicleType vehicleType)
+        {
+            return new ScrimEventAggregate()
+            {
+                VehiclesLost = 1,
+
+                InterceptorsLost = vehicleType == VehicleType.Interceptor ? 1 : 0,
+                EsfsLost = vehicleType == VehicleType.ESF ? 1 : 0,
+                ValkyriesLost = vehicleType == VehicleType.Valkyrie ? 1 : 0,
+                LiberatorsLost = vehicleType == VehicleType.Liberator ? 1 : 0,
+                GalaxiesLost = vehicleType == VehicleType.Galaxy ? 1 : 0,
+                BastionsLost = vehicleType == VehicleType.Bastion ? 1 : 0
+            };
+        }
+        #endregion Vehicle Destruction Events
 
         #region Experience Events
         /*

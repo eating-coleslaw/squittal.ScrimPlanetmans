@@ -52,6 +52,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public FacilityControlType PreviousScoredBaseControlType { get; set; } = FacilityControlType.Unknown;
 
+        #region Vehicle Stats
+        public int VehiclesDestroyed { get; set; } = 0;
+        public int VehiclesLost { get; set; } = 0;
+
+        public int InterceptorsDestroyed { get; set; } = 0;
+        public int InterceptorsLost { get; set; } = 0;
+        public int EsfsDestroyed { get; set; } = 0;
+        public int EsfsLost { get; set; } = 0;
+        public int ValkyriesDestroyed { get; set; } = 0;
+        public int ValkyriesLost { get; set; } = 0;
+        public int LiberatorsDestroyed { get; set; } = 0;
+        public int LiberatorsLost { get; set; } = 0;
+        public int GalaxiesDestroyed { get; set; } = 0;
+        public int GalaxiesLost { get; set; } = 0;
+        public int BastionsDestroyed { get; set; } = 0;
+        public int BastionsLost { get; set; } = 0;
+        #endregion Vehicle Stats
+
         public int Events
         {
             get
@@ -173,6 +191,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             UtilityAssists += addend.UtilityAssists;
             DamageAssistedDeaths += addend.DamageAssistedDeaths;
             UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
+
+            VehiclesDestroyed += addend.VehiclesDestroyed;
+            VehiclesLost += addend.VehiclesLost;
+
+            InterceptorsDestroyed += addend.InterceptorsDestroyed;
+            InterceptorsLost += addend.InterceptorsLost;
+            EsfsDestroyed += addend.EsfsDestroyed;
+            EsfsLost += addend.EsfsLost;
+            ValkyriesDestroyed += addend.ValkyriesDestroyed;
+            ValkyriesLost += addend.ValkyriesLost;
+            LiberatorsDestroyed += addend.LiberatorsDestroyed;
+            LiberatorsLost += addend.LiberatorsLost;
+            GalaxiesDestroyed += addend.GalaxiesDestroyed;
+            GalaxiesLost += addend.GalaxiesLost;
+            BastionsDestroyed += addend.BastionsDestroyed;
+            BastionsLost += addend.BastionsLost;
+
             ObjectiveCaptureTicks += addend.ObjectiveCaptureTicks;
             ObjectiveDefenseTicks += addend.ObjectiveDefenseTicks;
             BaseCaptures += addend.BaseCaptures;
@@ -207,6 +242,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             UtilityAssists -= subtrahend.UtilityAssists;
             DamageAssistedDeaths -= subtrahend.DamageAssistedDeaths;
             UtilityAssistedDeaths -= subtrahend.UtilityAssistedDeaths;
+
+            VehiclesDestroyed -= subtrahend.VehiclesDestroyed;
+            VehiclesLost -= subtrahend.VehiclesLost;
+
+            InterceptorsDestroyed -= subtrahend.InterceptorsDestroyed;
+            InterceptorsLost -= subtrahend.InterceptorsLost;
+            EsfsDestroyed -= subtrahend.EsfsDestroyed;
+            EsfsLost -= subtrahend.EsfsLost;
+            ValkyriesDestroyed -= subtrahend.ValkyriesDestroyed;
+            ValkyriesLost -= subtrahend.ValkyriesLost;
+            LiberatorsDestroyed -= subtrahend.LiberatorsDestroyed;
+            LiberatorsLost -= subtrahend.LiberatorsLost;
+            GalaxiesDestroyed -= subtrahend.GalaxiesDestroyed;
+            GalaxiesLost -= subtrahend.GalaxiesLost;
+            BastionsDestroyed -= subtrahend.BastionsDestroyed;
+            BastionsLost -= subtrahend.BastionsLost;
+
             ObjectiveCaptureTicks -= subtrahend.ObjectiveCaptureTicks;
             ObjectiveDefenseTicks -= subtrahend.ObjectiveDefenseTicks;
             BaseCaptures -= subtrahend.BaseCaptures;
