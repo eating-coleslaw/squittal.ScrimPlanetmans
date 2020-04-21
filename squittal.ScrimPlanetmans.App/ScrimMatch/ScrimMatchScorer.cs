@@ -60,7 +60,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             int points;
 
-            if (death.ActionType == ScrimActionType.InfantryKillInfantry)
+            //if (death.ActionType == ScrimActionType.InfantryKillInfantry)
+            if (GetDeferToItemCategoryPoints(death.ActionType))
             {
                 var categoryId = death.Weapon.ItemCategoryId;
                 points = _activeRuleset.ItemCategoryRules
@@ -471,6 +472,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _activeRuleset.ActionRules
                                     .Where(rule => rule.ScrimActionType == actionType)
                                     .Select(rule => rule.Points)
+                                    .FirstOrDefault();
+        }
+
+        private bool GetDeferToItemCategoryPoints(ScrimActionType actionType)
+        {
+            return _activeRuleset.ActionRules
+                                    .Where(rule => rule.ScrimActionType == actionType)
+                                    .Select(rule => rule.DeferToItemCategoryRules)
                                     .FirstOrDefault();
         }
     }
