@@ -1,13 +1,13 @@
-﻿using squittal.ScrimPlanetmans.Models;
+﻿using squittal.ScrimPlanetmans.Models.Planetside;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public interface IVehicleService : ILocallyBackedCensusStore
     {
-        Task<VehicleInfo> GetVehicleInfoAsync(int vehicleId);
+        Task<Vehicle> GetVehicleInfoAsync(int vehicleId);
 
-        VehicleInfo GetScrimVehicleInfo(int vehicleId);
+        Vehicle GetScrimVehicleInfo(int vehicleId);
 
         Task SetUpScrimmableVehicleInfosList();
     }

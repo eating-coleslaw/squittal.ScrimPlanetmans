@@ -31,7 +31,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _logger = logger;
         }
 
-        public async Task<VehicleInfo> GetVehicleInfoAsync(int vehicleId)
+        public async Task<Vehicle> GetVehicleInfoAsync(int vehicleId)
         {
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
@@ -45,15 +45,19 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             var factions = await _vehicleFactionService.GetVehicleFactionsAsync(vehicleId);
 
-            return new VehicleInfo
-            {
-                Id = vehicle.Id,
-                Name = vehicle.Name,
-                Factions = factions?.Select(f => f.FactionId)
-            };
+            vehicle.Faction = factions;
+
+            return vehicle;
+
+            //return new VehicleInfo
+            //{
+            //    Id = vehicle.Id,
+            //    Name = vehicle.Name,
+            //    Factions = factions?.Select(f => f.FactionId)
+            //};
         }
 
-        public VehicleInfo GetScrimVehicleInfo(int vehicleId)
+        public Vehicle GetScrimVehicleInfo(int vehicleId)
         {
             throw new NotImplementedException();
         }
