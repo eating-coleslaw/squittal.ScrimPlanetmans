@@ -184,7 +184,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
             catch (Exception ex)
             {
-                _logger.LogError(75642, ex, "Failed to process websocket event: {0}.", eventName);
+                _logger.LogError(75642, ex, "Failed to process websocket event: {0}. {1}", eventName, jPayload.ToString());
             }
         }
 
