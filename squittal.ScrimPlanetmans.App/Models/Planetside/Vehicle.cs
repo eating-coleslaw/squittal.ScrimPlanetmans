@@ -16,6 +16,6 @@ namespace squittal.ScrimPlanetmans.Models.Planetside
         public int? CostResourceId { get; set; }
         public int? ImageId { get; set; }
 
-        public IEnumerable<VehicleFaction> Faction { get; set; }
+        //public IEnumerable<VehicleFaction> Faction { get; set; }
     }
 }

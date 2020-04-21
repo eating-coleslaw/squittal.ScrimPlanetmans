@@ -14,9 +14,9 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.Property(e => e.Id).ValueGeneratedNever();
 
-            builder.HasMany(e => e.Faction)
-                .WithOne()
-                .HasForeignKey(e => e.VehicleId);
+            //builder.HasMany(e => e.Faction)
+            //    .WithOne()
+            //    .HasForeignKey(e => e.VehicleId);
         }
     }
 }

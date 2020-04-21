@@ -21,6 +21,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public string BackupSqlScriptFileName => string.Empty; //throw new NotImplementedException();
 
+        /*
         public VehicleFactionService(IDbContextHelper dbContextHelper, CensusVehicle censusVehicle, ISqlScriptRunner sqlScriptRunner, ILogger<VehicleService> logger)
         {
             _dbContextHelper = dbContextHelper;
@@ -152,5 +153,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 FactionId = censusModel.FactionId
             };
         }
+        */
     }
 }

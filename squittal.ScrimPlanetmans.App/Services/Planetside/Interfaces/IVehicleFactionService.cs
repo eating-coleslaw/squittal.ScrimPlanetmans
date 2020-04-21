@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IVehicleFactionService : ILocallyBackedCensusStore
+    public interface IVehicleFactionService // : ILocallyBackedCensusStore
     {
-        Task<IEnumerable<VehicleFaction>> GetVehicleFactionsAsync(int vehicleId);
-        Task<IEnumerable<VehicleFaction>> GetAllVehicleFactionsAsync();
+        //Task<IEnumerable<VehicleFaction>> GetVehicleFactionsAsync(int vehicleId);
+        //Task<IEnumerable<VehicleFaction>> GetAllVehicleFactionsAsync();
     }
 }

@@ -55,7 +55,7 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IFacilityService, FacilityService>();
             services.AddTransient<IFacilityTypeService, FacilityTypeService>();
             services.AddTransient<IVehicleService, VehicleService>();
-            services.AddTransient<IVehicleFactionService, VehicleFactionService>();
+            //services.AddTransient<IVehicleFactionService, VehicleFactionService>();
 
             services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
 

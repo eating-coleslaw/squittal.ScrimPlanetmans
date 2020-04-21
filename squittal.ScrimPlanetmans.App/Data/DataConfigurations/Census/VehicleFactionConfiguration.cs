@@ -12,9 +12,9 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.HasKey(e => new { e.VehicleId, e.FactionId });
 
-            builder.HasOne(e => e.Vehicle)
-                .WithMany(e => e.Faction)
-                .HasForeignKey(e => e.VehicleId);
+            //builder.HasOne(e => e.Vehicle)
+            //    .WithMany(e => e.Faction)
+            //    .HasForeignKey(e => e.VehicleId);
         }
     }
 }
