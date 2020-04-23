@@ -384,7 +384,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var teamOrdinal = control.ControllingTeamOrdinal;
             var type = control.ControlType;
 
-            var team = _teamsManager.GetTeam(teamOrdinal);
+            //var team = _teamsManager.GetTeam(teamOrdinal);
 
             /*
             if (!DoesFacilityControlCount(type, teamOrdinal))
@@ -424,32 +424,32 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return points;
         }
 
-        private bool DoesFacilityControlCount(FacilityControlType type, int teamOrdinal)
-        {
-            var team = _teamsManager.GetTeam(teamOrdinal);
+        //private bool DoesFacilityControlCount(FacilityControlType type, int teamOrdinal)
+        //{
+        //    var team = _teamsManager.GetTeam(teamOrdinal);
 
-            var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+        //    var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
 
-            if (roundControlVictories == 0)
-            {
-                return true;
-            }
+        //    if (roundControlVictories == 0)
+        //    {
+        //        return true;
+        //    }
 
-            var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
+        //    var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
 
-            return (type != previousScoredControlType);
+        //    return (type != previousScoredControlType);
 
-            /*
-            var roundDefenses = team.EventAggregateTracker.RoundStats.BaseDefenses;
-            if (type == FacilityControlType.Defense)
-            {
-                return roundDefenses == 0
-            }
+        //    /*
+        //    var roundDefenses = team.EventAggregateTracker.RoundStats.BaseDefenses;
+        //    if (type == FacilityControlType.Defense)
+        //    {
+        //        return roundDefenses == 0
+        //    }
 
 
-            var roundCaptures = team.EventAggregateTracker.RoundStats.BaseCaptures;
-            */
-        }
+        //    var roundCaptures = team.EventAggregateTracker.RoundStats.BaseCaptures;
+        //    */
+        //}
         #endregion Objective Events
 
         #region Misc. Non-Scored Events
