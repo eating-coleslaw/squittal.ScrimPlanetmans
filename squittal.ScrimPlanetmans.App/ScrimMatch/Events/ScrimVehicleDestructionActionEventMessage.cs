@@ -52,7 +52,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} VEHICLE DESTRUCTION: {outfitDisplay}{playerName} [{weaponName}] {victimVehicleName} ({otherCharacterId})";
+                return $"{actionDisplay} VEHICLE DESTROYED: {outfitDisplay}{playerName} [{weaponName}] {victimVehicleName} ({otherCharacterId})";
             }
             else
             {
@@ -64,7 +64,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} DEATH: {otherCharacterId} [{weaponName}] {victimVehicleName} ({outfitDisplay}{playerName})";
+                return $"{actionDisplay} VEHICLE LOST: {otherCharacterId} [{weaponName}] {victimVehicleName} ({outfitDisplay}{playerName})";
             }
         }
 
