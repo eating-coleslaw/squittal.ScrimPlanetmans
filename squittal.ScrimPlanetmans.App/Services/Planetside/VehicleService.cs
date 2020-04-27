@@ -16,17 +16,15 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusVehicle _censusVehicle;
-        //public readonly IVehicleFactionService _vehicleFactionService;
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<VehicleService> _logger;
 
-        public string BackupSqlScriptFileName => string.Empty; //throw new NotImplementedException();
+        public string BackupSqlScriptFileName => string.Empty;
 
-        public VehicleService(IDbContextHelper dbContextHelper, CensusVehicle censusVehicle, /*IVehicleFactionService vehicleFactionService,*/ ISqlScriptRunner sqlScriptRunner, ILogger<VehicleService> logger)
+        public VehicleService(IDbContextHelper dbContextHelper, CensusVehicle censusVehicle, ISqlScriptRunner sqlScriptRunner, ILogger<VehicleService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusVehicle = censusVehicle;
-            //_vehicleFactionService = vehicleFactionService;
             _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
         }
@@ -43,18 +41,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 return null;
             }
 
-            //var factions = await _vehicleFactionService.GetVehicleFactionsAsync(vehicleId);
-
-            //vehicle.Faction = factions;
-
             return vehicle;
-
-            //return new VehicleInfo
-            //{
-            //    Id = vehicle.Id,
-            //    Name = vehicle.Name,
-            //    Factions = factions?.Select(f => f.FactionId)
-            //};
         }
 
         public Vehicle GetScrimVehicleInfo(int vehicleId)

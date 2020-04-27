@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using squittal.ScrimPlanetmans.App.Data;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Data;
@@ -91,8 +90,6 @@ namespace squittal.ScrimPlanetmans.App
             services.AddTransient<ISqlScriptRunner, SqlScriptRunner>();
 
             services.AddTransient<DatabaseMaintenanceService>();
-
-            services.AddSingleton<WeatherForecastService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
