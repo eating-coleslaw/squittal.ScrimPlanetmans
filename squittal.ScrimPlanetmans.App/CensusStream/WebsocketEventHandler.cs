@@ -506,7 +506,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     }
                 }
 
-                //_messageService.BroadcastScrimDeathActionEventMessage(new ScrimDeathActionEventMessage(deathEvent));
+                _messageService.BroadcastScrimVehicleDestructionActionEventMessage(new ScrimVehicleDestructionActionEventMessage(destructionEvent));
 
                 return destructionEvent;
             }
