@@ -33,52 +33,52 @@
             <thead style="vertical-align: bottom;">
                 <tr>
                     <th></th>
-                    <th class="stacked-label med" title="Interceptors Destroyed">
-                        <span class="small">Interceptors<br></span>
+                    <th class="stacked-label med" title="Flashes Destroyed">
+                        <span class="small">Flashes<br></span>
                         <span>Destroyed</span>
                     </th>
-                    <th class="stacked-label med" title="ESFs Destroyed">
-                        <span class="small">ESFs<br></span>
+                    <th class="stacked-label med" title="Harassers Destroyed">
+                        <span class="small">Harassers<br></span>
                         <span>Destroyed</span>
                     </th>
-                    <th class="stacked-label med" title="Valkyries Destroyed">
-                        <span class="small">Valkyries<br></span>
+                    <th class="stacked-label med" title="ANTs Destroyed">
+                        <span class="small">ANTs<br></span>
                         <span>Destroyed</span>
                     </th>
-                    <th class="stacked-label med" title="Liberators Destroyed">
-                        <span class="small">Liberators<br></span>
+                    <th class="stacked-label med" title="Sunderers Destroyed">
+                        <span class="small">Sunderers<br></span>
                         <span>Destroyed</span>
                     </th>
-                    <th class="stacked-label med" title="Galaxies Destroyed">
-                        <span class="small">Galaxies<br></span>
+                    <th class="stacked-label med" title="Lightnings Destroyed">
+                        <span class="small">Lightnings<br></span>
                         <span>Destroyed</span>
                     </th>
-                    <th class="stacked-label med" title="Bastions Destroyed">
-                        <span class="small">Bastions<br></span>
+                    <th class="stacked-label med" title="MBTs Destroyed">
+                        <span class="small">MBTs<br></span>
                         <span>Destroyed</span>
                     </th>
-                    <th class="stacked-label med" title="Interceptors Lost">
-                        <span class="small">Interceptors<br></span>
+                    <th class="stacked-label med" title="Flashes Lost">
+                        <span class="small">Flashes<br></span>
                         <span>Lost</span>
                     </th>
-                    <th class="stacked-label med" title="ESFs Lost">
-                        <span class="small">ESFs<br></span>
+                    <th class="stacked-label med" title="Harassers Lost">
+                        <span class="small">Harassers<br></span>
                         <span>Lost</span>
                     </th>
-                    <th class="stacked-label med" title="Valkyries Lost">
-                        <span class="small">Valkyries<br></span>
+                    <th class="stacked-label med" title="ANTs Lost">
+                        <span class="small">ANTs<br></span>
                         <span>Lost</span>
                     </th>
-                    <th class="stacked-label med" title="Liberators Lost">
-                        <span class="small">Liberators<br></span>
+                    <th class="stacked-label med" title="Sunderers Lost">
+                        <span class="small">Sunderers<br></span>
                         <span>Lost</span>
                     </th>
-                    <th class="stacked-label med" title="Galaxies Lost">
-                        <span class="small">Galaxies<br></span>
+                    <th class="stacked-label med" title="Lightnings Lost">
+                        <span class="small">Lightnings<br></span>
                         <span>Lost</span>
                     </th>
-                    <th class="stacked-label med" title="Bastions Lost">
-                        <span class="small">Bastions<br></span>
+                    <th class="stacked-label med" title="MBTs Lost">
+                        <span class="small">MBTs<br></span>
                         <span>Lost</span>
                     </th>
 
@@ -93,19 +93,19 @@
             <tbody>
                 <tr>
                     <td>Total</td>
-                    <Test_PlayerVehicleStatsRow EventAggregate=@_team.EventAggregate PlayerId="team" />
+                    <Test_PlayerGroundVehicleStatsRow EventAggregate=@_team.EventAggregate PlayerId="team" />
                 </tr>
 
                 <tr>
                     <td>Current</td>
-                    <Test_PlayerVehicleStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
+                    <Test_PlayerGroundVehicleStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
                 </tr>
 
                 @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
                 {
                     <tr>
                         <td>Round @round</td>
-                        <Test_PlayerVehicleStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
+                        <Test_PlayerGroundVehicleStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
                     </tr>
                 }
             </tbody>
@@ -146,52 +146,52 @@
                             <tr>
                                 <th></th>
                                 <th></th>
-                                <th class="stacked-label med" title="Interceptors Destroyed">
-                                    <span class="small">Interceptors<br></span>
+                                <th class="stacked-label med" title="Flashes Destroyed">
+                                    <span class="small">Flashes<br></span>
                                     <span>Destroyed</span>
                                 </th>
-                                <th class="stacked-label med" title="ESFs Destroyed">
-                                    <span class="small">ESFs<br></span>
+                                <th class="stacked-label med" title="Harassers Destroyed">
+                                    <span class="small">Harassers<br></span>
                                     <span>Destroyed</span>
                                 </th>
-                                <th class="stacked-label med" title="Valkyries Destroyed">
-                                    <span class="small">Valkyries<br></span>
+                                <th class="stacked-label med" title="ANTs Destroyed">
+                                    <span class="small">ANTs<br></span>
                                     <span>Destroyed</span>
                                 </th>
-                                <th class="stacked-label med" title="Liberators Destroyed">
-                                    <span class="small">Liberators<br></span>
+                                <th class="stacked-label med" title="Sunderers Destroyed">
+                                    <span class="small">Sunderers<br></span>
                                     <span>Destroyed</span>
                                 </th>
-                                <th class="stacked-label med" title="Galaxies Destroyed">
-                                    <span class="small">Galaxies<br></span>
+                                <th class="stacked-label med" title="Lightnings Destroyed">
+                                    <span class="small">Lightnings<br></span>
                                     <span>Destroyed</span>
                                 </th>
-                                <th class="stacked-label med" title="Bastions Destroyed">
-                                    <span class="small">Bastions<br></span>
+                                <th class="stacked-label med" title="MBTs Destroyed">
+                                    <span class="small">MBTs<br></span>
                                     <span>Destroyed</span>
                                 </th>
-                                <th class="stacked-label med" title="Interceptors Lost">
-                                    <span class="small">Interceptors<br></span>
+                                <th class="stacked-label med" title="Flashes Lost">
+                                    <span class="small">Flashes<br></span>
                                     <span>Lost</span>
                                 </th>
-                                <th class="stacked-label med" title="ESFs Lost">
-                                    <span class="small">ESFs<br></span>
+                                <th class="stacked-label med" title="Harassers Lost">
+                                    <span class="small">Harassers<br></span>
                                     <span>Lost</span>
                                 </th>
-                                <th class="stacked-label med" title="Valkyries Lost">
-                                    <span class="small">Valkyries<br></span>
+                                <th class="stacked-label med" title="ANTs Lost">
+                                    <span class="small">ANTs<br></span>
                                     <span>Lost</span>
                                 </th>
-                                <th class="stacked-label med" title="Liberators Lost">
-                                    <span class="small">Liberators<br></span>
+                                <th class="stacked-label med" title="Sunderers Lost">
+                                    <span class="small">Sunderers<br></span>
                                     <span>Lost</span>
                                 </th>
-                                <th class="stacked-label med" title="Galaxies Lost">
-                                    <span class="small">Galaxies<br></span>
+                                <th class="stacked-label med" title="Lightnings Lost">
+                                    <span class="small">Lightnings<br></span>
                                     <span>Lost</span>
                                 </th>
-                                <th class="stacked-label med" title="Bastions Lost">
-                                    <span class="small">Bastions<br></span>
+                                <th class="stacked-label med" title="MBTs Lost">
+                                    <span class="small">MBTs<br></span>
                                     <span>Lost</span>
                                 </th>
 
@@ -212,13 +212,13 @@
                                         <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
                                         <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
                                     </td>
-                                    <Test_PlayerVehicleStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id />
+                                    <Test_PlayerGroundVehicleStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id />
                                 </tr>
 
                                 <tr>
                                     <td></td>
                                     <td>CurrentRound</td>
-                                    <Test_PlayerVehicleStatsRow EventAggregate=@member.EventAggregateTracker.RoundStats PlayerId=@member.Id />
+                                    <Test_PlayerGroundVehicleStatsRow EventAggregate=@member.EventAggregateTracker.RoundStats PlayerId=@member.Id />
                                 </tr>
 
                                 @foreach (var round in member.EventAggregateTracker.RoundHistory.Keys.ToList())
@@ -226,7 +226,7 @@
                                     <tr>
                                         <td></td>
                                         <td>Round @round</td>
-                                        <Test_PlayerVehicleStatsRow EventAggregate=@member.EventAggregateTracker.RoundHistory[round] PlayerId=@member.Id />
+                                        <Test_PlayerGroundVehicleStatsRow EventAggregate=@member.EventAggregateTracker.RoundHistory[round] PlayerId=@member.Id />
                                     </tr>
                                 }
                             }
@@ -267,52 +267,52 @@
                         <tr>
                             <th></th>
                             <th></th>
-                            <th class="stacked-label med" title="Interceptors Destroyed">
-                                <span class="small">Interceptors<br></span>
+                            <th class="stacked-label med" title="Flashes Destroyed">
+                                <span class="small">Flashes<br></span>
                                 <span>Destroyed</span>
                             </th>
-                            <th class="stacked-label med" title="ESFs Destroyed">
-                                <span class="small">ESFs<br></span>
+                            <th class="stacked-label med" title="Harassers Destroyed">
+                                <span class="small">Harassers<br></span>
                                 <span>Destroyed</span>
                             </th>
-                            <th class="stacked-label med" title="Valkyries Destroyed">
-                                <span class="small">Valkyries<br></span>
+                            <th class="stacked-label med" title="ANTs Destroyed">
+                                <span class="small">ANTs<br></span>
                                 <span>Destroyed</span>
                             </th>
-                            <th class="stacked-label med" title="Liberators Destroyed">
-                                <span class="small">Liberators<br></span>
+                            <th class="stacked-label med" title="Sunderers Destroyed">
+                                <span class="small">Sunderers<br></span>
                                 <span>Destroyed</span>
                             </th>
-                            <th class="stacked-label med" title="Galaxies Destroyed">
-                                <span class="small">Galaxies<br></span>
+                            <th class="stacked-label med" title="Lightnings Destroyed">
+                                <span class="small">Lightnings<br></span>
                                 <span>Destroyed</span>
                             </th>
-                            <th class="stacked-label med" title="Bastions Destroyed">
-                                <span class="small">Bastions<br></span>
+                            <th class="stacked-label med" title="MBTs Destroyed">
+                                <span class="small">MBTs<br></span>
                                 <span>Destroyed</span>
                             </th>
-                            <th class="stacked-label med" title="Interceptors Lost">
-                                <span class="small">Interceptors<br></span>
+                            <th class="stacked-label med" title="Flashes Lost">
+                                <span class="small">Flashes<br></span>
                                 <span>Lost</span>
                             </th>
-                            <th class="stacked-label med" title="ESFs Lost">
-                                <span class="small">ESFs<br></span>
+                            <th class="stacked-label med" title="Harassers Lost">
+                                <span class="small">Harassers<br></span>
                                 <span>Lost</span>
                             </th>
-                            <th class="stacked-label med" title="Valkyries Lost">
-                                <span class="small">Valkyries<br></span>
+                            <th class="stacked-label med" title="ANTs Lost">
+                                <span class="small">ANTs<br></span>
                                 <span>Lost</span>
                             </th>
-                            <th class="stacked-label med" title="Liberators Lost">
-                                <span class="small">Liberators<br></span>
+                            <th class="stacked-label med" title="Sunderers Lost">
+                                <span class="small">Sunderers<br></span>
                                 <span>Lost</span>
                             </th>
-                            <th class="stacked-label med" title="Galaxies Lost">
-                                <span class="small">Galaxies<br></span>
+                            <th class="stacked-label med" title="Lightnings Lost">
+                                <span class="small">Lightnings<br></span>
                                 <span>Lost</span>
                             </th>
-                            <th class="stacked-label med" title="Bastions Lost">
-                                <span class="small">Bastions<br></span>
+                            <th class="stacked-label med" title="MBTs Lost">
+                                <span class="small">MBTs<br></span>
                                 <span>Lost</span>
                             </th>
 
@@ -333,13 +333,13 @@
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameFull</span>
                                     <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(player.Id)]</span>
                                 </td>
-                                <Test_PlayerVehicleStatsRow EventAggregate=@player.EventAggregate PlayerId=@player.Id />
+                                <Test_PlayerGroundVehicleStatsRow EventAggregate=@player.EventAggregate PlayerId=@player.Id />
                             </tr>
 
                             <tr>
                                 <td></td>
                                 <td>CurrentRound</td>
-                                <Test_PlayerVehicleStatsRow EventAggregate=@player.EventAggregateTracker.RoundStats PlayerId=@player.Id />
+                                <Test_PlayerGroundVehicleStatsRow EventAggregate=@player.EventAggregateTracker.RoundStats PlayerId=@player.Id />
                             </tr>
 
                             @foreach (var round in player.EventAggregateTracker.RoundHistory.Keys.ToList())
@@ -347,7 +347,7 @@
                                 <tr>
                                     <td></td>
                                     <td>Round @round</td>
-                                    <Test_PlayerVehicleStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
+                                    <Test_PlayerGroundVehicleStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
                                 </tr>
                             }
                         }
