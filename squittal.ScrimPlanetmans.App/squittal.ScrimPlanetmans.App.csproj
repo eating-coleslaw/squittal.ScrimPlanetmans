@@ -51,6 +51,9 @@
     <None Update="Data\SQL\dbo.Profile.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\dbo.Vehicle.Table.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\dbo.World.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

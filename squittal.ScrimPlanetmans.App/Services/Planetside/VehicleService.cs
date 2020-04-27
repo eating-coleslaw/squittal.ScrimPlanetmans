@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<VehicleService> _logger;
 
-        public string BackupSqlScriptFileName => string.Empty;
+        public string BackupSqlScriptFileName => "dbo.Vehicle.Table.sql";
 
         public VehicleService(IDbContextHelper dbContextHelper, CensusVehicle censusVehicle, ISqlScriptRunner sqlScriptRunner, ILogger<VehicleService> logger)
         {
@@ -152,7 +152,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public void RefreshStoreFromBackup()
         {
-            throw new NotImplementedException();
+            _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
 
         private static Vehicle ConvertToDbModel(CensusVehicleModel censusModel)
