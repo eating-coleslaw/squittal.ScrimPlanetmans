@@ -103,18 +103,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _logger.LogDebug("Payload received for event: {0}.", eventName);
 
-            //var eventName1 = jPayload.Value<string>("event_name");
-
-            //if (eventName == "PlayerLogin" || eventName == "PlayerLogout")
-            //{
-            //    _logger.LogInformation($"Payload received for event {eventName}: {payload.ToString()}");
-            //}
-
-            //if (eventName1 == "PlayerLogin" || eventName1 == "PlayerLogout")
-            //{
-            //    _logger.LogInformation($"Payload received for event1 {eventName}: {payload.ToString()}");
-            //}
-
             if (!_processMethods.ContainsKey(eventName))
             {
                 _logger.LogWarning("No process method found for event: {0}", eventName);
@@ -128,11 +116,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             try
             {
-                //var inputType = _processMethods[eventName].GetCustomAttribute<CensusEventHandlerAttribute>().PayloadType;
-                //var inputParam = jPayload.ToObject(inputType, _payloadDeserializer);
-
-                //await (Task)_processMethods[eventName].Invoke(this, new[] { inputParam });
-
                 switch (eventName)
                 {
                     case "Death":
@@ -175,10 +158,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     case "VehicleDestroy":
                         var vehicleDestroyParam = jPayload.ToObject<VehicleDestroyPayload>(_payloadDeserializer);
                         await Process(vehicleDestroyParam);
-                        //await Task.Run(() =>
-                        //{
-                        //    Process(vehicleDestroyParam);
-                        //});
                         break;
                 }
             }
@@ -490,8 +469,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 if (destructionEvent.ActionType != ScrimActionType.OutsideInterference)
                 {
-                    //destructionEvent.DeathType = GetDeathEventType(destructionEvent.ActionType);
-
                     if (destructionEvent.DeathType == DeathEventType.Suicide)
                     {
                         destructionEvent.AttackerPlayer = destructionEvent.VictimPlayer;
@@ -500,7 +477,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled)
                     {
-                        //_scorer.ScoreDeathEvent(dataModel);
                         var points = _scorer.ScoreVehicleDestructionEvent(destructionEvent);
                         destructionEvent.Points = points;
                     }
@@ -553,11 +529,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                                 ? false
                                                 : ProfileService.IsMaxLoadoutId(destruction.AttackerLoadoutId);
 
-            var attackerIsInfantry = (!attackerIsVehicle && !attackerIsMax);
-
-            //var sameTeam = _teamsManager.DoPlayersShareTeam(destruction.AttackerPlayer, destruction.VictimPlayer);
-            //var samePlayer = (destruction.AttackerPlayer == destruction.VictimPlayer || destruction.AttackerPlayer == null);
-
             if (destruction.DeathType == DeathEventType.Suicide)
             {
                 return destruction.VictimVehicle.Type switch
@@ -585,12 +556,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     return destruction.VictimVehicle.Type switch
                     {
-                        //VehicleType.Flash => ScrimActionType.Suicide
-                        //VehicleType.Harasser => ScrimActionType.
-                        //VehicleType.ANT => ScrimActionType.
-                        //VehicleType.Sunderer => ScrimActionType.
-                        //VehicleType.Lightning => ScrimActionType.
-                        //VehicleType.MBT => ScrimActionType.
                         VehicleType.Interceptor => ScrimActionType.VehicleTeamDestroyInterceptor,
                         VehicleType.ESF => ScrimActionType.VehicleTeamDestroyEsf,
                         VehicleType.Valkyrie => ScrimActionType.VehicleTeamDestroyValkyrie,
@@ -612,12 +577,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     return destruction.VictimVehicle.Type switch
                     {
-                        //VehicleType.Flash => ScrimActionType.Suicide
-                        //VehicleType.Harasser => ScrimActionType.
-                        //VehicleType.ANT => ScrimActionType.
-                        //VehicleType.Sunderer => ScrimActionType.
-                        //VehicleType.Lightning => ScrimActionType.
-                        //VehicleType.MBT => ScrimActionType.
                         VehicleType.Interceptor => ScrimActionType.MaxTeamDestroyInterceptor,
                         VehicleType.ESF => ScrimActionType.MaxTeamDestroyEsf,
                         VehicleType.Valkyrie => ScrimActionType.MaxTeamDestroyValkyrie,
@@ -635,16 +594,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         _ => ScrimActionType.Unknown,
                     };
                 }
-                else // attackerIsInfantry
+                else
                 {
                     return destruction.VictimVehicle.Type switch
                     {
-                        //VehicleType.Flash => ScrimActionType.
-                        //VehicleType.Harasser => ScrimActionType.
-                        //VehicleType.ANT => ScrimActionType.
-                        //VehicleType.Sunderer => ScrimActionType.
-                        //VehicleType.Lightning => ScrimActionType.
-                        //VehicleType.MBT => ScrimActionType.
                         VehicleType.Interceptor => ScrimActionType.InfantryTeamDestroyInterceptor,
                         VehicleType.ESF => ScrimActionType.InfantryTeamDestroyEsf,
                         VehicleType.Valkyrie => ScrimActionType.InfantryTeamDestroyValkyrie,
@@ -669,12 +622,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     return destruction.VictimVehicle.Type switch
                     {
-                        //VehicleType.Flash => ScrimActionType.Suicide
-                        //VehicleType.Harasser => ScrimActionType.
-                        //VehicleType.ANT => ScrimActionType.
-                        //VehicleType.Sunderer => ScrimActionType.
-                        //VehicleType.Lightning => ScrimActionType.
-                        //VehicleType.MBT => ScrimActionType.
                         VehicleType.Interceptor => ScrimActionType.VehicleDestroyInterceptor,
                         VehicleType.ESF => ScrimActionType.VehicleDestroyEsf,
                         VehicleType.Valkyrie => ScrimActionType.VehicleDestroyValkyrie,
@@ -696,12 +643,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     return destruction.VictimVehicle.Type switch
                     {
-                        //VehicleType.Flash => ScrimActionType.Suicide
-                        //VehicleType.Harasser => ScrimActionType.
-                        //VehicleType.ANT => ScrimActionType.
-                        //VehicleType.Sunderer => ScrimActionType.
-                        //VehicleType.Lightning => ScrimActionType.
-                        //VehicleType.MBT => ScrimActionType.
                         VehicleType.Interceptor => ScrimActionType.MaxDestroyInterceptor,
                         VehicleType.ESF => ScrimActionType.MaxDestroyEsf,
                         VehicleType.Valkyrie => ScrimActionType.MaxDestroyValkyrie,
@@ -719,16 +660,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         _ => ScrimActionType.Unknown,
                     };
                 }
-                else // attackerIsInfantry
+                else
                 {
                     return destruction.VictimVehicle.Type switch
                     {
-                        //VehicleType.Flash => ScrimActionType.
-                        //VehicleType.Harasser => ScrimActionType.
-                        //VehicleType.ANT => ScrimActionType.
-                        //VehicleType.Sunderer => ScrimActionType.
-                        //VehicleType.Lightning => ScrimActionType.
-                        //VehicleType.MBT => ScrimActionType.
                         VehicleType.Interceptor => ScrimActionType.InfantryDestroyInterceptor,
                         VehicleType.ESF => ScrimActionType.InfantryDestroyEsf,
                         VehicleType.Valkyrie => ScrimActionType.InfantryDestroyValkyrie,
