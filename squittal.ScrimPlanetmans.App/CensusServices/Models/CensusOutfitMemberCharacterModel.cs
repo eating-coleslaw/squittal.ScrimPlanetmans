@@ -7,6 +7,7 @@ namespace squittal.ScrimPlanetmans.CensusServices.Models
         public CharacterName Name { get; set; }
         //public int OnlineStatus { get; set; }
         public string OnlineStatus { get; set; }
+        public int PrestigeLevel { get; set; }
 
         public string OutfitAlias { get; set; }
         public string OutfitAliasLower { get; set; }

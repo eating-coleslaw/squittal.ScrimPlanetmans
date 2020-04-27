@@ -35,6 +35,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int FactionId { get; set; }
         public int WorldId { get; set; }
 
+        public int PrestigeLevel { get; set; }
+
         public string OutfitId { get; set; } = string.Empty;
         public string OutfitAlias { get; set; } = string.Empty;
         public string OutfitAliasLower { get; set; } = string.Empty;
@@ -58,6 +60,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NameTrimmed = GetTrimmedPlayerName(NameFull);
             NameDisplay = NameTrimmed;
             IsOnline = character.IsOnline;
+            PrestigeLevel = character.PrestigeLevel;
             FactionId = character.FactionId;
             WorldId = character.WorldId;
             OutfitId = character.OutfitId;

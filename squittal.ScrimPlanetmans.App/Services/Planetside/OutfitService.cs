@@ -248,6 +248,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 Id = member.CharacterId,
                 Name = member.Name.First,
                 IsOnline = isOnline,
+                PrestigeLevel = member.PrestigeLevel,
                 OutfitId = member.OutfitId,
                 OutfitAlias = member.OutfitAlias,
                 OutfitAliasLower = member.OutfitAliasLower
