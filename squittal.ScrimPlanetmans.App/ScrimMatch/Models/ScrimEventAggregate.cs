@@ -52,10 +52,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public FacilityControlType PreviousScoredBaseControlType { get; set; } = FacilityControlType.Unknown;
 
-        #region Vehicle Stats
+        
         public int VehiclesDestroyed { get; set; } = 0;
         public int VehiclesLost { get; set; } = 0;
 
+        #region Air Vehicle Stats
         public int InterceptorsDestroyed { get; set; } = 0;
         public int InterceptorsLost { get; set; } = 0;
         public int EsfsDestroyed { get; set; } = 0;
@@ -68,7 +69,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int GalaxiesLost { get; set; } = 0;
         public int BastionsDestroyed { get; set; } = 0;
         public int BastionsLost { get; set; } = 0;
-        #endregion Vehicle Stats
+        #endregion Air Vehicle Stats
 
         public int Events
         {
