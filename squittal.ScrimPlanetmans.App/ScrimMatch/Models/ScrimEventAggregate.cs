@@ -52,11 +52,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public FacilityControlType PreviousScoredBaseControlType { get; set; } = FacilityControlType.Unknown;
 
-        
+        #region Vehicles
         public int VehiclesDestroyed { get; set; } = 0;
         public int VehiclesLost { get; set; } = 0;
 
-        #region Air Vehicle Stats
+        #region Air Vehicles
         public int InterceptorsDestroyed { get; set; } = 0;
         public int InterceptorsLost { get; set; } = 0;
         public int EsfsDestroyed { get; set; } = 0;
@@ -69,7 +69,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int GalaxiesLost { get; set; } = 0;
         public int BastionsDestroyed { get; set; } = 0;
         public int BastionsLost { get; set; } = 0;
-        #endregion Air Vehicle Stats
+        #endregion Air Vehicles
+
+        #region Ground Vehicles
+        public int FlashesDestroyed { get; set; } = 0;
+        public int FlashesLost { get; set; } = 0;
+        public int HarassersDestroyed { get; set; } = 0;
+        public int HarassersLost { get; set; } = 0;
+        public int AntsDestroyed { get; set; } = 0;
+        public int AntsLost { get; set; } = 0;
+        public int SunderersDestroyed { get; set; } = 0;
+        public int SunderersLost { get; set; } = 0;
+        public int LightningsDestroyed { get; set; } = 0;
+        public int LightningsLost { get; set; } = 0;
+        public int MbtsDestroyed { get; set; } = 0;
+        public int MbtsLost { get; set; } = 0;
+
+
+        #endregion Ground Vehicles
+
+        #endregion Vehicles
 
         public int Events
         {
@@ -209,6 +228,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             BastionsDestroyed += addend.BastionsDestroyed;
             BastionsLost += addend.BastionsLost;
 
+            FlashesDestroyed += addend.FlashesDestroyed;
+            FlashesLost += addend.FlashesLost;
+            HarassersDestroyed += addend.HarassersDestroyed;
+            HarassersLost += addend.HarassersLost;
+            AntsDestroyed += addend.AntsDestroyed;
+            AntsLost += addend.AntsLost;
+            SunderersDestroyed += addend.SunderersDestroyed;
+            SunderersLost += addend.SunderersLost;
+            LightningsDestroyed += addend.LightningsDestroyed;
+            LightningsLost += addend.LightningsLost;
+            MbtsDestroyed += addend.MbtsDestroyed;
+            MbtsLost += addend.MbtsLost;
+
             ObjectiveCaptureTicks += addend.ObjectiveCaptureTicks;
             ObjectiveDefenseTicks += addend.ObjectiveDefenseTicks;
             BaseCaptures += addend.BaseCaptures;
@@ -259,6 +291,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             GalaxiesLost -= subtrahend.GalaxiesLost;
             BastionsDestroyed -= subtrahend.BastionsDestroyed;
             BastionsLost -= subtrahend.BastionsLost;
+
+            FlashesDestroyed -= subtrahend.FlashesDestroyed;
+            FlashesLost -= subtrahend.FlashesLost;
+            HarassersDestroyed -= subtrahend.HarassersDestroyed;
+            HarassersLost -= subtrahend.HarassersLost;
+            AntsDestroyed -= subtrahend.AntsDestroyed;
+            AntsLost -= subtrahend.AntsLost;
+            SunderersDestroyed -= subtrahend.SunderersDestroyed;
+            SunderersLost -= subtrahend.SunderersLost;
+            LightningsDestroyed -= subtrahend.LightningsDestroyed;
+            LightningsLost -= subtrahend.LightningsLost;
+            MbtsDestroyed -= subtrahend.MbtsDestroyed;
+            MbtsLost -= subtrahend.MbtsLost;
 
             ObjectiveCaptureTicks -= subtrahend.ObjectiveCaptureTicks;
             ObjectiveDefenseTicks -= subtrahend.ObjectiveDefenseTicks;

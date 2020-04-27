@@ -143,7 +143,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     case "PlayerLogin":
                         var loginParam = jPayload.ToObject<PlayerLoginPayload>(_payloadDeserializer);
                         await Task.Run(()=>
-                        { 
+                        {
                             Process(loginParam);
                         });
                         break;
@@ -562,18 +562,20 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 return destruction.VictimVehicle.Type switch
                 {
-                    //VehicleType.Flash => ScrimActionType.Suicide
-                    //VehicleType.Harasser => ScrimActionType.
-                    //VehicleType.ANT => ScrimActionType.
-                    //VehicleType.Sunderer => ScrimActionType.
-                    //VehicleType.Lightning => ScrimActionType.
-                    //VehicleType.MBT => ScrimActionType.
                     VehicleType.Interceptor => ScrimActionType.InterceptorSuicide,
                     VehicleType.ESF => ScrimActionType.EsfSuicide,
                     VehicleType.Valkyrie => ScrimActionType.ValkyrieSuicide,
                     VehicleType.Liberator => ScrimActionType.LiberatorSuicide,
                     VehicleType.Galaxy => ScrimActionType.GalaxySuicide,
                     VehicleType.Bastion => ScrimActionType.BastionSuicide,
+
+                    VehicleType.Flash => ScrimActionType.FlashSuicide,
+                    VehicleType.Harasser => ScrimActionType.HarasserSuicide,
+                    VehicleType.ANT => ScrimActionType.AntSuicide,
+                    VehicleType.Sunderer => ScrimActionType.SundererSuicide,
+                    VehicleType.Lightning => ScrimActionType.LightningSuicide,
+                    VehicleType.MBT => ScrimActionType.MbtSuicide,
+
                     _ => ScrimActionType.Unknown,
                 };
             }
@@ -595,6 +597,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         VehicleType.Liberator => ScrimActionType.VehicleTeamDestroyLiberator,
                         VehicleType.Galaxy => ScrimActionType.VehicleTeamDestroyGalaxy,
                         VehicleType.Bastion => ScrimActionType.VehicleTeamDestroyBastion,
+
+                        VehicleType.Flash => ScrimActionType.VehicleTeamDestroyFlash,
+                        VehicleType.Harasser => ScrimActionType.VehicleTeamDestroyHarasser,
+                        VehicleType.ANT => ScrimActionType.VehicleTeamDestroyAnt,
+                        VehicleType.Sunderer => ScrimActionType.VehicleTeamDestroySunderer,
+                        VehicleType.Lightning => ScrimActionType.VehicleTeamDestroyLightning,
+                        VehicleType.MBT => ScrimActionType.VehicleTeamDestroyMbt,
+
                         _ => ScrimActionType.Unknown,
                     };
                 }
@@ -614,6 +624,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         VehicleType.Liberator => ScrimActionType.MaxTeamDestroyLiberator,
                         VehicleType.Galaxy => ScrimActionType.MaxTeamDestroyGalaxy,
                         VehicleType.Bastion => ScrimActionType.MaxTeamDestroyBastion,
+
+                        VehicleType.Flash => ScrimActionType.MaxTeamDestroyFlash,
+                        VehicleType.Harasser => ScrimActionType.MaxTeamDestroyHarasser,
+                        VehicleType.ANT => ScrimActionType.MaxTeamDestroyAnt,
+                        VehicleType.Sunderer => ScrimActionType.MaxTeamDestroySunderer,
+                        VehicleType.Lightning => ScrimActionType.MaxTeamDestroyLightning,
+                        VehicleType.MBT => ScrimActionType.MaxTeamDestroyMbt,
+
                         _ => ScrimActionType.Unknown,
                     };
                 }
@@ -633,6 +651,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         VehicleType.Liberator => ScrimActionType.InfantryTeamDestroyLiberator,
                         VehicleType.Galaxy => ScrimActionType.InfantryTeamDestroyGalaxy,
                         VehicleType.Bastion => ScrimActionType.InfantryTeamDestroyBastion,
+
+                        VehicleType.Flash => ScrimActionType.InfantryTeamDestroyFlash,
+                        VehicleType.Harasser => ScrimActionType.InfantryTeamDestroyHarasser,
+                        VehicleType.ANT => ScrimActionType.InfantryTeamDestroyAnt,
+                        VehicleType.Sunderer => ScrimActionType.InfantryTeamDestroySunderer,
+                        VehicleType.Lightning => ScrimActionType.InfantryTeamDestroyLightning,
+                        VehicleType.MBT => ScrimActionType.InfantryTeamDestroyMbt,
+
                         _ => ScrimActionType.Unknown,
                     };
                 }
@@ -655,6 +681,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         VehicleType.Liberator => ScrimActionType.VehicleDestroyLiberator,
                         VehicleType.Galaxy => ScrimActionType.VehicleDestroyGalaxy,
                         VehicleType.Bastion => ScrimActionType.VehicleDestroyBastion,
+
+                        VehicleType.Flash => ScrimActionType.VehicleDestroyFlash,
+                        VehicleType.Harasser => ScrimActionType.VehicleDestroyHarasser,
+                        VehicleType.ANT => ScrimActionType.VehicleDestroyAnt,
+                        VehicleType.Sunderer => ScrimActionType.VehicleDestroySunderer,
+                        VehicleType.Lightning => ScrimActionType.VehicleDestroyLightning,
+                        VehicleType.MBT => ScrimActionType.VehicleDestroyMbt,
+
                         _ => ScrimActionType.Unknown,
                     };
                 }
@@ -674,6 +708,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         VehicleType.Liberator => ScrimActionType.MaxDestroyLiberator,
                         VehicleType.Galaxy => ScrimActionType.MaxDestroyGalaxy,
                         VehicleType.Bastion => ScrimActionType.MaxDestroyBastion,
+
+                        VehicleType.Flash => ScrimActionType.MaxDestroyFlash,
+                        VehicleType.Harasser => ScrimActionType.MaxDestroyHarasser,
+                        VehicleType.ANT => ScrimActionType.MaxDestroyAnt,
+                        VehicleType.Sunderer => ScrimActionType.MaxDestroySunderer,
+                        VehicleType.Lightning => ScrimActionType.MaxDestroyLightning,
+                        VehicleType.MBT => ScrimActionType.MaxDestroyMbt,
+
                         _ => ScrimActionType.Unknown,
                     };
                 }
@@ -693,6 +735,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         VehicleType.Liberator => ScrimActionType.InfantryDestroyLiberator,
                         VehicleType.Galaxy => ScrimActionType.InfantryDestroyGalaxy,
                         VehicleType.Bastion => ScrimActionType.InfantryDestroyBastion,
+
+                        VehicleType.Flash => ScrimActionType.InfantryDestroyFlash,
+                        VehicleType.Harasser => ScrimActionType.InfantryDestroyHarasser,
+                        VehicleType.ANT => ScrimActionType.InfantryDestroyAnt,
+                        VehicleType.Sunderer => ScrimActionType.InfantryDestroySunderer,
+                        VehicleType.Lightning => ScrimActionType.InfantryDestroyLightning,
+                        VehicleType.MBT => ScrimActionType.InfantryDestroyMbt,
+
                         _ => ScrimActionType.Unknown,
                     };
                 }

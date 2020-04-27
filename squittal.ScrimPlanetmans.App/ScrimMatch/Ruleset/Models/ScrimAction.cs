@@ -52,6 +52,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         InfantryDestroyBastion          = 116,
         InfantryTeamDestroyBastion      = 117,
 
+        InfantryDestroyFlash            = 118,
+        InfantryTeamDestroyFlash        = 119,
+        InfantryDestroyHarasser         = 120,
+        InfantryTeamDestroyHarasser     = 121,
+        InfantryDestroyAnt              = 122,
+        InfantryTeamDestroyAnt          = 123,
+        InfantryDestroySunderer         = 124,
+        InfantryTeamDestroySunderer     = 125,
+        InfantryDestroyLightning        = 126,
+        InfantryTeamDestroyLightning    = 127,
+        InfantryDestroyMbt              = 128,
+        InfantryTeamDestroyMbt          = 129,
+
         // Maxes: 200 - 299
         MaxKillInfantry                = 200,
         MaxKillMax                     = 201,
@@ -76,6 +89,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         MaxTeamDestroyGalaxy           = 215,
         MaxDestroyBastion              = 216,
         MaxTeamDestroyBastion          = 217,
+
+        MaxDestroyFlash                 = 218,
+        MaxTeamDestroyFlash             = 219,
+        MaxDestroyHarasser              = 220,
+        MaxTeamDestroyHarasser          = 221,
+        MaxDestroyAnt                   = 222,
+        MaxTeamDestroyAnt               = 223,
+        MaxDestroySunderer              = 224,
+        MaxTeamDestroySunderer          = 225,
+        MaxDestroyLightning             = 226,
+        MaxTeamDestroyLightning         = 227,
+        MaxDestroyMbt                   = 228,
+        MaxTeamDestroyMbt               = 229,
 
         // Support: 300 - 399
         ReviveInfantry              = 300,
@@ -107,6 +133,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         VehicleTeamDestroyGalaxy           = 415,
         VehicleDestroyBastion              = 416,
         VehicleTeamDestroyBastion          = 417,
+
+        VehicleDestroyFlash                 = 418,
+        VehicleTeamDestroyFlash             = 419,
+        VehicleDestroyHarasser              = 420,
+        VehicleTeamDestroyHarasser          = 421,
+        VehicleDestroyAnt                   = 422,
+        VehicleTeamDestroyAnt               = 423,
+        VehicleDestroySunderer              = 424,
+        VehicleTeamDestroySunderer          = 425,
+        VehicleDestroyLightning             = 426,
+        VehicleTeamDestroyLightning         = 427,
+        VehicleDestroyMbt                   = 428,
+        VehicleTeamDestroyMbt               = 429,
 
 
         // Interceptor: 500 - 599
@@ -306,6 +345,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         BastionTeamkillLiberator    = 1026,
         BastionTeamkillGalaxy       = 1027,
         BastionTeamkillBastion      = 1028,
+
+        // Flash: 1100 - 1199
+        FlashSuicide = 1104,
+
+        // Harasser: 1200 - 1299
+        HarasserSuicide = 1204,
+
+        // ANT: 1300 - 1399
+        AntSuicide = 1304,
+
+        // Sunderer: 1400 - 1499
+        SundererSuicide = 1404,
+
+        // Lightning: 1500 - 1599
+        LightningSuicide = 1504,
+
+        // MBT: 1600 - 1699
+        MbtSuicide = 1604,
 
         // Miscellaneous: 5000 - 6099
         Login   = 5000,

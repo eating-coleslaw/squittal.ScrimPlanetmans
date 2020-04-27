@@ -407,7 +407,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 ValkyriesDestroyed = vehicleType == VehicleType.Valkyrie ? 1 : 0,
                 LiberatorsDestroyed = vehicleType == VehicleType.Liberator ? 1 : 0,
                 GalaxiesDestroyed = vehicleType == VehicleType.Galaxy ? 1 : 0,
-                BastionsDestroyed = vehicleType == VehicleType.Bastion ? 1 : 0
+                BastionsDestroyed = vehicleType == VehicleType.Bastion ? 1 : 0,
+
+                FlashesDestroyed = vehicleType == VehicleType.Flash ? 1 : 0,
+                HarassersDestroyed = vehicleType == VehicleType.Harasser ? 1 : 0,
+                AntsDestroyed = vehicleType == VehicleType.ANT ? 1 : 0,
+                SunderersDestroyed = vehicleType == VehicleType.Sunderer ? 1 : 0,
+                LightningsDestroyed = vehicleType == VehicleType.Lightning ? 1 : 0,
+                MbtsDestroyed = vehicleType == VehicleType.MBT ? 1 : 0
             };
         }
 
@@ -422,7 +429,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 ValkyriesLost = vehicleType == VehicleType.Valkyrie ? 1 : 0,
                 LiberatorsLost = vehicleType == VehicleType.Liberator ? 1 : 0,
                 GalaxiesLost = vehicleType == VehicleType.Galaxy ? 1 : 0,
-                BastionsLost = vehicleType == VehicleType.Bastion ? 1 : 0
+                BastionsLost = vehicleType == VehicleType.Bastion ? 1 : 0,
+
+                FlashesLost = vehicleType == VehicleType.Flash ? 1 : 0,
+                HarassersLost = vehicleType == VehicleType.Harasser ? 1 : 0,
+                AntsLost = vehicleType == VehicleType.ANT ? 1 : 0,
+                SunderersLost = vehicleType == VehicleType.Sunderer ? 1 : 0,
+                LightningsLost = vehicleType == VehicleType.Lightning ? 1 : 0,
+                MbtsLost = vehicleType == VehicleType.MBT ? 1 : 0
             };
         }
         #endregion Vehicle Destruction Events
