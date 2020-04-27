@@ -484,7 +484,7 @@
             {
                 newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
 
-                if (newOutfit != null)
+                if (newOutfit != null && newOutfit.MemberCount > 0)
                 {
                     _validOutfitAliasHistory.Add(newAliasLower);
                     _inputAlias.Alias = string.Empty;
@@ -508,6 +508,11 @@
                 }
                 else
                 {
+                    if (newOutfit!= null && newOutfit.MemberCount == 0)
+                    {
+                        LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>. Outfit has no members</span>");
+                    }
+
                     _teamOutfitsLoading.Remove(newAliasLower);
 
                     await InvokeAsync(() =>

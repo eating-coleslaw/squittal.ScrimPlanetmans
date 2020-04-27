@@ -41,6 +41,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             var censusEntity = ConvertToDbModel(outfit);
+
+            if (censusEntity.MemberCount == 0)
+            {
+                return censusEntity;
+            }
+
             var resolvedOutfit = await ResolveOutfitDetailsAsync(censusEntity, null);
 
             return resolvedOutfit;
