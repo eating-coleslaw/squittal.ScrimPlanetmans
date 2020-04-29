@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
@@ -6,6 +8,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
     {
         public int Points { get; set; } = 0;
         public int NetScore { get; set; } = 0;
+
+        public List<PointAdjustment> PointAdjustments = new List<PointAdjustment>();
+
+        public int PointsPenalized
+        {
+            get
+            {
+                return GetPointsPenalized();
+            }
+        }
+
+        public int PointsGranted
+        {
+            get
+            {
+                return GetPointsGranted();
+            }
+        }
 
         public int Kills { get; set; } = 0;
         public int Deaths { get; set; } = 0;
@@ -194,6 +214,37 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
+        private int GetPointsPenalized()
+        {
+            if (PointAdjustments.Any(pa => pa.AdjustmentType == PointAdjustmentType.Penalty))
+            {
+                return PointAdjustments.Where(pa => pa.AdjustmentType == PointAdjustmentType.Penalty)
+                                       .Select(pa => pa.Points)
+                                       .Sum();
+
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private int GetPointsGranted()
+        {
+            if (PointAdjustments.Any(pa => pa.AdjustmentType == PointAdjustmentType.Bonus))
+            {
+                return PointAdjustments.Where(pa => pa.AdjustmentType == PointAdjustmentType.Bonus)
+                                       .Select(pa => pa.Points)
+                                       .Sum();
+
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+
         public ScrimEventAggregate Add(ScrimEventAggregate addend)
         {
             Points += addend.Points;
@@ -254,6 +305,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             {
                 PreviousScoredBaseControlType = FacilityControlType.Defense;
             }
+
+            if (addend.PointAdjustments.Count > 0)
+            {
+                PointAdjustments.AddRange(addend.PointAdjustments.Where(pa => !PointAdjustments.Contains(pa)).ToList());
+                
+                //foreach (var adjustment in addend.PointAdjustments)
+                //{
+                //    if (!PointAdjustments.Any(pa => pa.Timestamp == adjustment.Timestamp && pa.Rationale == adjustment.Rationale))
+                //    {
+                //        PointAdjustments.Add(adjustment);
+                //    }
+                //}
+            }
+
 
             return this;
         }
@@ -326,7 +391,28 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 }
             }
 
+            if (subtrahend.PointAdjustments.Count > 0)
+            {
+                PointAdjustments.RemoveAll(pa => subtrahend.PointAdjustments.Contains(pa));
+
+                //foreach (var adjustment in subtrahend.PointAdjustments)
+                //{
+                //    if (!PointAdjustments.Any(pa => pa.Timestamp == adjustment.Timestamp && pa.Rationale == adjustment.Rationale))
+                //    {
+                //        PointAdjustments.Remove(adjustment);
+                //    }
+                //}
+            }
+
             return this;
+        }
+
+        public void AddPointAdjustment(PointAdjustment adjustment)
+        {
+            Points += adjustment.Points;
+            NetScore += adjustment.Points;
+
+            PointAdjustments.Add(adjustment);
         }
     }
 }

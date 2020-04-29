@@ -2,9 +2,13 @@
     --sq-pink: #e0397e;
     --sq-pink-darker: #B32D64;
     --sq-pink-lighter: #e34f8c;
+    --sq-pink-lighter-alpha-80: rgba(227, 79, 140, 0.8);
     --sq-pink-lighter-alpha-50: rgba(227, 79, 140, 0.5);
+    --sq-pink-lighter-alpha-40: rgba(227, 79, 140, 0.4);
+    --sq-pink-lighter-alpha-30: rgba(227, 79, 140, 0.3);
     --sq-pink-lighter-alpha-25: rgba(227, 79, 140, 0.25);
     --sq-pink-lighter-alpha-125: rgba(227, 79, 140, 0.125);
+    --sq-pink-lighter-alpha-10: rgba(227, 79, 140, 0.1);
     --sq-light-blue-gray: #d4d4ff;
     --sq-light-blue-gray-alpha: #d4d4ff50;
     --sq-light-blue-gray-alpha-5a: #d4d4ff5a;
@@ -81,4 +85,13 @@
     --sq-ps2-primary-light-alpha-30: #a4a4c230;
     --sq-ps2-primary-light-alpha-40: #a4a4c240;
     --sq-ps2-primary-light-alpha-80: #a4a4c280;
+}
+
+.default {
+    --sq-ps2-primary: var(--sq-pink-darker);
+    --sq-ps2-primary-light: var(--sq-pink-lighter);
+    --sq-ps2-primary-ligh-alpha-10: var(--sq-pink-lighter-alpha-10);
+    --sq-ps2-primary-ligh-alpha-30: var(--sq-pink-lighter-alpha-30);
+    --sq-ps2-primary-ligh-alpha-40: var(--sq-pink-lighter-alpha-40);
+    --sq-ps2-primary-ligh-alpha-80: var(--sq-pink-lighter-alpha-80);
 }

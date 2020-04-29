@@ -58,5 +58,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         int? GetNextWorldId(int previousWorldId);
         int? GetFirstTeamWithFactionId(int factionId);
         void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates);
+        void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
     }
 }

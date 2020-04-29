@@ -40,6 +40,17 @@
                     <span class="oi oi-pencil"></span>Update
                 </button>
             </EditForm>
+
+            @if (_team.EventAggregate != null && (_team.EventAggregate.Points != 0 || _team.EventAggregate.PointAdjustments.Any()))
+            {
+                <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
+                @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
+                <span style="font-weight: 700; font-size: larger;">
+                    @(_team.EventAggregate.Points)
+                </span>
+            </span>
+            }
+
         </h4>
 
     }
@@ -116,6 +127,85 @@
             </EditForm>
         </div>
     }
+
+    <div style="margin: 0.4rem 0 0.2rem 0;">
+        <div>
+            <div style="display: inline-block; font-size: 0.9rem;">Point Adjustments</div>
+            <button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglePointAdjustmentsVisibility">@(_extendPointAdjustments ? "Hide" : "Show")</button>
+        </div>
+        
+        @if (_extendPointAdjustments)
+        {
+            @if (_team != null && _team.EventAggregate.PointAdjustments.Any())
+            {
+                <div class="@GetHeaderCardClass()">
+                    <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="margin-bottom: 0.5rem; width: 100%; font-size: small;">
+                        <tbody style="border-top: 1px solid var(--sq-ps2-primary-light);">
+                            @foreach (var adjustment in _team.EventAggregate.PointAdjustments)
+                            {
+                                <tr>
+                                    <td style="text-align: right">@GetPointsDisplay(adjustment.Points)</td>
+                                    @if (string.IsNullOrWhiteSpace(adjustment.Rationale))
+                                    {
+                                        <td style="font-style: italic;">No reason given</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@adjustment.Rationale</td>
+                                    }
+                                    <td >@adjustment.Timestamp.ToString("hh:mm:ss tt")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            
+            @if (_showPointAdjustmentForm)
+            {
+                <EditForm Model="@_inputPointAdjustment" OnValidSubmit="HandlePointAdjustmentSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    Amount: <InputNumber id="adjustmentPoints" @bind-Value="_inputPointAdjustment.Points" style="width: 64px; margin: 0.2rem 0.4rem 0.2rem 0;"/>
+
+                    Reason: <InputText id="adjustmentRationale" @bind-Value="_inputPointAdjustment.Rationale" style="margin: 0.2rem 0;"/>
+
+                    <div style="display: block; margin-left: auto; margin-right: auto;">
+                        <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 0.2rem 0;">
+                        @*<button type="submit" class="btn btn-primary" style="margin: 0.2rem 0;">
+                            @*<span class="oi oi-wrench"></span>Adjust*@
+                            @*<span class="oi oi-check" style="padding-right: 0px;"></span>*@
+                            <span class="oi oi-check"></span>Confirm
+                        </button>
+                    
+                        <button @onclick="HandlePointAdjustmentCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 0.2rem 0;" title="Cancel adding new point adjustment">
+                            <span class="oi oi-x" style="top: 0;"></span>Cancel
+                        </button>
+                    </div>
+
+                    @*<button type="submit" style="padding: 0 0.2rem; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Confirm new point adjustment">
+                        @*<span class="oi oi-check" style="font-size: 0.8rem; top: 1px;"></span>
+                        <span class="oi oi-check" style="font-size: 1rem; top: 1px;"></span>
+                    </button>*@
+
+                    @*<button style="padding: 0 0.2rem; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandlePointAdjustmentCancel" title="Cancel adding new point adjustment">
+                        <span class="oi oi-x" style="font-size: 1rem; top: 1px;"></span>
+                    </button>*@
+
+                </EditForm>
+            }
+            else
+            {
+                <button class="btn btn-outline-primary" @onclick="TogglePointAdjustmentFormVisibility" style="display: block; margin: 0.2rem auto 0.2rem auto; font-size: small;">
+                    <span class="oi oi-plus"></span>New Point Adjustment
+                </button>
+            }
+
+            
+        }
+    </div>
+
 </div>
 
 @if (_teamOutfits.Any())
@@ -336,6 +426,8 @@
 
     private string _inputPlayer = string.Empty;
 
+    private PointAdjustment _inputPointAdjustment = new PointAdjustment();
+
 
     private List<string> _teamOutfitsLoadingMembers = new List<string>();
 
@@ -371,6 +463,10 @@
     private int _defaultMaxPlayersToExtend = 6;
 
     private bool _showRemovals = false;
+
+    private bool _showPointAdjustmentForm = false;
+
+    private bool _extendPointAdjustments = true;
     #endregion
 
     #region Helpers
@@ -662,9 +758,35 @@
     {
         ScrimTeamsManager.SetPlayerBenchedStatus(characterId, true);
     }
+
+    private void HandlePointAdjustmentSubmit()
+    {
+        var adjustment = _inputPointAdjustment;
+
+        if (adjustment.Points == 0 && string.IsNullOrWhiteSpace(adjustment.Rationale))
+        {
+            return;
+        }
+
+        adjustment.Timestamp = DateTime.Now;
+
+        ScrimTeamsManager.AdjustTeamPoints(i_teamOrdinal, adjustment);
+
+        _inputPointAdjustment = new PointAdjustment();
+
+        _showPointAdjustmentForm = false;
+    }
+
+    private void HandlePointAdjustmentCancel()
+    {
+        _inputPointAdjustment = new PointAdjustment();
+
+        _showPointAdjustmentForm = false;
+    }
+
     #endregion
 
-    #region  UI & Layout Controls
+    #region UI & Layout Controls
     private void ToggleOutfitPlayersVisibility(string aliasLower)
     {
         if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
@@ -690,13 +812,29 @@
         }
     }
 
+    private void TogglePointAdjustmentsVisibility()
+    {
+        _extendPointAdjustments = !_extendPointAdjustments;
+
+        if (!_extendPointAdjustments)
+        {
+            _showPointAdjustmentForm = false;
+        }
+    }
+
+    private void TogglePointAdjustmentFormVisibility()
+    {
+        _showPointAdjustmentForm = !_showPointAdjustmentForm;
+    }
+
+    #endregion UI & Layout Controls
+
+    #region Event Handling
     private void LogMessage(string message)
     {
         MessageService.BroadcastSimpleMessage(message);
     }
-    #endregion
 
-    #region Event Handling
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
         var message = e.Message;
@@ -1062,5 +1200,17 @@
         return (value != 0)
             ? 1.0
             : 0.5;
+    }
+
+    private string GetPointsDisplay(int points)
+    {
+        if (points >= 0)
+        {
+            return $"+{points.ToString()}";
+        }
+        else
+        {
+            return $"{points.ToString()}";
+        }
     }
 }

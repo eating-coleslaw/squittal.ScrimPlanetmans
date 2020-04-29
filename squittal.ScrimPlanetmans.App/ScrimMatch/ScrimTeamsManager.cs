@@ -787,7 +787,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.AddStatsUpdate(updates);
 
-            // TODO: broadcast Team stats update
             SendTeamStatUpdateMessage(team);
         }
 
@@ -811,6 +810,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 player.EventAggregateTracker.SaveRoundToHistory(round);
             }
+        }
+
+        public void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment)
+        {
+            var statUpdate = new ScrimEventAggregate();
+
+            statUpdate.AddPointAdjustment(adjustment);
+            
+            var team = GetTeam(teamOrdinal);
+
+            team.AddStatsUpdate(statUpdate);
+
+            SendTeamStatUpdateMessage(team);
         }
 
 
