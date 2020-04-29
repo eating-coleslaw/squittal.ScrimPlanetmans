@@ -59,5 +59,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         int? GetFirstTeamWithFactionId(int factionId);
         void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates);
         void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
+        void RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment);
     }
 }

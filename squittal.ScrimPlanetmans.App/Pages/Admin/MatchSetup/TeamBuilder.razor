@@ -154,6 +154,13 @@
                                         <td>@adjustment.Rationale</td>
                                     }
                                     <td >@adjustment.Timestamp.ToString("hh:mm:ss tt")</td>
+
+                                    <td style="width: 15px; text-align: right;">
+                                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandlePointAdjustmentRemove(adjustment))" title="Remove Point Adjustment">
+                                            <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                                        </button>
+                                    </td>
+
                                 </tr>
                             }
                         </tbody>
@@ -770,6 +777,11 @@
         _inputPointAdjustment = new PointAdjustment();
 
         _showPointAdjustmentForm = false;
+    }
+
+    private void HandlePointAdjustmentRemove(PointAdjustment adjustment)
+    {
+        ScrimTeamsManager.RemoveTeamPointAdjustment(i_teamOrdinal, adjustment);
     }
 
     #endregion

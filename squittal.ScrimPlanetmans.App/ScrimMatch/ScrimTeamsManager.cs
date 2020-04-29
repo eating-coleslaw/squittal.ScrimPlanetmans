@@ -825,6 +825,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team);
         }
 
+        public void RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment)
+        {
+            var statUpdate = new ScrimEventAggregate();
+
+            statUpdate.AddPointAdjustment(adjustment);
+
+            var team = GetTeam(teamOrdinal);
+
+            team.SubtractStatsUpdate(statUpdate);
+
+            SendTeamStatUpdateMessage(team);
+        }
+
 
         #region Player Status Updates
         public void SetPlayerOnlineStatus(string characterId, bool isOnline)

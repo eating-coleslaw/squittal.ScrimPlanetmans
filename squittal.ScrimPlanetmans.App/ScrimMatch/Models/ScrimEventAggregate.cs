@@ -309,16 +309,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             if (addend.PointAdjustments.Count > 0)
             {
                 PointAdjustments.AddRange(addend.PointAdjustments.Where(pa => !PointAdjustments.Contains(pa)).ToList());
-                
-                //foreach (var adjustment in addend.PointAdjustments)
-                //{
-                //    if (!PointAdjustments.Any(pa => pa.Timestamp == adjustment.Timestamp && pa.Rationale == adjustment.Rationale))
-                //    {
-                //        PointAdjustments.Add(adjustment);
-                //    }
-                //}
             }
-
 
             return this;
         }
@@ -394,14 +385,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             if (subtrahend.PointAdjustments.Count > 0)
             {
                 PointAdjustments.RemoveAll(pa => subtrahend.PointAdjustments.Contains(pa));
-
-                //foreach (var adjustment in subtrahend.PointAdjustments)
-                //{
-                //    if (!PointAdjustments.Any(pa => pa.Timestamp == adjustment.Timestamp && pa.Rationale == adjustment.Rationale))
-                //    {
-                //        PointAdjustments.Remove(adjustment);
-                //    }
-                //}
             }
 
             return this;
@@ -413,6 +396,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NetScore += adjustment.Points;
 
             PointAdjustments.Add(adjustment);
+        }
+
+        public void RemovePointAdjustment(PointAdjustment adjustment)
+        {
+            if (!PointAdjustments.Contains(adjustment))
+            {
+                return;
+            }
+            
+            Points -= adjustment.Points;
+            NetScore -= adjustment.Points;
+
+            PointAdjustments.Remove(adjustment);
         }
     }
 }
