@@ -10,10 +10,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
     {
         public string Title { get; set; } = "PS2 Scrims";
         public int RoundSecondsTotal { get; set; } = 900;
-        public int RoundStartCountdownSeconds { get; set; } = 5;
-        public string TeamAlias1 { get; set; }
-        public string TeamAlias2 { get; set; }
-        public string CensusServiceKey { get; set; } = "example";
 
         // Target Base Configuration
         public bool IsManualWorldId { get; private set; } = false;
@@ -26,6 +22,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public bool EndRoundOnFacilityCapture { get; set; } = false; // TODO: move this setting to the Ruleset model
 
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
+
+        public bool SaveLogFiles { get; set; } = true;
 
         public void ResetWorldId()
         {

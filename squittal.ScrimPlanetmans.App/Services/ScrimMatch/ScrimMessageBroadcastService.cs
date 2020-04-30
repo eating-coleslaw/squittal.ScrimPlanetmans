@@ -1,13 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
+using squittal.ScrimPlanetmans.Logging;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using System;
+using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
     public class ScrimMessageBroadcastService : IScrimMessageBroadcastService
     {
         private readonly ILogger<ScrimMessageBroadcastService> _logger;
-        
+
+        public string LogFileName { get; set; }
+        public bool IsLoggingEnabled { get; set; } = false;
+
         public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
@@ -65,12 +70,51 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             _logger = logger;
         }
 
+        #region Logging
+        public void DisableLogging()
+        {
+            IsLoggingEnabled = false;
+        }
+        public void EnableLogging()
+        {
+            IsLoggingEnabled = true;
+        }
+
+        public void SetLogFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return;
+            }
+
+            LogFileName = fileName;
+        }
+
+
+        private void TrySaveToLogFile(string message)
+        {
+            var timestamp = DateTime.Now.ToLongTimeString();
+
+            if (IsLoggingEnabled && !string.IsNullOrWhiteSpace(LogFileName))
+            {
+                Task.Run( () =>
+                {
+                    LogFileWriter.WriteToLogFile(LogFileName, $"{timestamp}: {message}");
+                });
+            }
+        }
+
+        #endregion Loggin
+
+
         /***********************
          * Match State Change
          ***********************/
         public void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message)
         {
             OnRaiseMatchStateUpdateEvent(new MatchStateUpdateEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseMatchStateUpdateEvent(MatchStateUpdateEventArgs e)
         {
@@ -80,6 +124,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastMatchConfigurationUpdateMessage(MatchConfigurationUpdateMessage message)
         {
             OnRaiseMatchConfigurationUpdateEvent(new MatchConfigurationUpdateEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseMatchConfigurationUpdateEvent(MatchConfigurationUpdateEventArgs e)
         {
@@ -104,6 +150,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastPlayerLoginMessage(PlayerLoginMessage message)
         {
             OnRaisePlayerLoginEvent(new PlayerLoginEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaisePlayerLoginEvent(PlayerLoginEventArgs e)
         {
@@ -113,6 +161,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastPlayerLogoutMessage(PlayerLogoutMessage message)
         {
             OnRaisePlayerLogoutEvent(new PlayerLogoutEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaisePlayerLogoutEvent(PlayerLogoutEventArgs e)
         {
@@ -143,6 +193,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
         {
             OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
         {
@@ -152,6 +204,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message)
         {
             OnRaiseScrimVehicleDestructionActionEvent(new ScrimVehicleDestructionActionEventEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseScrimVehicleDestructionActionEvent(ScrimVehicleDestructionActionEventEventArgs e)
         {
@@ -161,6 +215,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message)
         {
             OnRaiseScrimReviveActionEvent(new ScrimReviveActionEventEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseScrimReviveActionEvent(ScrimReviveActionEventEventArgs e)
         {
@@ -170,6 +226,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastScrimAssistActionEventMessage(ScrimAssistActionEventMessage message)
         {
             OnRaiseScrimAssistActionEvent(new ScrimAssistActionEventEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseScrimAssistActionEvent(ScrimAssistActionEventEventArgs e)
         {
@@ -179,6 +237,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEventMessage message)
         {
             OnRaiseScrimObjectiveTickActionEvent(new ScrimObjectiveTickActionEventEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseScrimObjectiveTickActionEvent(ScrimObjectiveTickActionEventEventArgs e)
         {
@@ -188,6 +248,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastScrimFacilityControlActionEventMessage(ScrimFacilityControlActionEventMessage message)
         {
             OnRaiseScrimFacilityControlActionEvent(new ScrimFacilityControlActionEventEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseScrimFacilityControlActionEvent(ScrimFacilityControlActionEventEventArgs e)
         {
@@ -200,6 +262,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastSimpleMessage(string message)
         {
             OnRaiseSimpleMessageEvent(new SimpleMessageEventArgs(message));
+
+            TrySaveToLogFile(message);
         }
         protected virtual void OnRaiseSimpleMessageEvent(SimpleMessageEventArgs e)
         {
@@ -212,6 +276,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
         {
             OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
         {
@@ -221,6 +287,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public void BroadcastTeamOutfitChangeMessage(TeamOutfitChangeMessage message)
         {
             OnRaiseTeamOutfitChangeEvent(new TeamOutfitChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
         }
         protected virtual void OnRaiseTeamOutfitChangeEvent(TeamOutfitChangeEventArgs e)
         {

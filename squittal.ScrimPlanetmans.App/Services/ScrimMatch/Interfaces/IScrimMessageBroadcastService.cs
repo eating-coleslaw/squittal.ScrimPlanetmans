@@ -5,6 +5,12 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
     public interface IScrimMessageBroadcastService
     {
+        string LogFileName { get; set; }
+        bool IsLoggingEnabled { get; set; }
+        void DisableLogging();
+        void EnableLogging();
+        void SetLogFileName(string fileName);
+
         event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
 
         event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;

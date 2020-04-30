@@ -331,7 +331,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 await _handler.Process(jMsg);
 
-                SendSimpleMessage(message);
+                //SendSimpleMessage(message);
             }
 
             //await _handler.Process(jMsg);

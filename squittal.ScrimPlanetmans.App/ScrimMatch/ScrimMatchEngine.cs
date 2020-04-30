@@ -31,7 +31,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         //private int _roundSecondsElapsed = 0;
 
         private MatchState _matchState = MatchState.Uninitialized;
-        
+
+        private DateTime _matchStartTime;
+
 
         public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
@@ -63,6 +65,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             if (_currentRound == 0)
             {
                 // TODO: InitializeNewMatch
+                InitializeNewMatch();
             }
 
             InitializeNewRound();
@@ -80,7 +83,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             _wsMonitor.DisableScoring();
             _wsMonitor.RemoveAllCharacterSubscriptions();
-            
+            _messageService.DisableLogging();
+
             MatchConfiguration = new MatchConfiguration();
 
             //_wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
@@ -129,11 +133,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
 
             SendMatchStateUpdateMessage();
+
+            _messageService.DisableLogging();
         }
 
         public void InitializeNewMatch()
         {
-            throw new NotImplementedException();
+            _matchStartTime = DateTime.Now;
+
+            if (MatchConfiguration.SaveLogFiles == true)
+            {
+                _messageService.SetLogFileName($"{_matchStartTime:yyyyMMddTHHmmss}.txt");
+            }
         }
 
         public void InitializeNewRound()
@@ -150,10 +161,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _isRunning = true;
             _matchState = MatchState.Running;
 
+            if (MatchConfiguration.SaveLogFiles)
+            {
+                _messageService.EnableLogging();
+            }
+
             _timer.Start();
             _wsMonitor.EnableScoring();
 
             SendMatchStateUpdateMessage();
+
+            
         }
 
         public void PauseRound()
@@ -165,6 +183,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _timer.Pause();
 
             SendMatchStateUpdateMessage();
+
+            _messageService.DisableLogging();
         }
 
         public void ResetRound()
@@ -183,12 +203,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             SendMatchStateUpdateMessage();
+
+            _messageService.DisableLogging();
         }
 
         public void ResumeRound()
         {
             _isRunning = true;
             _matchState = MatchState.Running;
+
+            if (MatchConfiguration.SaveLogFiles)
+            {
+                _messageService.EnableLogging();
+            }
 
             _timer.Resume();
             _wsMonitor.EnableScoring();
