@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.HasKey(e => new
             {
-                e.ScrimMatch,
+                e.ScrimMatchId,
                 e.Timestamp,
                 e.AttackerCharacterId,
                 e.VictimCharacterId
