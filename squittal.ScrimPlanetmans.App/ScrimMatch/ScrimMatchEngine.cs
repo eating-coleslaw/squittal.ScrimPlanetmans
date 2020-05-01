@@ -64,7 +64,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             if (_currentRound == 0)
             {
-                // TODO: InitializeNewMatch
                 InitializeNewMatch();
             }
 
@@ -143,8 +142,27 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (MatchConfiguration.SaveLogFiles == true)
             {
-                _messageService.SetLogFileName($"{_matchStartTime:yyyyMMddTHHmmss}.txt");
+                _messageService.SetLogFileName(GetLogFileNameWithExtension());
             }
+        }
+
+        private string GetLogFileNameWithExtension()
+        {
+            var fileName = _matchStartTime.ToString("yyyyMMddTHHmmss");
+
+            for (var i = 1; i <= 3; i++)
+            {
+                var alias = _teamsManager.GetTeamAliasDisplay(i);
+
+                if (string.IsNullOrWhiteSpace(alias))
+                {
+                    continue;
+                }
+
+                fileName = $"{fileName}_{alias}";
+            }
+
+            return ($"{fileName}.txt");
         }
 
         public void InitializeNewRound()
@@ -170,8 +188,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.EnableScoring();
 
             SendMatchStateUpdateMessage();
-
-            
         }
 
         public void PauseRound()
