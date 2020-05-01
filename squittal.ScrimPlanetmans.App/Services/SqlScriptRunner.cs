@@ -21,12 +21,6 @@ namespace squittal.ScrimPlanetmans.Services
 
             _basePath = AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
             _scriptDirectory = Path.Combine(_basePath, _sqlDirectory);
-
-            _logger.LogInformation($"SqlScriptRunner: _basePath = {_basePath} | _scriptDirectory = {_scriptDirectory}");
-
-            var testPath = Path.GetFullPath(Path.Combine(_basePath, "..", "..", "..", "..\\match_logs"));
-
-            _logger.LogInformation($"SqlScriptRunner: testPath = {testPath}");
         }
 
         public void RunSqlScript(string fileName)
