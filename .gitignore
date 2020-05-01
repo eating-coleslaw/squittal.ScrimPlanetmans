@@ -340,4 +340,4 @@ ASALocalRun/
 healthchecksdb
 
 # squittal files to ignore
-# match_logs/*
+match_logs/*.txt
