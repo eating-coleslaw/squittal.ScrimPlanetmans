@@ -13,6 +13,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public string LogFileName { get; set; }
         public bool IsLoggingEnabled { get; set; } = false;
 
+        #region Handler Events & Delegates
         public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
@@ -42,11 +43,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
         public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimObjectiveTickActionEventEventArgs e);
-        
 
         public event EventHandler<ScrimFacilityControlActionEventEventArgs> RaiseScrimFacilityControlActionEvent;
         public delegate void ScrimFacilityControlActionEventMessageEventHandler(object sender, ScrimFacilityControlActionEventEventArgs e);
-
 
         public event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
         public delegate void PlayerLoginEventHandler(object sender, PlayerLoginEventArgs e);
@@ -61,9 +60,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<MatchConfigurationUpdateEventArgs> RaiseMatchConfigurationUpdateEvent;
         public delegate void MatchConfigurationUpdateEventHandler(object sender, MatchConfigurationUpdateEventArgs e);
 
-
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
+
+        #endregion Handler Events & Delegates
 
         public ScrimMessageBroadcastService(ILogger<ScrimMessageBroadcastService> logger)
         {
@@ -103,13 +103,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 });
             }
         }
-
         #endregion Loggin
 
-
-        /***********************
-         * Match State Change
-         ***********************/
+        #region Match State Change
         public void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message)
         {
             OnRaiseMatchStateUpdateEvent(new MatchStateUpdateEventArgs(message));
@@ -131,10 +127,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseMatchConfigurationUpdateEvent?.Invoke(this, e);
         }
+        #endregion Match State Change
 
-        /**********************
-         *  Match Timer Tick
-         **********************/
+        #region Match Timer Tick
         public void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message)
         {
             OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
@@ -143,10 +138,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseMatchTimerTickEvent?.Invoke(this, e);
         }
+        #endregion Match Timer Tick
 
-        /*************************
-         * Player Login / Logout
-         *************************/
+        #region Player Login / Logout
         public void BroadcastPlayerLoginMessage(PlayerLoginMessage message)
         {
             OnRaisePlayerLoginEvent(new PlayerLoginEventArgs(message));
@@ -168,10 +162,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaisePlayerLogoutEvent?.Invoke(this, e);
         }
+        #endregion Player Login / Logout
 
-        /*************************************
-         * Player Stat Update & Scrim Events
-         *************************************/
+        #region Player Stat Update & Scrim Events
         public void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message)
         {
             OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(message));
@@ -255,10 +248,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseScrimFacilityControlActionEvent?.Invoke(this, e);
         }
+        #endregion Player Stat Update & Scrim Events
 
-        /***************************
-         * Simple (string) Message
-         ***************************/
+        #region Simple (string) Message
         public void BroadcastSimpleMessage(string message)
         {
             OnRaiseSimpleMessageEvent(new SimpleMessageEventArgs(message));
@@ -269,10 +261,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseSimpleMessageEvent?.Invoke(this, e);
         }
+        #endregion Simple (string) Message
 
-        /**********************
-         * Team Player Change
-         **********************/
+
+        #region Team Player Change
         public void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
         {
             OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(message));
@@ -294,5 +286,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseTeamOutfitChangeEvent?.Invoke(this, e);
         }
+        #endregion Team Player Change
+
     }
 }
