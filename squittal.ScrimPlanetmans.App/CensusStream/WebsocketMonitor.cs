@@ -30,6 +30,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public int? SubscribedFacilityId;
         public int? SubscribedWorldId;
 
+
+
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
             _client = censusStreamClient;
@@ -155,16 +157,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
             SubscribedWorldId = worldId;
         }
 
-        public void EnableScoring()
-        {
-            _handler.EnabledScoring();
-        }
+        public void EnableScoring() => _handler.EnabledScoring();
 
-        public void DisableScoring()
-        {
-            _handler.DisableScoring();
-        }
+        public void DisableScoring() => _handler.DisableScoring();
 
+        public void EnableEventStoring() => _handler.EnabledEventStoring();
+
+        public void DisableEventStoring() => _handler.DisableEventStoring();
 
         private bool PayloadContainsSubscribedCharacter(JToken message)
         {
@@ -329,7 +328,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 //}
 
 
-                await _handler.Process(jMsg);
+                //await _handler.Process(jMsg);
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    _handler.Process(jMsg);
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
+
 
                 //SendSimpleMessage(message);
             }
@@ -385,6 +391,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             SubscribedFacilityId = matchConfiguration.FacilityId;
             SubscribedWorldId = matchConfiguration.WorldId;
+
+            if (matchConfiguration.SaveEventsToDatabase)
+            {
+                EnableEventStoring();
+            }
+            else
+            {
+                DisableEventStoring();
+            }
         }
 
         public void Dispose()

@@ -6,6 +6,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -15,6 +16,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimMatchEngine> _logger;
+
+        private readonly IScrimMatchDataService _matchDataService;
 
         private readonly IStatefulTimer _timer;
 
@@ -35,13 +38,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private DateTime _matchStartTime;
 
 
-        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
+        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer,
+            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
             _timer = timer;
             _messageService = messageService;
             _logger = logger;
+
+            _matchDataService = matchDataService;
 
             _messageService.RaiseMatchTimerTickEvent += OnMatchTimerTick;
 
@@ -55,7 +61,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
         
-        public void Start()
+        public async Task Start()
         {
             if (_isRunning)
             {
@@ -64,7 +70,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             if (_currentRound == 0)
             {
-                InitializeNewMatch();
+                await InitializeNewMatch();
             }
 
             InitializeNewRound();
@@ -136,13 +142,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.DisableLogging();
         }
 
-        public void InitializeNewMatch()
+        public async Task InitializeNewMatch()
         {
             _matchStartTime = DateTime.Now;
 
             if (MatchConfiguration.SaveLogFiles == true)
             {
-                _messageService.SetLogFileName(GetLogFileNameWithExtension());
+                var matchId = GetLogFileNameWithExtension();
+
+                _messageService.SetLogFileName(matchId);
+
+                var scrimMatch = new Data.Models.ScrimMatch
+                {
+                    Id = matchId,
+                    StartTime = _matchStartTime,
+                    Title = MatchConfiguration.Title
+                };
+
+                await _matchDataService.SaveToCurrentMatch(scrimMatch);
             }
         }
 

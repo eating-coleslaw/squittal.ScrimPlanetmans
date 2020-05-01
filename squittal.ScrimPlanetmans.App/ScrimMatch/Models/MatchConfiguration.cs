@@ -24,6 +24,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
 
         public bool SaveLogFiles { get; set; } = true;
+        public bool SaveEventsToDatabase { get; set; } = true;
 
         public void ResetWorldId()
         {

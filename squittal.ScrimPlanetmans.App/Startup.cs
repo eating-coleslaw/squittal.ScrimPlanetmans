@@ -58,6 +58,8 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
 
+            services.AddSingleton<IScrimMatchDataService, ScrimMatchDataService>();
+
             services.AddSingleton<IWorldService, WorldService>();
             services.AddSingleton<ICharacterService, CharacterService>();
             services.AddSingleton<IOutfitService, OutfitService>();

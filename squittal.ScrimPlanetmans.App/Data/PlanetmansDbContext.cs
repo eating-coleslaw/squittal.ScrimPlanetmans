@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.Data.DataConfigurations;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.Data
 {
@@ -39,6 +40,10 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<Ruleset> Rulesets { get; set; }
         public DbSet<RulesetActionRule> RulesetActionRules { get; set; }
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
+
+        public DbSet<Models.ScrimMatch> ScrimMatches { get; set; }
+        public DbSet<ScrimDeath> ScrimDeaths { get; set; }
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -72,6 +77,9 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new RulesetConfiguration());
             builder.ApplyConfiguration(new RulesetActionRuleConfiguration());
             builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
+            
+            builder.ApplyConfiguration(new ScrimMatchConfiguration());
+            builder.ApplyConfiguration(new ScrimDeathConfiguration());
             #endregion
         }
     }

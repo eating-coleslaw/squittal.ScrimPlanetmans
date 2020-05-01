@@ -242,18 +242,18 @@
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
 
-    private void StartMatch()
+    private async Task StartMatch()
     {
         SubscribeToCensus();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
-        ScrimMatchEngine.Start();
+        await ScrimMatchEngine.Start();
 
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
 
-        InvokeAsync(() =>
+        await InvokeAsync(() =>
         {
             StateHasChanged();
         });
