@@ -449,6 +449,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
+        public async Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower)
+        {
+            var outfit = GetTeamFromOutfitAlias(aliasLower).Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+            var outfitId = outfit.Id;
+            var teamOrdinal = outfit.TeamOrdinal;
+
+            var success = RemoveOutfitFromTeam(aliasLower);
+
+            if (!success)
+            {
+                return false;
+            }
+
+            await RemoveOutfitFromDb(outfitId, teamOrdinal);
+
+            return true;
+        }
+
         public bool RemoveOutfitFromTeam(string aliasLower)
         {
             var team = GetTeamFromOutfitAlias(aliasLower);
@@ -507,6 +525,92 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersRemoved;
         }
 
+        private async Task RemoveOutfitFromDb(string outfitId, int teamOrdinal)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var deathsToRemove = await dbContext.ScrimDeaths
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerOutfitId == outfitId
+                                                                        || e.VictimOutfitId== outfitId))
+                                                        .ToListAsync();
+
+                dbContext.ScrimDeaths.RemoveRange(deathsToRemove);
+
+                var destructionsToRemove = await dbContext.ScrimVehicleDestructions
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerOutfitId == outfitId
+                                                                        || e.VictimOutfitId == outfitId))
+                                                        .ToListAsync();
+
+                dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+
+            await SaveTeamMatchResultsToDb(teamOrdinal);
+        }
+
+        public async Task<bool> RemoveCharacterFromTeamAndDb(string characterId)
+        {
+            var teamOrdinal = GetTeamOrdinalFromPlayerId(characterId);
+            
+            var success = RemoveCharacterFromTeam(characterId);
+
+            if (!success)
+            {
+                return false;
+            }
+
+            await RemoveCharacterFromDb(characterId, (int)teamOrdinal);
+
+            return true;
+        }
+
+        private async Task RemoveCharacterFromDb(string characterId, int teamOrdinal)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var deathsToRemove = await dbContext.ScrimDeaths
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerCharacterId == characterId
+                                                                        || e.VictimCharacterId == characterId))
+                                                        .ToListAsync();
+
+                dbContext.ScrimDeaths.RemoveRange(deathsToRemove);
+
+                var destructionsToRemove = await dbContext.ScrimVehicleDestructions
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerCharacterId == characterId
+                                                                        || e.VictimCharacterId == characterId))
+                                                        .ToListAsync();
+
+                dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+
+            await SaveTeamMatchResultsToDb(teamOrdinal);
+        }
+
         public bool RemoveCharacterFromTeam(string characterId)
         {
             var player = GetPlayerFromId(characterId);
@@ -521,7 +625,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public bool RemovePlayerFromTeam(Player player)
         {
-
             var team = GetTeam(player.TeamOrdinal);
 
             if(team.TryRemovePlayer(player.Id))

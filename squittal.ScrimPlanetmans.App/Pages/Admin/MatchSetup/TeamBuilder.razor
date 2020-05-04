@@ -724,20 +724,23 @@
         }
     }
 
-    private void RemoveOutfit(string aliasLower)
+    private async void RemoveOutfit(string aliasLower)
     {
         if (!_teamOutfitsLoading.Contains(aliasLower) && !_teamOutfitsLoadingMembers.Contains(aliasLower))
         {
-            ScrimTeamsManager.RemoveOutfitFromTeam(aliasLower);
+            await ScrimTeamsManager.RemoveOutfitFromTeamAndDb(aliasLower);
 
             _validOutfitAliasHistory.RemoveAll(alias => alias == aliasLower);
             _outfitPlayersExtendedMap.Remove(aliasLower);
         }
     }
 
-    private void RemovePlayer(string characterId)
+    private async void RemovePlayer(string characterId)
     {
-        if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
+        var success = await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(characterId);
+
+        //if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
+        if (success)
         {
             _teamPlayers.RemoveAll(p => p.Id == characterId);
             _teamNonOutfitPlayers.RemoveAll(p => p.Id == characterId);

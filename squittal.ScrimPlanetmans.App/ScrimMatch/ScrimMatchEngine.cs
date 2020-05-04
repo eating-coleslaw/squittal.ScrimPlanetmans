@@ -57,19 +57,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
 
             //MatchConfiguration = new MatchConfiguration();
-            
-            
+
+
             //ClearMatch();
         }
 
-        
+
         public async Task Start()
         {
             if (_isRunning)
             {
                 return;
             }
-            
+
             if (_currentRound == 0)
             {
                 await InitializeNewMatch();
@@ -87,7 +87,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 await EndRound();
             }
-            
+
             _wsMonitor.DisableScoring();
             _wsMonitor.RemoveAllCharacterSubscriptions();
             _messageService.DisableLogging();
@@ -152,9 +152,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (MatchConfiguration.SaveLogFiles == true)
             {
-                var matchId = GetLogFileNameWithExtension();
+                var matchId = BuildMatchId(); // GetLogFileNameWithExtension();
 
-                _messageService.SetLogFileName(matchId);
+                //_messageService.SetLogFileName(matchId);
+                _messageService.SetLogFileName($"{matchId}.txt");
 
                 var scrimMatch = new Data.Models.ScrimMatch
                 {
@@ -167,7 +168,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private string GetLogFileNameWithExtension()
+        private string BuildMatchId()
+        {
+            var matchId = _matchStartTime.ToString("yyyyMMddTHHmmss");
+
+            for (var i = 1; i <= 3; i++)
+            {
+                var alias = _teamsManager.GetTeamAliasDisplay(i);
+
+                if (string.IsNullOrWhiteSpace(alias))
+                {
+                    continue;
+                }
+
+                matchId = $"{matchId}_{alias}";
+            }
+
+            return matchId;
+        }
+
+    private string GetLogFileNameWithExtension()
         {
             var fileName = _matchStartTime.ToString("yyyyMMddTHHmmss");
 

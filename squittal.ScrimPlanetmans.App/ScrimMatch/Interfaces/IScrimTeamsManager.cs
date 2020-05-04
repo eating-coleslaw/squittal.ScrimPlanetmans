@@ -63,5 +63,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         //void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
         Task AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
         void RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment);
+
+        Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower);
+        Task<bool> RemoveCharacterFromTeamAndDb(string characterId);
     }
 }
