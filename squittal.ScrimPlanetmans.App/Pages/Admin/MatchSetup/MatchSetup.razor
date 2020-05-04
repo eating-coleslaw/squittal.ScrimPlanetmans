@@ -242,7 +242,7 @@
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
 
-    private async Task StartMatch()
+    private async void StartMatch()
     {
         SubscribeToCensus();
 
@@ -259,7 +259,7 @@
         });
     }
 
-    private async Task EndRound()
+    private async void EndRound()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Running)
         {
@@ -310,7 +310,7 @@
         }
     }
 
-    private async Task ClearMatch()
+    private async void ClearMatch()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized)
         {
@@ -329,7 +329,7 @@
         }
     }
 
-    private async Task ResetRound()
+    private async void ResetRound()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0)
         {

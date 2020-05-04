@@ -20,6 +20,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
                 e.VictimVehicleId
             });
 
+            builder.Property(e => e.ScrimMatchRound).HasDefaultValue(-1);
+
             builder.Ignore(e => e.ScrimMatch);
             builder.Ignore(e => e.AttackerFaction);
             builder.Ignore(e => e.VictimFaction);

@@ -14,6 +14,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         private readonly ILogger<ScrimMatchDataService> _logger;
 
         public string CurrentMatchId { get ; set; }
+        public int CurrentMatchRound { get; set; } = 0;
 
         public ScrimMatchDataService(IDbContextHelper dbContextHelper, ILogger<ScrimMatchDataService> logger)
         {

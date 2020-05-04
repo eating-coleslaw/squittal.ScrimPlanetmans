@@ -263,6 +263,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         deathEvent.Points = points;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
+                        var currentRound = _scrimMatchService.CurrentMatchRound;
 
                         if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
                         {
@@ -272,6 +273,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 Timestamp = deathEvent.Timestamp,
                                 AttackerCharacterId = deathEvent.AttackerPlayer.Id,
                                 VictimCharacterId = deathEvent.VictimPlayer.Id,
+                                ScrimMatchRound = currentRound,
                                 ActionType = deathEvent.ActionType,
                                 DeathType = deathEvent.DeathType,
                                 ZoneId = (int)deathEvent.ZoneId,
@@ -538,6 +540,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         destructionEvent.Points = points;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
+                        var currentRound = _scrimMatchService.CurrentMatchRound;
 
                         if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
                         {
@@ -549,6 +552,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 VictimCharacterId = destructionEvent.VictimPlayer.Id,
                                 AttackerVehicleId = destructionEvent.AttackerVehicle?.Id,
                                 VictimVehicleId = destructionEvent.VictimVehicle?.Id,
+                                ScrimMatchRound = currentRound,
                                 ActionType = destructionEvent.ActionType,
                                 DeathType = destructionEvent.DeathType,
                                 AttackerVehicleType = destructionEvent.AttackerVehicle?.Type,

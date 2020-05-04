@@ -6,6 +6,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
     public interface IScrimMatchDataService
     {
         string CurrentMatchId { get; set; }
+        int CurrentMatchRound { get; set; }
 
         Task SaveToCurrentMatch(Data.Models.ScrimMatch scrimMatch);
 

@@ -19,6 +19,8 @@ namespace squittal.ScrimPlanetmans.Data.Models
         [Required]
         public string VictimCharacterId { get; set; }
 
+        public int ScrimMatchRound { get; set; }
+
         public ScrimActionType ActionType { get; set; }
         public DeathEventType DeathType { get; set; }
 

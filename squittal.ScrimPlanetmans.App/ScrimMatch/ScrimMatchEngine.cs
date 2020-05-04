@@ -102,6 +102,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _matchState = MatchState.Uninitialized;
             _currentRound = 0;
 
+            _matchDataService.CurrentMatchRound = _currentRound;
+
             _latestTimerTickMessage = null;
 
             _teamsManager.ClearAllTeams();
@@ -187,7 +189,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void InitializeNewRound()
         {
             _currentRound += 1;
-            
+
+            _matchDataService.CurrentMatchRound = _currentRound;
+
             _roundSecondsRemaining = _roundSecondsMax;
 
             _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
@@ -236,6 +240,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _matchState = MatchState.Uninitialized;
                 _latestTimerTickMessage = null;
             }
+
+            _matchDataService.CurrentMatchRound = _currentRound;
 
             SendMatchStateUpdateMessage();
 

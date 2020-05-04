@@ -754,7 +754,7 @@
         ScrimTeamsManager.SetPlayerBenchedStatus(characterId, true);
     }
 
-    private void HandlePointAdjustmentSubmit()
+    private async void HandlePointAdjustmentSubmit()
     {
         var adjustment = _inputPointAdjustment;
 
@@ -765,7 +765,7 @@
 
         adjustment.Timestamp = DateTime.Now;
 
-        ScrimTeamsManager.AdjustTeamPoints(i_teamOrdinal, adjustment);
+        await ScrimTeamsManager.AdjustTeamPoints(i_teamOrdinal, adjustment);
 
         _inputPointAdjustment = new PointAdjustment();
 
