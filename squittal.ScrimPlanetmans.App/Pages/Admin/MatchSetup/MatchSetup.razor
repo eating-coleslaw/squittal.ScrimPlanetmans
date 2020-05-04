@@ -259,17 +259,17 @@
         });
     }
 
-    private void EndRound()
+    private async Task EndRound()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Running)
         {
-            ScrimMatchEngine.EndRound();
+            await ScrimMatchEngine.EndRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            InvokeAsync(() =>
+            await InvokeAsync(() =>
             {
                 StateHasChanged();
             });
@@ -310,11 +310,11 @@
         }
     }
 
-    private void ClearMatch()
+    private async Task ClearMatch()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized)
         {
-            ScrimMatchEngine.ClearMatch();
+            await ScrimMatchEngine.ClearMatch();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -322,24 +322,24 @@
 
             _matchConfiguration = new MatchConfiguration();
 
-            InvokeAsync(() =>
+            await InvokeAsync(() =>
             {
                 StateHasChanged();
             });
         }
     }
 
-    private void ResetRound()
+    private async Task ResetRound()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0)
         {
-            ScrimMatchEngine.ResetRound();
+            await ScrimMatchEngine.ResetRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            InvokeAsync(() =>
+            await InvokeAsync(() =>
             {
                 StateHasChanged();
             });

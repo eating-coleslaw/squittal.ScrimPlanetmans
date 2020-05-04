@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using squittal.ScrimPlanetmans.Data.Models;
+using squittal.ScrimPlanetmans.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -19,6 +22,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IFactionService _factionService;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimTeamsManager> _logger;
+
+        private readonly IDbContextHelper _dbContextHelper;
+        private readonly IScrimMatchDataService _matchDataService;
 
         private readonly Team Team1;
         private readonly Team Team2;
@@ -34,13 +40,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private string _defaultAliasPreText = "tm";
 
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, IScrimMessageBroadcastService messageService, ILogger<ScrimTeamsManager> logger)
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService,
+            IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _outfitService = outfitService;
             _factionService = factionService;
             _messageService = messageService;
             _logger = logger;
+
+            _matchDataService = matchDataService;
+            _dbContextHelper = dbContextHelper;
 
             Team1 = new Team($"{_defaultAliasPreText}1", "Team 1", 1);
             _ordinalTeamMap.Add(1, Team1);
@@ -581,11 +591,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // TODO: broadcast "Finished Clearing Team" message
         }
 
-        public void RollBackAllTeamStats(int currentRound)
+
+        public async Task RollBackAllTeamStats(int currentRound)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
             {
                 RollBackTeamStats(teamOrdinal, currentRound);
+
+                await SaveTeamMatchResultsToDb(teamOrdinal);
             }
         }
 
@@ -790,11 +803,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team);
         }
 
-        public void SaveRoundEndScores(int round)
+        public async Task SaveRoundEndScores(int round)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
             {
                 SaveTeamRoundEndScores(teamOrdinal, round);
+
+                await SaveTeamMatchResultsToDb(teamOrdinal);
             }
         }
 
@@ -810,6 +825,130 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 player.EventAggregateTracker.SaveRoundToHistory(round);
             }
+        }
+
+        public async Task SaveTeamMatchResultsToDb(int teamOrdinal)
+        {
+            var resultsAggregate = new ScrimEventAggregate().Add(GetTeam(teamOrdinal).EventAggregate);
+
+            var currentScrimMatchId = _matchDataService.CurrentMatchId;
+
+            var resultsEntity = new ScrimMatchTeamResult
+            {
+                ScrimMatchId = currentScrimMatchId,
+                TeamOrdinal = teamOrdinal,
+                Points = resultsAggregate.Points,
+                NetScore = resultsAggregate.NetScore,
+                Kills = resultsAggregate.Kills,
+                Deaths = resultsAggregate.Deaths,
+                Headshots = resultsAggregate.Headshots,
+                HeadshotDeaths = resultsAggregate.HeadshotDeaths,
+                Suicides = resultsAggregate.Suicides,
+                Teamkills = resultsAggregate.Teamkills,
+                TeamkillDeaths = resultsAggregate.TeamkillDeaths,
+                RevivesGiven = resultsAggregate.RevivesGiven,
+                RevivesTaken = resultsAggregate.RevivesTaken,
+                DamageAssists = resultsAggregate.DamageAssists,
+                UtilityAssists = resultsAggregate.UtilityAssists,
+                DamageAssistedDeaths = resultsAggregate.DamageAssistedDeaths,
+                UtilityAssistedDeaths = resultsAggregate.UtilityAssistedDeaths,
+                ObjectiveCaptureTicks = resultsAggregate.ObjectiveCaptureTicks,
+                ObjectiveDefenseTicks = resultsAggregate.ObjectiveDefenseTicks,
+                BaseDefenses = resultsAggregate.BaseDefenses,
+                BaseCaptures = resultsAggregate.BaseCaptures
+            };
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                // Scrim Match Team Results
+                var storeResultEntity = await dbContext.ScrimMatchTeamResults.FirstOrDefaultAsync(result => result.ScrimMatchId == currentScrimMatchId && result.TeamOrdinal == teamOrdinal);
+
+                if (storeResultEntity == null)
+                {
+                    dbContext.ScrimMatchTeamResults.Add(resultsEntity);
+                }
+                else
+                {
+                    storeResultEntity = resultsEntity;
+                    dbContext.ScrimMatchTeamResults.Update(storeResultEntity);
+                }
+
+                // Team Results Point Adjustments
+                var updateAdjustments = resultsAggregate.PointAdjustments.ToList();
+
+                var storeAdjustmentEntities = await dbContext.ScrimMatchTeamPointAdjustments
+                                                        .Where(adj => adj.ScrimMatchId == currentScrimMatchId && adj.TeamOrdinal == teamOrdinal)
+                                                        .ToListAsync();
+
+                var allAdjustments = new List<PointAdjustment>();
+
+                allAdjustments.AddRange(updateAdjustments);
+                allAdjustments.AddRange(storeAdjustmentEntities
+                                            .Select(ConvertFromDbModel)
+                                            .Where(e => !allAdjustments.Contains(e))
+                                            .ToList());
+
+                var createdAdjustments = new List<ScrimMatchTeamPointAdjustment>();
+
+                foreach (var adjustment in allAdjustments)
+                {
+                    var storeEntity = storeAdjustmentEntities.Where(e => e.Timestamp == adjustment.Timestamp).FirstOrDefault();
+                    var updateAdjustment = updateAdjustments.Where(a => a.Timestamp == adjustment.Timestamp).FirstOrDefault();
+
+                    if (storeEntity == null)
+                    {
+                        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
+                        createdAdjustments.Add(updateEntity);
+                    }
+                    else if (updateAdjustment == null)
+                    {
+                        dbContext.ScrimMatchTeamPointAdjustments.Remove(storeEntity);
+                    }
+                    else
+                    {
+                        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
+                        storeEntity = updateEntity;
+                        dbContext.ScrimMatchTeamPointAdjustments.Update(storeEntity);
+                    }
+                }
+
+                if (createdAdjustments.Any())
+                {
+                    await dbContext.ScrimMatchTeamPointAdjustments.AddRangeAsync(createdAdjustments);
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private PointAdjustment ConvertFromDbModel(ScrimMatchTeamPointAdjustment adjustment)
+        {
+            return new PointAdjustment
+            {
+                Timestamp = adjustment.Timestamp,
+                Points = adjustment.Points,
+                Rationale = adjustment.Rationale
+            };
+        }
+
+        private ScrimMatchTeamPointAdjustment BuildScrimMatchTeamPointAdjustment(string scrimMatchId, int teamOrdinal, PointAdjustment adjustment)
+        {
+            return new ScrimMatchTeamPointAdjustment
+            {
+                ScrimMatchId = scrimMatchId,
+                TeamOrdinal = teamOrdinal,
+                Timestamp = adjustment.Timestamp,
+                Points = adjustment.Points,
+                AdjustmentType = adjustment.AdjustmentType,
+                Rationale = adjustment.Rationale
+            };
         }
 
         public void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment)

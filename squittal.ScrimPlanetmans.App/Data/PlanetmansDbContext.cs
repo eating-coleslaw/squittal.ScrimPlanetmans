@@ -42,6 +42,8 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
 
         public DbSet<Models.ScrimMatch> ScrimMatches { get; set; }
+        public DbSet<ScrimMatchTeamResult> ScrimMatchTeamResults { get; set; }
+        public DbSet<ScrimMatchTeamPointAdjustment> ScrimMatchTeamPointAdjustments { get; set; }
         public DbSet<ScrimDeath> ScrimDeaths { get; set; }
         public DbSet<ScrimVehicleDestruction> ScrimVehicleDestructions { get; set; }
 
@@ -80,6 +82,8 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
             
             builder.ApplyConfiguration(new ScrimMatchConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchTeamResultConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchTeamPointAdjustmentConfiguration());
             builder.ApplyConfiguration(new ScrimDeathConfiguration());
             builder.ApplyConfiguration(new ScrimVehicleDestructionConfiguration());
             #endregion
