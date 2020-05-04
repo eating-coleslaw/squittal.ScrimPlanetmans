@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
 using squittal.ScrimPlanetmans.Data;
+using squittal.ScrimPlanetmans.Data.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.ScrimMatch;
@@ -265,7 +266,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                         if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
                         {
-                            var dataModel = new Data.Models.ScrimDeath
+                            var dataModel = new ScrimDeath
                             {
                                 ScrimMatchId = currentMatchId,
                                 Timestamp = deathEvent.Timestamp,
@@ -273,7 +274,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 VictimCharacterId = deathEvent.VictimPlayer.Id,
                                 ActionType = deathEvent.ActionType,
                                 DeathType = deathEvent.DeathType,
-                                ZoneId = deathEvent.ZoneId,
+                                ZoneId = (int)deathEvent.ZoneId,
+                                WorldId = payload.WorldId,
                                 AttackerTeamOrdinal = deathEvent.AttackerPlayer.TeamOrdinal,
                                 AttackerFactionId = deathEvent.AttackerPlayer.FactionId,
                                 AttackerNameFull = deathEvent.AttackerPlayer.NameFull,
@@ -534,6 +536,55 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         var points = _scorer.ScoreVehicleDestructionEvent(destructionEvent);
                         destructionEvent.Points = points;
+
+                        var currentMatchId = _scrimMatchService.CurrentMatchId;
+
+                        if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                        {
+                            var dataModel = new ScrimVehicleDestruction
+                            {
+                                ScrimMatchId = currentMatchId,
+                                Timestamp = destructionEvent.Timestamp,
+                                AttackerCharacterId = destructionEvent.AttackerPlayer.Id,
+                                VictimCharacterId = destructionEvent.VictimPlayer.Id,
+                                AttackerVehicleId = destructionEvent.AttackerVehicle?.Id,
+                                VictimVehicleId = destructionEvent.VictimVehicle?.Id,
+                                ActionType = destructionEvent.ActionType,
+                                DeathType = destructionEvent.DeathType,
+                                AttackerVehicleType = destructionEvent.AttackerVehicle?.Type,
+                                VictimVehicleType = destructionEvent.VictimVehicle?.Type,
+                                AttackerTeamOrdinal = destructionEvent.AttackerPlayer.TeamOrdinal,
+                                VictimTeamOrdinal = destructionEvent.VictimPlayer.TeamOrdinal,
+                                AttackerFactionId = destructionEvent.AttackerPlayer.FactionId,
+                                AttackerNameFull = destructionEvent.AttackerPlayer.NameFull,
+                                AttackerLoadoutId = destructionEvent.AttackerPlayer.LoadoutId,
+                                AttackerOutfitId = destructionEvent.AttackerPlayer.IsOutfitless ? null : destructionEvent.AttackerPlayer.OutfitId,
+                                AttackerOutfitAlias = destructionEvent.AttackerPlayer.IsOutfitless ? null : destructionEvent.AttackerPlayer.OutfitAlias,
+                                AttackerIsOutfitless = destructionEvent.AttackerPlayer.IsOutfitless,
+                                VictimFactionId = destructionEvent.VictimPlayer.FactionId,
+                                VictimNameFull = destructionEvent.VictimPlayer.NameFull,
+                                VictimLoadoutId = destructionEvent.VictimPlayer.LoadoutId,
+                                VictimOutfitId = destructionEvent.VictimPlayer.IsOutfitless ? null : destructionEvent.VictimPlayer.OutfitId,
+                                VictimOutfitAlias = destructionEvent.VictimPlayer.IsOutfitless ? null : destructionEvent.VictimPlayer.OutfitAlias,
+                                VictimIsOutfitless = destructionEvent.VictimPlayer.IsOutfitless,
+                                WeaponId = destructionEvent.Weapon?.Id,
+                                WeaponItemCategoryId = destructionEvent.Weapon?.ItemCategoryId,
+                                IsVehicleWeapon = destructionEvent.Weapon?.IsVehicleWeapon,
+                                ZoneId = (int)destructionEvent.ZoneId,
+                                WorldId = payload.WorldId,
+                                Points = destructionEvent.Points,
+                                AttackerResultingPoints = destructionEvent.AttackerPlayer.EventAggregate.Points,
+                                AttackerResultingNetScore = destructionEvent.AttackerPlayer.EventAggregate.NetScore,
+                                VictimResultingPoints = destructionEvent.VictimPlayer.EventAggregate.Points,
+                                VictimResultingNetScore = destructionEvent.VictimPlayer.EventAggregate.NetScore
+                            };
+
+                            using var factory = _dbContextHelper.GetFactory();
+                            var dbContext = factory.GetDbContext();
+
+                            dbContext.ScrimVehicleDestructions.Add(dataModel);
+                            await dbContext.SaveChangesAsync();
+                        }
                     }
                 }
 

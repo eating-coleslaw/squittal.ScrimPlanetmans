@@ -43,6 +43,7 @@ namespace squittal.ScrimPlanetmans.Data
 
         public DbSet<Models.ScrimMatch> ScrimMatches { get; set; }
         public DbSet<ScrimDeath> ScrimDeaths { get; set; }
+        public DbSet<ScrimVehicleDestruction> ScrimVehicleDestructions { get; set; }
 
         #endregion
 
@@ -80,6 +81,7 @@ namespace squittal.ScrimPlanetmans.Data
             
             builder.ApplyConfiguration(new ScrimMatchConfiguration());
             builder.ApplyConfiguration(new ScrimDeathConfiguration());
+            builder.ApplyConfiguration(new ScrimVehicleDestructionConfiguration());
             #endregion
         }
     }

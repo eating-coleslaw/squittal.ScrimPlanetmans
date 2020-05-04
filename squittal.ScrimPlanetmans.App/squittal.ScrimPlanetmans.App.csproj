@@ -11,6 +11,10 @@
     <Compile Remove="Migrations\20200216192554_AddActionPointsItemCategoryModels.Designer.cs" />
     <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.cs" />
     <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.Designer.cs" />
+    <Compile Remove="Migrations\20200501171033_AddScrimMatchScrimDeathModels.cs" />
+    <Compile Remove="Migrations\20200501171033_AddScrimMatchScrimDeathModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504154405_AddWorldToScrimDeathModel.cs" />
+    <Compile Remove="Migrations\20200504154405_AddWorldToScrimDeathModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

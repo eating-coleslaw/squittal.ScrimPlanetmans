@@ -111,7 +111,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int?>("WeaponItemCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ZoneId")
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZoneId")
                         .HasColumnType("int");
 
                     b.HasKey("ScrimMatchId", "Timestamp", "AttackerCharacterId", "VictimCharacterId");
@@ -133,6 +136,115 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ScrimMatch");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimVehicleDestruction", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AttackerCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("VictimCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("AttackerVehicleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VictimVehicleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AttackerFactionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("AttackerIsOutfitless")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("AttackerLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AttackerNameFull")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AttackerOutfitAlias")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AttackerOutfitId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AttackerResultingNetScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AttackerResultingPoints")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AttackerTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AttackerVehicleType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DeathType")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsVehicleWeapon")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VictimFactionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("VictimIsOutfitless")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("VictimLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VictimNameFull")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VictimOutfitAlias")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VictimOutfitId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("VictimResultingNetScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VictimResultingPoints")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VictimTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VictimVehicleType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WeaponId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WeaponItemCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp", "AttackerCharacterId", "VictimCharacterId", "AttackerVehicleId", "VictimVehicleId");
+
+                    b.ToTable("ScrimVehicleDestruction");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.Models.Planetside.FacilityType", b =>

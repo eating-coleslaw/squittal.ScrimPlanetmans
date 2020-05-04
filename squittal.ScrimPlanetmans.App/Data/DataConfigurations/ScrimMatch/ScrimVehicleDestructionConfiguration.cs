@@ -4,18 +4,20 @@ using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 {
-    public class ScrimDeathConfiguration : IEntityTypeConfiguration<ScrimDeath>
+    public class ScrimVehicleDestructionConfiguration : IEntityTypeConfiguration<ScrimVehicleDestruction>
     {
-        public void Configure(EntityTypeBuilder<ScrimDeath> builder)
+        public void Configure(EntityTypeBuilder<ScrimVehicleDestruction> builder)
         {
-            builder.ToTable("ScrimDeath");
+            builder.ToTable("ScrimVehicleDestruction");
 
             builder.HasKey(e => new
             {
                 e.ScrimMatchId,
                 e.Timestamp,
                 e.AttackerCharacterId,
-                e.VictimCharacterId
+                e.VictimCharacterId,
+                e.AttackerVehicleId,
+                e.VictimVehicleId
             });
 
             builder.Ignore(e => e.ScrimMatch);
@@ -24,6 +26,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Ignore(e => e.Weapon);
             builder.Ignore(e => e.WeaponItemCategory);
             builder.Ignore(e => e.AttackerVehicle);
+            builder.Ignore(e => e.VictimVehicle);
             builder.Ignore(e => e.World);
             builder.Ignore(e => e.Zone);
         }
