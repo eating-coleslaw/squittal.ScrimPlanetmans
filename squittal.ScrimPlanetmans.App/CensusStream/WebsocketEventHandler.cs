@@ -334,7 +334,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
-            var attackerIsVehicle = death.Weapon.IsVehicleWeapon;
+            var attackerIsVehicle = (death.Weapon != null && death.Weapon.IsVehicleWeapon);
 
             var attackerIsMax = death.AttackerLoadoutId == null
                                     ? false
@@ -433,6 +433,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
+            // Don't bother tracking players destroying unclaimed vehicles
+            if (!isValidVictimId)
+            {
+                return null;
+            }
+
             ScrimVehicleDestructionActionEvent destructionEvent = new ScrimVehicleDestructionActionEvent
             {
                 Timestamp = payload.Timestamp,
@@ -500,6 +506,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         destructionEvent.AttackerPlayer = destructionEvent.VictimPlayer;
                         destructionEvent.AttackerCharacterId = destructionEvent.VictimCharacterId;
+                        destructionEvent.AttackerVehicle = destructionEvent.VictimVehicle;
                     }
 
                     if (_isScoringEnabled)
@@ -518,8 +525,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 Timestamp = destructionEvent.Timestamp,
                                 AttackerCharacterId = destructionEvent.AttackerPlayer.Id,
                                 VictimCharacterId = destructionEvent.VictimPlayer.Id,
+                                VictimVehicleId = destructionEvent.VictimVehicle != null ? destructionEvent.VictimVehicle.Id : payload.VehicleId,
                                 AttackerVehicleId = destructionEvent.AttackerVehicle?.Id,
-                                VictimVehicleId = destructionEvent.VictimVehicle?.Id,
                                 ScrimMatchRound = currentRound,
                                 ActionType = destructionEvent.ActionType,
                                 DeathType = destructionEvent.DeathType,
@@ -529,13 +536,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 VictimTeamOrdinal = destructionEvent.VictimPlayer.TeamOrdinal,
                                 AttackerFactionId = destructionEvent.AttackerPlayer.FactionId,
                                 AttackerNameFull = destructionEvent.AttackerPlayer.NameFull,
-                                AttackerLoadoutId = destructionEvent.AttackerPlayer.LoadoutId,
+                                AttackerLoadoutId = destructionEvent.AttackerPlayer?.LoadoutId,
                                 AttackerOutfitId = destructionEvent.AttackerPlayer.IsOutfitless ? null : destructionEvent.AttackerPlayer.OutfitId,
                                 AttackerOutfitAlias = destructionEvent.AttackerPlayer.IsOutfitless ? null : destructionEvent.AttackerPlayer.OutfitAlias,
                                 AttackerIsOutfitless = destructionEvent.AttackerPlayer.IsOutfitless,
                                 VictimFactionId = destructionEvent.VictimPlayer.FactionId,
                                 VictimNameFull = destructionEvent.VictimPlayer.NameFull,
-                                VictimLoadoutId = destructionEvent.VictimPlayer.LoadoutId,
+                                VictimLoadoutId = destructionEvent.VictimPlayer?.LoadoutId,
                                 VictimOutfitId = destructionEvent.VictimPlayer.IsOutfitless ? null : destructionEvent.VictimPlayer.OutfitId,
                                 VictimOutfitAlias = destructionEvent.VictimPlayer.IsOutfitless ? null : destructionEvent.VictimPlayer.OutfitAlias,
                                 VictimIsOutfitless = destructionEvent.VictimPlayer.IsOutfitless,
@@ -601,7 +608,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
-            var attackerIsVehicle = (destruction.Weapon.IsVehicleWeapon || (destruction.AttackerVehicle != null && destruction.AttackerVehicle.Type != VehicleType.Unknown));
+            var attackerIsVehicle = ((destruction.Weapon != null && destruction.Weapon.IsVehicleWeapon) || (destruction.AttackerVehicle != null && destruction.AttackerVehicle.Type != VehicleType.Unknown));
 
             var attackerIsMax = destruction.AttackerLoadoutId == null
                                                 ? false

@@ -52,7 +52,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} VEHICLE DESTROYED: {outfitDisplay}{playerName} <{weaponName}> {victimVehicleName} ({otherCharacterId})";
+                return $"{actionDisplay} VEHICLE DESTROYED: {outfitDisplay}{playerName} {{{weaponName}}} {victimVehicleName} ({otherCharacterId})";
             }
             else
             {
@@ -64,7 +64,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} VEHICLE LOST: {otherCharacterId} <{weaponName}> {victimVehicleName} ({outfitDisplay}{playerName})";
+                return $"{actionDisplay} VEHICLE LOST: {otherCharacterId} {{{weaponName}}} {victimVehicleName} ({outfitDisplay}{playerName})";
             }
         }
 
@@ -94,7 +94,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
             var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} <{weaponName}> {victimVehicleName} ({victimOutfit}{victimName})";
+            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}} {victimVehicleName} ({victimOutfit}{victimName})";
         }
 
         private string GetTeamkillInfo(ScrimVehicleDestructionActionEvent destructionEvent)
@@ -120,7 +120,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
             var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) <{weaponName}>";
+            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) {{{weaponName}}}";
         }
     }
 }

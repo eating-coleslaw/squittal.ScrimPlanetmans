@@ -58,16 +58,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private int ScoreKill(ScrimDeathActionEvent death)
         {
-            int points;
+            int points = 0;
 
             //if (death.ActionType == ScrimActionType.InfantryKillInfantry)
             if (GetDeferToItemCategoryPoints(death.ActionType))
             {
-                var categoryId = death.Weapon.ItemCategoryId;
-                points = _activeRuleset.ItemCategoryRules
-                                            .Where(rule => rule.ItemCategoryId == categoryId)
-                                            .Select(rule => rule.Points)
-                                            .FirstOrDefault();
+                var categoryId = death.Weapon?.ItemCategoryId;
+
+                if (categoryId != null)
+                {
+                    points = _activeRuleset.ItemCategoryRules
+                                                .Where(rule => rule.ItemCategoryId == categoryId)
+                                                .Select(rule => rule.Points)
+                                                .FirstOrDefault();
+                }
             }
             else
             {
@@ -325,7 +329,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             // Player Stats update automatically updates the appropriate team's stats
             _teamsManager.UpdatePlayerStats(destruction.AttackerPlayer.Id, attackerUpdate);
-            _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
+
+            if (destruction.VictimPlayer != null)
+            {
+                _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
+            }
 
             return points;
 

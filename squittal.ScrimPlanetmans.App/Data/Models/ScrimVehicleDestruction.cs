@@ -15,13 +15,14 @@ namespace squittal.ScrimPlanetmans.Data.Models
 
         [Required]
         public string AttackerCharacterId { get; set; }
-        [Required]
-        public int? AttackerVehicleId { get; set; }
 
         [Required]
         public string VictimCharacterId { get; set; }
         [Required]
-        public int? VictimVehicleId { get; set; }
+        public int VictimVehicleId { get; set; }
+
+        //[Required]
+        public int? AttackerVehicleId { get; set; }
 
         public int ScrimMatchRound { get; set; }
 
