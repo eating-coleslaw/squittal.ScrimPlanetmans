@@ -313,46 +313,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     }
                 }
 
-                //var dataModel = new Death
-                //{
-                //    AttackerCharacterId = attackerId,
-                //    AttackerFireModeId = payload.AttackerFireModeId,
-                //    AttackerLoadoutId = payload.AttackerLoadoutId,
-                //    AttackerVehicleId = payload.AttackerVehicleId,
-                //    AttackerWeaponId = payload.AttackerWeaponId,
-                //    //AttackerOutfitId = attackerOutfitTask?.Result?.OutfitId,
-                //    //AttackerTeamOrdinal = attackerTeamOrdinal,
-                //    AttackerFactionId = attackerFactionId,
-                //    CharacterId = victimId,
-                //    CharacterLoadoutId = payload.CharacterLoadoutId,
-                //    //CharacterOutfitId = victimOutfitTask?.Result?.OutfitId,
-                //    //CharacterTeamOrdinal = victimTeamOrdinal,
-                //    CharacterFactionId = victimFactionId,
-                //    IsHeadshot = payload.IsHeadshot,
-                //    DeathEventType = deathEventType,
-                //    Timestamp = payload.Timestamp,
-                //    WorldId = payload.WorldId,
-                //    ZoneId = payload.ZoneId.Value
-                //};
-
-                //if (_isScoringEnabled)
-                //{
-                //    //_scorer.ScoreDeathEvent(dataModel);
-                //    var points = _scorer.ScoreDeathEvent(deathEvent);
-                //    deathEvent.Points = points;
-                //}
-
                 _messageService.BroadcastScrimDeathActionEventMessage(new ScrimDeathActionEventMessage(deathEvent));
 
                 //return dataModel;
                 return deathEvent;
-
-                //dbContext.Deaths.Add(dataModel);
-                //await dbContext.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //Ignore
+                _logger.LogError(ex.ToString());
                 return null;
             }
         }
@@ -596,9 +564,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 return destructionEvent;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //Ignore
+                _logger.LogError(ex.ToString());
                 return null;
             }
         }
