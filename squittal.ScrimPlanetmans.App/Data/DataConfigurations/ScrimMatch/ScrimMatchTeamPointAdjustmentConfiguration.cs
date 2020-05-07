@@ -13,7 +13,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.HasKey(e => new
             {
                 e.ScrimMatchId,
-                e.TeamOrdinal
+                e.TeamOrdinal,
+                e.Timestamp
             });
 
             builder.HasOne(teamAdjustment => teamAdjustment.ScrimMatchTeamResult)

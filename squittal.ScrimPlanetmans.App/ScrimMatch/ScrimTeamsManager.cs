@@ -1511,7 +1511,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 allAdjustments.AddRange(updateAdjustments);
                 allAdjustments.AddRange(storeAdjustmentEntities
                                             .Select(ConvertFromDbModel)
-                                            .Where(e => !allAdjustments.Contains(e))
+                                            .Where(e => !allAdjustments.Any(a => a.Timestamp == e.Timestamp))
                                             .ToList());
 
                 var createdAdjustments = new List<ScrimMatchTeamPointAdjustment>();
