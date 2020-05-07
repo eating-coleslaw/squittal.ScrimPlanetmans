@@ -57,10 +57,10 @@ namespace squittal.ScrimPlanetmans.Data.Models
         public int ZoneId { get; set; }
 
         public int Points { get; set; }
-        public int AttackerResultingPoints { get; set; }
-        public int AttackerResultingNetScore { get; set; }
-        public int VictimResultingPoints { get; set; }
-        public int VictimResultingNetScore { get; set; }
+        public int? AttackerResultingPoints { get; set; }
+        public int? AttackerResultingNetScore { get; set; }
+        public int? VictimResultingPoints { get; set; }
+        public int? VictimResultingNetScore { get; set; }
 
         #region Navigation Properties
         public ScrimMatch ScrimMatch { get; set; }

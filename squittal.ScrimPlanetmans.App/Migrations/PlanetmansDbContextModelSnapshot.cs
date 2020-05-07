@@ -54,10 +54,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("AttackerOutfitId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("AttackerResultingNetScore")
+                    b.Property<int?>("AttackerResultingNetScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("AttackerResultingPoints")
+                    b.Property<int?>("AttackerResultingPoints")
                         .HasColumnType("int");
 
                     b.Property<int>("AttackerTeamOrdinal")
@@ -101,10 +101,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("VictimOutfitId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("VictimResultingNetScore")
+                    b.Property<int?>("VictimResultingNetScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("VictimResultingPoints")
+                    b.Property<int?>("VictimResultingPoints")
                         .HasColumnType("int");
 
                     b.Property<int>("VictimTeamOrdinal")
@@ -316,10 +316,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("AttackerOutfitId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("AttackerResultingNetScore")
+                    b.Property<int?>("AttackerResultingNetScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("AttackerResultingPoints")
+                    b.Property<int?>("AttackerResultingPoints")
                         .HasColumnType("int");
 
                     b.Property<int>("AttackerTeamOrdinal")
@@ -365,10 +365,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("VictimOutfitId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("VictimResultingNetScore")
+                    b.Property<int?>("VictimResultingNetScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("VictimResultingPoints")
+                    b.Property<int?>("VictimResultingPoints")
                         .HasColumnType("int");
 
                     b.Property<int>("VictimTeamOrdinal")

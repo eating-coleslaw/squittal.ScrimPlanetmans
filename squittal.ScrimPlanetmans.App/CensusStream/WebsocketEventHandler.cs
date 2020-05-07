@@ -298,10 +298,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 AttackerVehicleId = deathEvent.AttackerVehicleId,
                                 IsHeadshot = deathEvent.IsHeadshot,
                                 Points = deathEvent.Points,
-                                AttackerResultingPoints = deathEvent.AttackerPlayer.EventAggregate.Points,
-                                AttackerResultingNetScore = deathEvent.AttackerPlayer.EventAggregate.NetScore,
-                                VictimResultingPoints = deathEvent.VictimPlayer.EventAggregate.Points,
-                                VictimResultingNetScore = deathEvent.VictimPlayer.EventAggregate.NetScore
+                                //AttackerResultingPoints = deathEvent.AttackerPlayer.EventAggregate.Points,
+                                //AttackerResultingNetScore = deathEvent.AttackerPlayer.EventAggregate.NetScore,
+                                //VictimResultingPoints = deathEvent.VictimPlayer.EventAggregate.Points,
+                                //VictimResultingNetScore = deathEvent.VictimPlayer.EventAggregate.NetScore
                             };
 
                             using var factory = _dbContextHelper.GetFactory();
@@ -552,10 +552,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                 ZoneId = (int)destructionEvent.ZoneId,
                                 WorldId = payload.WorldId,
                                 Points = destructionEvent.Points,
-                                AttackerResultingPoints = destructionEvent.AttackerPlayer.EventAggregate.Points,
-                                AttackerResultingNetScore = destructionEvent.AttackerPlayer.EventAggregate.NetScore,
-                                VictimResultingPoints = destructionEvent.VictimPlayer.EventAggregate.Points,
-                                VictimResultingNetScore = destructionEvent.VictimPlayer.EventAggregate.NetScore
+                                //AttackerResultingPoints = destructionEvent.AttackerPlayer.EventAggregate.Points,
+                                //AttackerResultingNetScore = destructionEvent.AttackerPlayer.EventAggregate.NetScore,
+                                //VictimResultingPoints = destructionEvent.VictimPlayer.EventAggregate.Points,
+                                //VictimResultingNetScore = destructionEvent.VictimPlayer.EventAggregate.NetScore
                             };
 
                             using var factory = _dbContextHelper.GetFactory();
