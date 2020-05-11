@@ -42,7 +42,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
             _client.Subscribe(CreateSubscription())
                     .OnMessage(OnMessage)
                    .OnDisconnect(OnDisconnect);
-            //.Subscribe(CreateSubscription())
 
             _messageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
             _messageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateEvent;
@@ -59,21 +58,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
 
             await _client?.ConnectAsync();
-            //_client?.Subscribe(CreateSubscription());
-
-            //var state = await GetStateAsync(cancellationToken);
-
-            //if (!state.IsEnabled)
-            //{
-            //    await _client.ConnectAsync();
-            //    state = await GetStateAsync(cancellationToken);
-            //}
-
-            //if (state.IsEnabled)
-            //{
-            //    _logger.LogInformation("Starting census stream subscription");
-            //    _client.Subscribe(CreateSubscription());
-            //}
         }
 
         private CensusStreamSubscription CreateSubscription()
@@ -93,7 +77,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 Characters = new[] { "all" },
                 Worlds = new[] { "all" },
-                //EventNames = new[] { "Death", "PlayerLogin", "PlayerLogout" }
                 EventNames = eventNames
             };
 
@@ -304,43 +287,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
-            //{
-            //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLoginMessage", message);
-            //}
-
-            //else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
-            //{
-            //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLogoutMessage", message);
-            //}
-
             if (PayloadContainsSubscribedCharacter(jMsg) || PayloadContainsSubscribedFacility(jMsg))
             {
-                //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
-                //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
-                //{
-                //    _logger.LogInformation($"Payload received for event PlayerLogin: {jMsg.ToString()}");
-                //}
-
-                //else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
-                //{
-                //    _logger.LogInformation($"Payload received for event PlayerLogout: {jMsg.ToString()}");
-                //}
-
-
-                //await _handler.Process(jMsg);
                 #pragma warning disable CS4014
                 Task.Run(() =>
                 {
                     _handler.Process(jMsg);
                 }).ConfigureAwait(false);
                 #pragma warning restore CS4014
-
-
-                //SendSimpleMessage(message);
             }
-
-            //await _handler.Process(jMsg);
         }
 
         private Task OnDisconnect(string error)

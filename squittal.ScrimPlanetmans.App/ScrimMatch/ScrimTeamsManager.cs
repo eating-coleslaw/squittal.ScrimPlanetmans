@@ -21,10 +21,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IOutfitService _outfitService;
         private readonly IFactionService _factionService;
         private readonly IScrimMessageBroadcastService _messageService;
-        private readonly ILogger<ScrimTeamsManager> _logger;
-
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMatchDataService _matchDataService;
+        private readonly ILogger<ScrimTeamsManager> _logger;
 
         private readonly Team Team1;
         private readonly Team Team2;
@@ -47,10 +46,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _outfitService = outfitService;
             _factionService = factionService;
             _messageService = messageService;
-            _logger = logger;
-
             _matchDataService = matchDataService;
             _dbContextHelper = dbContextHelper;
+            _logger = logger;
 
             Team1 = new Team($"{_defaultAliasPreText}1", "Team 1", 1);
             _ordinalTeamMap.Add(1, Team1);
@@ -480,8 +478,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.TryRemoveOutfit(aliasLower);
 
-            //SendTeamOutfitRemovedMessage(outfit);
-
             var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).ToList();
 
             if (players == null || !players.Any())
@@ -498,7 +494,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersRemoved = true;
                 }
             }
-
 
             //TODO: handle updating Match Configuration's Server ID setting here
 
@@ -536,38 +531,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TaskList.Add(destructionsTask);
 
             await Task.WhenAll(TaskList);
-
-            //var currentMatchId = _matchDataService.CurrentMatchId;
-
-            //try
-            //{
-            //    await RemoveOutfitMatchDeathsFromDb(outfitId, teamOrdinal);
-
-            //    using var factory = _dbContextHelper.GetFactory();
-            //    var dbContext = factory.GetDbContext();
-
-            //    //var deathsToRemove = await dbContext.ScrimDeaths
-            //    //                                        .Where(e => e.ScrimMatchId == currentMatchId
-            //    //                                                    && (e.AttackerOutfitId == outfitId
-            //    //                                                        || e.VictimOutfitId== outfitId))
-            //    //                                        .ToListAsync();
-
-            //    //dbContext.ScrimDeaths.RemoveRange(deathsToRemove);
-
-            //    var destructionsToRemove = await dbContext.ScrimVehicleDestructions
-            //                                            .Where(e => e.ScrimMatchId == currentMatchId
-            //                                                        && (e.AttackerOutfitId == outfitId
-            //                                                            || e.VictimOutfitId == outfitId))
-            //                                            .ToListAsync();
-
-            //    dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
-
-            //    await dbContext.SaveChangesAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex.ToString());
-            //}
 
             var currentMatchRound = _matchDataService.CurrentMatchRound;
 
@@ -853,36 +816,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TaskList.Add(destructionsTask);
 
             await Task.WhenAll(TaskList);
-
-            //var currentMatchId = _matchDataService.CurrentMatchId;
-
-            //try
-            //{
-            //    using var factory = _dbContextHelper.GetFactory();
-            //    var dbContext = factory.GetDbContext();
-
-            //    var deathsToRemove = await dbContext.ScrimDeaths
-            //                                            .Where(e => e.ScrimMatchId == currentMatchId
-            //                                                        && (e.AttackerCharacterId == characterId
-            //                                                            || e.VictimCharacterId == characterId))
-            //                                            .ToListAsync();
-
-            //    dbContext.ScrimDeaths.RemoveRange(deathsToRemove);
-
-            //    var destructionsToRemove = await dbContext.ScrimVehicleDestructions
-            //                                            .Where(e => e.ScrimMatchId == currentMatchId
-            //                                                        && (e.AttackerCharacterId == characterId
-            //                                                            || e.VictimCharacterId == characterId))
-            //                                            .ToListAsync();
-
-            //    dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
-
-            //    await dbContext.SaveChangesAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex.ToString());
-            //}
 
             var currentMatchRound = _matchDataService.CurrentMatchRound;
 
@@ -1387,7 +1320,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var player = GetPlayerFromId(characterId);
 
-            //player.EventAggregate.Add(updates);
             player.AddStatsUpdate(updates);
 
             if (!player.IsBenched)
@@ -1404,7 +1336,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var team = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId));
 
-            //team.EventAggregate.Add(updates);
             team.AddStatsUpdate(updates);
 
             if (!team.ParticipatingPlayers.Any(p => p.Id == player.Id))

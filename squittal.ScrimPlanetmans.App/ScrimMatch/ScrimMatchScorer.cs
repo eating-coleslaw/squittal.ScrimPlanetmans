@@ -1,14 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-//using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
-//using squittal.ScrimPlanetmans.Shared.Models;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
-//using squittal.ScrimPlanetmans.ScrimMatch.Messages;
-//using System;
 using System.Linq;
 using System.Threading.Tasks;
-using squittal.ScrimPlanetmans.Models.Planetside;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -27,13 +22,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _teamsManager = teamsManager;
             _messageService = messageService;
             _logger = logger;
-
-            //_activeRuleset = _rulesets.GetActiveRuleset();
         }
 
         public async Task SetActiveRuleset()
         {
-            //_activeRuleset = await _rulesets.GetDefaultRuleset();
             _activeRuleset = await _rulesets.GetActiveRuleset();
         }
 
@@ -60,7 +52,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             int points = 0;
 
-            //if (death.ActionType == ScrimActionType.InfantryKillInfantry)
             if (GetDeferToItemCategoryPoints(death.ActionType))
             {
                 var categoryId = death.Weapon?.ItemCategoryId;
@@ -107,10 +98,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var actionType = death.ActionType;
             var points = GetActionRulePoints(actionType);
-            //var points = _activeRuleset.ActionRules
-            //                            .Where(rule => rule.ScrimActionType == actionType)
-            //                            .Select(rule => rule.Points)
-            //                            .FirstOrDefault();
 
             var victimUpdate = new ScrimEventAggregate()
             {
@@ -130,10 +117,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var actionType = death.ActionType;
             var points = GetActionRulePoints(actionType);
-            //var points = _activeRuleset.ActionRules
-            //                            .Where(rule => rule.ScrimActionType == actionType)
-            //                            .Select(rule => rule.Points)
-            //                            .FirstOrDefault();
 
             var attackerUpdate = new ScrimEventAggregate()
             {
@@ -328,13 +311,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #endregion Vehicle Destruction Events
 
         #region Experience Events
-        /*
-        public int ScoreGainExperienceEvent(GainExperience expGain)
-        {
-            throw new NotImplementedException();
-        }
-        */
-
         public int ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
             var actionType = revive.ActionType;
@@ -430,32 +406,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var teamOrdinal = control.ControllingTeamOrdinal;
             var type = control.ControlType;
 
-            //var team = _teamsManager.GetTeam(teamOrdinal);
-
-            /*
-            if (!DoesFacilityControlCount(type, teamOrdinal))
-            {
-                //controlCounts = false;
-                control.ActionType = ScrimActionType.None;
-                return 0;
-            }
-            */
-            //else
-            //{
-            //    controlCounts = true;
-            //}
-
-            //var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
-
             var actionType = control.ActionType;
-            //var actionType = (roundControlVictories == 0)
-            //                        ? ScrimActionType.FirstBaseCapture
-            //                        : ScrimActionType.SubsequentBaseCapture;
-
             var points = GetActionRulePoints(actionType);
-
-            //control.ActionType = actionType;
-            //control.Points = points;  let WebsocketEventHandler do this
 
             var teamUpdate = new ScrimEventAggregate()
             {
@@ -469,33 +421,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             return points;
         }
-
-        //private bool DoesFacilityControlCount(FacilityControlType type, int teamOrdinal)
-        //{
-        //    var team = _teamsManager.GetTeam(teamOrdinal);
-
-        //    var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
-
-        //    if (roundControlVictories == 0)
-        //    {
-        //        return true;
-        //    }
-
-        //    var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
-
-        //    return (type != previousScoredControlType);
-
-        //    /*
-        //    var roundDefenses = team.EventAggregateTracker.RoundStats.BaseDefenses;
-        //    if (type == FacilityControlType.Defense)
-        //    {
-        //        return roundDefenses == 0
-        //    }
-
-
-        //    var roundCaptures = team.EventAggregateTracker.RoundStats.BaseCaptures;
-        //    */
-        //}
         #endregion Objective Events
 
         #region Misc. Non-Scored Events

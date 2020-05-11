@@ -104,8 +104,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int LightningsLost { get; set; } = 0;
         public int MbtsDestroyed { get; set; } = 0;
         public int MbtsLost { get; set; } = 0;
-
-
         #endregion Ground Vehicles
 
         #endregion Vehicles
@@ -381,15 +379,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 {
                     PreviousScoredBaseControlType = FacilityControlType.Capture;
                 }
-
-                //if (PreviousScoredBaseControlType == FacilityControlType.Capture || BaseDefenses > BaseCaptures)
-                //{
-                //    PreviousScoredBaseControlType = FacilityControlType.Defense;
-                //}
-                //else if (PreviousScoredBaseControlType == FacilityControlType.Defense || BaseCaptures > BaseDefenses)
-                //{
-                //    PreviousScoredBaseControlType = FacilityControlType.Capture;
-                //}
             }
 
             if (subtrahend.PointAdjustments.Count > 0)

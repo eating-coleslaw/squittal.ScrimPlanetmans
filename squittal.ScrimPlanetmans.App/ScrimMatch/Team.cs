@@ -12,7 +12,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
 
-        //public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
         public ScrimEventAggregate EventAggregate
         {
             get
@@ -20,11 +19,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return EventAggregateTracker.TotalStats;
             }
         }
-
-        //public ScrimEventAggregate EventAggregateRound { get; set; }
-
-        // Each aggregate is only the points scored during the round number of the enytry's key
-        //public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory { get; set; } = new Dictionary<int, ScrimEventAggregate>();
 
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
@@ -51,21 +45,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private List<string> _playerIdsOnline = new List<string>();
         private Dictionary<string, Character> _playerIdMap = new Dictionary<string, Character>();
 
-        private List<string> _loadingAliases = new List<string>();
-        private List<string> _loadingPlayerIds = new List<string>();
-
         private List<Outfit> _outfits = new List<Outfit>();
         private Dictionary<string, Outfit> _playerOutfitMap = new Dictionary<string, Outfit>(); // <characterId, alias>
 
         public Team(string alias, string nameInternal, int teamOrdinal)
         {
-            //Alias = alias;
             TrySetAlias(alias, false);
             NameInternal = nameInternal;
             TeamOrdinal = teamOrdinal;
-
-            //EventAggregate = new ScrimEventAggregate();
-            //EventAggregateRound = new ScrimEventAggregate();
         }
 
         public bool TrySetAlias(string alias, bool isCustomAlias = false)
@@ -121,8 +108,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ParticipatingPlayers.RemoveAll(p => p.Id == characterId);
 
-            //EventAggregate.Subtract(player.EventAggregate);
-
             EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
 
             return true;
@@ -160,13 +145,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void AddStatsUpdate(ScrimEventAggregate update)
         {
-            //EventAggregate.Add(update);
             EventAggregateTracker.AddToCurrent(update);
         }
 
         public void SubtractStatsUpdate(ScrimEventAggregate update)
         {
-            //EventAggregate.Subtract(update);
             EventAggregateTracker.SubtractFromCurrent(update);
         }
 
@@ -177,76 +160,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void RollBackPlayerRoundStats(string characterId, int currentRound)
         {
-            //var player = Players.FirstOrDefault(p => p.Id == characterId);
-
-            //player.EventAggregateTracker.RollBackRound(currentRound);
             EventAggregateTracker.RollBackRound(currentRound);
         }
-
-        //public void AddEventAggregateUpdate(ScrimEventAggregate update)
-        //{
-        //    EventAggregate.Add(update);
-        //    EventAggregateRound.Add(update);
-        //}
-
-        //public void SubtractEventAggregateUpdate(ScrimEventAggregate update)
-        //{
-        //    EventAggregate.Subtract(update);
-        //    EventAggregateRound.Subtract(update);
-        //}
-
-        /*
-        public void SaveRoundToEventAggregateHistory(int round)
-        {
-            if (round < 1)
-            {
-                return;
-            }
-
-            var maxRound = GetHighestEventAggregateHistoryRound();
-
-            // Only allow updating the current round, or saving a new round
-            if (round != maxRound && round != (maxRound + 1))
-            {
-                return;
-            }
-
-            var roundStats = new ScrimEventAggregate();
-
-            roundStats.Add(EventAggregate);
-
-            for (var r = 1; r == (round - 1); r++)
-            {
-                if (EventAggregateRoundHistory.TryGetValue(r, out ScrimEventAggregate stats))
-                {
-                    roundStats.Subtract(stats);
-                }
-            }
-
-            if (EventAggregateRoundHistory.ContainsKey(round))
-            {
-                EventAggregateRoundHistory[round] = roundStats;
-            }
-            else
-            {
-                EventAggregateRoundHistory.Add(round, roundStats);
-            }
-        }
-        */
-
-        /*
-        private int GetHighestEventAggregateHistoryRound()
-        {
-            var rounds = EventAggregateRoundHistory.Keys.ToArray();
-
-            if (!rounds.Any())
-            {
-                return 0;
-            }
-
-            return rounds.Max();
-        }
-        */
-
     }
 }

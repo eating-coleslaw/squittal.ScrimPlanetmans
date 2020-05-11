@@ -7,21 +7,16 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
 
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
-
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class OutfitService : IOutfitService
     {
-        //private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusOutfit _censusOutfit;
         private readonly CensusCharacter _censusCharacter;
         private readonly ILogger<OutfitService> _logger;
 
-        public OutfitService(/*IDbContextHelper dbContextHelper,*/ CensusOutfit censusOutfit, CensusCharacter censusCharacter, ILogger<OutfitService> logger)
+        public OutfitService(CensusOutfit censusOutfit, CensusCharacter censusCharacter, ILogger<OutfitService> logger)
         {
-            //_dbContextHelper = dbContextHelper;
             _censusOutfit = censusOutfit;
             _censusCharacter = censusCharacter;
             _logger = logger;
@@ -50,15 +45,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var resolvedOutfit = await ResolveOutfitDetailsAsync(censusEntity, null);
 
             return resolvedOutfit;
-
-            /*
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                return await dbContext.Outfits.AsNoTracking().FirstOrDefaultAsync(o => o.Alias.ToLower() == alias.ToLower());
-            }
-            */
         }
 
         public async Task<IEnumerable<Character>> GetOutfitMembersByAlias(string alias)
@@ -92,7 +78,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             if (membership == null)
             {
-                //await RemoveOutfitMemberAsync(character.Id);
                 return null;
             }
 
@@ -113,7 +98,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 RankOrdinal = membership.RankOrdinal
             };
 
-            //outfitMember = await UpsertOutfitMemberAsync(outfitMember);
             return outfitMember;
         }
         
@@ -132,7 +116,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             if (outfit.WorldId == null || outfit.FactionId == null)
             {
                 outfit = await ResolveOutfitDetailsAsync(outfit, member);
-                //await UpsertOutfitAsync(outfit);
             }
 
             return outfit;
@@ -154,37 +137,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             return outfit;
-
-            /*
-            outfit = await GetDbOutfitAsync(outfitId);
-
-            if (outfit == null)
-            {
-                try
-                {
-                    outfit = await GetCensusOutfit(outfitId);
-                }
-                catch (CensusConnectionException)
-                {
-                    return null;
-                }
-            }
-
-            return outfit;
-            */
         }
-
-        /*
-        private async Task<Outfit> GetDbOutfitAsync(string outfitId)
-        {
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                return await dbContext.Outfits.AsNoTracking().FirstOrDefaultAsync(o => o.Id == outfitId);
-            }
-        }
-        */
 
         private async Task<Outfit> GetCensusOutfit(string outfitId)
         {
@@ -193,15 +146,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return censusOutfit == null
                 ? null
                 : ConvertToDbModel(censusOutfit);
-            //{
-            //    Id = censusOutfit.OutfitId,
-            //    Alias = censusOutfit.Alias,
-            //    AliasLower = censusOutfit.AliasLower,
-            //    Name = censusOutfit.Name,
-            //    LeaderCharacterId = censusOutfit.LeaderCharacterId,
-            //    CreatedDate = censusOutfit.TimeCreated,
-            //    MemberCount = censusOutfit.MemberCount
-            //};
         }
 
         public static Outfit ConvertToDbModel(CensusOutfitModel censusOutfit)
@@ -247,7 +191,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 isOnline = false;
             }
-            //bool isOnline = censusModel.OnlineStatus > 0 ? true : false;
 
             return new Character
             {
@@ -260,71 +203,5 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 OutfitAliasLower = member.OutfitAliasLower
             };
         }
-
-        /*
-        private async Task<Outfit> UpsertOutfitAsync(Outfit newEntity)
-        {
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                var storeEntity = await dbContext.Outfits.AsNoTracking().FirstOrDefaultAsync(o => o.Id == newEntity.Id);
-
-                if (storeEntity == null)
-                {
-                    await dbContext.AddAsync(newEntity);
-                }
-                else
-                {
-                    storeEntity = newEntity;
-                    dbContext.Update(storeEntity);
-                }
-                await dbContext.SaveChangesAsync();
-            }
-            return newEntity;
-        }
-        */
-
-        /*
-        private async Task<OutfitMember> UpsertOutfitMemberAsync(OutfitMember newEntity)
-        {
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                var storeEntity = await dbContext.OutfitMembers.AsNoTracking().FirstOrDefaultAsync(m => m.CharacterId == newEntity.CharacterId);
-
-                if (storeEntity == null)
-                {
-                    await dbContext.AddAsync(newEntity);
-                }
-                else
-                {
-                    storeEntity = newEntity;
-                    dbContext.Update(storeEntity);
-                }
-                await dbContext.SaveChangesAsync();
-            }
-            return newEntity;
-        }
-        */
-
-        /*
-        private async Task RemoveOutfitMemberAsync(string characterId)
-        {
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                var storeMembership = await dbContext.OutfitMembers.FindAsync(characterId);
-
-                if (storeMembership != null)
-                {
-                    dbContext.OutfitMembers.Remove(storeMembership);
-                    await dbContext.SaveChangesAsync();
-                }
-            }
-        }
-        */
     }
 }

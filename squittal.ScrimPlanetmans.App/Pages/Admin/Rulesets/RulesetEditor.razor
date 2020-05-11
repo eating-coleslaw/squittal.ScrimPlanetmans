@@ -38,7 +38,6 @@
                             {
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
                                     <EditForm Model="@_showInfantry">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -48,7 +47,6 @@
 
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
                                     <EditForm Model="@_showMax">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -58,7 +56,6 @@
 
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
                                     <EditForm Model="@_showGroundVehicle">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -68,7 +65,6 @@
 
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
                                     <EditForm Model="@_showAirVehicle">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -88,7 +84,6 @@
                                     <tbody>
                                         @foreach (var itemCategoryRule in _activeRuleset.ItemCategoryRules.OrderBy(icr => icr.ItemCategory.Domain).ToList())
                                         {
-                                            //if (itemCategoryRule.ItemCategory != null && itemCategoryRule.ItemCategory.Domain != ItemCategoryDomain.Locked)
                                             if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
                                             {
                                                 <tr>

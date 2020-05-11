@@ -66,10 +66,6 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IProfileService, ProfileService>();
             services.AddTransient<ILoadoutService, LoadoutService>();
 
-            services.AddSingleton<ScrimTeamsManagerService>();
-            services.AddSingleton<PlanetsideDataService>();
-            services.AddSingleton<WebsocketMonitorService>();
-
             services.AddSingleton<IScrimTeamsManager, ScrimTeamsManager>();
             services.AddSingleton<IScrimPlayersService, ScrimPlayersService>();
 

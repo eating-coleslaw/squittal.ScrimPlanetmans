@@ -7,11 +7,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
     {
         public string Id { get; }
 
-        //public Team Team { get; set; }
         public int TeamOrdinal { get; set; }
 
-        //public ScrimEventAggregate EventAggregate { get; set; }
-        //public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
         public ScrimEventAggregate EventAggregate
         {
             get
@@ -19,11 +16,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 return EventAggregateTracker.TotalStats;
             }
         }
-
-        //public ScrimEventAggregate EventAggregateRound { get; set; }
-
-        // Each aggregate is only the points scored during the round number of the enytry's key
-        //public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory = new Dictionary<int, ScrimEventAggregate>();
 
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
@@ -66,9 +58,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitId = character.OutfitId;
             OutfitAlias = character.OutfitAlias;
             OutfitAliasLower = character.OutfitAliasLower;
-
-            //EventAggregate = new ScrimEventAggregate();
-            //EventAggregateRound = new ScrimEventAggregate();
         }
 
         private static string GetTrimmedPlayerName(string name)

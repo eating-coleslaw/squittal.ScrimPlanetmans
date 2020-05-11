@@ -316,8 +316,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
                 }
 
-                storeRuleset.ActionRules = allActionRules; // await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                storeRuleset.ItemCategoryRules = allItemCategoryRules; // await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                storeRuleset.ActionRules = allActionRules;
+                storeRuleset.ItemCategoryRules = allItemCategoryRules;
 
                 if (rulesetExistsInDb)
                 {
@@ -465,27 +465,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         dbContext.ScrimActions.Remove(storeEntity);
                     }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        //
+                        _logger.LogError(ex.ToString());
                     }
                 }
-
-                //foreach (var value in enumValues)
-                //{
-                //    var storeEntity = storeEntities.FirstOrDefault(e => e.Action == value);
-                //    if (storeEntity == null)
-                //    {
-                //        createdEntities.Add(ConvertToDbModel(value));
-                //    }
-                //    else
-                //    {
-                //        storeEntity = ConvertToDbModel(value);
-                //        dbContext.ScrimActions.Update(storeEntity);
-                //    }
-                //}
-
-
 
                 if (createdEntities.Any())
                 {

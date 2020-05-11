@@ -5,7 +5,6 @@ using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
@@ -15,9 +14,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly IScrimMessageBroadcastService _messageService;
-        private readonly ILogger<ScrimMatchEngine> _logger;
-
         private readonly IScrimMatchDataService _matchDataService;
+        private readonly ILogger<ScrimMatchEngine> _logger;
 
         private readonly IStatefulTimer _timer;
 
@@ -31,8 +29,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private int _roundSecondsRemaining;
         private MatchTimerTickMessage _latestTimerTickMessage;
 
-        //private int _roundSecondsElapsed = 0;
-
         private MatchState _matchState = MatchState.Uninitialized;
 
         private DateTime _matchStartTime;
@@ -45,9 +41,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor = wsMonitor;
             _timer = timer;
             _messageService = messageService;
-            _logger = logger;
-
             _matchDataService = matchDataService;
+            _logger = logger;
 
             _messageService.RaiseMatchTimerTickEvent += async (s, e) => await OnMatchTimerTick(s, e);
 
@@ -55,11 +50,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
 
             _messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
-
-            //MatchConfiguration = new MatchConfiguration();
-
-
-            //ClearMatch();
         }
 
 
@@ -93,9 +83,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.DisableLogging();
 
             MatchConfiguration = new MatchConfiguration();
-
-            //_wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
-            //_wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
@@ -152,9 +139,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (MatchConfiguration.SaveLogFiles == true)
             {
-                var matchId = BuildMatchId(); // GetLogFileNameWithExtension();
+                var matchId = BuildMatchId();
 
-                //_messageService.SetLogFileName(matchId);
                 _messageService.SetLogFileName($"{matchId}.txt");
 
                 var scrimMatch = new Data.Models.ScrimMatch
@@ -185,25 +171,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return matchId;
-        }
-
-    private string GetLogFileNameWithExtension()
-        {
-            var fileName = _matchStartTime.ToString("yyyyMMddTHHmmss");
-
-            for (var i = 1; i <= 3; i++)
-            {
-                var alias = _teamsManager.GetTeamAliasDisplay(i);
-
-                if (string.IsNullOrWhiteSpace(alias))
-                {
-                    continue;
-                }
-
-                fileName = $"{fileName}_{alias}";
-            }
-
-            return ($"{fileName}.txt");
         }
 
         public void InitializeNewRound()
@@ -353,8 +320,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 worldId = _teamsManager.GetNextWorldId(MatchConfiguration.WorldId);
                 isRollBack = true;
             }
-
-            //var worldId = (int)e.Message.Outfit.WorldId;
 
             if (worldId == null)
             {

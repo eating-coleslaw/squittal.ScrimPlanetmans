@@ -38,17 +38,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Profile>> GetAllProfilesAsync()
         {
-            //var censusProfiles = await _censusProfile.GetAllProfilesAsync();
-
-            //if (censusProfiles == null)
-            //{
-            //    return null;
-            //}
-
-            //var censusEntities = censusProfiles.Select(ConvertToDbModel);
-            //return censusEntities.ToList();
-
-
             using (var factory = _dbContextHelper.GetFactory())
             {
                 var dbContext = factory.GetDbContext();
@@ -138,7 +127,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             };
         }
 
-        // TODO: actually implement onlyQueryCensusIfEmpty = true, and move Loadout refresh to LoadoutService
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
             if (onlyQueryCensusIfEmpty)

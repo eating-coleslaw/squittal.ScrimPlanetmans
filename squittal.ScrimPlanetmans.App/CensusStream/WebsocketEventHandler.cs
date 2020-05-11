@@ -12,25 +12,17 @@ using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Data.Models;
-using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
-//using squittal.ScrimPlanetmans.Shared.Models;
-//using squittal.ScrimPlanetmans.Shared.Models.Planetside;
-//using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
-
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
     public class WebsocketEventHandler : IWebsocketEventHandler
     {
-        //private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemService _itemService;
         private readonly ICharacterService _characterService;
         private readonly IFacilityService _facilityService;
@@ -38,10 +30,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IScrimMatchScorer _scorer;
         private readonly IScrimMessageBroadcastService _messageService;
-        private readonly ILogger<WebsocketEventHandler> _logger;
-
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMatchDataService _scrimMatchService;
+        private readonly ILogger<WebsocketEventHandler> _logger;
+
 
         private readonly Dictionary<string, MethodInfo> _processMethods;
 
@@ -67,15 +59,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
             _teamsManager = teamsManager;
             _itemService = itemService;
             _messageService = messageService;
-            //_dbContextHelper = dbContextHelper;
             _characterService = characterService;
             _facilityService = facilityService;
             _vehicleService = vehicleService;
             _scorer = scorer;
-            _logger = logger;
-
             _dbContextHelper = dbContextHelper;
             _scrimMatchService = scrimMatchService;
+            _logger = logger;
+
 
             // Credit to Voidwell @ Lampjaw
             _processMethods = GetType()
@@ -265,7 +256,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled)
                     {
-                        //_scorer.ScoreDeathEvent(dataModel);
                         var points = _scorer.ScoreDeathEvent(deathEvent);
                         deathEvent.Points = points;
 
@@ -791,7 +781,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
-        //private Task<PlayerLogin> Process(PlayerLoginPayload payload)
         private PlayerLogin Process(PlayerLoginPayload payload)
         {
             var characterId = payload.CharacterId;
@@ -815,7 +804,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
-        //private Task<PlayerLogout> Process(PlayerLogoutPayload payload)
         private PlayerLogout Process(PlayerLogoutPayload payload)
         {
             var characterId = payload.CharacterId;
@@ -882,27 +870,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 default:
                     return;
             }
-
-            //var characterId = payload.CharacterId;
-
-            //var player = _teamsManager.GetPlayerFromId(characterId);
-
-
-            //var dataModel = new GainExperience
-            //{
-            //    Id = Guid.NewGuid(),
-            //    ExperienceId = payload.ExperienceId,
-            //    CharacterId = payload.CharacterId,
-            //    Amount = payload.Amount,
-            //    LoadoutId = payload.LoadoutId,
-            //    OtherId = payload.OtherId,
-            //    Timestamp = payload.Timestamp,
-            //    WorldId = payload.WorldId,
-            //    ZoneId = payload.ZoneId.Value
-            //};
-
-            //return Task.FromResult(dataModel);
-            //return dataModel;
         }
 
         private void ProcessRevivePayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
@@ -1105,7 +1072,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var mapRegion = _facilityService.GetScrimmableMapRegionFromFacilityId(payload.FacilityId);
 
-            //var controlModel = new FacilityControl
             var controlEvent = new ScrimFacilityControlActionEvent
             {
                 FacilityId = payload.FacilityId,
@@ -1122,8 +1088,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ActionType = actionType
             };
 
-            //_scorer.ScoreFacilityControlEvent(controlModel, out bool controlCounts);
-
             if (_isScoringEnabled)
             {
                 var points = _scorer.ScoreFacilityControlEvent(controlEvent);
@@ -1132,8 +1096,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             // TODO: broadcast Facility Control message
             _messageService.BroadcastScrimFacilityControlActionEventMessage(new ScrimFacilityControlActionEventMessage(controlEvent));
-
-            //return Task.FromResult(dataModel);
         }
 
         private FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
@@ -1167,18 +1129,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
 
-            //if (roundControlVictories == 0)
-            //{
-            //    return true;
-            //}
-
-            var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
-
-            //if (type != previousScoredControlType && roundControlVictories != 0)
-            //{
-            //    return ScrimActionType.None;
-            //}
-            
             // Only the first defense in a round should ever count. After that, base always trades hands via captures
             if (type == FacilityControlType.Defense && roundControlVictories != 0)
             {
