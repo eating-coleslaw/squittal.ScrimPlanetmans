@@ -10,7 +10,7 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20200506172728_AddScrimMatchResultsAndEvents")]
+    [Migration("20200511145041_AddScrimMatchResultsAndEvents")]
     partial class AddScrimMatchResultsAndEvents
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,6 +153,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int>("TeamOrdinal")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("AdjustmentType")
                         .HasColumnType("int");
 
@@ -164,10 +167,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("Rationale")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ScrimMatchId", "TeamOrdinal");
+                    b.HasKey("ScrimMatchId", "TeamOrdinal", "Timestamp");
 
                     b.ToTable("ScrimMatchTeamPointAdjustment");
                 });

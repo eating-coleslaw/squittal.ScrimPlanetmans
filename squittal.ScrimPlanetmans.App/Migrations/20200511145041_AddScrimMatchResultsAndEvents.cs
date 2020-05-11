@@ -152,7 +152,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ScrimMatchTeamPointAdjustment", x => new { x.ScrimMatchId, x.TeamOrdinal });
+                    table.PrimaryKey("PK_ScrimMatchTeamPointAdjustment", x => new { x.ScrimMatchId, x.TeamOrdinal, x.Timestamp });
                     table.ForeignKey(
                         name: "FK_ScrimMatchTeamPointAdjustment_ScrimMatchTeamResult_ScrimMatchId_TeamOrdinal",
                         columns: x => new { x.ScrimMatchId, x.TeamOrdinal },

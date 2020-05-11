@@ -25,6 +25,10 @@
     <Compile Remove="Migrations\20200505185504_AdjustScrimVehDestPK.Designer.cs" />
     <Compile Remove="Migrations\20200505190235_AdjustScrimVehDustModelTypesAndPK.cs" />
     <Compile Remove="Migrations\20200505190235_AdjustScrimVehDustModelTypesAndPK.Designer.cs" />
+    <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.cs" />
+    <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.Designer.cs" />
+    <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.cs" />
+    <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
