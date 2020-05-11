@@ -1523,7 +1523,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team);
         }
 
-        public void RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment)
+        public async Task RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment)
         {
             var statUpdate = new ScrimEventAggregate();
 
@@ -1532,6 +1532,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = GetTeam(teamOrdinal);
 
             team.SubtractStatsUpdate(statUpdate);
+
+            if (_matchDataService.CurrentMatchRound > 0)
+            {
+                await SaveTeamMatchResultsToDb(teamOrdinal);
+            }
 
             SendTeamStatUpdateMessage(team);
         }

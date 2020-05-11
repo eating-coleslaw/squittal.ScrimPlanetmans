@@ -17,10 +17,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         IEnumerable<string> GetAllPlayerIds();
         IEnumerable<Player> GetParticipatingPlayers();
 
-        //void UpdateTeamAlias(int teamOrdinal, string alias);
         bool UpdateTeamAlias(int teamOrdinal, string alias, bool isCustom = false);
-
-        //void SubmitPlayersList();
 
         Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId);
         Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string aliasLower, string alias);
@@ -53,16 +50,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void SetPlayerLoadoutId(string characterId, int? loadoutId);
         void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
         void SetPlayerBenchedStatus(string characterId, bool isBenched);
-        //void SaveRoundEndScores(int round);
+
         Task SaveRoundEndScores(int round);
-        //void RollBackAllTeamStats(int currentRound);
         Task RollBackAllTeamStats(int currentRound);
+        
         int? GetNextWorldId(int previousWorldId);
         int? GetFirstTeamWithFactionId(int factionId);
         void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates);
-        //void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
+
         Task AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
-        void RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment);
+        Task RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment);
 
         Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower);
         Task<bool> RemoveCharacterFromTeamAndDb(string characterId);
