@@ -11,6 +11,24 @@
     <Compile Remove="Migrations\20200216192554_AddActionPointsItemCategoryModels.Designer.cs" />
     <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.cs" />
     <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.Designer.cs" />
+    <Compile Remove="Migrations\20200501171033_AddScrimMatchScrimDeathModels.cs" />
+    <Compile Remove="Migrations\20200501171033_AddScrimMatchScrimDeathModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504154405_AddWorldToScrimDeathModel.cs" />
+    <Compile Remove="Migrations\20200504154405_AddWorldToScrimDeathModel.Designer.cs" />
+    <Compile Remove="Migrations\20200504161641_AddScrimMatchDeathVehDestructionModels.cs" />
+    <Compile Remove="Migrations\20200504161641_AddScrimMatchDeathVehDestructionModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504190517_AddMatchTeamResultsModels.cs" />
+    <Compile Remove="Migrations\20200504190517_AddMatchTeamResultsModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504192150_AddMatchRoundColumnsToEventTables.cs" />
+    <Compile Remove="Migrations\20200504192150_AddMatchRoundColumnsToEventTables.Designer.cs" />
+    <Compile Remove="Migrations\20200505185504_AdjustScrimVehDestPK.cs" />
+    <Compile Remove="Migrations\20200505185504_AdjustScrimVehDestPK.Designer.cs" />
+    <Compile Remove="Migrations\20200505190235_AdjustScrimVehDustModelTypesAndPK.cs" />
+    <Compile Remove="Migrations\20200505190235_AdjustScrimVehDustModelTypesAndPK.Designer.cs" />
+    <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.cs" />
+    <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.Designer.cs" />
+    <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.cs" />
+    <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

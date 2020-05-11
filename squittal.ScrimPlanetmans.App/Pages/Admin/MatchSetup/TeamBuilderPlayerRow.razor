@@ -119,9 +119,9 @@
     #endregion
 
     #region UI & Form Controls
-    private void RemovePlayer()
+    private async void RemovePlayer()
     {
-        ScrimTeamsManager.RemoveCharacterFromTeam(Player.Id);
+        await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(Player.Id);
         //if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
         //{
         //    _teamPlayers.RemoveAll(p => p.Id == characterId);

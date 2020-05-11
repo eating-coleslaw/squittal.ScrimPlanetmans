@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using squittal.ScrimPlanetmans.Data.Models;
+using squittal.ScrimPlanetmans.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -19,6 +22,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IFactionService _factionService;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimTeamsManager> _logger;
+
+        private readonly IDbContextHelper _dbContextHelper;
+        private readonly IScrimMatchDataService _matchDataService;
 
         private readonly Team Team1;
         private readonly Team Team2;
@@ -34,13 +40,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private string _defaultAliasPreText = "tm";
 
 
-        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService, IScrimMessageBroadcastService messageService, ILogger<ScrimTeamsManager> logger)
+        public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService,
+            IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _outfitService = outfitService;
             _factionService = factionService;
             _messageService = messageService;
             _logger = logger;
+
+            _matchDataService = matchDataService;
+            _dbContextHelper = dbContextHelper;
 
             Team1 = new Team($"{_defaultAliasPreText}1", "Team 1", 1);
             _ordinalTeamMap.Add(1, Team1);
@@ -439,6 +449,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
+        public async Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower)
+        {
+            var outfit = GetTeamFromOutfitAlias(aliasLower).Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
+            var outfitId = outfit.Id;
+            var teamOrdinal = outfit.TeamOrdinal;
+
+            var success = RemoveOutfitFromTeam(aliasLower);
+
+            if (!success)
+            {
+                return false;
+            }
+
+            await RemoveOutfitMatchDataFromDb(outfitId, teamOrdinal);
+
+            return true;
+        }
+
         public bool RemoveOutfitFromTeam(string aliasLower)
         {
             var team = GetTeamFromOutfitAlias(aliasLower);
@@ -497,6 +525,612 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersRemoved;
         }
 
+        private async Task RemoveOutfitMatchDataFromDb(string outfitId, int teamOrdinal)
+        {
+            var TaskList = new List<Task>();
+
+            var deathsTask = RemoveOutfitMatchDeathsFromDb(outfitId, teamOrdinal);
+            TaskList.Add(deathsTask);
+
+            var destructionsTask = RemoveOutfitMatchVehicleDestructionsFromDb(outfitId);
+            TaskList.Add(destructionsTask);
+
+            await Task.WhenAll(TaskList);
+
+            //var currentMatchId = _matchDataService.CurrentMatchId;
+
+            //try
+            //{
+            //    await RemoveOutfitMatchDeathsFromDb(outfitId, teamOrdinal);
+
+            //    using var factory = _dbContextHelper.GetFactory();
+            //    var dbContext = factory.GetDbContext();
+
+            //    //var deathsToRemove = await dbContext.ScrimDeaths
+            //    //                                        .Where(e => e.ScrimMatchId == currentMatchId
+            //    //                                                    && (e.AttackerOutfitId == outfitId
+            //    //                                                        || e.VictimOutfitId== outfitId))
+            //    //                                        .ToListAsync();
+
+            //    //dbContext.ScrimDeaths.RemoveRange(deathsToRemove);
+
+            //    var destructionsToRemove = await dbContext.ScrimVehicleDestructions
+            //                                            .Where(e => e.ScrimMatchId == currentMatchId
+            //                                                        && (e.AttackerOutfitId == outfitId
+            //                                                            || e.VictimOutfitId == outfitId))
+            //                                            .ToListAsync();
+
+            //    dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+            //    await dbContext.SaveChangesAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex.ToString());
+            //}
+
+            var currentMatchRound = _matchDataService.CurrentMatchRound;
+
+            if (currentMatchRound > 0)
+            {
+                await SaveTeamMatchResultsToDb(teamOrdinal);
+            }
+        }
+
+        private async Task RemoveOutfitMatchDeathsFromDb(string outfitId, int teamOrdinal)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+            var currentMatchRound = _matchDataService.CurrentMatchRound;
+
+            if (currentMatchRound <= 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var allDeathEvents = await dbContext.ScrimDeaths
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerOutfitId == outfitId
+                                                                        || e.VictimOutfitId == outfitId))
+                                                        .ToListAsync();
+
+                if (allDeathEvents == null || !allDeathEvents.Any())
+                {
+                    return;
+                }
+
+                #region Set Up Distinct Interaction Target Lists
+                var distinctVictimTeams = allDeathEvents
+                                            .Where(e => e.AttackerOutfitId == outfitId)
+                                            .Select(e => e.VictimTeamOrdinal)
+                                            .Distinct()
+                                            .ToList();
+
+                var distinctAttackerTeams = allDeathEvents
+                                                .Where(e => e.VictimOutfitId == outfitId)
+                                                .Select(e => e.AttackerTeamOrdinal)
+                                                .Distinct()
+                                                .ToList();
+
+                var distinctTeams = new List<int>
+                {
+                    teamOrdinal
+                };
+                distinctTeams.AddRange(distinctAttackerTeams.Where(e => !distinctTeams.Contains(e)).ToList());
+                distinctTeams.AddRange(distinctVictimTeams.Where(e => !distinctTeams.Contains(e)).ToList());
+
+
+                var distinctVictimCharacterIds = allDeathEvents
+                                            .Where(e => e.AttackerOutfitId == outfitId)
+                                            .Select(e => e.VictimCharacterId)
+                                            .Distinct()
+                                            .ToList();
+
+                var distinctAttackerCharacterIds = allDeathEvents
+                                                .Where(e => e.VictimOutfitId == outfitId)
+                                                .Select(e => e.AttackerCharacterId)
+                                                .Distinct()
+                                                .ToList();
+
+                var distinctCharacterIds = new List<string>();
+                distinctCharacterIds.AddRange(distinctAttackerCharacterIds);
+                distinctCharacterIds.AddRange(distinctVictimCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
+                #endregion Set Up Distinct Interaction Target Lists
+
+                var teamUpdates = new Dictionary<int, ScrimEventAggregateRoundTracker>();
+                var playerUpdates = new Dictionary<string, ScrimEventAggregateRoundTracker>();
+
+                foreach (var team in distinctTeams)
+                {
+                    var tracker = new ScrimEventAggregateRoundTracker();
+                    teamUpdates.Add(team, tracker);
+                }
+
+                foreach (var character in distinctCharacterIds)
+                {
+                    var tracker = new ScrimEventAggregateRoundTracker();
+                    playerUpdates.Add(character, tracker);
+                }
+
+
+                for (var round = 1; round <= currentMatchRound; round++)
+                {
+                    foreach (var deathEvent in allDeathEvents.Where(e => e.ScrimMatchRound == round))
+                    {
+                        var attackerId = deathEvent.AttackerCharacterId;
+                        var victimId = deathEvent.VictimCharacterId;
+
+                        var attackerTeamOrdinal = deathEvent.AttackerTeamOrdinal;
+                        var victimTeamOrdinal = deathEvent.VictimTeamOrdinal;
+
+                        var deathType = deathEvent.DeathType;
+
+                        var points = deathEvent.Points;
+                        var isHeadshot = deathEvent.IsHeadshot ? 1 : 0;
+
+                        var victimIsInOutfit = (deathEvent.VictimOutfitId == outfitId);
+
+                        if (deathType == DeathEventType.Kill)
+                        {
+                            var attackerUpdate = new ScrimEventAggregate()
+                            {
+                                Points = points,
+                                NetScore = points,
+                                Kills = 1,
+                                Headshots = isHeadshot
+                            };
+
+                            var victimUpdate = new ScrimEventAggregate()
+                            {
+                                NetScore = -points,
+                                Deaths = 1,
+                                HeadshotDeaths = isHeadshot
+                            };
+
+                            // Updating team stats for character being removed is already handled elsewhere
+                            if (victimIsInOutfit)
+                            {
+                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                            }
+                            else
+                            {
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            }
+
+                        }
+                        else if (deathType == DeathEventType.Suicide)
+                        {
+                            var victimUpdate = new ScrimEventAggregate()
+                            {
+                                Points = points,
+                                NetScore = points,
+                                Deaths = 1,
+                                Suicides = 1
+                            };
+
+                            if (!victimIsInOutfit)
+                            {
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+
+                            }
+                        }
+                        else if (deathType == DeathEventType.Teamkill)
+                        {
+                            var attackerUpdate = new ScrimEventAggregate()
+                            {
+                                Points = points,
+                                NetScore = points,
+                                Teamkills = 1
+                            };
+
+                            var victimUpdate = new ScrimEventAggregate()
+                            {
+                                Deaths = 1,
+                                TeamkillDeaths = 1
+                            };
+
+                            if (victimIsInOutfit)
+                            {
+                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                            }
+                            else
+                            {
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    foreach (var team in distinctTeams)
+                    {
+                        teamUpdates[team].SaveRoundToHistory(round);
+                    }
+
+                    foreach (var character in distinctCharacterIds)
+                    {
+                        playerUpdates[character].SaveRoundToHistory(round);
+                    }
+                }
+
+                // Transfer the updates to the actual entities
+                foreach (var tOrdinal in distinctTeams)
+                {
+                    var team = GetTeam(tOrdinal);
+                    if (team == null)
+                    {
+                        continue;
+                    }
+                    team.EventAggregateTracker.SubtractFromHistory(teamUpdates[tOrdinal]);
+
+                    SendTeamStatUpdateMessage(team);
+                }
+
+                foreach (var character in distinctCharacterIds)
+                {
+                    var player = GetPlayerFromId(character);
+                    if (player == null)
+                    {
+                        continue;
+                    }
+                    player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
+
+                    SendPlayerStatUpdateMessage(player);
+                }
+
+                dbContext.ScrimDeaths.RemoveRange(allDeathEvents);
+
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return;
+            }
+        }
+
+        private async Task RemoveOutfitMatchVehicleDestructionsFromDb(string outfitId)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var destructionsToRemove = await dbContext.ScrimVehicleDestructions
+                                                            .Where(e => e.ScrimMatchId == currentMatchId
+                                                                        && (e.AttackerOutfitId == outfitId
+                                                                            || e.VictimOutfitId == outfitId))
+                                                            .ToListAsync();
+
+                dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        public async Task<bool> RemoveCharacterFromTeamAndDb(string characterId)
+        {
+            var teamOrdinal = GetTeamOrdinalFromPlayerId(characterId);
+            
+            var success = RemoveCharacterFromTeam(characterId);
+
+            if (!success)
+            {
+                return false;
+            }
+
+            await RemoveCharacterMatchDataFromDb(characterId, (int)teamOrdinal);
+
+            return true;
+        }
+
+        private async Task RemoveCharacterMatchDataFromDb(string characterId, int teamOrdinal)
+        {
+            var TaskList = new List<Task>();
+            
+            var deathsTask = RemoveCharacterMatchDeathsFromDb(characterId, teamOrdinal);
+            TaskList.Add(deathsTask);
+
+            var destructionsTask = RemoveCharacterMatchVehicleDestructionsFromDb(characterId);
+            TaskList.Add(destructionsTask);
+
+            await Task.WhenAll(TaskList);
+
+            //var currentMatchId = _matchDataService.CurrentMatchId;
+
+            //try
+            //{
+            //    using var factory = _dbContextHelper.GetFactory();
+            //    var dbContext = factory.GetDbContext();
+
+            //    var deathsToRemove = await dbContext.ScrimDeaths
+            //                                            .Where(e => e.ScrimMatchId == currentMatchId
+            //                                                        && (e.AttackerCharacterId == characterId
+            //                                                            || e.VictimCharacterId == characterId))
+            //                                            .ToListAsync();
+
+            //    dbContext.ScrimDeaths.RemoveRange(deathsToRemove);
+
+            //    var destructionsToRemove = await dbContext.ScrimVehicleDestructions
+            //                                            .Where(e => e.ScrimMatchId == currentMatchId
+            //                                                        && (e.AttackerCharacterId == characterId
+            //                                                            || e.VictimCharacterId == characterId))
+            //                                            .ToListAsync();
+
+            //    dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+            //    await dbContext.SaveChangesAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex.ToString());
+            //}
+
+            var currentMatchRound = _matchDataService.CurrentMatchRound;
+
+            if (currentMatchRound > 0)
+            { 
+                await SaveTeamMatchResultsToDb(teamOrdinal);
+            }
+        }
+
+        private async Task RemoveCharacterMatchDeathsFromDb(string characterId, int teamOrdinal)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+            var currentMatchRound = _matchDataService.CurrentMatchRound;
+
+            if (currentMatchRound <= 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var allDeathEvents = await dbContext.ScrimDeaths
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerCharacterId == characterId
+                                                                        || e.VictimCharacterId == characterId))
+                                                        .ToListAsync();
+
+                if (allDeathEvents == null || !allDeathEvents.Any())
+                {
+                    return;
+                }
+
+                #region Set Up Distinct Interaction Target Lists
+                var distinctVictimTeams = allDeathEvents
+                                            .Where(e => e.AttackerCharacterId == characterId)
+                                            .Select(e => e.VictimTeamOrdinal)
+                                            .Distinct()
+                                            .ToList();
+
+                var distinctAttackerTeams = allDeathEvents
+                                                .Where(e => e.VictimCharacterId == characterId)
+                                                .Select(e => e.AttackerTeamOrdinal)
+                                                .Distinct()
+                                                .ToList();
+
+                var distinctTeams = new List<int>();
+                distinctTeams.Add(teamOrdinal);
+                distinctTeams.AddRange(distinctAttackerTeams.Where(e => !distinctTeams.Contains(e)).ToList());
+                distinctTeams.AddRange(distinctVictimTeams.Where(e => !distinctTeams.Contains(e)).ToList());
+
+
+                var distinctVictimCharacterIds = allDeathEvents
+                                            .Where(e => e.AttackerCharacterId == characterId)
+                                            .Select(e => e.VictimCharacterId)
+                                            .Distinct()
+                                            .ToList();
+
+                var distinctAttackerCharacterIds = allDeathEvents
+                                                .Where(e => e.VictimCharacterId == characterId)
+                                                .Select(e => e.AttackerCharacterId)
+                                                .Distinct()
+                                                .ToList();
+
+                var distinctCharacterIds = new List<string>();
+                distinctCharacterIds.AddRange(distinctAttackerCharacterIds);
+                distinctCharacterIds.AddRange(distinctVictimCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
+                #endregion Set Up Distinct Interaction Target Lists
+
+                var teamUpdates = new Dictionary<int, ScrimEventAggregateRoundTracker>();
+                var playerUpdates = new Dictionary<string, ScrimEventAggregateRoundTracker>();
+
+                foreach (var team in distinctTeams)
+                {
+                    var tracker = new ScrimEventAggregateRoundTracker();
+                    teamUpdates.Add(team, tracker);
+                }
+
+                foreach (var character in distinctCharacterIds)
+                {
+                    var tracker = new ScrimEventAggregateRoundTracker();
+                    playerUpdates.Add(character, tracker);
+                }
+
+
+                for (var round = 1; round <= currentMatchRound; round++)
+                {
+                    foreach (var deathEvent in allDeathEvents.Where(e => e.ScrimMatchRound == round))
+                    {
+                        var attackerId = deathEvent.AttackerCharacterId;
+                        var victimId = deathEvent.VictimCharacterId;
+
+                        var attackerTeamOrdinal = deathEvent.AttackerTeamOrdinal;
+                        var victimTeamOrdinal = deathEvent.VictimTeamOrdinal;
+
+                        var deathType = deathEvent.DeathType;
+
+                        var points = deathEvent.Points;
+                        var isHeadshot = deathEvent.IsHeadshot? 1 : 0;
+
+                        var characterIsVictim = (victimId == characterId);
+
+                        if (deathType == DeathEventType.Kill)
+                        {
+                            var attackerUpdate = new ScrimEventAggregate()
+                            {
+                                Points = points,
+                                NetScore = points,
+                                Kills = 1,
+                                Headshots = isHeadshot
+                            };
+
+                            var victimUpdate = new ScrimEventAggregate()
+                            {
+                                NetScore = -points,
+                                Deaths = 1,
+                                HeadshotDeaths = isHeadshot
+                            };
+
+                            // Updating team stats for character being removed is already handled elsewhere
+                            if (characterIsVictim)
+                            {
+                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                            }
+                            else
+                            {
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            }
+
+                        }
+                        else if (deathType == DeathEventType.Suicide)
+                        {
+                            var victimUpdate = new ScrimEventAggregate()
+                            {
+                                Points = points,
+                                NetScore = points,
+                                Deaths = 1,
+                                Suicides = 1
+                            };
+
+                            if (!characterIsVictim)
+                            {
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+
+                            }
+                        }
+                        else if (deathType == DeathEventType.Teamkill)
+                        {
+                            var attackerUpdate = new ScrimEventAggregate()
+                            {
+                                Points = points,
+                                NetScore = points,
+                                Teamkills = 1
+                            };
+
+                            var victimUpdate = new ScrimEventAggregate()
+                            {
+                                Deaths = 1,
+                                TeamkillDeaths = 1
+                            };
+
+                            if (characterIsVictim)
+                            {
+                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                            }
+                            else
+                            {
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    foreach (var team in distinctTeams)
+                    {
+                        teamUpdates[team].SaveRoundToHistory(round);
+                    }
+
+                    foreach (var character in distinctCharacterIds)
+                    {
+                        playerUpdates[character].SaveRoundToHistory(round);
+                    }
+                }
+
+                // Transfer the updates to the actual entities
+                foreach (var tOrdinal in distinctTeams)
+                {
+                    var team = GetTeam(tOrdinal);
+                    team.EventAggregateTracker.SubtractFromHistory(teamUpdates[tOrdinal]);
+
+                    SendTeamStatUpdateMessage(team);
+                }
+
+                foreach (var character in distinctCharacterIds)
+                {
+                    var player = GetPlayerFromId(character);
+                    player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
+
+                    SendPlayerStatUpdateMessage(player);
+                }
+
+                dbContext.ScrimDeaths.RemoveRange(allDeathEvents);
+
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return;
+            }
+        }
+
+        private async Task RemoveCharacterMatchVehicleDestructionsFromDb(string characterId)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var destructionsToRemove = await dbContext.ScrimVehicleDestructions
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && (e.AttackerCharacterId == characterId
+                                                                        || e.VictimCharacterId == characterId))
+                                                        .ToListAsync();
+
+                dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
         public bool RemoveCharacterFromTeam(string characterId)
         {
             var player = GetPlayerFromId(characterId);
@@ -511,7 +1145,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public bool RemovePlayerFromTeam(Player player)
         {
-
             var team = GetTeam(player.TeamOrdinal);
 
             if(team.TryRemovePlayer(player.Id))
@@ -581,11 +1214,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // TODO: broadcast "Finished Clearing Team" message
         }
 
-        public void RollBackAllTeamStats(int currentRound)
+
+        public async Task RollBackAllTeamStats(int currentRound)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
             {
                 RollBackTeamStats(teamOrdinal, currentRound);
+
+                await SaveTeamMatchResultsToDb(teamOrdinal);
             }
         }
 
@@ -790,11 +1426,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team);
         }
 
-        public void SaveRoundEndScores(int round)
+        public async Task SaveRoundEndScores(int round)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
             {
                 SaveTeamRoundEndScores(teamOrdinal, round);
+
+                await SaveTeamMatchResultsToDb(teamOrdinal);
             }
         }
 
@@ -812,7 +1450,131 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        public void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment)
+        public async Task SaveTeamMatchResultsToDb(int teamOrdinal)
+        {
+            var currentScrimMatchId = _matchDataService.CurrentMatchId;
+            
+            var resultsAggregate = new ScrimEventAggregate().Add(GetTeam(teamOrdinal).EventAggregate);
+
+            var resultsEntity = new ScrimMatchTeamResult
+            {
+                ScrimMatchId = currentScrimMatchId,
+                TeamOrdinal = teamOrdinal,
+                Points = resultsAggregate.Points,
+                NetScore = resultsAggregate.NetScore,
+                Kills = resultsAggregate.Kills,
+                Deaths = resultsAggregate.Deaths,
+                Headshots = resultsAggregate.Headshots,
+                HeadshotDeaths = resultsAggregate.HeadshotDeaths,
+                Suicides = resultsAggregate.Suicides,
+                Teamkills = resultsAggregate.Teamkills,
+                TeamkillDeaths = resultsAggregate.TeamkillDeaths,
+                RevivesGiven = resultsAggregate.RevivesGiven,
+                RevivesTaken = resultsAggregate.RevivesTaken,
+                DamageAssists = resultsAggregate.DamageAssists,
+                UtilityAssists = resultsAggregate.UtilityAssists,
+                DamageAssistedDeaths = resultsAggregate.DamageAssistedDeaths,
+                UtilityAssistedDeaths = resultsAggregate.UtilityAssistedDeaths,
+                ObjectiveCaptureTicks = resultsAggregate.ObjectiveCaptureTicks,
+                ObjectiveDefenseTicks = resultsAggregate.ObjectiveDefenseTicks,
+                BaseDefenses = resultsAggregate.BaseDefenses,
+                BaseCaptures = resultsAggregate.BaseCaptures
+            };
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                // Scrim Match Team Results
+                var storeResultEntity = await dbContext.ScrimMatchTeamResults.FirstOrDefaultAsync(result => result.ScrimMatchId == currentScrimMatchId && result.TeamOrdinal == teamOrdinal);
+
+                if (storeResultEntity == null)
+                {
+                    dbContext.ScrimMatchTeamResults.Add(resultsEntity);
+                }
+                else
+                {
+                    storeResultEntity = resultsEntity;
+                    dbContext.ScrimMatchTeamResults.Update(storeResultEntity);
+                }
+
+                // Team Results Point Adjustments
+                var updateAdjustments = resultsAggregate.PointAdjustments.ToList();
+
+                var storeAdjustmentEntities = await dbContext.ScrimMatchTeamPointAdjustments
+                                                        .Where(adj => adj.ScrimMatchId == currentScrimMatchId && adj.TeamOrdinal == teamOrdinal)
+                                                        .ToListAsync();
+
+                var allAdjustments = new List<PointAdjustment>();
+
+                allAdjustments.AddRange(updateAdjustments);
+                allAdjustments.AddRange(storeAdjustmentEntities
+                                            .Select(ConvertFromDbModel)
+                                            .Where(e => !allAdjustments.Any(a => a.Timestamp == e.Timestamp))
+                                            .ToList());
+
+                var createdAdjustments = new List<ScrimMatchTeamPointAdjustment>();
+
+                foreach (var adjustment in allAdjustments)
+                {
+                    var storeEntity = storeAdjustmentEntities.Where(e => e.Timestamp == adjustment.Timestamp).FirstOrDefault();
+                    var updateAdjustment = updateAdjustments.Where(a => a.Timestamp == adjustment.Timestamp).FirstOrDefault();
+
+                    if (storeEntity == null)
+                    {
+                        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
+                        createdAdjustments.Add(updateEntity);
+                    }
+                    else if (updateAdjustment == null)
+                    {
+                        dbContext.ScrimMatchTeamPointAdjustments.Remove(storeEntity);
+                    }
+                    else
+                    {
+                        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
+                        storeEntity = updateEntity;
+                        dbContext.ScrimMatchTeamPointAdjustments.Update(storeEntity);
+                    }
+                }
+
+                if (createdAdjustments.Any())
+                {
+                    await dbContext.ScrimMatchTeamPointAdjustments.AddRangeAsync(createdAdjustments);
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private PointAdjustment ConvertFromDbModel(ScrimMatchTeamPointAdjustment adjustment)
+        {
+            return new PointAdjustment
+            {
+                Timestamp = adjustment.Timestamp,
+                Points = adjustment.Points,
+                Rationale = adjustment.Rationale
+            };
+        }
+
+        private ScrimMatchTeamPointAdjustment BuildScrimMatchTeamPointAdjustment(string scrimMatchId, int teamOrdinal, PointAdjustment adjustment)
+        {
+            return new ScrimMatchTeamPointAdjustment
+            {
+                ScrimMatchId = scrimMatchId,
+                TeamOrdinal = teamOrdinal,
+                Timestamp = adjustment.Timestamp,
+                Points = adjustment.Points,
+                AdjustmentType = adjustment.AdjustmentType,
+                Rationale = adjustment.Rationale
+            };
+        }
+
+        public async Task AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment)
         {
             var statUpdate = new ScrimEventAggregate();
 
@@ -821,6 +1583,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = GetTeam(teamOrdinal);
 
             team.AddStatsUpdate(statUpdate);
+
+            if (_matchDataService.CurrentMatchRound > 0)
+            {
+                await SaveTeamMatchResultsToDb(teamOrdinal);
+            }
 
             SendTeamStatUpdateMessage(team);
         }

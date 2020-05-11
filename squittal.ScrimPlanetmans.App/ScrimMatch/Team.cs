@@ -121,7 +121,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ParticipatingPlayers.RemoveAll(p => p.Id == characterId);
 
-            EventAggregate.Subtract(player.EventAggregate);
+            //EventAggregate.Subtract(player.EventAggregate);
 
             EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
 

@@ -38,8 +38,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             Player player;
             string otherCharacterId;
 
-            var weaponName = DestructionEvent.Weapon.Name;
-            var victimVehicleName = DestructionEvent.VictimVehicle.Name;
+            var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
+            var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
             var actionDisplay = GetEnumValueName(DestructionEvent.ActionType);
 
             if (DestructionEvent.AttackerPlayer != null)
@@ -52,7 +52,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} VEHICLE DESTROYED: {outfitDisplay}{playerName} [{weaponName}] {victimVehicleName} ({otherCharacterId})";
+                return $"{actionDisplay} VEHICLE DESTROYED: {outfitDisplay}{playerName} {{{weaponName}}} {victimVehicleName} ({otherCharacterId})";
             }
             else
             {
@@ -64,7 +64,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} VEHICLE LOST: {otherCharacterId} [{weaponName}] {victimVehicleName} ({outfitDisplay}{playerName})";
+                return $"{actionDisplay} VEHICLE LOST: {otherCharacterId} {{{weaponName}}} {victimVehicleName} ({outfitDisplay}{playerName})";
             }
         }
 
@@ -76,22 +76,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var attackerTeam = attacker.TeamOrdinal.ToString();
 
             var attackerName = attacker.NameDisplay;
-            var victimName = victim.NameDisplay;
+
+            var victimName = victim != null ? victim.NameDisplay : string.Empty;
 
             var attackerOutfit = !string.IsNullOrWhiteSpace(attacker.OutfitAlias)
                                             ? $"[{attacker.OutfitAlias}] "
                                             : string.Empty;
 
-            var victimOutfit = !string.IsNullOrWhiteSpace(victim.OutfitAlias)
+
+            var victimOutfit = (victim != null && !string.IsNullOrWhiteSpace(victim?.OutfitAlias))
                                             ? $"[{victim.OutfitAlias}] "
                                             : string.Empty;
 
             var actionDisplay = GetEnumValueName(destructionEvent.ActionType);
             var pointsDisplay = GetPointsDisplay(destructionEvent.Points);
-            var weaponName = destructionEvent.Weapon.Name;
-            var victimVehicleName = destructionEvent.VictimVehicle.Name;
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} [{weaponName}] {victimVehicleName} ({victimOutfit}{victimName})";
+            var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
+            var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
+
+            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}} {victimVehicleName} ({victimOutfit}{victimName})";
         }
 
         private string GetTeamkillInfo(ScrimVehicleDestructionActionEvent destructionEvent)
@@ -113,10 +116,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             var actionDisplay = GetEnumValueName(destructionEvent.ActionType);
             var pointsDisplay = GetPointsDisplay(destructionEvent.Points);
-            var weaponName = destructionEvent.Weapon.Name;
-            var victimVehicleName = destructionEvent.VictimVehicle.Name;
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) [{weaponName}]";
+            var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
+            var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
+
+            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) {{{weaponName}}}";
         }
     }
 }

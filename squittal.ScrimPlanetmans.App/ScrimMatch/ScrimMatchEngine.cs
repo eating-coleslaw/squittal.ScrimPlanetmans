@@ -6,6 +6,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -15,6 +16,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ScrimMatchEngine> _logger;
+
+        private readonly IScrimMatchDataService _matchDataService;
 
         private readonly IStatefulTimer _timer;
 
@@ -35,7 +38,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private DateTime _matchStartTime;
 
 
-        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
+        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer,
+            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
@@ -43,28 +47,32 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService = messageService;
             _logger = logger;
 
-            _messageService.RaiseMatchTimerTickEvent += OnMatchTimerTick;
+            _matchDataService = matchDataService;
+
+            _messageService.RaiseMatchTimerTickEvent += async (s, e) => await OnMatchTimerTick(s, e);
 
             _messageService.RaiseTeamOutfitChangeEvent += OnTeamOutfitChangeEvent;
             _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
 
-            _messageService.RaiseScrimFacilityControlActionEvent += OnFacilityControlEvent;
+            _messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
 
             //MatchConfiguration = new MatchConfiguration();
-            ClearMatch();
+
+
+            //ClearMatch();
         }
 
-        
-        public void Start()
+
+        public async Task Start()
         {
             if (_isRunning)
             {
                 return;
             }
-            
+
             if (_currentRound == 0)
             {
-                InitializeNewMatch();
+                await InitializeNewMatch();
             }
 
             InitializeNewRound();
@@ -73,13 +81,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
 
-        public void ClearMatch()
+        public async Task ClearMatch()
         {
             if (_isRunning)
             {
-                EndRound();
+                await EndRound();
             }
-            
+
             _wsMonitor.DisableScoring();
             _wsMonitor.RemoveAllCharacterSubscriptions();
             _messageService.DisableLogging();
@@ -93,6 +101,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _matchState = MatchState.Uninitialized;
             _currentRound = 0;
+
+            _matchDataService.CurrentMatchRound = _currentRound;
 
             _latestTimerTickMessage = null;
 
@@ -114,7 +124,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendMatchConfigurationUpdateMessage(); // TODO: why was this commented out before?
         }
 
-        public void EndRound()
+        public async Task EndRound()
         {
             _isRunning = false;
             _matchState = MatchState.Stopped;
@@ -127,7 +137,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _timer.Halt();
             }
 
-            _teamsManager.SaveRoundEndScores(_currentRound);
+            await _teamsManager.SaveRoundEndScores(_currentRound);
 
             _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
 
@@ -136,17 +146,48 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.DisableLogging();
         }
 
-        public void InitializeNewMatch()
+        public async Task InitializeNewMatch()
         {
             _matchStartTime = DateTime.Now;
 
             if (MatchConfiguration.SaveLogFiles == true)
             {
-                _messageService.SetLogFileName(GetLogFileNameWithExtension());
+                var matchId = BuildMatchId(); // GetLogFileNameWithExtension();
+
+                //_messageService.SetLogFileName(matchId);
+                _messageService.SetLogFileName($"{matchId}.txt");
+
+                var scrimMatch = new Data.Models.ScrimMatch
+                {
+                    Id = matchId,
+                    StartTime = _matchStartTime,
+                    Title = MatchConfiguration.Title
+                };
+
+                await _matchDataService.SaveToCurrentMatch(scrimMatch);
             }
         }
 
-        private string GetLogFileNameWithExtension()
+        private string BuildMatchId()
+        {
+            var matchId = _matchStartTime.ToString("yyyyMMddTHHmmss");
+
+            for (var i = 1; i <= 3; i++)
+            {
+                var alias = _teamsManager.GetTeamAliasDisplay(i);
+
+                if (string.IsNullOrWhiteSpace(alias))
+                {
+                    continue;
+                }
+
+                matchId = $"{matchId}_{alias}";
+            }
+
+            return matchId;
+        }
+
+    private string GetLogFileNameWithExtension()
         {
             var fileName = _matchStartTime.ToString("yyyyMMddTHHmmss");
 
@@ -168,7 +209,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void InitializeNewRound()
         {
             _currentRound += 1;
-            
+
+            _matchDataService.CurrentMatchRound = _currentRound;
+
             _roundSecondsRemaining = _roundSecondsMax;
 
             _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
@@ -203,12 +246,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.DisableLogging();
         }
 
-        public void ResetRound()
+        public async Task ResetRound()
         {
             _timer.Reset();
             _wsMonitor.DisableScoring();
 
-            _teamsManager.RollBackAllTeamStats(_currentRound);
+            await _teamsManager.RollBackAllTeamStats(_currentRound);
 
             _currentRound -= 1;
 
@@ -217,6 +260,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _matchState = MatchState.Uninitialized;
                 _latestTimerTickMessage = null;
             }
+
+            _matchDataService.CurrentMatchRound = _currentRound;
 
             SendMatchStateUpdateMessage();
 
@@ -244,7 +289,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.AddCharacterSubscriptions(_teamsManager.GetAllPlayerIds());
         }
 
-        private void OnMatchTimerTick(object sender, MatchTimerTickEventArgs e)
+        private async Task OnMatchTimerTick(object sender, MatchTimerTickEventArgs e)
         {
             var message = e.Message;
 
@@ -256,7 +301,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (state == MatchTimerState.Stopped && _isRunning)
             {
-                EndRound();
+                await EndRound();
                 return;
             }
         }
@@ -363,7 +408,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private void OnFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+        private async Task OnFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
         {
             if (!MatchConfiguration.EndRoundOnFacilityCapture)
             {
@@ -375,7 +420,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (controlEvent.FacilityId == MatchConfiguration.FacilityId && controlEvent.WorldId == MatchConfiguration.WorldId)
             {
-                EndRound();
+                await EndRound();
             }
         }
 
