@@ -205,9 +205,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 deathEvent.Weapon = new ScrimActionWeaponInfo()
                 {
                     Id = weaponItem.Id,
-                    ItemCategoryId = (int)weaponItem.ItemCategoryId,
+                    ItemCategoryId = weaponItem.ItemCategoryId,
                     Name = weaponItem.Name,
                     IsVehicleWeapon = weaponItem.IsVehicleWeapon
+                };
+            }
+            else if (payload.AttackerWeaponId != null)
+            {
+                deathEvent.Weapon = new ScrimActionWeaponInfo()
+                {
+                    Id = (int)payload.AttackerWeaponId
                 };
             }
             
@@ -451,9 +458,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 destructionEvent.Weapon = new ScrimActionWeaponInfo
                 {
                     Id = weaponItem.Id,
-                    ItemCategoryId = (int)weaponItem.ItemCategoryId,
+                    ItemCategoryId = weaponItem.ItemCategoryId,
                     Name = weaponItem.Name,
                     IsVehicleWeapon = weaponItem.IsVehicleWeapon
+                };
+            }
+            else if (payload.AttackerWeaponId != null)
+            {
+                destructionEvent.Weapon = new ScrimActionWeaponInfo()
+                {
+                    Id = (int)payload.AttackerWeaponId
                 };
             }
 

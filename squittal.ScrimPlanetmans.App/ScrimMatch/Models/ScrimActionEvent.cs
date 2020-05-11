@@ -178,9 +178,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
     public class ScrimActionWeaponInfo
     {
         public int Id { get; set; }
-        public int ItemCategoryId { get; set; }
-        public string Name { get; set; }
-        public bool IsVehicleWeapon { get; set; }
+        public int? ItemCategoryId { get; set; }
+        public string Name { get; set; } = "Unknown weapon";
+        public bool IsVehicleWeapon { get; set; } = false;
     }
 
     public class ScrimActionExperienceGainInfo
