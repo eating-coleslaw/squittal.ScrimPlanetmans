@@ -1059,6 +1059,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         private ScrimActionType GetFacilityControlActionType(FacilityControlType type, int teamOrdinal)
         {
+            if (type == FacilityControlType.Unknown)
+            {
+                return ScrimActionType.None;
+            }
+            
             var team = _teamsManager.GetTeam(teamOrdinal);
 
             var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
@@ -1070,7 +1075,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
 
-            if (type != previousScoredControlType && roundControlVictories != 0)
+            //if (type != previousScoredControlType && roundControlVictories != 0)
+            //{
+            //    return ScrimActionType.None;
+            //}
+            
+            // Only the first defense in a round should ever count. After that, base always trades hands via captures
+            if (type == FacilityControlType.Defense && roundControlVictories != 0)
             {
                 return ScrimActionType.None;
             }

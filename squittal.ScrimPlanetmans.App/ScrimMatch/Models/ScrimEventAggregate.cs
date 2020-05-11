@@ -372,14 +372,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
             else if ( subtrahend.BaseCaptures != 0 || subtrahend.BaseDefenses != 0)
             {
-                if (PreviousScoredBaseControlType == FacilityControlType.Capture || BaseDefenses > BaseCaptures)
+                // Base Defenses, if there are any, always occur before Base Captures within a round
+                if (BaseDefenses > BaseCaptures)
                 {
                     PreviousScoredBaseControlType = FacilityControlType.Defense;
                 }
-                else if (PreviousScoredBaseControlType == FacilityControlType.Defense || BaseCaptures > BaseDefenses)
+                else if (BaseCaptures >= BaseDefenses)
                 {
                     PreviousScoredBaseControlType = FacilityControlType.Capture;
                 }
+
+                //if (PreviousScoredBaseControlType == FacilityControlType.Capture || BaseDefenses > BaseCaptures)
+                //{
+                //    PreviousScoredBaseControlType = FacilityControlType.Defense;
+                //}
+                //else if (PreviousScoredBaseControlType == FacilityControlType.Defense || BaseCaptures > BaseDefenses)
+                //{
+                //    PreviousScoredBaseControlType = FacilityControlType.Capture;
+                //}
             }
 
             if (subtrahend.PointAdjustments.Count > 0)
