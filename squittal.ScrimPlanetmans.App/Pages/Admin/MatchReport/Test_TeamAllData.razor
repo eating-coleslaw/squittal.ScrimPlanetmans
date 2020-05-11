@@ -103,23 +103,26 @@
             </thead>
 
             <tbody>
-                <tr>
+                <tr style="border-top: 1px solid var(--sq-ps2-primary-light); border-bottom: 1px solid var(--sq-ps2-primary-light); background-color: var(--sq-ps2-primary-light-alpha-40);">
                     <td>Total</td>
                     <td style="opacity: @GetStatOpacity(_team.EventAggregate.BaseCaptures);">@(_team.EventAggregate.BaseCaptures)</td>
                     <td style="opacity: @GetStatOpacity(_team.EventAggregate.BaseDefenses);">@(_team.EventAggregate.BaseDefenses)</td>
                     <Test_PlayerStatsRow EventAggregate=@_team.EventAggregate PlayerId="team" />
                 </tr>
 
-                <tr>
-                    <td>Current</td>
-                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.BaseCaptures);">@(_team.EventAggregateTracker.RoundStats.BaseCaptures)</td>
-                    <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.BaseDefenses);">@(_team.EventAggregateTracker.RoundStats.BaseDefenses)</td>
-                    <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
-                </tr>
+                @if (_currentRound > 0 && _isRunning)
+                {
+                    <tr style="background-color: transparent;">
+                        <td>Current</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.BaseCaptures);">@(_team.EventAggregateTracker.RoundStats.BaseCaptures)</td>
+                        <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundStats.BaseDefenses);">@(_team.EventAggregateTracker.RoundStats.BaseDefenses)</td>
+                        <Test_PlayerStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
+                    </tr>
+                }
 
                 @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
                 {
-                    <tr>
+                    <tr style="background-color: transparent;">
                         <td>Round @round</td>
                         <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures);">@(_team.EventAggregateTracker.RoundHistory[round].BaseCaptures)</td>
                         <td style="opacity: @GetStatOpacity(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses);">@(_team.EventAggregateTracker.RoundHistory[round].BaseDefenses)</td>
@@ -225,7 +228,7 @@
                         <tbody>
                             @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id).ToList())
                             {
-                                <tr>
+                                <tr style="border-top: 1px solid var(--sq-ps2-primary-light); border-bottom: 1px solid var(--sq-ps2-primary-light); background-color: var(--sq-ps2-primary-light-alpha-40);">
                                     <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
                                     <td title="@member.NameFull [@(member.Id)]">
                                         <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
@@ -234,15 +237,18 @@
                                     <Test_PlayerStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id />
                                 </tr>
 
-                                <tr>
-                                    <td></td>
-                                    <td>CurrentRound</td>
-                                    <Test_PlayerStatsRow EventAggregate=@member.EventAggregateTracker.RoundStats PlayerId=@member.Id />
-                                </tr>
+                                @if (_currentRound > 0 && _isRunning)
+                                { 
+                                    <tr style="background-color: transparent;">
+                                        <td></td>
+                                        <td>CurrentRound</td>
+                                        <Test_PlayerStatsRow EventAggregate=@member.EventAggregateTracker.RoundStats PlayerId=@member.Id />
+                                    </tr>
+                                }
 
                                 @foreach (var round in member.EventAggregateTracker.RoundHistory.Keys.ToList())
                                 {
-                                    <tr>
+                                    <tr style="background-color: transparent;">
                                         <td></td>
                                         <td>Round @round</td>
                                         <Test_PlayerStatsRow EventAggregate=@member.EventAggregateTracker.RoundHistory[round] PlayerId=@member.Id />
@@ -347,7 +353,7 @@
                     <tbody>
                         @foreach (var player in _teamNonOutfitPlayers)
                         {
-                            <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)">
+                            <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="border-top: 1px solid var(--sq-ps2-primary-light); border-bottom: 1px solid var(--sq-ps2-primary-light); background-color: var(--sq-ps2-primary-light-alpha-40);">
                                 <td title="@(player.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(player.IsOnline)</td>
                                 <td title="@player.NameFull [@(player.Id)]">
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameFull</span>
@@ -356,21 +362,24 @@
                                 <Test_PlayerStatsRow EventAggregate=@player.EventAggregate PlayerId=@player.Id />
                             </tr>
 
-                            <tr>
-                                <td></td>
-                                <td>CurrentRound</td>
-                                <Test_PlayerStatsRow EventAggregate=@player.EventAggregateTracker.RoundStats PlayerId=@player.Id />
-                            </tr>
-
-                            @foreach (var round in player.EventAggregateTracker.RoundHistory.Keys.ToList())
+                            @if (_currentRound > 0 && _isRunning)
                             {
-                                <tr>
+                                <tr style="background-color: transparent;">
                                     <td></td>
-                                    <td>Round @round</td>
-                                    <Test_PlayerStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
+                                    <td>CurrentRound</td>
+                                    <Test_PlayerStatsRow EventAggregate=@player.EventAggregateTracker.RoundStats PlayerId=@player.Id />
                                 </tr>
                             }
-                        }
+
+                                @foreach (var round in player.EventAggregateTracker.RoundHistory.Keys.ToList())
+                                {
+                                    <tr style="background-color: transparent;">
+                                        <td></td>
+                                        <td>Round @round</td>
+                                        <Test_PlayerStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
+                                    </tr>
+                                }
+                            }
                     </tbody>
                 </table>
             }
@@ -417,6 +426,10 @@
     private bool _extendNonOutfitPlayers = true;
 
     private int _defaultMaxPlayersToExtend = 6;
+
+    private bool _isRunning = false;
+    private int _currentRound = 0;
+    private MatchState _matchState = MatchState.Uninitialized;
     #endregion
 
     #region Helpers
@@ -425,8 +438,15 @@
     #endregion
 
     /***********
-       Methods
-     ***********/
+        Methods
+        ***********/
+    protected override void OnInitialized()
+    {
+        _isRunning = ScrimMatchEngine.IsRunning();
+        _currentRound = ScrimMatchEngine.GetCurrentRound();
+        _matchState = ScrimMatchEngine.GetMatchState();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
@@ -439,6 +459,8 @@
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
 
         _worlds = await WorldService.GetAllWorldsAsync();
     }
@@ -840,6 +862,26 @@
 
     //    return jMsg;
     //}
+
+    private void ReceiveMatchStateUpdateMessageEvent(object sender, MatchStateUpdateEventArgs e)
+    {
+        var message = e.Message;
+
+        var oldMatchState = _matchState;
+        var oldMatchRound = _currentRound;
+
+        _isRunning = message.MatchState == MatchState.Running;
+        _currentRound = message.CurrentRound;
+        _matchState = message.MatchState;
+
+        if (oldMatchState != _matchState || oldMatchRound != _currentRound)
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
 
     private string GetHeaderCardClass()
     {
