@@ -1,6 +1,7 @@
 ﻿@using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
 
 @inject IScrimMessageBroadcastService MessageService
 
@@ -8,23 +9,27 @@
 <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_adminLogs.Any())
     {
-        foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200).ToList())
+        foreach (var log in _adminLogs)
         {
             <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
         }
 
-        if (_adminLogs.Count() > 200)
+        if (_adminLogs.Count() > _maxLogCount)
         {
-            <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing 200 / @_adminLogs.Count)</p>
+            <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing @_maxLogCount / @_adminLogs.Count)</p>
         }
     }
 </div>
 @code {
     private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
 
+    private ConcurrentQueue<MarkupString> _logQueue = new ConcurrentQueue<MarkupString>();
+
+    private int _maxLogCount = 200;
+
     protected override void OnInitialized()
     {
-        // TODO: use Interface for Info property of messages 
+        // TODO: use Interface for Info property of messages
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
@@ -109,11 +114,30 @@
     {
         var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
 
-        _adminLogs.Add((MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}");
+        var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
 
+        _logQueue.Enqueue(newLogMessage);
+
+        UpdatePage();
+    }
+
+    private void UpdatePage()
+    {
         InvokeAsync(() =>
         {
-            StateHasChanged();
+            lock (_adminLogs)
+            {
+                MarkupString localString;
+
+                while (_logQueue.TryDequeue(out localString))
+                {
+                    _adminLogs.Add(localString);
+                }
+
+                _adminLogs = _adminLogs.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+
+                StateHasChanged();
+            }
         });
     }
 }
