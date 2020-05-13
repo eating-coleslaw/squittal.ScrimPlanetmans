@@ -710,22 +710,55 @@
         {
             _teamOutfitsLoadingMembers.Add(aliasLower);
 
-            var success = await ScrimTeamsManager.RefreshOutfitPlayers(aliasLower);
-
-            _teamOutfitsLoadingMembers.Remove(aliasLower);
-
-            var alias = _teamOutfits.Where(o => o.AliasLower == aliasLower).Select(o => o.Alias).FirstOrDefault();
-
-            var message = success
-                            ? $"Team {i_teamOrdinal} [{alias}] Players REFRESH: Players Added"
-                            : $"Team {i_teamOrdinal} [{alias}] Players REFRESH: No Players Added";
-
-            LogMessage(message);
-
-            await InvokeAsync(() =>
+            try
             {
-                StateHasChanged();
-            });
+                var success = await ScrimTeamsManager.RefreshOutfitPlayers(aliasLower);
+
+                _teamOutfitsLoadingMembers.Remove(aliasLower);
+
+                var alias = _teamOutfits.Where(o => o.AliasLower == aliasLower).Select(o => o.Alias).FirstOrDefault();
+
+                var message = success
+                                ? $"Team {i_teamOrdinal} [{alias}] Players REFRESH: Players Added"
+                                : $"Team {i_teamOrdinal} [{alias}] Players REFRESH: No Players Added";
+
+                LogMessage(message);
+
+                await InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+            catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+            {
+                _teamOutfitsLoadingMembers.Remove(aliasLower);
+
+                var alias = _teamOutfits.Where(o => o.AliasLower == aliasLower).Select(o => o.Alias).FirstOrDefault();
+
+                var message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The Census API Outfit service may be broken:</span> {ex.ToString()}</span>";
+
+                LogMessage(message);
+
+                await InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+            catch (Exception ex)
+            {
+                _teamOutfitsLoadingMembers.Remove(aliasLower);
+
+                var alias = _teamOutfits.Where(o => o.AliasLower == aliasLower).Select(o => o.Alias).FirstOrDefault();
+
+                var message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The outfit may no longer exist:</span> {ex.ToString()}</span>";
+
+                LogMessage(message);
+
+                await InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
         }
     }
 
@@ -744,11 +777,12 @@
     {
         var success = await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(characterId);
 
-        if (success)
-        {
-            _teamPlayers.RemoveAll(p => p.Id == characterId);
-            _teamNonOutfitPlayers.RemoveAll(p => p.Id == characterId);
-        }
+
+        //if (success)
+        //{
+        //    _teamPlayers.RemoveAll(p => p.Id == characterId);
+        //    _teamNonOutfitPlayers.RemoveAll(p => p.Id == characterId);
+        //}
     }
 
     private void HandleSubPlayerIn(string characterId)
@@ -932,20 +966,17 @@
     {
         var player = message.Player;
 
-        if (_teamPlayersOnline.Any(p => p.Id == player.Id) || _teamPlayersParticipating.Any(p => p.Id == player.Id) || _teamNonOutfitPlayers.Any(p => p.Id == player.Id))
-        {
-            _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
-            _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
-            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
+        _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
+        _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
 
-            if (player.IsOutfitless)
-            {
-                _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
-            }
-            else
-            {
-                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
-            }
+        if (player.IsOutfitless)
+        {
+            _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
+        }
+        else
+        {
+            SetOutfitMembersOnlineCount(player.OutfitAliasLower);
         }
     }
 
