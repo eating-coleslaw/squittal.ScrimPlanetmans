@@ -721,6 +721,11 @@
                             : $"Team {i_teamOrdinal} [{alias}] Players REFRESH: No Players Added";
 
             LogMessage(message);
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
         }
     }
 
@@ -739,7 +744,6 @@
     {
         var success = await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(characterId);
 
-        //if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
         if (success)
         {
             _teamPlayers.RemoveAll(p => p.Id == characterId);
