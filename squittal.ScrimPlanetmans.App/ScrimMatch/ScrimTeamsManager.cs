@@ -401,9 +401,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var newPlayers = players.Where(p => IsCharacterAvailable(p.Id)).ToList();
 
             var oldPlayers = players.Where(p => !newPlayers.Contains(p)).ToList();
+
             foreach (var player in oldPlayers)
             {
-                SetPlayerOnlineStatus(player.Id, player.IsOnline);
+                var oldOnlineStatus = GetPlayerFromId(player.Id).IsOnline;
+                var newOnlineStatus = player.IsOnline;
+
+                if (oldOnlineStatus != newOnlineStatus)
+                {
+                    SetPlayerOnlineStatus(player.Id, newOnlineStatus);
+                }
             }
 
             if (!newPlayers.Any())
@@ -443,8 +450,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 }
             }
 
-            return anyPlayersAdded;
+            var newMemberCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
 
+            outfit.MemberCount = newMemberCount;
+
+            return anyPlayersAdded;
         }
 
         public async Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower)
