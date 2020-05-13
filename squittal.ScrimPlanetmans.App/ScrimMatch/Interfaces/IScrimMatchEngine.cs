@@ -30,5 +30,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         MatchState GetMatchState();
 
         void SubmitPlayersList();
+        string GetMatchId();
     }
 }

@@ -50,7 +50,6 @@
                     </div>
                 </div>
 
-
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
                 @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
                 {
@@ -58,8 +57,8 @@
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>*@
                     <button class="btn btn-outline-primary" @onclick="ClearMatch">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
@@ -70,8 +69,8 @@
                         <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>*@
                     <button class="btn btn-outline-primary" @onclick="ResetRound">
                         <span class="oi oi-media-step-backward"></span>Reset Round
                     </button>
@@ -85,8 +84,8 @@
                         <span class="oi oi-media-play"></span>Resume
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>*@
                 }
                 else if (_matchState == MatchState.Running)
                 {
@@ -94,19 +93,19 @@
                         <span class="oi oi-media-pause"></span>Pause Round
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>*@
                     <button class="btn btn-outline-primary" @onclick="EndRound">
                         <span class="oi oi-media-stop"></span> End Round
                     </button>
                 }
 
                 @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
-                {
-                    <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>
-                }*@
+        {
+            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>
+        }*@
 
                 @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
                 {
@@ -118,31 +117,40 @@
 
                         <div style="margin-bottom: 0.2rem;">
                             <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
-                            
-                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">  @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"--> 
-                            @foreach (var world in _worlds)
-                            {
-                                <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
-                            }
-                            </InputSelect>
-                            
-                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
-                            <option value=@_noFacilitIdValue>No Base</option>
 
-                            @foreach (var zone in _mapZones)
-                            {
-                                <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
-
-                                @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
+                                @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"-->
+                                @foreach (var world in _worlds)
                                 {
-                                    <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                    <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
                                 }
-                            }
+                            </InputSelect>
+
+                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
+                                <!--class="btn-sm"-->
+                                <option value=@_noFacilitIdValue>No Base</option>
+
+                                @foreach (var zone in _mapZones)
+                                    {
+                                    <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                                    @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                        {
+                                        <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                        }
+                                    /**/
+                                    }
+                                /**/
                             </InputSelect>
                         </div>
 
-                        <p>End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/>@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
+                        <p style="margin-bottom: 0.2rem;">End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture" />@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
                     </EditForm>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_matchId))
+                {
+                    <p style="color: var(--sq-gray); margin-bottom: 0.2rem; margin-top: 0.5rem;">Match Id: @_matchId</p>
                 }
 
             </div>
@@ -187,6 +195,7 @@
     private int _currentRound = 0;
     private MatchState _matchState = MatchState.Uninitialized;
 
+    private string _matchId = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -216,6 +225,7 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
+        _matchId = ScrimMatchEngine.GetMatchId();
 
         _zones = ZoneService.GetAllZones().ToList();
 
@@ -391,6 +401,8 @@
         _isRunning = message.MatchState == MatchState.Running;
         _currentRound = message.CurrentRound;
         _matchState = message.MatchState;
+
+        _matchId = message.MatchId;
 
         _matchConfiguration.Title = message.MatchTitle;
 

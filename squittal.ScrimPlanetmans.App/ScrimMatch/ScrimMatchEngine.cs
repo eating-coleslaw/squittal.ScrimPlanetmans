@@ -90,6 +90,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _currentRound = 0;
 
             _matchDataService.CurrentMatchRound = _currentRound;
+            _matchDataService.CurrentMatchId = string.Empty;
 
             _latestTimerTickMessage = null;
 
@@ -288,6 +289,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _matchState;
         }
 
+        public string GetMatchId()
+        {
+            return _matchDataService.CurrentMatchId;
+        }
+
         public MatchTimerTickMessage GetLatestTimerTickMessage()
         {
             return _latestTimerTickMessage;
@@ -391,7 +397,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void SendMatchStateUpdateMessage()
         {
-            _messageService.BroadcastMatchStateUpdateMessage(new MatchStateUpdateMessage(_matchState, _currentRound, DateTime.UtcNow, MatchConfiguration.Title));
+            _messageService.BroadcastMatchStateUpdateMessage(new MatchStateUpdateMessage(_matchState, _currentRound, DateTime.UtcNow, MatchConfiguration.Title, _matchDataService.CurrentMatchId));
         }
 
         private void SendMatchConfigurationUpdateMessage()
