@@ -24,6 +24,12 @@
 @inject IWorldService WorldService
 
 <div class="container-fluid">
+
+    @if (!string.IsNullOrWhiteSpace(_errorBannerMessage))
+    {
+        <ErrorMessageBanner i_ErrorMessage="@_errorBannerMessage"/>
+    }
+
     <div class="row">
 
         <div class="col-lg-4">
@@ -173,6 +179,8 @@
 
     private bool _isStreamServiceEnabled { get; set; } = false;
 
+    private string _errorBannerMessage { get; set; }
+
     private string _debug { get; set; } = "init";
 
     private bool _isRunning = false;
@@ -182,7 +190,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await GetCensusStreamStatus();
+        await GetCensusStreamStatus(true);
     }
 
     protected override void OnInitialized()
@@ -219,11 +227,24 @@
 
 
     #region  Match & Subscription State Buttons
-    private async Task GetCensusStreamStatus()
+    private async Task GetCensusStreamStatus(bool isFirstStatusCheck)
     {
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
-        //_debug = "GetCensusStreamStatus";
+
+        if (!_isStreamServiceEnabled)
+        {
+            SetWebsocketConnectionErrorMessage(isFirstStatusCheck);
+
+            if (isFirstStatusCheck)
+            {
+                await WebsocketMonitor.StartAsync(System.Threading.CancellationToken.None);
+                await GetCensusStreamStatus(false);
+            }
+        }
+        else {
+            ClearErrorMessage();
+        }
     }
 
     private void SubscribeToCensus()
@@ -528,4 +549,24 @@
             StateHasChanged();
         });
     }
+
+    #region Error Messages
+    private void ClearErrorMessage()
+    {
+        _errorBannerMessage = string.Empty;
+    }
+
+    private void SetWebsocketConnectionErrorMessage(bool isFirstReconnectAttempt)
+    {
+        if (isFirstReconnectAttempt)
+        {
+            _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket! Re-attempting to establish connection...";
+
+        }
+        else
+        {
+            _errorBannerMessage = "Second attempt failed to connect to the Planetside 2 Websocket! Reload the page to try again.";
+        }
+    }
+    #endregion Error Messages
 }
