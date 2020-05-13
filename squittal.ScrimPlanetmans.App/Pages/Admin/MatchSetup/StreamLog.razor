@@ -9,8 +9,7 @@
 <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_streamLogs.Any())
     {
-        //foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200).ToList())
-        foreach (var log in _streamLogs) /*.Reverse<MarkupString>().Take(_maxLogCount))*/
+        foreach (var log in _streamLogs)
         {
             <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
         }
