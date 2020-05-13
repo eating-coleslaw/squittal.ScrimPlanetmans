@@ -29,6 +29,8 @@
     <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.Designer.cs" />
     <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.cs" />
     <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.Designer.cs" />
+    <Compile Remove="Migrations\20200513170822_AddVehicleClassAndDeathTypeModles.cs" />
+    <Compile Remove="Migrations\20200513170822_AddVehicleClassAndDeathTypeModles.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
