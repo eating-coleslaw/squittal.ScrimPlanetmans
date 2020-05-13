@@ -32,8 +32,8 @@ namespace squittal.ScrimPlanetmans.Data.Models
         public int AttackerTeamOrdinal { get; set; }
         public int VictimTeamOrdinal { get; set; }
 
-        public VehicleType? AttackerVehicleType { get; set; }
-        public VehicleType? VictimVehicleType { get; set; }
+        public VehicleType? AttackerVehicleClass { get; set; }
+        public VehicleType? VictimVehicleClass { get; set; }
 
         public string AttackerNameFull { get; set; }
         public int AttackerFactionId { get; set; }
