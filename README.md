@@ -102,6 +102,160 @@ The app uses census data stored in a local database for a variety of purposes. T
 
 __\*__ The Loadouts collection has more database entities than in the Census API because the Census API is missing the NSO classes.
 
+## Match & Events Reporting
+
+Results from matches, along with several types of events, are stored in the same database as the census data. Feel free to use it for your own reporting needs.
+
+### Prerequisites
+
+#### Recommended Software
+
+You can use one of the following programs to connect to and query against the database:  
+| Program | Info | Platforms | Download |
+|-|-|-|-|
+| SQL Server Management Studio (SSMS) | Very robust | Windows 8.1/10* | [_download_](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver15 "Download SQL Server Managament Studio") |
+| Azure Data Studio | More lightweight, fewer features | Windows, macOS, Linux | [_download_](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15 "Download Azure Data Studio") |
+
+__\*__ See download page for complete list of supported platforms
+
+#### Connect to the Database
+
+|Connection Details | |
+|-|-|
+| _Connection Type_ | Microsoft SQL Server    |
+| _Server_          | (LocalDB)\MSSQLLocalDB  |
+| _Authentication_  | Windows Authentication* |
+| _Database_        | PlanetmansDbContext     |
+
+  __\*__ I don't know what this Authentication method will be on macOS or Linux, but you shouldn't need to enter a username of password.
+
+### Data Model
+
+#### ScrimMatch
+
+Each match has one entry in this table, created when you press "Start Match" in Match Setup.
+
+| Column    | Data Type     | Nullable? | Details |
+|-----------|---------------|-----------|---------|
+| Id        | nvarchar(450) | No        | [__Primary Key__] The match's identifier. This is the same value as the match log filename for the match. Join to the `ScrimMatchId` column in various other tables. |
+| StartTime | datetime2(7)  | No        | The timestamp of when "Start Match" was pressed. |
+| Title     | nvarchar(max) | Yes       | The most-recent Match Title saved. |
+
+#### ScrimMatchTeamResult
+
+Each team in each match has one row in this table containing a team's final score and other stats for a given match. Typically, rows will first be added at the end of the first round in a match, and then updated at the end of subsequent matches (even if a round is stopped manually). However, adding/removing point adjustments, outfits, or players can also result in a team's match results getting updated.
+
+| Column                | Data Type     | Nullable? | Details |
+|-----------------------|---------------|-----------|---------|
+| ScrimMatchId          | nvarchar(450) | No        | [__Primary Key__] The match's identifier. |
+| TeamOrdinal           | int           | No        | [__Primary Key__] The team's identifier (e.g. 1-first team, 2-second team). |
+| Points                | int           | No        | Team's total score for the match. |
+| NetScore              | int           | No        | Team's net score for the match. |
+| Kills                 | int           | No        | Total number of times the team's players killed someone on another team. |
+| Deaths                | int           | No        | Total number of times the team's players died to any match participant or by suicide. |
+| Headshots             | int           | No        | Total number of times the team's players killed someone on another team with a headshot. |
+| HeadshotDeaths        | int           | No        | Total number of times the team's players died by a headshot from a player on another team. |
+| Suicides              | int           | No        | Total number of times the team's players killed themselves. |
+| Teamkills             | int           | No        | Total number of times the team's players killed a player on their team. |
+| TeamkillDeaths        | int           | No        | Total number of times the team's players were killed by a player on their team. |
+| RevivesGiven          | int           | No        | Total number of times the team's players gave a revive to a player on their team. Only accepted revives are counted. |
+| RevivesTaken          | int           | No        | Total number of times the team's players accepted a revive from a player on their team. |
+| DamageAssists         | int           | No        | Total number of times the team's players received an experience tick with one of the following experience gain IDs: <br>2-Kill Player Assist<br>335-Savior Kill (Non MAX)<br>371-Kill Player Priority Assist<br>372Kill Player High Priority Assist |
+| UtilityAssists        | int           | No        | Total number of times the team's players received an experience tick with one of the following experience gain IDs: <br>5-Heal Assis<br>438-Shield Repair<br>439-Squad Shield Repair<br>550-Concussion Grenade Assist<br>551-Concussion Grenade Squad Assist<br>552-EMP Grenade Assist<br>553-EMP Grenade Squad Assist<br>554-Flashbang Assist<br>555-Flashbang Squad Assist<br>1393-Hardlight Cover - Blocking Exp<br>1394-Draw Fire Award<br>36-Spot Kill<br>54-Squad Spot Kill |
+| DamageAssistedDeaths  | int           | No        | Total number of times the team's players had a death assisted by a Damage Assist. A player is considered such a victim if they appear in the `other_id` field of a relevant experience gain stream payload. |
+| UtilityAssistedDeaths | int           | No        | Total number of times the team's players ad a death assisted by a Utility Assist. A player is considered such a victim if they appear in the `other_id` field of a relevant experience gain stream payload. |
+| ObjectiveCaptureTicks | int           | No        | Total number of times the team's players receive an experience tick with one of the following experience gain IDs: <br>16-Control Point - Attack <br>272-Convert Capture Point <br>557-Objective Pulse Capture |
+| ObjectiveDefenseTicks | int           | No        | Total number of times the team's players receive an experience tick with one of the following experience gain IDs: <br>15-Control Point - Defend <br>556-Objective Pulse Defend |
+| BaseDefenses          | int           | No        | Total number of times the team "capture" the target facility via a defense. This is based on infantry scrim rules (timer starts at half, one team's faction owns the facility), not on base defenses as reported in game. |
+| BaseCaptures          | int           | No        | Total number of times the team "capture" the target facility via a capture. This is based on infantry scrim rules (timer starts at half, one team's faction owns the facility), not on base captures as reported in game. |
+
+#### ScrimMatchTeamPointAdjustment
+
+Each point adjustment made to a team's score during a match has a row in this table. The table is updated each time a point adjustment is added or removed in Match Setup. The points in this table have already been factored into a team's Points and Net Score in the `ScrimMatchTeamResult` table.
+
+| Column         | Data Type     | Nullable? | Details |
+|----------------|---------------|-----------|---------|
+| ScrimMatchId   | nvarchar(450) | No        | [__Primary Key__] The match's identifier. |
+| TeamOrdinal    | int           | No        | [__Primary Key__] The team's identifier (e.g. 1-first team, 2-second team). |
+| Timestamp      | datetime2(7)  | No        | [__Primary Key__] The timestamp of when the point adjustment was added. |
+| Points         | int           | No        | The value of the point adjustment. |
+| AdjustmentType | int           | No        | Whether the adjustment was a deduction (points subtracted) or granting (points added) of points. 0-Deduction, 1-Granting.  |
+| Rationale      | nvarchar(max) | Yes       | The reason provided for the point adjustment. |
+
+#### ScrimDeath
+
+Each row in this table corresponds to a Death payload from the census stream in which all characters were match participants (i.e. the Death wasn't outside interference). In other words, each player death during a match has a row in this table.
+
+| Column               | Data Type     | Nullable? | Details |
+|----------------------|---------------|-----------|---------|
+| ScrimMatchId         | nvarchar(450) | No  | [__Primary Key__] The ID of the match in which the death event occured. |
+| Timestamp            | datetime2(7)  | No  | [__Primary Key__] The timestamp when the event occured. |
+| AttackerCharacterId  | nvarchar(450) | No  | [__Primary Key__] The character ID of the player who killed the Victim player. For suicides, this will be the same as the VictimCharacterId.  |
+| VictimCharacterId    | nvarchar(450) | No  | [__Primary Key__] The character ID of the player who died. For suicides, this will be the same as the AttackerCharacterId. |
+| ScrimMatchRound      | int           | No  | The round in which the death event occured. |
+| ActionType           | int           | No  | The Scrim Action describing this death event (e.g. 101-InfantryKillMax, 102-InfantryTeamkillInfantry). Join to `ScrimAction.Action`. |
+| DeathType            | int           | No  | The Death Type describing this death event. Either 0-Kill, 1-Teamkill, or 2-Suicide. Teamkills are based first on the players' Team Ordinals, then on their Faction. Join to `DeathType.Type`. |
+| AttackerTeamOrdinal  | int           | No  | Integer corresponding to the attacking player's team. 1 for the first team, 2 for the second team, etc. |
+| VictimTeamOrdinal    | int           | No  | Integer corresponding to the victim player's team. 1 for the first team, 2 for the second team, etc. |
+| AttackerNameFull     | nvarchar(max) | Yes | Name of the attacking player as it appears in game. |
+| AttackerFactionId    | int           | No  | Faction ID of the attacking player. Either 1-VS, 2-NC, 3-TR, 4-NSO. Join to `Faction.Id`. |
+| AttackerLoadoutId    | int           | Yes | ID of the PS2 class the attacking player was playing when they killed the victim player. Join to `Loadout.Id`.  |
+| AttackerOutfitId     | nvarchar(max) | Yes | ID of the outfit the attacking player is associated with for the death event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| AttackerOutfitAlias  | nvarchar(max) | Yes | The alias (aka tag) of the outfit the attacking player is associated with for the death event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| AttackerIsOutfitless | bit           | No  | Whether the attacking player is associated with an outfit for this death event. 1-Yes if they are, 2-No if they are not (if they were listed under "Other Players"). |
+| VictimNameFull       | nvarchar(max) | Yes | Name of the victim player as it appears in game. |
+| VictimFactionId      | int           | No  | Faction ID of the victim player. Either 1-VS, 2-NC, 3-TR, 4-NSO. Join to `Faction.Id`. |
+| VictimLoadoutId      | int           | Yes | ID of the PS2 class the victim player was playing when they died. Join to `Loadout.Id`. |
+| VictimOutfitId       | nvarchar(max) | Yes | ID of the outfit the victim player is associated with for the death event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| VictimOutfitAlias    | nvarchar(max) | Yes | The alias (aka tag) of the outfit the victim player is associated with for the death event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| VictimIsOutfitless   | bit           | No  | Whether the victim player is associated with an outfit for this death event. 1-Yes if they are, 0-No if they are not (if they were listed under "Other Players"). |
+| IsHeadshot           | bit           | No  | Whether the victim player was killed by a headshot (1-Headshot, 2-Not Headshot). Events with Death Type 1-Teamkill and 2-Suicie are never counted as headshots, regardless of whether a headshot actually occured. |
+| WeaponId             | int           | Yes | Item ID of the weapon to which the victim player died. Join to `Item.Id`. |
+| WeaponItemCategoryId | int           | Yes | ID of the item category to which the weapon that the victim player died to belongs. Join to `ItemCategory.Id`.|
+| IsVehicleWeapon      | bit           | Yes | Whether the weapon to which the victim player died is a vehicle weapon. |
+| AttackerVehicleId    | int           | Yes | ID of the vehicle by which the victim player was killed. Join to `Vehicle.Id`. |
+| WorldId              | int           | No  | ID of the PS2 server on which the death event occured. Join to `World.Id`. |
+| ZoneId               | int           | No  | ID of the PS2 continent on which the death event occured. Join to `Zone.Id` |
+| Points               | int           | No  | The points the attacking player received, or had deducted, for the death event.  |
+
+#### ScrimVehicleDestruction
+
+Each row in this table corresponds to a VehicleDestroy payload from the census stream in which all characters were match participants (i.e. the Vehicle Destruction wasn't outside interference). In other words, the table has a row for each time a vehicle is destroyed during a match. Only destructions of vehicles owned by a match participant are included in the table (e.g. a match participant destroying an unowned flash will not result in a new row in the table).
+
+| Column               | Data Type     | Nullable? | Details |
+|----------------------|---------------|-----------|---------|
+| ScrimMatchId         | nvarchar(450) | No  | [__Primary Key__] The ID of the match in which the vehicle destruction event occured. |
+| Timestamp            | datetime2(7)  | No  | [__Primary Key__] The timestamp when the event occured. |
+| AttackerCharacterId  | nvarchar(450) | No  | [__Primary Key__] The character ID of the player who destroyed the victim vehicle. For suicides, this will be the same as the VictimCharacterId.  |
+| VictimCharacterId    | nvarchar(450) | No  | [__Primary Key__] The character ID of the player who owned the victim vehicle. For suicides, this will be the same as the AttackerCharacterId. |
+| VictimVehicleId      | int           | No  | [__Primary Key__] The ID of the vehicle that was destroyed. Join to `Vehicle.Id`.|
+| AttackerVehicleId |  | int           | Yes | The ID of the vehicle by which the victim vehicle was destroyed, if it was destroyed by a vehicle. |
+| ScrimMatchRound      | int           | No  | The round in which the vehicle destruction event occured. |
+| ActionType           | int           | No  | The Scrim Action describing this vehicle destruction event (e.g. 109-InfantryDestoryEsf, 426-VehicleDestroyLightning). Join to `ScrimAction.Action`. |
+| DeathType            | int           | No  | The Death Type describing this vehicle destruction event. Either 0-Kill, 1-Teamkill, or 2-Suicide. Teamkills are based first on the players' Team Ordinals, then on their Factions. Join to `DeathType.Type`. |
+| AttackerTeamOrdinal  | int           | No  | Integer corresponding to the attacking player's team. 1 for the first team, 2 for the second team, etc. |
+| VictimTeamOrdinal    | int           | No  | Integer corresponding to the victim player's team. 1 for the first team, 2 for the second team, etc. |
+| AttackerVehicleClass | int           | Yes | The type of vehicle the attacking player used to destroy the victim vehicle (e.g. 4-Sunderer, 8-ESF). Join to `VehicleClass.Class`. |
+| VictimVehicleClass   | int           | Yes | The type of vehicle that was destroyed for the vehicle destruction event. (e.g. 4-Sunderer, 8-ESF). Join to `VehicleClass.Class`. |
+| AttackerNameFull     | nvarchar(max) | Yes | Name of the attacking player as it appears in game. |
+| AttackerFactionId    | int           | No  | Faction ID of the attacking player. Either 1-VS, 2-NC, 3-TR, 4-NSO. Join to `Faction.Id`. |
+| AttackerLoadoutId    | int           | Yes | ID of the PS2 class the attacking player was playing when they destroyed the victim vehicle. Join to `Loadout.Id`.  |
+| AttackerOutfitId     | nvarchar(max) | Yes | ID of the outfit the attacking player is associated with for the vehicle destruction event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| AttackerOutfitAlias  | nvarchar(max) | Yes | The alias (aka tag) of the outfit the attacking player is associated with for the vehicle destruction event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| AttackerIsOutfitless | bit           | No  | Whether the attacking player is associated with an outfit for this vehicle destruction event. 1-Yes if they are, 2-No if they are not (if they were listed under "Other Players"). |
+| VictimNameFull       | nvarchar(max) | Yes | Name of the victim player as it appears in game. |
+| VictimFactionId      | int           | No  | Faction ID of the victim player. Either 1-VS, 2-NC, 3-TR, 4-NSO. Join to `Faction.Id`. |
+| VictimLoadoutId      | int           | Yes | ID of the PS2 class the victim player was last known to be playing as when their vehicle was destroyed. Join to `Loadout.Id`. |
+| VictimOutfitId       | nvarchar(max) | Yes | ID of the outfit the victim player is associated with for the vehicle destruction event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| VictimOutfitAlias    | nvarchar(max) | Yes | The alias (aka tag) of the outfit the victim player is associated with for the vehicle destruction event. This may be populated even if the player was not added via an outfit (i.e. if they were listed under "Other Players"). |
+| VictimIsOutfitless   | bit           | No  | Whether the victim player is associated with an outfit for this vehicle destruction event. 1-Yes if they are, 0-No if they are not (if they were listed under "Other Players"). |
+| WeaponId             | int           | Yes | Item ID of the weapon by which the victim vehicle was destroyed. Join to `Item.Id`. |
+| WeaponItemCategoryId | int           | Yes | ID of the item category to which the weapon that destroyed the victim vehicle belongs. Join to `ItemCategory.Id`.|
+| IsVehicleWeapon      | bit           | Yes | Whether the weapon that destroyed the victim vehicle is a vehicle weapon. |
+| WorldId              | int           | No  | ID of the PS2 server on which the vehicle destruction event occured. Join to `World.Id`. |
+| ZoneId               | int           | No  | ID of the PS2 continent on which the vehicle destruction event occured. Join to `Zone.Id` |
+| Points               | int           | No  | The points the attacking player received, or had deducted, for the vehicle destruction event.  |
+
 
 ## Troubleshooting
 
