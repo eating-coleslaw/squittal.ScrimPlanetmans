@@ -1,7 +1,7 @@
 ﻿@import url('squittal-colors.css');
 
 .main.overlay {
-    background-image: url("../images/overlay_test_background.jpg");
+    /*background-image: url("../images/overlay_test_background.jpg");*/
     background-color: transparent;
     background-position: center center;
     margin: 4px 8px 8px 8px;
@@ -63,7 +63,9 @@
         grid-row-gap: 4px;
         font-weight: 500;
         font-size: 18px;
-        color: var(--sq-ps2-primary);
+        /*color: var(--sq-ps2-primary);*/
+        /*color: var(--sq-ov-ps2-primary);*/
+        color: var(--sq-ov-ps2-primary-light);
     }
 
         .overlay .players.players1 {
@@ -84,8 +86,10 @@
             display: grid;
             /*grid-template-rows: 25px 3px;*/
             grid-template-rows: 24px 4px;
-            background-color: #1F233090;
-            border: 1px solid #0F1320;
+            /*background-color: #1F233090;*/
+            background-color: var(--sq-ov-bg-dark-gray-alpha-55);
+            /*border: 1px solid #0F1320;*/
+            border: 1px solid var(--sq-ov-bg-dark-gray);
             text-overflow: ellipsis;
             overflow: hidden;
         }
@@ -95,10 +99,11 @@
             grid-template-areas:
                 "name score"
                 "event event";
-            background: -moz-linear-gradient(-10deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
-            background: linear-gradient(-10deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
-            background: -webkit-linear-gradient(-10deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            background: -moz-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-80) 0%, #1F2330E5 60%);
+            background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-80) 0%, #1F2330E5 60%);
+            background: -webkit-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-80) 0%, #1F2330E5 60%);
             box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
+            text-shadow: 0 0 1px var(--sq-black);
         }
 
             .overlay .players.players1 .playerStatusContainer:nth-child(2) {
@@ -114,9 +119,9 @@
             grid-template-areas:
                 "score name"
                 "event event";
-            background: -moz-linear-gradient(170deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
-            background: linear-gradient(170deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
-            background: -webkit-linear-gradient(170deg, var(--faction-dark-trans-color) 0%, #1F2330E5 60%);
+            background: -moz-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-80) 0%, #1F2330E5 60%);
+            background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-80) 0%, #1F2330E5 60%);
+            background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-80) 0%, #1F2330E5 60%);
             box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
         }
 
@@ -188,7 +193,10 @@
             width: 24px;
             margin-top: 2px;
             justify-self: center;
-            filter: drop-shadow(0px 0px 2px var(--sq-ps2-primary), rgba(20, 20, 20, 0.8));
+            /*filter: drop-shadow(0px 0px 2px var(--sq-ps2-primary), rgba(20, 20, 20, 0.8));*/
+            /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary), rgba(20, 20, 20, 0.8));*/
+            /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-80, rgba(20, 20, 20, 0.8)));*/
+            filter: drop-shadow(0px 0px 1px var(--sq-black));
             opacity: 0.9;
         }
 
@@ -269,7 +277,8 @@
                 border-top-width: 2px;
                 border-top-style: solid;
                 /*border-top-color: var(--faction-primary-color, rgb(20, 20, 20));*/
-                border-top-color: var(--sq-ps2-primary, rgb(20, 20, 20));
+                /*border-top-color: var(--sq-ps2-primary, rgb(20, 20, 20));*/
+                border-top-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 -moz-transition: border 0.5s cubic-bezier(.86,0,.07,1);
                 -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
                 transition: border 0.5s cubic-bezier(.86,0,.07,1);
@@ -285,15 +294,15 @@
                 .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 {
                     box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
                     border-left: 1px solid rgb(26, 26, 26) !important;
-                    background: -webkit-linear-gradient(-10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
-                    background: linear-gradient(-10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                    background: -webkit-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-80, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                    background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-80, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
                 }
 
                 .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 {
                     box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
                     border-right: 1px solid rgb(26, 26, 26) !important;
-                    background: -webkit-linear-gradient(10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
-                    background: linear-gradient(10deg, var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                    background: -webkit-linear-gradient(10deg, var(--sq-ov-ps2-primary-dark-80, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
+                    background: linear-gradient(10deg, var(--sq-ov-ps2-primary-dark-80, rgba(20, 20, 20, 0.8)) 0%, rgb(35, 35, 35) 100%);
                 }
 
                 .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow .outfitScore {
@@ -322,7 +331,8 @@
                     font-weight: 500;
                     box-sizing: inherit;
                     /*color: var(--faction-flavor-color, rgb(35, 35, 35));*/
-                    color: var(--sq-ps2-primary-light, rgb(35, 35, 35));
+                    /*color: var(--sq-ps2-primary-light, rgb(35, 35, 35));*/
+                    color: var(--sq-ov-ps2-flavor, rgb(35, 35, 35));
                     -moz-transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
                     -moz-transition-delay: 1.5s;
                     -webkit-transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
@@ -369,7 +379,7 @@
                     /*border-right-width: 10px;*/
                     border-right-style: solid;
                     /*border-right-color: var(--faction-primary-color, rgb(20, 20, 20));*/
-                    border-right-color: var(--sq-ps2-primary, rgb(20, 20, 20));
+                    border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                     /**/
                     border-right-width: 11px;
                 }
@@ -378,7 +388,7 @@
                     /*border-left-width: 10px;*/
                     border-left-style: solid;
                     /*border-left-color: var(--faction-primary-color, rgb(20, 20, 20));*/
-                    border-left-color: var(--sq-ps2-primary, rgb(20, 20, 20));
+                    border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                     /**/
                     border-left-width: 11px;
                 }
@@ -408,13 +418,15 @@
                 .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .factionLabel {
                     border-bottom-left-radius: 1px;
                     left: -8.5px;
-                    color: var(--faction-flavor-color, rgb(245, 245, 255));
+                    /*color: var(--faction-flavor-color, rgb(245, 245, 255));*/
+                    color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
                 }
 
                 .overlay .center .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .factionLabel {
                     border-bottom-right-radius: 1px;
                     left: 2px;
-                    color: var(--faction-flavor-color, rgb(245, 245, 255));
+                    /*color: var(--faction-flavor-color, rgb(245, 245, 255));*/
+                    color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
                 }
 
 
@@ -449,6 +461,8 @@
     vertical-align: top;
     /*height: 39.5px;*/
     box-sizing: inherit;
+    border: 2px solid rgb(26, 26, 26);
+    /*
     border-left-color: rgb(255, 216, 58);
     border-right-color: rgb(255, 216, 58);
     border-left-width: 2px;
@@ -457,6 +471,7 @@
     border-right-style: solid;
     border-bottom: 2px solid rgb(26, 26, 26);
     border-top: 2px solid rgb(26, 26, 26);
+    */
     color: rgb(245, 245, 255);
     background: linear-gradient(180deg, rgba(20, 20, 20, 1) 0%, rgba(20, 20, 20, 0.9) 10%, rgba(35, 35, 35, 0.9) 100%);
     /**/

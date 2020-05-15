@@ -643,7 +643,8 @@
     {
         var newAlias = _displayAlias.Alias;
 
-        var success = _team.TrySetAlias(newAlias, true);
+        //var success = _team.TrySetAlias(newAlias, true);
+        var success = ScrimTeamsManager.UpdateTeamAlias(i_teamOrdinal, newAlias, true);
 
         if (!success)
         {

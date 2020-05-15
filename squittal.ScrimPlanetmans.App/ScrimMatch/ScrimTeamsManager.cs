@@ -73,6 +73,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return team.Alias;
         }
 
+        public int? GetTeamScoreDisplay(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+            if (team == null)
+            {
+                return null;
+            }
+
+            return team.EventAggregate.Points;
+        }
+
         public Team GetTeamOne()
         {
             return Team1;
@@ -146,6 +157,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var oldAbbrev = oldFactionId == null ? "null" : _factionService.GetFactionAbbrevFromId((int)oldFactionId);
 
+            _messageService.BroadcastTeamFactionChangeMessage(new TeamFactionChangeMessage(teamOrdinal, factionId, abbrev, oldFactionId, oldAbbrev));
+
             _logger.LogInformation($"Faction for Team {teamOrdinal} changed from {oldAbbrev} to {abbrev}");
         }
 
@@ -154,9 +167,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = _ordinalTeamMap[teamOrdinal];
             var oldAlias = team.Alias;
             
-            if (team.TrySetAlias(alias))
+            if (team.TrySetAlias(alias, isCustom))
             {
                 _logger.LogInformation($"Alias for Team {teamOrdinal} changed from {oldAlias} to {alias}");
+                _messageService.BroadcastTeamAliasChangeMessage(new TeamAliasChangeMessage(teamOrdinal, alias, oldAlias));
                 return true;
             }
             else

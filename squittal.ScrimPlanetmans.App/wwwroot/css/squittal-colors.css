@@ -49,6 +49,13 @@
     --bs-gray: #6c757d;
     --bs-gray-alpha: #6c757d15;
     --bs-pink-alpha: #e83e8c25;
+    /*
+        Overlay Colors
+    */
+    --sq-ov-bg-dark-gray: #1F2330;
+    --sq-ov-bg-dark-gray-alpha-33: rgba(31, 35, 48, 0.33); /*1F233056*/
+    --sq-ov-bg-dark-gray-alpha-55: rgba(31, 35, 48, 0.55); /*#1F233090*/
+    --sq-ov-bg-dark-gray-alpha-90: rgba(31, 35, 48, 0.90); /*#1F2330E5*/
 }
 
 
@@ -59,6 +66,14 @@
     --sq-ps2-primary-light-alpha-30: #CABCFF30;
     --sq-ps2-primary-light-alpha-40: #CABCFF40;
     --sq-ps2-primary-light-alpha-80: #CABCFF80;
+    /* Overlay Colors */
+    --sq-ov-ps2-primary: rgb(112, 80, 237);
+    --sq-ov-ps2-primary-dark: rgb(46, 33, 96);
+    --sq-ov-ps2-primary-dark-80: rgba(46, 33, 96, 0.8);
+    --sq-ov-ps2-primary-dark-70: rgba(46, 33, 96, 0.7);
+    --sq-ov-ps2-primary-light: rgb(202, 188, 255);
+    --sq-ov-ps2-flavor: rgb(184, 233, 227);
+    --sq-ov-ps2-flavor-50: rgb(184, 233, 227, 0.5);
 }
 
 .nc { /*, .nc div, .nc button, .nc p, .nc span {*/
@@ -68,6 +83,14 @@
     --sq-ps2-primary-light-alpha-30: #B6DDFD30;
     --sq-ps2-primary-light-alpha-40: #B6DDFD40;
     --sq-ps2-primary-light-alpha-80: #B6DDFD80;
+    /* Overlay Colors */
+    --sq-ov-ps2-primary: rgb(30, 153, 252);
+    --sq-ov-ps2-primary-dark: rgb(7, 37, 61);
+    --sq-ov-ps2-primary-dark-80: rgba(7, 37, 61, 0.8);
+    --sq-ov-ps2-primary-dark-70: rgba(7, 37, 61, 0.7);
+    --sq-ov-ps2-primary-light: rgb(182, 221, 253);
+    --sq-ov-ps2-flavor: rgb(255, 247, 175);
+    --sq-ov-ps2-flavor-50: rgb(255, 247, 175, 0.5);
 }
 
 .tr { /*, .tr div, .tr button, .tr p, .tr span {*/
@@ -77,6 +100,14 @@
     --sq-ps2-primary-light-alpha-30: #FFD2D330;
     --sq-ps2-primary-light-alpha-40: #FFD2D340;
     --sq-ps2-primary-light-alpha-80: #FFD2D380;
+    /* Overlay Colors */
+    --sq-ov-ps2-primary: rgb(255, 108, 112);
+    --sq-ov-ps2-primary-dark: rgb(64, 27, 28);
+    --sq-ov-ps2-primary-dark-80: rgba(64, 27, 28, 0.8);
+    --sq-ov-ps2-primary-dark-70: rgba(64, 27, 28, 0.7);
+    --sq-ov-ps2-primary-light: rgb(255, 190, 191);
+    --sq-ov-ps2-flavor: rgb(229, 217, 212);
+    --sq-ov-ps2-flavor-50: rgb(229, 217, 212, 0.5);
 }
 
 .ns { /*, .ns div, .ns button, .ns p, .ns span {*/

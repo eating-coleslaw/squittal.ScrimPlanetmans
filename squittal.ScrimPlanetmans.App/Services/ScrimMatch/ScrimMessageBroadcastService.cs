@@ -23,6 +23,12 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
         public delegate void TeamOutfitChangeEventHandler(object sender, TeamOutfitChangeEventArgs e);
 
+        public event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
+        public delegate void TeamAliasChangeEventHandler(object sender, TeamAliasChangeEventArgs e);
+
+        public event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
+        public delegate void TeamFactionChangeEventHandler(object sender, TeamFactionChangeEventArgs e);
+
         public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
 
@@ -288,5 +294,26 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         }
         #endregion Team Player Change
 
+        public void BroadcastTeamAliasChangeMessage(TeamAliasChangeMessage message)
+        {
+            OnRaiseTeamAliasChangeEvent(new TeamAliasChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseTeamAliasChangeEvent(TeamAliasChangeEventArgs e)
+        {
+            RaiseTeamAliasChangeEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message)
+        {
+            OnRaiseTeamFactionChangeEvent(new TeamFactionChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseTeamFactionChangeEvent(TeamFactionChangeEventArgs e)
+        {
+            RaiseTeamFactionChangeEvent?.Invoke(this, e);
+        }
     }
 }
