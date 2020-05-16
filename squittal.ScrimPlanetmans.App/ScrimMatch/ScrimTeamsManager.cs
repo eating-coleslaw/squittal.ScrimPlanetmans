@@ -1370,6 +1370,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendPlayerStatUpdateMessage(player);
 
             // TODO: broadcast Team stats update
+            SendTeamStatUpdateMessage(team);
         }
 
         public void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates)
