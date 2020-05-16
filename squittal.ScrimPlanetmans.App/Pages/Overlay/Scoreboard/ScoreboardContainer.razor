@@ -43,10 +43,10 @@
 
     protected override void OnInitialized()
     {
-        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
         MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
         MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
 
         _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
         var teamPoints1 = ScrimTeamsManager.GetTeamScoreDisplay(1);
@@ -97,8 +97,8 @@
         }
         else
         {
-            _teamPointsDisplay1 = "."; // string.Empty;
-            _teamPointsDisplay2 = "."; // string.Empty;
+            _teamPointsDisplay1 = "_";
+            _teamPointsDisplay2 = "_";
         }
     }
 
