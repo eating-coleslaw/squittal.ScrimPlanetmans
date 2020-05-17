@@ -1,0 +1,18 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+
+<div id="@($"{i_Player.NameDisplay}-stats")" class="stats-row player">
+    <div id="@($"{i_Player.NameDisplay}-label")" class="label">@i_Player.NameDisplay </div>
+    <div id="@($"{i_Player.NameDisplay}-score")" class="score stats-value">@i_Player.EventAggregate.Points</div>
+    <div id="@($"{i_Player.NameDisplay}-graph")" class="graph"></div>
+    <div id="@($"{i_Player.NameDisplay}-net")" class="net stats-value">@i_Player.EventAggregate.NetScore</div>
+    <div id="@($"{i_Player.NameDisplay}-kills")" class="kills stats-value">@i_Player.EventAggregate.Kills</div>
+    <div id="@($"{i_Player.NameDisplay}-deaths")" class="deaths stats-value">@i_Player.EventAggregate.Deaths</div>
+    <div id="@($"{i_Player.NameDisplay}-hsr")" class="hsr stats-value">@i_Player.EventAggregate.HeadshotRatio</div>
+    <div id="@($"{i_Player.NameDisplay}-assists")" class="assists stats-value">@i_Player.EventAggregate.DamageAssists</div>
+    <div id="@($"{i_Player.NameDisplay}-utils")" class="utils stats-value">@i_Player.EventAggregate.UtilityAssists</div>
+</div>
+
+@code {
+    [Parameter]
+    public Player i_Player { get; set; }
+}

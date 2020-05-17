@@ -1,6 +1,7 @@
 ﻿@page "/Overlay"
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.TeamPlayers;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Scoreboard;
+@using squittal.ScrimPlanetmans.App.Pages.Overlay.MatchReports;
 
 @*<h4 class="title">MatchOverlay</h4>*@
 <MatchTitle />
@@ -11,15 +12,19 @@
 <TeamPlayerStatusesContainer i_teamOrdinal=1 />
 <TeamPlayerStatusesContainer i_teamOrdinal=2 />
 
-<div class="center">
+<ScoreboardContainer />
 
-    <ScoreboardContainer />
+<InfantryMatchReport />
+
+@*<div class="center">*@
+
 
     @*<div class="scoreboard">Scoreboard</div>*@
-    <div class="killfeed" style="display: none;">Killfeed</div>
-    <div class="report" style="display: none;">Report</div>
 
-</div>
+@*    <div class="killfeed" style="display: none;">Killfeed</div>*@
+  @*  <div class="report" style="display: none;">Report</div>*@
+
+@*  </div>*@
 
 @code {
 
