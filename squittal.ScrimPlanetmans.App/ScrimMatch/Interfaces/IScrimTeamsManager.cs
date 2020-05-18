@@ -6,6 +6,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimTeamsManager
     {
+        MaxPlayerPointsTracker MaxPlayerPointsTracker { get; }
+
         Team GetTeam(int teamOrdinal);
         string GetTeamAliasDisplay(int teamOrdinal);
 

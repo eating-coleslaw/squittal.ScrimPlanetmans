@@ -513,7 +513,9 @@
 
 .overlay .match-report {
     position: absolute;
-    top: 112%;
+    /*top: 112%;*/
+    /*position: fixed;*/
+    top: 88px;
     left: 25%;
     width: 50%;
     margin-left: auto;
@@ -529,7 +531,8 @@
     .overlay .match-report .team-report {
         display: grid;
         grid-gap: 0px;
-        color: var(--sq-ps2-nc-primary-light, rgb(245, 245, 255));
+        /*color: var(--sq-ps2-nc-primary-light, rgb(245, 245, 255));*/
+        color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
         margin: 8px;
         padding: 5px;
         border: 1px solid var(--sq-ov-bg-dark-gray);
@@ -576,7 +579,8 @@
 
     .overlay .match-report .stats-row-header {
         display: grid;
-        color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);
+        /*color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);*/
+        color: var(--sq-ov-ps2-primary-light, --sq-ov-bg-dark-gray);
         grid-template-columns: 1fr 155px repeat(6, 90px);
         grid-template-areas: "label score net kills deaths hsr assists utils";
         grid-gap: 5px;
@@ -604,7 +608,7 @@
         font-size: smaller;
     }
 
-            .overlay .match-report .stats-row .stats-col-header.score {
+            .overlay .match-report .stats-row-header .stats-col-header.score {
                 grid-area: score;
                 text-align: left;
             }

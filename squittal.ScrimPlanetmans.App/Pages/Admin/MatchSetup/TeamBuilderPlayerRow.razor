@@ -86,25 +86,25 @@
             return;
         }
 
-        InvokeSateHasChangedIfPlayer(e.Message.Player);
+        InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
     {
-        InvokeSateHasChangedIfPlayer(e.Message.Player);
+        InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
     {
-        InvokeSateHasChangedIfPlayer(e.Message.Player);
+        InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
     private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
     {
-        InvokeSateHasChangedIfPlayer(e.Message.Player);
+        InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
-    private void InvokeSateHasChangedIfPlayer(Player eventPlayer)
+    private void InvokeStateHasChangedIfPlayer(Player eventPlayer)
     {
         if (eventPlayer.Id != Player.Id)
         {

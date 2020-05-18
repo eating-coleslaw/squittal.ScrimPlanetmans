@@ -1,5 +1,167 @@
-﻿<h3>InfantryMatchReportTeamRow</h3>
+﻿@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IScrimMessageBroadcastService MessageService
+@*<h3>InfantryMatchReportTeamRow</h3>*@
+
+@if (_team != null)
+{
+    <div id="@($"{_team.Alias}-stats")" class="stats-row team">
+        <div id="@($"{_team.Alias}-label")" class="label">@_team.Alias</div>
+        <div id="@($"{_team.Alias}-score")" class="score stats-value">@_renderedEventAggregate.Points</div>
+        <div id="@($"{_team.Alias}-net")" class="net stats-value">@_renderedEventAggregate.NetScore</div>
+        <div id="@($"{_team.Alias}-kills")" class="kills stats-value">@_renderedEventAggregate.Kills</div>
+        <div id="@($"{_team.Alias}-deaths")" class="deaths stats-value">@_renderedEventAggregate.Deaths</div>
+        <div id="@($"{_team.Alias}-hsr")" class="hsr stats-value">@_renderedEventAggregate.HeadshotRatio</div>
+        <div id="@($"{_team.Alias}-assists")" class="assists stats-value">@_renderedEventAggregate.DamageAssists</div>
+        <div id="@($"{_team.Alias}-utils")" class="utils stats-value">@_renderedEventAggregate.UtilityAssists</div>
+    </div>
+}
 
 @code {
+    [Parameter]
+    public int i_TeamOrdinal { get; set; }
 
+    private Team _team { get; set; }
+
+    private int _renderedTeamOrdinal { get; set; }
+
+    private ScrimEventAggregate _renderedEventAggregate { get; set; }
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+        MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        if (_team == null)
+        {
+            _team = ScrimTeamsManager.GetTeam(i_TeamOrdinal);
+            //_renderedEventAggregate = _team.EventAggregate;
+            _renderedEventAggregate = new ScrimEventAggregate();
+            _renderedEventAggregate.Add(_team.EventAggregate);
+        }
+        else
+        {
+            //_renderedEventAggregate = _team.EventAggregate;
+            _renderedEventAggregate = new ScrimEventAggregate();
+            _renderedEventAggregate.Add(_team.EventAggregate);
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_TeamOrdinal != _renderedTeamOrdinal)
+        {
+            _renderedTeamOrdinal = i_TeamOrdinal;
+            _team = ScrimTeamsManager.GetTeam(_renderedTeamOrdinal);
+
+            //_renderedEventAggregate = _team.EventAggregate;
+            _renderedEventAggregate = new ScrimEventAggregate();
+            _renderedEventAggregate.Add(_team.EventAggregate);
+
+
+            //InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    {
+        var team = e.Message.Team;
+
+        if (team.TeamOrdinal == i_TeamOrdinal)
+        {
+            if (RenderedStatsHaveChanged(team.EventAggregate))
+            {
+                //_renderedEventAggregate = team.EventAggregate;
+                _renderedEventAggregate = new ScrimEventAggregate();
+                _renderedEventAggregate.Add(_team.EventAggregate);
+
+
+                InvokeAsyncStateHasChanged();
+
+                //InvokeAsync(() =>
+                //{
+                //    StateHasChanged();
+                //});
+            }
+        }
+    }
+
+    private void ReceiveTeamAliasChangeEvent(object sender, TeamAliasChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamOrdinal = message.TeamOrdinal;
+
+        if (teamOrdinal != i_TeamOrdinal)
+        {
+            return;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion EventHandling
+
+    private bool RenderedStatsHaveChanged(ScrimEventAggregate newAggregate)
+    {
+        if (_renderedEventAggregate.Points != newAggregate.Points)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.NetScore != newAggregate.NetScore)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.Kills != newAggregate.Kills)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.HeadshotRatio != newAggregate.HeadshotRatio)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.DamageAssists != newAggregate.DamageAssists)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.UtilityAssists != newAggregate.UtilityAssists)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 }

@@ -38,6 +38,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private string _defaultAliasPreText = "tm";
 
+        public MaxPlayerPointsTracker MaxPlayerPointsTracker { get; private set; } = new MaxPlayerPointsTracker();
+
 
         public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService,
             IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
@@ -1096,8 +1098,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return false;
             }
+            
+            if ( RemovePlayerFromTeam(player))
+            {
+                if (characterId == MaxPlayerPointsTracker.GetOwningCharacterId())
+                {
+                    // TODO: Update Match Max Player Points
+                }
 
-            return RemovePlayerFromTeam(player);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public bool RemovePlayerFromTeam(Player player)
@@ -1133,6 +1147,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 ClearTeam(teamOrdinal);
             }
+
+            MaxPlayerPointsTracker = new MaxPlayerPointsTracker();
         }
 
         public void ClearTeam(int teamOrdinal)
@@ -1204,8 +1220,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 SendPlayerStatUpdateMessage(player);
             }
+
+            // TODO: update Max Player Points Tracker
+            var maxPointsChanged = TryUpdateMaxPlayerPointsTrackerFromTeam(teamOrdinal);
+
+            var overlayMessageData = new OverlayMessageData
+            {
+                RedrawPointGraph = maxPointsChanged,
+                MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
+            };
+
+            SendTeamStatUpdateMessage(team, overlayMessageData);
         }
 
+        private bool TryUpdateMaxPlayerPointsTrackerFromTeam(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+            var maxTeamPointsPlayer = team.Players.Where(p => p.EventAggregate.Points == team.Players.Select(ip => ip.EventAggregate.Points).Max()).FirstOrDefault();
+
+            return MaxPlayerPointsTracker.TryUpdateMaxPoints(maxTeamPointsPlayer.EventAggregate.Points, maxTeamPointsPlayer.Id);
+        }
 
         public bool IsCharacterAvailable(string characterId)
         {
@@ -1367,10 +1401,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 team.ParticipatingPlayers.Add(player);
             }
 
-            SendPlayerStatUpdateMessage(player);
+            var maxPointsChanged = MaxPlayerPointsTracker.TryUpdateMaxPoints(player.EventAggregate.Points, player.Id);
 
-            // TODO: broadcast Team stats update
-            SendTeamStatUpdateMessage(team);
+            var overlayMessageData = new OverlayMessageData
+            {
+                RedrawPointGraph = maxPointsChanged,
+                MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
+            };
+
+            SendPlayerStatUpdateMessage(player, overlayMessageData);
+
+            SendTeamStatUpdateMessage(team, overlayMessageData);
         }
 
         public void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates)
@@ -1639,9 +1680,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.BroadcastPlayerStatUpdateMessage(payload);
         }
 
+        private void SendPlayerStatUpdateMessage(Player player, OverlayMessageData overlayMessageData)
+        {
+            var payload = new PlayerStatUpdateMessage(player, overlayMessageData);
+            _messageService.BroadcastPlayerStatUpdateMessage(payload);
+        }
+
         private void SendTeamStatUpdateMessage(Team team)
         {
             var payload = new TeamStatUpdateMessage(team);
+            _messageService.BroadcastTeamStatUpdateMessage(payload);
+        }
+
+        private void SendTeamStatUpdateMessage(Team team, OverlayMessageData overlayMessageData)
+        {
+            var payload = new TeamStatUpdateMessage(team, overlayMessageData);
             _messageService.BroadcastTeamStatUpdateMessage(payload);
         }
 
