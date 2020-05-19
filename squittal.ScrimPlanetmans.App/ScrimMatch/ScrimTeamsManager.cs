@@ -1221,7 +1221,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 SendPlayerStatUpdateMessage(player);
             }
 
-            // TODO: update Max Player Points Tracker
             var maxPointsChanged = TryUpdateMaxPlayerPointsTrackerFromTeam(teamOrdinal);
 
             var overlayMessageData = new OverlayMessageData
