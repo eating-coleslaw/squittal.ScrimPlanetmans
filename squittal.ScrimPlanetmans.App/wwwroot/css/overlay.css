@@ -4,6 +4,7 @@
     /*background-image: url("../images/overlay_test_background.jpg");*/
     background-color: transparent;
     background-position: center center;
+    background-repeat: repeat repeat;
     margin: 4px 8px 8px 8px;
     font-family: "Roboto Mono", "Input Mono", Consolas, monospace;
     font-weight: 600;
