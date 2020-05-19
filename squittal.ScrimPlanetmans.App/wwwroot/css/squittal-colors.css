@@ -55,8 +55,8 @@
     --sq-ov-bg-dark-gray: #1F2330;
     --sq-ov-bg-dark-gray-alpha-33: rgba(31, 35, 48, 0.33); /*1F233056*/
     --sq-ov-bg-dark-gray-alpha-55: rgba(31, 35, 48, 0.55); /*#1F233090*/
-    /*--sq-ov-bg-dark-gray-alpha-90: rgba(31, 35, 48, 0.90); /*#1F2330E5*/
-    --sq-ov-bg-dark-gray-alpha-90: rgba(0, 0, 15, 0.8); /*#1F2330E5*/
+    --sq-ov-bg-dark-gray-alpha-90: rgba(31, 35, 48, 0.90); /*#1F2330E5
+    /*--sq-ov-bg-dark-gray-alpha-90: rgba(0, 0, 15, 0.8);*/
 }
 
 

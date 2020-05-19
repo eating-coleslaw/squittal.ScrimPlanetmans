@@ -20,6 +20,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         event EventHandler<TeamStatUpdateEventArgs> RaiseTeamStatUpdateEvent;
+
+        event EventHandler<ScrimKillfeedEventEventArgs> RaiseScrimKillfeedEvent;
         
         event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         event EventHandler<ScrimVehicleDestructionActionEventEventArgs> RaiseScrimVehicleDestructionActionEvent;
@@ -44,6 +46,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message);
         void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message);
         void BroadcastTeamStatUpdateMessage(TeamStatUpdateMessage message);
+
+        void BroadcastScrimKillfeedEventMessage(ScrimKillfeedEventMessage message);
 
         void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message);
         void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message);

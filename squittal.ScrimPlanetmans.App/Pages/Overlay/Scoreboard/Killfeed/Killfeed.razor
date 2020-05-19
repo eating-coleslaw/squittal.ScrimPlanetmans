@@ -1,0 +1,190 @@
+﻿@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent; 
+@using squittal.ScrimPlanetmans.Models; 
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+<div class="killfeed" id="killfeedContainer">
+    <table>
+        <tbody id="killfeed" class="killfeedBody">
+            @*@lock (_renderedEvents)
+            {*@
+                @for (var i = 0; i <= 3; i++)
+                {
+                    @if (_renderedEvents[i] != null)
+                    {
+                        <tr>
+                            <td class="killfeedRowContainer">
+                                <div class="killfeedHeadshot killfeedCell headshotClass @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].ActingPlayer?.FactionId)"></div>
+                                <div class="killfeedWinner killfeedPlayer killfeedCell @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].ActingPlayer?.FactionId)">@GetPlayerName(_renderedEvents[i].ActingPlayer)</div>
+                                <div class="killfeedPoints killfeedCell ">@_renderedEvents[i].PointsDisplay</div>
+                                <div class="killfeedWeapon killfeedCell">@_renderedEvents[i].WeaponName</div>
+                                <div class="killfeedLoser killfeedPlayer killfeedCell @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].RecipientPlayer?.FactionId)">@GetPlayerName(_renderedEvents[i].RecipientPlayer)</div>
+                            </td>
+                        </tr>
+                    }
+                }
+            @*}*@
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private int _maxKillfeedRows = 4;
+
+    //private List<ScrimKillfeedEvent> _renderedEvents { get; set; } = new List<ScrimKillfeedEvent>();
+    private ScrimKillfeedEvent[] _renderedEvents { get; set; } = new ScrimKillfeedEvent[4];
+
+    private int _renderedEventCount { get; set; } = 0;
+    private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
+        //MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
+    }
+
+    #endregion InitializationMethods
+
+    #region Event Handling
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    {
+        var deathEvent = e.Message.DeathEvent;
+
+        var killfeedEvent = ConvertToKillfeedEvent(deathEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedEvents();
+    }
+
+    private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    {
+        var reviveEvent = e.Message.ReviveEvent;
+
+        var killfeedEvent = ConvertToKillfeedEvent(reviveEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedEvents();
+    }
+
+    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    {
+        var objectiveTickEvent = e.Message.ObjectiveTickEvent;
+
+        //var killfeedEvent = ConvertToKillfeedEvent(objectiveTickEvent);
+
+        //_eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedEvents();
+    }
+
+    #endregion Event Handling
+
+    #region ScrimKillfeedEvent Conversions
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimDeathActionEvent deathEvent)
+    {
+        var weaponName = deathEvent.Weapon?.Name;
+        if (string.IsNullOrWhiteSpace(weaponName))
+        {
+            weaponName = "Unknown Weapon";
+        }
+
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = deathEvent.AttackerPlayer,
+            RecipientPlayer = deathEvent.VictimPlayer,
+            EventType = KillfeedEventType.Kill,
+            WeaponName = weaponName,
+            Points = deathEvent.Points,
+            IsHeadshot = deathEvent.IsHeadshot
+        };
+    }
+
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimReviveActionEvent reviveEvent)
+    {
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = reviveEvent.MedicPlayer,
+            RecipientPlayer = reviveEvent.RevivedPlayer,
+            EventType = KillfeedEventType.Revive,
+            WeaponName = "Revive",
+            Points = reviveEvent.Points
+        };
+    }
+
+
+
+    #endregion ScrimKillfeedEvent Conversions
+
+    private void UpdateRenderedEvents()
+    {
+        InvokeAsync(() =>
+        {
+            while (_eventsQueue.TryDequeue(out ScrimKillfeedEvent newEvent))
+            {
+                lock (_renderedEvents)
+                {
+                    for (var i = 3; i > 0; i--)
+                    {
+                        _renderedEvents[i] = _renderedEvents[i - 1];
+                    }
+
+                    _renderedEvents[0] = newEvent;
+                }
+
+                StateHasChanged();
+            }
+
+            StateHasChanged();
+
+            //{
+            //    while (_eventsQueue.TryDequeue(out ScrimKillfeedEvent killfeedEvent))
+            //    {
+            //        var player = changeMessage.Player;
+
+            //        if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
+            //        {
+            //            _renderedPlayers.Remove(player);
+            //        }
+            //        else if (changeMessage.ChangeType == TeamPlayerChangeType.Add && !_renderedPlayers.Contains(player))
+            //        {
+            //            _renderedPlayers.Add(player);
+            //        }
+            //    }
+
+            //    _renderedPlayersCount = _renderedPlayers.Count();
+
+            //    StateHasChanged();
+            //}
+        });
+    }
+
+    private string GetPlayerName(Player player)
+    {
+        if (player == null)
+        {
+            return "Unknown Player";
+        }
+        else
+        {
+            return player.NameDisplay;
+        }
+    }
+}

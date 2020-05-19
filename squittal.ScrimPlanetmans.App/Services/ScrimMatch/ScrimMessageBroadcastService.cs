@@ -34,6 +34,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<TeamStatUpdateEventArgs> RaiseTeamStatUpdateEvent;
         public delegate void TeamStatUpdateMessageEventHandler(object sender, TeamStatUpdateEventArgs e);
+        
+        public event EventHandler<ScrimKillfeedEventEventArgs> RaiseScrimKillfeedEvent;
+        public delegate void ScrimKillfeedEventMessageEventHandler(object sender, ScrimKillfeedEventEventArgs e);
 
         public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
@@ -187,6 +190,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseTeamStatUpdateEvent(TeamStatUpdateEventArgs e)
         {
             RaiseTeamStatUpdateEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastScrimKillfeedEventMessage(ScrimKillfeedEventMessage message)
+        {
+            OnRaiseScrimKillfeedEventEvent(new ScrimKillfeedEventEventArgs(message));
+        }
+        protected virtual void OnRaiseScrimKillfeedEventEvent(ScrimKillfeedEventEventArgs e)
+        {
+            RaiseScrimKillfeedEvent?.Invoke(this, e);
         }
 
         public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)

@@ -501,10 +501,248 @@
 /**********************
     Killfeed
 ***********************/
-    .overlay .killfeed {
+    /*.overlay .killfeed {
         grid-area: killfeed;
         background-color: aquamarine;
+    }*/
+
+.killfeed {
+    display: inline-block;
+    width: 400px;
+    box-sizing: inherit;
+    position: relative;
+    top: -15px;
+    text-shadow: 0px 0px 1px #141414;
+    line-height: 1.2;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: -1;
+    padding-top: 20px;
+    -moz-transition: height 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    -webkit-transition: height 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    transition: height 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    filter: drop-shadow(0px 0px 1px rgb(20, 20, 20));
+}
+
+    .killfeed table {
+        margin: auto;
     }
+
+    .killfeed.killfeedInactive {
+        height: 25px;
+    }
+
+/* TODO: remove this, probably */
+#killfeedContainer::after {
+    display: none;
+    box-sizing: inherit;
+    width: 30px;
+    position: relative;
+    left: calc(50% - 15px);
+    bottom: -5px;
+    content: "";
+    border-top: 5px double rgba(255, 216, 58, 0.8);
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+}
+
+.killfeedHeader {
+    font-weight: 400;
+    font-size: 10px;
+    color: rgb(69, 69, 69);
+    display: none;
+}
+
+.killfeedBody {
+    overflow-y: hidden;
+    box-sizing: inherit;
+    box-sizing: border-box;
+    max-width: 394px;
+}
+
+.killfeedRowContainer {
+    display: grid;
+    text-align: center;
+    grid-gap: 7px;
+    box-sizing: border-box;
+    grid-template-columns: 16px 1fr 35px 1fr 1fr;
+    padding: 0px 5px 0px 5px;
+    max-width: calc(375px - 8px);
+    -moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
+    -webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
+    animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
+}
+
+.killfeedRowContainer {
+    padding-top: 3px;
+}
+
+.killfeedCell {
+    text-align: left;
+    box-sizing: inherit;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: top;
+}
+
+
+.weaponPointsContainer {
+    display: grid;
+    grid-template-columns: 80px 30px;
+    box-sizing: inherit;
+    grid-gap: 5px;
+}
+
+.killWeapon {
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.killfeedCell.killfeedWeapon {
+    width: 105px;
+    /*-webkit-filter: drop-shadow(0px 0px 2px rgba(20, 20, 20, 0.8));*/
+    filter: drop-shadow(0px 0px 2px rgba(20, 20, 20, 0.8));
+}
+
+.killPoints {
+    text-align: right;
+}
+
+.killfeedCell.killfeedPoints {
+    width: 30px;
+    text-align: right !important;
+    /*-webkit-filter: drop-shadow(0px 0px 2px rgba(20, 20, 20, 0.8));*/
+    filter: drop-shadow(0px 0px 2px rgba(20, 20, 20, 0.8));
+}
+
+.killfeedCell.killfeedPlayer1, .killfeedCell.killfeedPlayer2, .killfeedCell.killfeedPlayer3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 124px;
+}
+
+.killfeedCell.killfeedPlayer {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--faction-light-color, rgb(245, 245, 255));
+    /*-webkit-filter: drop-shadow(0px 0px 2px var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)));*/
+    filter: drop-shadow(0px 0px 2px var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)));
+}
+
+    .killfeedCell.killfeedPlayer.killfeedWinner {
+        text-align: left;
+    }
+
+    .killfeedCell.killfeedPlayer.killfeedLoser {
+        text-align: left;
+    }
+
+.killfeedCell.killfeedHeadshot {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 16px;
+    width: 16px;
+    justify-self: center;
+    filter: drop-shadow(0px 0px 2px var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)));
+    opacity: 0.9;
+}
+
+.headshot {
+    background-image: url('../images/Icon_fisu_headshot_32.png') !important;
+}
+
+
+@-moz-keyframes eventFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes eventFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes eventFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+@-moz-keyframes eventFadeOut {
+    from {
+        opacity: 1;
+        height: initial;
+        width: initial;
+        top: 0px;
+    }
+
+    to {
+        opacity: 0;
+        color: rgba(245, 245, 255, 0);
+        width: 0px;
+        height: 0px;
+        display: none;
+        padding-top: 0px;
+        top: 10px;
+    }
+}
+
+@-webkit-keyframes eventFadeOut {
+    from {
+        opacity: 1;
+        height: initial;
+        width: initial;
+        top: 0px;
+    }
+
+    to {
+        opacity: 0;
+        color: rgba(245, 245, 255, 0);
+        width: 0px;
+        height: 0px;
+        display: none;
+        padding-top: 0px;
+        top: 10px;
+    }
+}
+
+@keyframes eventFadeOut {
+    from {
+        opacity: 1;
+        height: initial;
+        width: initial;
+        top: 0px;
+    }
+
+    to {
+        opacity: 0;
+        color: rgba(245, 245, 255, 0);
+        width: 0px;
+        height: 0px;
+        display: none;
+        padding-top: 0px;
+        top: 10px;
+    }
+}
 
 /**********************
     Stats Report
