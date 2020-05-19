@@ -569,9 +569,34 @@
     grid-template-columns: 16px 1fr 35px 1fr 1fr;
     padding: 0px 5px 0px 5px;
     max-width: calc(375px - 8px);
-    -moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
-    -webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
-    animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
+    /*-moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
+    /*-webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
+    /*animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
+    /*-moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn;
+    -webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn;
+    animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn;*/
+}
+
+    .killfeedRowContainer.animateIn {
+        -moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn;
+        -webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn;
+        animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn;
+    }
+
+    .killfeedRowContainer.animateOut {
+        /*-moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
+        -webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;
+        animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
+        /**/
+        /*opacity: 0.5;*/
+        transform-origin: center;
+        -moz-animation: 1s cubic-bezier(.6,-0.28,.74,.05) 0s 1 normal forwards eventFadeOut;
+        -webkit-animation: 1s cubic-bezier(.6,-0.28,.74,.05) 0s 1 normal forwards eventFadeOut;
+        animation: 1s cubic-bezier(.6,-0.28,.74,.05) 0s 1 normal forwards eventFadeOut;
+    }
+
+.killfeedRowContainer.expired {
+    opacity: 0;
 }
 
 .killfeedRowContainer {
@@ -627,9 +652,9 @@
 .killfeedCell.killfeedPlayer {
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--faction-light-color, rgb(245, 245, 255));
-    /*-webkit-filter: drop-shadow(0px 0px 2px var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)));*/
-    filter: drop-shadow(0px 0px 2px var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)));
+    color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
+    /*-webkit-filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));*/
+    filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));
 }
 
     .killfeedCell.killfeedPlayer.killfeedWinner {
@@ -647,7 +672,7 @@
     height: 16px;
     width: 16px;
     justify-self: center;
-    filter: drop-shadow(0px 0px 2px var(--faction-dark-trans-color, rgba(20, 20, 20, 0.8)));
+    filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));
     opacity: 0.9;
 }
 
@@ -659,6 +684,7 @@
 @-moz-keyframes eventFadeIn {
     from {
         opacity: 0;
+        /*opacity: 0.25;*/
     }
 
     to {
@@ -696,9 +722,10 @@
     }
 
     to {
+        /*opacity: 0.25;*/
         opacity: 0;
         color: rgba(245, 245, 255, 0);
-        width: 0px;
+        /*width: 0px;*/
         height: 0px;
         display: none;
         padding-top: 0px;
@@ -715,9 +742,10 @@
     }
 
     to {
+        /*opacity: 0.25;*/
         opacity: 0;
         color: rgba(245, 245, 255, 0);
-        width: 0px;
+        /*width: 0px;*/
         height: 0px;
         display: none;
         padding-top: 0px;
@@ -734,9 +762,10 @@
     }
 
     to {
+        /*opacity: 0.25;*/
         opacity: 0;
         color: rgba(245, 245, 255, 0);
-        width: 0px;
+        /*width: 0px;*/
         height: 0px;
         display: none;
         padding-top: 0px;

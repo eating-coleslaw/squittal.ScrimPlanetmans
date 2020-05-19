@@ -25,6 +25,9 @@
                 {
                     @if (_renderedEvents[i] != null)
                     {
+                        <KillfeedRow i_killfeedEvent=_renderedEvents[i] i_index=i />
+                        
+                        /*
                         <tr>
                             <td class="killfeedRowContainer">
                                 <div class="killfeedHeadshot killfeedCell headshotClass @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].ActingPlayer?.FactionId)"></div>
@@ -34,6 +37,7 @@
                                 <div class="killfeedLoser killfeedPlayer killfeedCell @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].RecipientPlayer?.FactionId)">@GetPlayerName(_renderedEvents[i].RecipientPlayer)</div>
                             </td>
                         </tr>
+                        */
                     }
                 }
             @*}*@
@@ -110,10 +114,13 @@
         {
             ActingPlayer = deathEvent.AttackerPlayer,
             RecipientPlayer = deathEvent.VictimPlayer,
+            Timestamp = deathEvent.Timestamp,
             EventType = KillfeedEventType.Kill,
             WeaponName = weaponName,
             Points = deathEvent.Points,
-            IsHeadshot = deathEvent.IsHeadshot
+            IsHeadshot = deathEvent.IsHeadshot,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now
         };
     }
 
@@ -123,9 +130,12 @@
         {
             ActingPlayer = reviveEvent.MedicPlayer,
             RecipientPlayer = reviveEvent.RevivedPlayer,
+            Timestamp = reviveEvent.Timestamp,
             EventType = KillfeedEventType.Revive,
             WeaponName = "Revive",
-            Points = reviveEvent.Points
+            Points = reviveEvent.Points,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now
         };
     }
 
@@ -147,9 +157,10 @@
                     }
 
                     _renderedEvents[0] = newEvent;
+                
+                    StateHasChanged();
                 }
 
-                StateHasChanged();
             }
 
             StateHasChanged();
