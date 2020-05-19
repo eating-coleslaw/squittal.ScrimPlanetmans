@@ -7,9 +7,8 @@
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
-@* InfantryMatchReportTeam *@
 
-@if (_team != null)
+@if (_team != null && _renderedPlayersCount > 0)
 {
     <div id="@($"T{_renderedTeamOrdinal}Stats")" class="team-report @($"team{_renderedTeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
         <div id="@($"T{_renderedTeamOrdinal}Stats-header")" class="stats-row-header">
@@ -23,6 +22,7 @@
         </div>
 
         <InfantryMatchReportTeamRow i_TeamOrdinal=_renderedTeamOrdinal />
+
         @lock(_renderedPlayers)
          {
             @foreach (var player in _renderedPlayers)
@@ -43,6 +43,8 @@
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
 
+    private int _renderedPlayersCount { get; set; } = 0;
+
     private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayerQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
 
@@ -52,22 +54,11 @@
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         if (_team == null)
         {
             _team = ScrimTeamsManager.GetTeam(i_TeamOrdinal);
         }
-
-        // TODO: is this necessary here in addition to in OnParametersSet?
-        //lock (_renderedPlayers)
-        //{
-        //    var visiblePlayers = _team.Players.Where(p => p.IsParticipating && !_renderedPlayers.Contains(p));
-
-        //    _renderedPlayers.AddRange(visiblePlayers);
-        //}
-
     }
 
     protected override void OnParametersSet()
@@ -82,16 +73,16 @@
             {
                 lock (_renderedPlayers)
                 {
-                    var visiblePlayers = _team.Players.Where(p => (p.IsParticipating || p.IsOnline) && !_renderedPlayers.Contains(p));
+                    var visiblePlayers = _team.Players.Where(p => (p.IsParticipating) && !_renderedPlayers.Contains(p));
 
                     _renderedPlayers.AddRange(visiblePlayers);
+
+                    _renderedPlayersCount = _renderedPlayers.Count();
 
                     StateHasChanged();
                 }
 
             });
-
-            //InvokeAsyncStateHasChanged();
         }
     }
     #endregion Initialization Methods
@@ -106,7 +97,8 @@
             return;
         }
 
-        var changeType = (player.IsParticipating || player.IsOnline) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+        //var changeType = (player.IsParticipating || player.IsOnline) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+        var changeType = (player.IsParticipating) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
 
         var changeMessage = new TeamPlayerChangeMessage(player, changeType);
 
@@ -142,6 +134,11 @@
 
         InvokeAsyncStateHasChanged();
     }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        return;
+    }
     #endregion Event Handling
 
     private void UpdateRenderedPlayers()
@@ -160,12 +157,14 @@
                     }
                     else if (changeMessage.ChangeType == TeamPlayerChangeType.Add)
                     {
-                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating)) // || player.IsOnline))
                         {
                             _renderedPlayers.Add(player);
                         }
                     }
                 }
+
+                _renderedPlayersCount = _renderedPlayers.Count();
 
                 StateHasChanged();
             }

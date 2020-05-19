@@ -5,22 +5,21 @@
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
-@* InfantryMatchReportPlayerStatsRow *@
 
 @if (_player != null)
 {
     <div id="@($"{_player.NameDisplay}-stats")" class="stats-row player">
-        <div id="@($"{_player.NameDisplay}-label")" class="label">@_player.NameDisplay (@(_currentMaxPoints)) </div>
-        <div id="@($"{_player.NameDisplay}-score")" class="score stats-value">@_player.EventAggregate.Points</div>
+        <div id="@($"{_player.NameDisplay}-label")" class="label">@_player.NameDisplay</div>
+        <div id="@($"{_player.NameDisplay}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_renderedEventAggregate.Points</div>
         <div id="@($"{_player.NameDisplay}-graph")" class="graph">
             <div id="@($"{_player.NameDisplay}-graph-bar")" class="graph-bar" style="width: @($"{_pointGraphWidth}%")"></div>
         </div>
-        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value">@_player.EventAggregate.NetScore</div>
-        <div id="@($"{_player.NameDisplay}-kills")" class="kills stats-value">@_player.EventAggregate.Kills</div>
-        <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value">@_player.EventAggregate.Deaths</div>
-        <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value">@_player.EventAggregate.HeadshotRatio</div>
-        <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value">@_player.EventAggregate.DamageAssists</div>
-        <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value">@_player.EventAggregate.UtilityAssists</div>
+        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">@_renderedEventAggregate.NetScore</div>
+        <div id="@($"{_player.NameDisplay}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
+        <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
+        <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@_renderedEventAggregate.HeadshotRatio<span style="font-size: small;">%</span></div>
+        <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
+        <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>
     </div>
 }
 
@@ -35,7 +34,7 @@
 
     private string _renderedCharacterId { get; set; }
 
-    private ScrimEventAggregate _renderedEventAggregate { get; set; }
+    private ScrimEventAggregate _renderedEventAggregate { get; set; } = new ScrimEventAggregate();
 
     private decimal _pointGraphWidth { get; set; } = 4;
     private int _currentMaxPoints { get; set; } = 0;
@@ -44,23 +43,16 @@
     #region Initialization Methods
     protected override void OnInitialized()
     {
-        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         if (_player == null)
         {
-            //_player = ScrimTeamsManager.GetPlayerFromId(i_CharacterId);
             _player = i_Player;
-            //_renderedEventAggregate = _player.EventAggregate;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_player.EventAggregate);
         }
         else
         {
-            //_renderedEventAggregate = _player.EventAggregate;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_player.EventAggregate);
         }
@@ -72,14 +64,11 @@
 
     protected override void OnParametersSet()
     {
-        //if (i_CharacterId != _renderedCharacterId)
         if (_player != i_Player)
         {
             _renderedCharacterId = i_CharacterId;
-            //_player = ScrimTeamsManager.GetPlayerFromId(_renderedCharacterId);
             _player = i_Player;
 
-            //_renderedEventAggregate = _player.EventAggregate;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_player.EventAggregate);
 
@@ -91,13 +80,6 @@
 
                 StateHasChanged();
             });
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-
-            //InvokeAsyncStateHasChanged();
         }
     }
     #endregion Initialization Methods
@@ -112,7 +94,6 @@
         {
             if (player == _player)
             {
-                //_renderedEventAggregate = player.EventAggregate;
                 _renderedEventAggregate = new ScrimEventAggregate();
                 _renderedEventAggregate.Add(_player.EventAggregate);
             }
@@ -121,42 +102,15 @@
 
             UpdatePointGraphWidth();
 
-            InvokeAsync(() =>
-            {
-
-                StateHasChanged();
-            });
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-
-            //InvokeAsyncStateHasChanged();
+            InvokeAsyncStateHasChanged();
 
             return;
         }
-
-        //if (player != _player)
-        //{
-        //    if (overlayData.RedrawPointGraph)
-        //    {
-        //        UpdatePointGraphWidth();
-
-        //        InvokeAsync(() =>
-        //        {
-        //            StateHasChanged();
-        //        });
-        //    }
-
-        //    return;
-        //}
 
         if (player == _player)
         {
             if (RenderedStatsHaveChanged(player.EventAggregate, out var redrawGraph))
             {
-                //_renderedEventAggregate = player.EventAggregate;
                 _renderedEventAggregate = new ScrimEventAggregate();
                 _renderedEventAggregate.Add(_player.EventAggregate);
 
@@ -167,12 +121,7 @@
                     UpdatePointGraphWidth();
                 }
 
-                InvokeAsync(() =>
-                {
-
-                    StateHasChanged();
-                });
-                //InvokeAsyncStateHasChanged();
+                InvokeAsyncStateHasChanged();
             }
         }
     }
@@ -187,20 +136,7 @@
 
             UpdatePointGraphWidth();
 
-            InvokeAsync(() =>
-            {
-
-                StateHasChanged();
-            });
-
-            //UpdatePointGraphWidth();
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-
-            //InvokeAsyncStateHasChanged();
+            InvokeAsyncStateHasChanged();
         }
     }
     #endregion Event Handling
@@ -242,16 +178,11 @@
 
     private void UpdatePointGraphWidth()
     {
-        //var maxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
-
         var maxPoints = _currentMaxPoints;
 
-        //var playerPoints = _player.EventAggregate.Points;
         var playerPoints = _renderedEventAggregate.Points;
 
-        decimal pointGraphWidth = (playerPoints > 1) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
-
-        _pointGraphWidth = pointGraphWidth;
+        _pointGraphWidth = (playerPoints > 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
     }
 
     private double GetStatOpacity(int value)

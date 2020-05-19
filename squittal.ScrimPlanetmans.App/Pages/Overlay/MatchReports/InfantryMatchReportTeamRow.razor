@@ -5,19 +5,18 @@
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
-@*<h3>InfantryMatchReportTeamRow</h3>*@
 
 @if (_team != null)
 {
     <div id="@($"{_team.Alias}-stats")" class="stats-row team">
         <div id="@($"{_team.Alias}-label")" class="label">@_team.Alias</div>
-        <div id="@($"{_team.Alias}-score")" class="score stats-value">@_renderedEventAggregate.Points</div>
-        <div id="@($"{_team.Alias}-net")" class="net stats-value">@_renderedEventAggregate.NetScore</div>
-        <div id="@($"{_team.Alias}-kills")" class="kills stats-value">@_renderedEventAggregate.Kills</div>
-        <div id="@($"{_team.Alias}-deaths")" class="deaths stats-value">@_renderedEventAggregate.Deaths</div>
-        <div id="@($"{_team.Alias}-hsr")" class="hsr stats-value">@_renderedEventAggregate.HeadshotRatio</div>
-        <div id="@($"{_team.Alias}-assists")" class="assists stats-value">@_renderedEventAggregate.DamageAssists</div>
-        <div id="@($"{_team.Alias}-utils")" class="utils stats-value">@_renderedEventAggregate.UtilityAssists</div>
+        <div id="@($"{_team.Alias}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_renderedEventAggregate.Points</div>
+        <div id="@($"{_team.Alias}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">@_renderedEventAggregate.NetScore</div>
+        <div id="@($"{_team.Alias}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
+        <div id="@($"{_team.Alias}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
+        <div id="@($"{_team.Alias}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@_renderedEventAggregate.HeadshotRatio<span style="font-size: small;">%</span></div>
+        <div id="@($"{_team.Alias}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
+        <div id="@($"{_team.Alias}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>
     </div>
 }
 
@@ -29,26 +28,22 @@
 
     private int _renderedTeamOrdinal { get; set; }
 
-    private ScrimEventAggregate _renderedEventAggregate { get; set; }
+    private ScrimEventAggregate _renderedEventAggregate { get; set; } = new ScrimEventAggregate();
 
     #region Initialization Methods
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
         MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         if (_team == null)
         {
             _team = ScrimTeamsManager.GetTeam(i_TeamOrdinal);
-            //_renderedEventAggregate = _team.EventAggregate;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_team.EventAggregate);
         }
         else
         {
-            //_renderedEventAggregate = _team.EventAggregate;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_team.EventAggregate);
         }
@@ -61,15 +56,8 @@
             _renderedTeamOrdinal = i_TeamOrdinal;
             _team = ScrimTeamsManager.GetTeam(_renderedTeamOrdinal);
 
-            //_renderedEventAggregate = _team.EventAggregate;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_team.EventAggregate);
-
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
 
             InvokeAsyncStateHasChanged();
         }
@@ -85,17 +73,10 @@
         {
             if (RenderedStatsHaveChanged(team.EventAggregate))
             {
-                //_renderedEventAggregate = team.EventAggregate;
                 _renderedEventAggregate = new ScrimEventAggregate();
                 _renderedEventAggregate.Add(_team.EventAggregate);
 
-
                 InvokeAsyncStateHasChanged();
-
-                //InvokeAsync(() =>
-                //{
-                //    StateHasChanged();
-                //});
             }
         }
     }
@@ -111,10 +92,7 @@
             return;
         }
 
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        InvokeAsyncStateHasChanged();
     }
     #endregion EventHandling
 

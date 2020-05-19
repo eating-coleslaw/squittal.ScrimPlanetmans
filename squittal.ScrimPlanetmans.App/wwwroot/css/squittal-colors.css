@@ -55,7 +55,8 @@
     --sq-ov-bg-dark-gray: #1F2330;
     --sq-ov-bg-dark-gray-alpha-33: rgba(31, 35, 48, 0.33); /*1F233056*/
     --sq-ov-bg-dark-gray-alpha-55: rgba(31, 35, 48, 0.55); /*#1F233090*/
-    --sq-ov-bg-dark-gray-alpha-90: rgba(31, 35, 48, 0.90); /*#1F2330E5*/
+    /*--sq-ov-bg-dark-gray-alpha-90: rgba(31, 35, 48, 0.90); /*#1F2330E5*/
+    --sq-ov-bg-dark-gray-alpha-90: rgba(0, 0, 15, 0.8); /*#1F2330E5*/
 }
 
 
@@ -72,8 +73,10 @@
     --sq-ov-ps2-primary-dark-alpha-80: rgba(46, 33, 96, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(46, 33, 96, 0.7);
     --sq-ov-ps2-primary-light: rgb(202, 188, 255);
-    --sq-ov-ps2-flavor: rgb(184, 233, 227);
-    --sq-ov-ps2-flavor-50: rgb(184, 233, 227, 0.5);
+    /*--sq-ov-ps2-flavor: rgb(184, 233, 227);*/
+    /*--sq-ov-ps2-flavor-50: rgba(184, 233, 227, 0.5);*/
+    --sq-ov-ps2-flavor: #adf4eb;
+    --sq-ov-ps2-flavor-50: rgba(173,244,235, 0.5);
 }
 
 .nc { /*, .nc div, .nc button, .nc p, .nc span {*/
@@ -90,7 +93,7 @@
     --sq-ov-ps2-primary-dark-alpha-70: rgba(7, 37, 61, 0.7);
     --sq-ov-ps2-primary-light: rgb(182, 221, 253);
     --sq-ov-ps2-flavor: rgb(255, 247, 175);
-    --sq-ov-ps2-flavor-50: rgb(255, 247, 175, 0.5);
+    --sq-ov-ps2-flavor-50: rgba(255, 247, 175, 0.5);
 }
 
 .tr { /*, .tr div, .tr button, .tr p, .tr span {*/
@@ -101,13 +104,16 @@
     --sq-ps2-primary-light-alpha-40: #FFD2D340;
     --sq-ps2-primary-light-alpha-80: #FFD2D380;
     /* Overlay Colors */
-    --sq-ov-ps2-primary: rgb(255, 108, 112);
+    /*--sq-ov-ps2-primary: rgb(255, 108, 112);*/
+    --sq-ov-ps2-primary: #ea506a;
     --sq-ov-ps2-primary-dark: rgb(64, 27, 28);
     --sq-ov-ps2-primary-dark-alpha-80: rgba(64, 27, 28, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(64, 27, 28, 0.7);
     --sq-ov-ps2-primary-light: rgb(255, 190, 191);
-    --sq-ov-ps2-flavor: rgb(229, 217, 212);
-    --sq-ov-ps2-flavor-50: rgb(229, 217, 212, 0.5);
+    /*--sq-ov-ps2-flavor: rgb(229, 217, 212);
+    --sq-ov-ps2-flavor-50: rgba(229, 217, 212, 0.5);*/
+    --sq-ov-ps2-flavor: #dae0e5; /* Gray */
+    --sq-ov-ps2-flavor-50: rgba(212,224,229, 0.5); /* Gray */
 }
 
 .ns { /*, .ns div, .ns button, .ns p, .ns span {*/
@@ -126,4 +132,22 @@
     --sq-ps2-primary-ligh-alpha-30: var(--sq-pink-lighter-alpha-30);
     --sq-ps2-primary-ligh-alpha-40: var(--sq-pink-lighter-alpha-40);
     --sq-ps2-primary-ligh-alpha-80: var(--sq-pink-lighter-alpha-80);
+    /* Overlay Colors */
+    --sq-ov-ps2-primary: var(--sq-pink);
+    /*--sq-ov-ps2-primary-dark: var(--sq-pink-darker);*/
+    --sq-ov-ps2-primary-dark: #652fdc;
+    /*--sq-ov-ps2-primary-dark-alpha-80: rgba(179, 45, 100, 0.8);*/
+    /*--sq-ov-ps2-primary-dark-alpha-70: rgba(179, 45, 100, 0.7);*/
+    --sq-ov-ps2-primary-dark-alpha-80: rgba(101, 47, 220, 0.8);
+    --sq-ov-ps2-primary-dark-alpha-70: rgba(101, 47, 220, 0.7);
+    --sq-ov-ps2-primary-light: var(--sq-pink-lighter);
+    --sq-ov-ps2-flavor: #d4d4ff;
+    --sq-ov-ps2-flavor-50: rgba(212, 212, 255, 0.5);
+}
+
+.test {
+    --test-navy-black: rgb(25, 20, 30, 1);
+    --test-navy-black-alpha-80: rgb(0, 0, 15, 0.8);
+    --test-pink-black-alpha-80: rgb(10, 0, 25, 0.8);
+    --test-ov-pink-light: #ff75af;
 }

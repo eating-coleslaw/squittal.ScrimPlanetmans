@@ -429,6 +429,10 @@
                 color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
             }
 
+            .tr .factionLabel {
+                color: var(--sq-ov-ps2-primary-dark) !important;
+            }
+
 
 .inactiveWhiteText {
     color: rgba(35, 35, 35, 0.2);
