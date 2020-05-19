@@ -8,12 +8,12 @@
 
 @if (i_player != null)
 {
-    if (i_teamOrdinal == 1)
+    if (i_TeamOrdinal == 1)
     {
         <TeamPlayerStatusRowLoadout i_player=i_player/>
         <TeamPlayerStatusRowDetails i_player=i_player/>
     }
-    else if (i_teamOrdinal == 2)
+    else if (i_TeamOrdinal == 2)
     {
         <TeamPlayerStatusRowDetails i_player=i_player />
         <TeamPlayerStatusRowLoadout i_player=i_player />
@@ -26,7 +26,7 @@
     public Player i_player { get; set; }
 
     [Parameter]
-    public int i_teamOrdinal { get; set; }
+    public int i_TeamOrdinal { get; set; }
 
     private string _renderedPlayerId;
     private int _renderedTeamOrdinal { get; set; }
@@ -43,9 +43,9 @@
             });
         }
 
-        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
         {
-            _renderedTeamOrdinal = i_teamOrdinal;
+            _renderedTeamOrdinal = i_TeamOrdinal;
 
             InvokeAsync(() =>
             {

@@ -42,9 +42,7 @@
     private int _renderedTeamOrdinal { get; set; }
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
-
     private int _renderedPlayersCount { get; set; } = 0;
-
     private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayerQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
 
@@ -81,7 +79,6 @@
 
                     StateHasChanged();
                 }
-
             });
         }
     }
