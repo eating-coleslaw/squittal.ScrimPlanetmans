@@ -89,7 +89,10 @@
             return;
         }
 
-        message.ChangeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+        if (message.ChangeType != TeamPlayerChangeType.Remove)
+        {
+            message.ChangeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+        }
 
         _teamPlayersQueue.Enqueue(message);
 
