@@ -19,28 +19,13 @@
 <div class="killfeed" id="killfeedContainer">
     <table>
         <tbody id="killfeed" class="killfeedBody">
-            @*@lock (_renderedEvents)
-            {*@
-                @for (var i = 0; i <= 3; i++)
+            @for (var i = 0; i <= 3; i++)
+            {
+                @if (_renderedEvents[i] != null)
                 {
-                    @if (_renderedEvents[i] != null)
-                    {
-                        <KillfeedRow i_killfeedEvent=_renderedEvents[i] i_index=i />
-                        
-                        /*
-                        <tr>
-                            <td class="killfeedRowContainer">
-                                <div class="killfeedHeadshot killfeedCell headshotClass @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].ActingPlayer?.FactionId)"></div>
-                                <div class="killfeedWinner killfeedPlayer killfeedCell @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].ActingPlayer?.FactionId)">@GetPlayerName(_renderedEvents[i].ActingPlayer)</div>
-                                <div class="killfeedPoints killfeedCell ">@_renderedEvents[i].PointsDisplay</div>
-                                <div class="killfeedWeapon killfeedCell">@_renderedEvents[i].WeaponName</div>
-                                <div class="killfeedLoser killfeedPlayer killfeedCell @SqCssHelper.GetFactionClassFromId(_renderedEvents[i].RecipientPlayer?.FactionId)">@GetPlayerName(_renderedEvents[i].RecipientPlayer)</div>
-                            </td>
-                        </tr>
-                        */
-                    }
+                    <KillfeedRow i_killfeedEvent=_renderedEvents[i] i_index=i />
                 }
-            @*}*@
+            }
         </tbody>
     </table>
 </div>
@@ -48,7 +33,6 @@
 @code {
     private int _maxKillfeedRows = 4;
 
-    //private List<ScrimKillfeedEvent> _renderedEvents { get; set; } = new List<ScrimKillfeedEvent>();
     private ScrimKillfeedEvent[] _renderedEvents { get; set; } = new ScrimKillfeedEvent[4];
 
     private int _renderedEventCount { get; set; } = 0;
@@ -164,26 +148,6 @@
             }
 
             StateHasChanged();
-
-            //{
-            //    while (_eventsQueue.TryDequeue(out ScrimKillfeedEvent killfeedEvent))
-            //    {
-            //        var player = changeMessage.Player;
-
-            //        if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
-            //        {
-            //            _renderedPlayers.Remove(player);
-            //        }
-            //        else if (changeMessage.ChangeType == TeamPlayerChangeType.Add && !_renderedPlayers.Contains(player))
-            //        {
-            //            _renderedPlayers.Add(player);
-            //        }
-            //    }
-
-            //    _renderedPlayersCount = _renderedPlayers.Count();
-
-            //    StateHasChanged();
-            //}
         });
     }
 
