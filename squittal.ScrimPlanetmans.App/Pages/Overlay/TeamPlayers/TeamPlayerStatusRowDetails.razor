@@ -11,7 +11,7 @@
     <div class="playerStatusContainer @GetContainerCssClass()">
         <div class="score" >@i_player.EventAggregate.NetScore</div>
         <div class="name">@i_player.NameDisplay</div>
-        <div class="eventMask"> @* playerStatsContainer @GetContainerCssClass()*@
+        <div class="eventMask">
             @if (_renderedStatus == PlayerStatus.ContestingObjective)
             {
                 <PlayerStatusAnimationContestingPoint />
@@ -51,8 +51,8 @@
     #region Initialization Methods
     protected override void OnInitialized()
     {
-        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
 
@@ -86,25 +86,11 @@
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
     {
         return; // TODO: add special styling/animation for this event?
-
-        //var player = e.Message.Player;
-
-        //if (player != i_player)
-        //{
-        //    return;
-        //}
     }
 
     private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
     {
         return; // TODO: add special styling/animation for this event?
-
-        //var player = e.Message.Player;
-
-        //if (player != i_player)
-        //{
-        //    return;
-        //}
     }
 
     private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
@@ -332,48 +318,9 @@
         _autoEvent.Set();
     }
 
-    //private void ReConfigureTimer()
-    //{
-    //    _autoEvent.WaitOne();
-
-    //    var timeRendered = (int)(_paramSetTimestamp - _firstRenderTimestamp).TotalMilliseconds;
-
-    //    var timeRemaining = 8000 - timeRendered;
-
-    //    if (timeRemaining <= 0)
-    //    {
-    //        _timer.Change(Timeout.Infinite, Timeout.Infinite);
-
-    //        InvokeAsync(() =>
-    //        {
-    //            //cssClass = cssExpiredClass;
-    //            _cssClass = _cssAnimateOutClass;
-
-    //            StateHasChanged();
-    //        });
-    //    }
-    //    else
-    //    {
-    //        _timer.Change(timeRemaining, Timeout.Infinite);
-    //    }
-
-    //    _autoEvent.Set();
-    //}
-
     private void HandleTimerTick(object stateInfo)
     {
         UpdateRenderedStatus();
-        //_autoEvent.WaitOne();
-
-        //InvokeAsync(() =>
-        //{
-        //    //cssClass = cssExpiredClass;
-        //    _cssClass = _cssAnimateOutClass;
-
-        //    StateHasChanged();
-        //});
-
-        //_autoEvent.Set();
     }
     #endregion Timer Handling
 

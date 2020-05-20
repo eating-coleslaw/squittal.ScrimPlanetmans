@@ -1,11 +1,4 @@
-﻿@using squittal.ScrimPlanetmans.CensusStream;
-@using squittal.ScrimPlanetmans.Models.Planetside;
-@using squittal.ScrimPlanetmans.ScrimMatch;
-@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
-@using squittal.ScrimPlanetmans.ScrimMatch.Models;
-@using squittal.ScrimPlanetmans.Services.Planetside;
-@using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@using System.Collections.Concurrent;
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Models;
 @using System.Threading;
 
@@ -56,14 +49,6 @@
         _prevIndex = i_index;
 
         InitializeTimer();
-
-        //InvokeAsync(() =>
-        //{
-        //    cssClass = cssResetClasss;
-        //    _debug = "&";
-
-        //    StateHasChanged();
-        //});
     }
 
     protected override void OnParametersSet()
@@ -83,18 +68,8 @@
 
             ReConfigureTimer();
 
-            //if ((DateTime.Now - _prevTimestamp).TotalSeconds > 8)
-            //{
-            //    cssClass = cssAnimateOutClass;
-            //}
-            //else
-            //{
-            //    cssClass = cssResetClasss;
-            //}
-
             if (i_killfeedEvent.IsExpired)
             {
-                //cssClass = cssExpiredClass;
                 _cssClass = _cssAnimateOutClass;
             }
             else
@@ -106,57 +81,18 @@
 
             StateHasChanged();
         }
-
-
-
-        //InvokeAsync(() =>
-        //{
-
-        //    StateHasChanged();
-        //});
-
-        //InvokeAsync(() =>
-        //{
-        //    cssClass = cssAnimateOutClass;
-        //    _debug = "$";
-
-        //    StateHasChanged();
-
-        //    _debug = "&";
-
-        //    StateHasChanged();
-
-        //    _debug = $"{i_index}{_prevIndex}";
-
-        //    StateHasChanged();
-        //});
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         if (i_killfeedEvent.IsExpired)
         {
-            //cssClass = cssExpiredClass;
             _cssClass = _cssAnimateOutClass;
         }
         else
         {
             _cssClass = _cssResetClasss;
         }
-
-        //if (firstRender)
-        //{
-        //cssClass = cssAnimateOutClass;
-        //_debug = "$";
-
-        //StateHasChanged();
-
-        //InvokeAsync(() =>
-        //{
-
-        //    StateHasChanged();
-        //});
-        //}
     }
     #endregion Initialization Methods
 
@@ -186,7 +122,6 @@
             {
                 i_killfeedEvent.IsExpired = true;
 
-                //cssClass = cssExpiredClass;
                 _cssClass = _cssAnimateOutClass;
 
                 StateHasChanged();
@@ -208,7 +143,6 @@
         {
             i_killfeedEvent.IsExpired = true;
 
-            //cssClass = cssExpiredClass;
             _cssClass = _cssAnimateOutClass;
 
             StateHasChanged();
