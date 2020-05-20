@@ -21,6 +21,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public DateTime FirstRenderTime { get; set; }
         public DateTime PreviousRenderTime { get; set; }
         public bool IsExpired { get; set; } = false;
+        public int EffectiveDurationMilliseconds { get; set; } = -1;
 
         private string GetPointsDisplay()
         {

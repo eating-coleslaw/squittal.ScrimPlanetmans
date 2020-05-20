@@ -74,9 +74,9 @@
     --sq-ov-ps2-primary-dark-alpha-70: rgba(46, 33, 96, 0.7);
     --sq-ov-ps2-primary-light: rgb(202, 188, 255);
     /*--sq-ov-ps2-flavor: rgb(184, 233, 227);*/
-    /*--sq-ov-ps2-flavor-50: rgba(184, 233, 227, 0.5);*/
+    /*--sq-ov-ps2-flavor-alpha-50: rgba(184, 233, 227, 0.5);*/
     --sq-ov-ps2-flavor: #adf4eb;
-    --sq-ov-ps2-flavor-50: rgba(173,244,235, 0.5);
+    --sq-ov-ps2-flavor-alpha-50: rgba(173,244,235, 0.5);
 }
 
 .nc { /*, .nc div, .nc button, .nc p, .nc span {*/
@@ -93,7 +93,7 @@
     --sq-ov-ps2-primary-dark-alpha-70: rgba(7, 37, 61, 0.7);
     --sq-ov-ps2-primary-light: rgb(182, 221, 253);
     --sq-ov-ps2-flavor: rgb(255, 247, 175);
-    --sq-ov-ps2-flavor-50: rgba(255, 247, 175, 0.5);
+    --sq-ov-ps2-flavor-alpha-50: rgba(255, 247, 175, 0.5);
 }
 
 .tr { /*, .tr div, .tr button, .tr p, .tr span {*/
@@ -111,9 +111,9 @@
     --sq-ov-ps2-primary-dark-alpha-70: rgba(64, 27, 28, 0.7);
     --sq-ov-ps2-primary-light: rgb(255, 190, 191);
     /*--sq-ov-ps2-flavor: rgb(229, 217, 212);
-    --sq-ov-ps2-flavor-50: rgba(229, 217, 212, 0.5);*/
+    --sq-ov-ps2-flavor-alpha-50: rgba(229, 217, 212, 0.5);*/
     --sq-ov-ps2-flavor: #dae0e5; /* Gray */
-    --sq-ov-ps2-flavor-50: rgba(212,224,229, 0.5); /* Gray */
+    --sq-ov-ps2-flavor-alpha-50: rgba(212,224,229, 0.5); /* Gray */
 }
 
 .ns { /*, .ns div, .ns button, .ns p, .ns span {*/
@@ -147,7 +147,7 @@
     --sq-ov-ps2-primary-dark-alpha-70: rgba(0, 0, 15, 0.7);
     --sq-ov-ps2-primary-light: var(--sq-pink-lighter);
     --sq-ov-ps2-flavor: #d4d4ff;
-    --sq-ov-ps2-flavor-50: rgba(212, 212, 255, 0.5);
+    --sq-ov-ps2-flavor-alpha-50: rgba(212, 212, 255, 0.5);
 }
 
 .test {

@@ -67,6 +67,7 @@
         /*color: var(--sq-ps2-primary);*/
         /*color: var(--sq-ov-ps2-primary);*/
         color: var(--sq-ov-ps2-primary-light);
+        grid-column-gap: 8px;
     }
 
         .overlay .players.players1 {
@@ -172,7 +173,7 @@
             height: 5px;
             position: relative;
             overflow: hidden;
-            margin-top: -2px;
+            /*margin-top: -2px;*/
             z-index: 0;
         }
 
@@ -199,6 +200,8 @@
             /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));*/
             filter: drop-shadow(0px 0px 1px var(--sq-black));
             opacity: 0.9;
+            position: relative;
+            top: 1px;
         }
 
 .ps2-icon.medic {
@@ -230,6 +233,261 @@
 }
 
 
+.playerRespawningPlay {
+    height: 100%;
+    background-color: var(--sq-ov-ps2-primary);
+    opacity: 0.75;
+    -moz-animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
+    -webkit-animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
+    animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
+    border-style: solid;
+    border-width: 1px 0px 0px 0px;
+    border-color: var(--sq-ov-ps2-primary-dark-alpha-80);
+}
+
+.stripe {
+    height: 52%;
+    padding: 0 2px 0 3px;
+    transform-origin: bottom;
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 6px, var(--sq-ov-ps2-flavor-alpha-50) 6px, var(--sq-ov-ps2-flavor-alpha-50) 12px );
+    animation: 0.5s pointControlFlash 12 linear alternate, 0.2s ease-out 2.25s 2 reverse forwards shrinkDown;
+    /*animation-direction: alternate-reverse;*/
+}
+
+    .stripe:nth-child(odd) {
+        background-image: repeating-linear-gradient(-45deg, var(--sq-ov-ps2-flavor-alpha-50), var(--sq-ov-ps2-flavor-alpha-50) 6px, transparent 6px, transparent 12px );
+        animation: 0.5s pointControlFlash 0.25s 12 linear alternate-reverse, 0.25s ease-out 2.25s 1 reverse forwards shrinkDown;
+        animation-direction: alternate-reverse;
+    }
+
+.players1 .playerRespawningPlay {
+    -moz-transform-origin: right center;
+    -webkit-transform-origin: right center;
+    transform-origin: right center;
+    border-left: 3px solid var(--sq-ov-ps2-flavor-alpha-50);
+}
+
+.players2 .playerRespawningPlay {
+    -moz-transform-origin: left center;
+    -webkit-transform-origin: left center;
+    transform-origin: left center;
+    border-right: 3px solid var(--sq-ov-ps2-flavor-alpha-50);
+}
+
+.shrinkLeft {
+    -moz-transform-origin: left center;
+    -webkit-transform-origin: left center;
+    /*transform-origin: left center;*/
+    transform-origin: center left;
+    border-right: 3px solid var(--sq-ov-ps2-flavor-alpha-50);
+}
+
+.shrinkRight {
+    -moz-transform-origin: right center;
+    -webkit-transform-origin: right center;
+    /*transform-origin: right center;*/
+    transform-origin: center right;
+    border-left: 3px solid var(--sq-ov-ps2-flavor-alpha-50);
+}
+
+.deadTextPlay {
+    -moz-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
+    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
+    animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
+}
+
+.players1 > .playerStatusContainer.deadTextPlay {
+    background: -moz-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+    background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+    background: -webkit-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+}
+
+.players2 > .playerStatusContainer.deadTextPlay {
+    background: -moz-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+    background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+    background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+}
+
+.deadIconPlay {
+    -moz-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
+    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
+    animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
+}
+
+.revivedFlashPlay {
+    -moz-animation: 1s ease-out 1 normal forwards flashTextShadow;
+    -webkit-animation: 1s ease-out 1 normal forwards flashTextShadow;
+    animation: 1s ease-out 1 normal forwards flashTextShadow;
+}
+
+@-moz-keyframes respawnIn {
+    from {
+        -moz-transform: scaleX(0);
+    }
+
+    to {
+        -moz-transform: scaleX(1);
+    }
+}
+
+@-webkit-keyframes respawnIn {
+    from {
+        -webkit-transform: scaleX(0);
+    }
+
+    to {
+        -webkit-transform: scaleX(1);
+    }
+}
+
+@keyframes respawnIn {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@-moz-keyframes shrinkDown {
+    from {
+        -moz-transform: scaleY(0);
+        opacity: 0.4;
+    }
+
+    to {
+        -moz-transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes shrinkDown {
+    from {
+        -webkit-transform: scaleY(0);
+        opacity: 0.2;
+    }
+
+    to {
+        -webkit-transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+@keyframes shrinkDown {
+    from {
+        transform: scaleY(0);
+        opacity: 0.2;
+    }
+
+    to {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+@-moz-keyframes wipeUp {
+    from {
+        height: 3px;
+    }
+
+    to {
+        height: 0px;
+    }
+}
+
+@-webkit-keyframes wipeUp {
+    from {
+        height: 3px;
+    }
+
+    to {
+        height: 0px;
+    }
+}
+
+@keyframes wipeUp {
+    from {
+        height: 3px;
+    }
+
+    to {
+        height: 0px;
+    }
+}
+
+@-moz-keyframes deadText {
+    from {
+        color: rgba(245, 245, 255,0.4);
+    }
+
+    to {
+        color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
+    }
+}
+
+@-webkit-keyframes deadText {
+    from {
+        color: rgba(245, 245, 255,0.4);
+    }
+
+    to {
+        color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
+    }
+}
+
+@keyframes deadText {
+    from {
+        color: rgba(245, 245, 255,0.4);
+    }
+
+    to {
+        color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
+    }
+}
+
+@-moz-keyframes fadeOutSimple {
+    from {
+        opacity: 0.4;
+        mix-blend-mode: soft-light;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fadeOutSimple {
+    from {
+        opacity: 0.4;
+        mix-blend-mode: soft-light;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOutSimple {
+    from {
+        opacity: 0.4;
+        mix-blend-mode: soft-light;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pointControlFlash {
+    0% {
+        background-color: var(--sq-ov-ps2-flavor-alpha-50);
+    }
+
+    100% {
+        background-color: #0000;
+    }
+}
 
 /*======================
     Center Content
@@ -840,7 +1098,7 @@
     }
 
         .overlay .match-report .stats-row.player {
-            border-top: 1px outset var(--sq-ov-ps2-flavor-50, rgba(35, 35, 35, 0.55));
+            border-top: 1px outset var(--sq-ov-ps2-flavor-alpha-50, rgba(35, 35, 35, 0.55));
             padding: 4px 0px 4px 0px;
             margin: 2px 0px 2px 0px;
         }
