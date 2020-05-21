@@ -20,6 +20,8 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 <div class="header-card-container @GetHeaderCardClass()">
 
     @if (_team == null || !_teamOutfits.Any())
@@ -238,7 +240,7 @@
                                 </tr>
 
                                 @if (_currentRound > 0 && _isRunning)
-                                { 
+                                {
                                     <tr style="background-color: transparent;">
                                         <td></td>
                                         <td>CurrentRound</td>
@@ -371,15 +373,15 @@
                                 </tr>
                             }
 
-                                @foreach (var round in player.EventAggregateTracker.RoundHistory.Keys.ToList())
-                                {
-                                    <tr style="background-color: transparent;">
-                                        <td></td>
-                                        <td>Round @round</td>
-                                        <Test_PlayerStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
-                                    </tr>
-                                }
+                            @foreach (var round in player.EventAggregateTracker.RoundHistory.Keys.ToList())
+                            {
+                                <tr style="background-color: transparent;">
+                                    <td></td>
+                                    <td>Round @round</td>
+                                    <Test_PlayerStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
+                                </tr>
                             }
+                        }
                     </tbody>
                 </table>
             }
@@ -440,14 +442,8 @@
     /***********
         Methods
         ***********/
+    #region Initialization Methods
     protected override void OnInitialized()
-    {
-        _isRunning = ScrimMatchEngine.IsRunning();
-        _currentRound = ScrimMatchEngine.GetCurrentRound();
-        _matchState = ScrimMatchEngine.GetMatchState();
-    }
-
-    protected override async Task OnInitializedAsync()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
@@ -462,7 +458,43 @@
 
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
 
+        _isRunning = ScrimMatchEngine.IsRunning();
+        _currentRound = ScrimMatchEngine.GetCurrentRound();
+        _matchState = ScrimMatchEngine.GetMatchState();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        //MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
+
         _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
+
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
     }
 
     protected override void OnParametersSet()
@@ -473,6 +505,7 @@
             InitializeTeamData();
         }
     }
+    #endregion Initialization Methods
 
     private void InitializeTeamData()
     {

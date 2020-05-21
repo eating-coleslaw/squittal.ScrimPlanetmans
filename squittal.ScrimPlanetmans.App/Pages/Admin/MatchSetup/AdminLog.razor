@@ -5,6 +5,8 @@
 
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
 <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_adminLogs.Any())
@@ -27,6 +29,7 @@
 
     private int _maxLogCount = 200;
 
+    #region Initialization Methods
     protected override void OnInitialized()
     {
         // TODO: use Interface for Info property of messages
@@ -37,6 +40,17 @@
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
     }
+
+    public void Dispose()
+    {
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
+    }
+    #endregion Initialization Methods
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)

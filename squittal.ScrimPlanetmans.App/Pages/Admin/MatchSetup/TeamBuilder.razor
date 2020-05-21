@@ -18,6 +18,8 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 
 <div class="header-card-container @GetHeaderCardClass()">
 
@@ -44,11 +46,11 @@
             @if (_team.EventAggregate != null && (_team.EventAggregate.Points != 0 || _team.EventAggregate.PointAdjustments.Any()))
             {
                 <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
-                @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
-                <span style="font-weight: 700; font-size: larger;">
-                    @(_team.EventAggregate.Points)
+                    @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
+                    <span style="font-weight: 700; font-size: larger;">
+                        @(_team.EventAggregate.Points)
+                    </span>
                 </span>
-            </span>
             }
 
         </h4>
@@ -133,7 +135,7 @@
             <div style="display: inline-block; font-size: 0.9rem;">Point Adjustments</div>
             <button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglePointAdjustmentsVisibility">@(_extendPointAdjustments ? "Hide" : "Show")</button>
         </div>
-        
+
         @if (_extendPointAdjustments)
         {
             @if (_team != null && _team.EventAggregate.PointAdjustments.Any())
@@ -153,7 +155,7 @@
                                     {
                                         <td>@adjustment.Rationale</td>
                                     }
-                                    <td >@adjustment.Timestamp.ToString("hh:mm:ss tt")</td>
+                                    <td>@adjustment.Timestamp.ToString("hh:mm:ss tt")</td>
 
                                     <td style="width: 15px; text-align: right;">
                                         <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="(() => HandlePointAdjustmentRemove(adjustment))" title="Remove Point Adjustment">
@@ -167,22 +169,22 @@
                     </table>
                 </div>
             }
-            
+
             @if (_showPointAdjustmentForm)
             {
                 <EditForm Model="@_inputPointAdjustment" OnValidSubmit="HandlePointAdjustmentSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    Amount: <InputNumber id="adjustmentPoints" @bind-Value="_inputPointAdjustment.Points" style="width: 64px; margin: 0.2rem 0.4rem 0.2rem 0;"/>
+                    Amount: <InputNumber id="adjustmentPoints" @bind-Value="_inputPointAdjustment.Points" style="width: 64px; margin: 0.2rem 0.4rem 0.2rem 0;" />
 
-                    Reason: <InputText id="adjustmentRationale" @bind-Value="_inputPointAdjustment.Rationale" style="margin: 0.2rem 0;"/>
+                    Reason: <InputText id="adjustmentRationale" @bind-Value="_inputPointAdjustment.Rationale" style="margin: 0.2rem 0;" />
 
                     <div style="display: block; margin-left: auto; margin-right: auto;">
                         <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 0.2rem 0;">
                             <span class="oi oi-check"></span>Confirm
                         </button>
-                    
+
                         <button @onclick="HandlePointAdjustmentCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 0.2rem 0;" title="Cancel adding new point adjustment">
                             <span class="oi oi-x" style="top: 0;"></span>Cancel
                         </button>
@@ -197,7 +199,7 @@
                 </button>
             }
 
-            
+
         }
     </div>
 
@@ -470,9 +472,8 @@
     #endregion
 
     #region Initialization Methods
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // TODO: move MessageService event subscriptions to OnInitialized?
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
 
@@ -482,8 +483,35 @@
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: move MessageService event subscriptions to OnInitialized?
+        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
     }
 
     protected override void OnParametersSet()
@@ -599,7 +627,7 @@
                 }
                 else
                 {
-                    if (newOutfit!= null && newOutfit.MemberCount == 0)
+                    if (newOutfit != null && newOutfit.MemberCount == 0)
                     {
                         LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>. Outfit has no members</span>");
                     }

@@ -15,13 +15,15 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 @if (_team != null)
 {
     <div class="players @($"players{i_TeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
-    
-        @lock(_renderedPlayers)
+
+        @lock (_renderedPlayers)
         {
-            foreach(var player in _renderedPlayers)
+            foreach (var player in _renderedPlayers)
             {
                 <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player />
             }
@@ -47,6 +49,13 @@
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
     }
 
     protected override void OnParametersSet()

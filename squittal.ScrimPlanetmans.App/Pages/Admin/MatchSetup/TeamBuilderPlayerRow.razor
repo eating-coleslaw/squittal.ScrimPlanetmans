@@ -7,7 +7,9 @@
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
 
-@if  (Player != null)
+@implements IDisposable
+
+@if (Player != null)
 {
     <tr class="@SqCssHelper.GetFactionClassFromId(Player.FactionId)">
         <td style="padding-right: 5px; width: 15px;" title="@(Player.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(Player.IsOnline)</td>
@@ -70,6 +72,14 @@
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
     }
 
     protected override void OnParametersSet()

@@ -4,6 +4,8 @@
 
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 <div class="playerLoadoutIcon ps2-icon @_loadoutClass"></div>
 
 @code {
@@ -14,12 +16,21 @@
 
     private string _renderedPlayerId;
 
+    #region Initialization Methods
     protected override void OnInitialized()
     {
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
     }
 
     protected override void OnParametersSet()
@@ -47,6 +58,7 @@
             }
         }
     }
+    #endregion Initialization Methods
 
     #region Event Handling
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)

@@ -3,10 +3,12 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Collections.Concurrent;
-@using squittal.ScrimPlanetmans.Models; 
+@using squittal.ScrimPlanetmans.Models;
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
 
 @if (_team != null && _renderedPlayersCount > 0)
 {
@@ -23,15 +25,15 @@
 
         <InfantryMatchReportTeamRow i_TeamOrdinal=_renderedTeamOrdinal />
 
-        @lock(_renderedPlayers)
-         {
+        @lock (_renderedPlayers)
+        {
             @foreach (var player in _renderedPlayers)
             {
                 <InfantryMatchReportPlayerStatsRow i_CharacterId=@player.Id i_Player=player />
             }
-         }
+        }
 
-        <InfantryMatchReportTeamPointAdjustmentsRow i_TeamOrdinal=i_TeamOrdinal/>
+        <InfantryMatchReportTeamPointAdjustmentsRow i_TeamOrdinal=i_TeamOrdinal />
     </div>
 }
 
@@ -59,6 +61,13 @@
         {
             _team = ScrimTeamsManager.GetTeam(i_TeamOrdinal);
         }
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
     }
 
     protected override void OnParametersSet()

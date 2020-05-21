@@ -6,10 +6,12 @@
 
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 @if (i_player != null)
 {
     <div class="playerStatusContainer @GetContainerCssClass()">
-        <div class="score" >@i_player.EventAggregate.NetScore</div>
+        <div class="score">@i_player.EventAggregate.NetScore</div>
         <div class="name">@i_player.NameDisplay</div>
         <div class="eventMask">
             @if (_renderedStatus == PlayerStatus.ContestingObjective)
@@ -61,6 +63,15 @@
         MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
 
         InitializeTimer();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+
+        MessageService.RaiseScrimDeathActionEvent -= ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent -= ReceiveScrimReviveActionEvent;
+        MessageService.RaiseScrimObjectiveTickActionEvent -= ReceiveScrimObjectiveTickActionEvent;
     }
 
     protected override void OnParametersSet()

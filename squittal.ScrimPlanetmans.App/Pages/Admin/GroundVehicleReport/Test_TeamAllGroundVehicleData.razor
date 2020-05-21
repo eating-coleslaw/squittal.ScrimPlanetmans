@@ -17,6 +17,8 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 <div class="header-card-container @GetHeaderCardClass()">
 
     @if (_team == null || !_teamOutfits.Any())
@@ -407,7 +409,8 @@
     /***********
        Methods
      ***********/
-    protected override async Task OnInitializedAsync()
+    #region Initialization Methods
+    protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
@@ -419,8 +422,36 @@
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
     }
 
     protected override void OnParametersSet()
@@ -431,6 +462,7 @@
             InitializeTeamData();
         }
     }
+    #endregion Initialization Methods
 
     private void InitializeTeamData()
     {
