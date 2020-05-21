@@ -482,22 +482,10 @@
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
-        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
     }
 
     protected override async Task OnInitializedAsync()
     {
-        // TODO: move MessageService event subscriptions to OnInitialized?
-        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
-
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
-
-        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-
         _worlds = await WorldService.GetAllWorldsAsync();
     }
 
@@ -511,7 +499,6 @@
 
         MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
-        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
     }
 
     protected override void OnParametersSet()
@@ -585,7 +572,7 @@
         message = $"Finished reloading Team {i_teamOrdinal} data";
         LogMessage(message);
     }
-    #endregion
+    #endregion Initialization Methods
 
     #region  Form Submission & Validation
     private async void HandleValidOutfitAliasSubmit()
@@ -854,7 +841,7 @@
         ScrimTeamsManager.RemoveTeamPointAdjustment(i_teamOrdinal, adjustment);
     }
 
-    #endregion
+    #endregion Form Submission & Validation
 
     #region UI & Layout Controls
     private void ToggleOutfitPlayersVisibility(string aliasLower)
@@ -1056,123 +1043,6 @@
         });
     }
 
-    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
-    {
-        ReceiveMessage(e.Message);
-    }
-
-    private void ReceiveMessage(string message)
-    {
-        //var payload = TryParseMessagePayload(message);
-        //if (payload == null)
-        //{
-        //    return;
-        //}
-
-        //var eventName = payload.Value<string>("event_name");
-
-        //if (eventName == "PlayerLogin")
-        //{
-        //    HandlePlayerLoginPayload(payload);
-        //}
-
-        //else if (eventName == "PlayerLogout")
-        //{
-        //    HandlePlayerLogoutPayload(payload);
-        //}
-    }
-
-    private void HandlePlayerLoginPayload(JToken payload)
-    {
-        var characterId = payload.Value<string>("character_id");
-
-        var player = _teamPlayers.Where(p => p.Id == characterId).FirstOrDefault();
-
-        if (player == null)
-        {
-            return;
-        }
-
-        if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
-        {
-            _teamPlayersOnline.Add(player);
-
-            if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
-            {
-                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
-            }
-        }
-
-        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
-        {
-            _teamPlayersVisible.Add(player);
-        }
-
-        var message = $"Team {i_teamOrdinal} Player LOGIN: {player.NameDisplay} [{player.Id}]";
-
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
-    }
-
-    private void HandlePlayerLogoutPayload(JToken payload)
-    {
-        var characterId = payload.Value<string>("character_id");
-
-        var player = _teamPlayers.Where(p => p.Id == characterId).FirstOrDefault();
-
-        if (player == null)
-        {
-            return;
-        }
-
-        if (_teamPlayersOnline.Any(p => p.Id == player.Id))
-        {
-            _teamPlayersOnline.Remove(player);
-
-            if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
-            {
-                SetOutfitMembersOnlineCount(player.OutfitAliasLower);
-            }
-        }
-
-        // Only remove the player from the visible list if they haven't done anything in the match
-        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
-        {
-            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
-        }
-
-        var message = $"Team {i_teamOrdinal} Player LOGOUT: {player.NameDisplay} [{player.Id}]";
-
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
-    }
-
-    private JToken TryParseMessagePayload(string message)
-    {
-        if (message == null)
-        {
-            return null;
-        }
-
-        JToken jMsg;
-
-        try
-        {
-            jMsg = JToken.Parse(message).SelectToken("payload");
-        }
-        catch (Exception)
-        {
-            //Console.WriteLine($"(91097) Failed to parse message: {message}");
-            return null;
-        }
-
-        return jMsg;
-    }
-
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
     {
         var player = e.Message.Player;
@@ -1233,7 +1103,7 @@
             StateHasChanged();
         });
     }
-    #endregion
+    #endregion Event Handling
 
     private void SetOutfitMembersOnlineCount(string aliasLower)
     {
