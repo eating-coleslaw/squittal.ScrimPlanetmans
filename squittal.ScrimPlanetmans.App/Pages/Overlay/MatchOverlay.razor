@@ -1,31 +1,163 @@
 ﻿@page "/Overlay"
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.TeamPlayers;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Scoreboard;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.MatchReports;
 
-@*<h4 class="title">MatchOverlay</h4>*@
-<MatchTitle />
+@inject NavigationManager NavManager
 
-@*<div class="players players1">Players 1</div>*@
-@*<div class="players players2">Players 2</div>*@
+@if (_title)
+{
+    <MatchTitle />
+}
 
-<TeamPlayerStatusesContainer i_TeamOrdinal=1 />
-<TeamPlayerStatusesContainer i_TeamOrdinal=2 />
+@if (_players)
+{
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 />
+}
 
-<ScoreboardContainer />
+@if (_scoreboard)
+{
+    <ScoreboardContainer i_showFeed=_feed/>
+}
 
-<InfantryMatchReport />
-
-@*<div class="center">*@
-
-
-    @*<div class="scoreboard">Scoreboard</div>*@
-
-@*    <div class="killfeed" style="display: none;">Killfeed</div>*@
-  @*  <div class="report" style="display: none;">Report</div>*@
-
-@*  </div>*@
+@if (_report)
+{ 
+    <InfantryMatchReport />
+}
 
 @code {
+    [Parameter]
+    public bool _report { get; set; } = true;
 
+    [Parameter]
+    public bool _feed { get; set; } = true;
+
+    [Parameter]
+    public bool _players { get; set; } = true;
+
+    [Parameter]
+    public bool _scoreboard { get; set; } = true;
+
+    [Parameter]
+    public bool _title { get; set; } = true;
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        UpdateUriParameters();
+    }
+    #endregion Initialization Methods
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            StateHasChanged();
+        }
+    }
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("report", out var qReport))
+        {
+            if (bool.TryParse(qReport, out var report))
+            {
+                if (report != _report)
+                {
+                    _report = report;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _report = true;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("feed", out var qFeed))
+        {
+            if (bool.TryParse(qFeed, out var feed))
+            {
+                if (feed != _feed)
+                {
+                    _feed = feed;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _feed = true;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("players", out var qPlayers))
+        {
+            if (bool.TryParse(qPlayers, out var players))
+            {
+                if (players != _players)
+                {
+                    _players = players;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _players = true;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("scoreboard", out var qScoreboard))
+        {
+            if (bool.TryParse(qScoreboard, out var scoreboard))
+            {
+                if (scoreboard != _scoreboard)
+                {
+                    _scoreboard = scoreboard;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _scoreboard = true;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("title", out var qTitle))
+        {
+            if (bool.TryParse(qTitle, out var title))
+            {
+                if (title != _title)
+                {
+                    _title = title;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _title = true;
+                stateChanged = true;
+            }
+        }
+
+        return stateChanged;
+    }
 }

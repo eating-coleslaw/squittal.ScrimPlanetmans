@@ -12,6 +12,8 @@
 @inject IScrimMessageBroadcastService MessageService
 @inject IFactionService FactionService 
 
+@implements IDisposable
+
 <div class="scoreboard">
     <div class="outfitScoresContainer">
         <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
@@ -23,11 +25,19 @@
         </div>
     </div>
 
-    <Killfeed />
+    @if (_showFeed)
+    {
+        <Killfeed />
+    }
 
 </div>
 
 @code {
+    [Parameter]
+    public bool i_showFeed { get; set; } = true;
+
+    private bool _showFeed { get; set; } = true;
+
     private string _teamAlias1 { get; set; }
     private int _teamPoints1 { get; set; } = 0;
     private string _teamPointsDisplay1 { get; set; }
@@ -45,6 +55,7 @@
 
     private bool _shouldShowPoints { get; set; } = false;
 
+    #region Initialization Methods
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
@@ -91,6 +102,24 @@
             UpdateTeamFactionDisplay(2, FactionService.GetFactionAbbrevFromId((int)_teamFactionId2));
         }
     }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamAliasChangeEvent -= ReceiveTeamAliasChangeEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_showFeed != _showFeed)
+        {
+            _showFeed = i_showFeed;
+        }
+    }
+    #endregion Initialization Methods
+
 
     private void UpdatePointsDisplay()
     {
