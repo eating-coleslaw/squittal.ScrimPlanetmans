@@ -2,6 +2,8 @@
 @inject NavigationManager  NavigationManager
 @inherits LayoutComponentBase
 
+@implements IDisposable
+
 @if (!_isActive)
 {
     <SimpleBrandHeaderLinks />
@@ -28,10 +30,16 @@
     [Parameter]
     public NavLinkMatch Match { get; set; }
 
+    #region Initialization Methods
     protected override void OnInitialized()
     {
         // We'll consider re-rendering on each location change
         NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
     protected override void OnParametersSet()
@@ -46,6 +54,8 @@
 
         UpdateCssClass();
     }
+    #endregion Initialization Methods
+
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {

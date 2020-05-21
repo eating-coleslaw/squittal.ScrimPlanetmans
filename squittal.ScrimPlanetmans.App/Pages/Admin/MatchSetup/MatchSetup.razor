@@ -23,11 +23,13 @@
 @inject IZoneService ZoneService
 @inject IWorldService WorldService
 
+@implements IDisposable
+
 <div class="container-fluid">
 
     @if (!string.IsNullOrWhiteSpace(_errorBannerMessage))
     {
-        <ErrorMessageBanner i_ErrorMessage="@_errorBannerMessage"/>
+        <ErrorMessageBanner i_ErrorMessage="@_errorBannerMessage" />
     }
 
     <div class="row">
@@ -57,8 +59,8 @@
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                     <button class="btn btn-outline-primary" @onclick="ClearMatch">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
@@ -69,8 +71,8 @@
                         <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                     <button class="btn btn-outline-primary" @onclick="ResetRound">
                         <span class="oi oi-media-step-backward"></span>Reset Round
                     </button>
@@ -84,8 +86,8 @@
                         <span class="oi oi-media-play"></span>Resume
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                 }
                 else if (_matchState == MatchState.Running)
                 {
@@ -93,19 +95,19 @@
                         <span class="oi oi-media-pause"></span>Pause Round
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                     <button class="btn btn-outline-primary" @onclick="EndRound">
                         <span class="oi oi-media-stop"></span> End Round
                     </button>
                 }
 
                 @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
-        {
-            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>
-        }*@
+                    {
+                        <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>
+                    }*@
 
                 @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
                 {
@@ -138,6 +140,7 @@
                                         {
                                         <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
                                         }
+                                    /**/
                                     /**/
                                     }
                                 /**/
@@ -197,6 +200,7 @@
 
     private string _matchId = string.Empty;
 
+    #region Initialization Methods
     protected override async Task OnInitializedAsync()
     {
         await GetCensusStreamStatus(true);
@@ -235,6 +239,12 @@
         _worlds = WorldService.GetAllWorlds().OrderBy(w => w.Name).ToList();
     }
 
+    public void Dispose()
+    {
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
+        MessageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateMessageEvent;
+    }
+    #endregion Initialization Methods
 
     #region  Match & Subscription State Buttons
     private async Task GetCensusStreamStatus(bool isFirstStatusCheck)
@@ -252,7 +262,8 @@
                 await GetCensusStreamStatus(false);
             }
         }
-        else {
+        else
+        {
             ClearErrorMessage();
         }
     }

@@ -6,6 +6,8 @@
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 @if (_team != null)
 {
     <div id="@($"{_team.Alias}-stats")" class="stats-row team">
@@ -47,6 +49,12 @@
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_team.EventAggregate);
         }
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+        MessageService.RaiseTeamAliasChangeEvent -= ReceiveTeamAliasChangeEvent;
     }
 
     protected override void OnParametersSet()

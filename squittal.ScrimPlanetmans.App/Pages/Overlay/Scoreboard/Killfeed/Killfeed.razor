@@ -5,8 +5,8 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@using System.Collections.Concurrent; 
-@using squittal.ScrimPlanetmans.Models; 
+@using System.Collections.Concurrent;
+@using squittal.ScrimPlanetmans.Models;
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor WebsocketMonitor
@@ -15,6 +15,8 @@
 @inject IWorldService WorldService
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
 
 <div class="killfeed" id="killfeedContainer">
     <table>
@@ -45,6 +47,12 @@
         MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
         //MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseScrimDeathActionEvent -= ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent -= ReceiveScrimReviveActionEvent;
     }
 
     #endregion InitializationMethods
@@ -138,7 +146,7 @@
                     }
 
                     _renderedEvents[0] = newEvent;
-                
+
                     StateHasChanged();
                 }
 

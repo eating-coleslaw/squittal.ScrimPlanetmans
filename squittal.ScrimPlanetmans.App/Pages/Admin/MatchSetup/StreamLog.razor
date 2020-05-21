@@ -5,6 +5,8 @@
 
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
 <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_streamLogs.Any())
@@ -29,6 +31,7 @@
 
     private int _maxLogCount = 200;
 
+    #region Initilization Methods
     protected override void OnInitialized()
     {
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
@@ -40,6 +43,19 @@
         MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveObjectiveTickActionEvent;
         MessageService.RaiseScrimFacilityControlActionEvent += ReceiveScrimFacilityControlActionEvent;
     }
+
+    public void Dispose()
+    {
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
+        MessageService.RaiseScrimDeathActionEvent -= ReceiveDeathActionEvent;
+        MessageService.RaiseScrimVehicleDestructionActionEvent += ReceiveVehicleDestructionActionEvent;
+
+        MessageService.RaiseScrimReviveActionEvent -= ReceiveReviveActionEvent;
+        MessageService.RaiseScrimAssistActionEvent -= ReceiveAssistActionEvent;
+        MessageService.RaiseScrimObjectiveTickActionEvent -= ReceiveObjectiveTickActionEvent;
+        MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveScrimFacilityControlActionEvent;
+    }
+    #endregion Initilization Methods
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)

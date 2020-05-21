@@ -6,6 +6,8 @@
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 @if (_team != null)
 {
     if (_team.EventAggregate.PointsGranted != 0 || _team.EventAggregate.PointsPenalized != 0)
@@ -44,6 +46,11 @@
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_team.EventAggregate);
         }
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
     }
 
     protected override void OnParametersSet()

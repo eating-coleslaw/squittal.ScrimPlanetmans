@@ -6,6 +6,8 @@
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 @if (_player != null)
 {
     <div id="@($"{_player.NameDisplay}-stats")" class="stats-row player">
@@ -60,6 +62,11 @@
         _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
 
         UpdatePointGraphWidth();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
     }
 
     protected override void OnParametersSet()
