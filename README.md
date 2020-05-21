@@ -102,6 +102,45 @@ The app uses census data stored in a local database for a variety of purposes. T
 
 __\*__ The Loadouts collection has more database entities than in the Census API because the Census API is missing the NSO classes.
 
+## Streaming Overlay
+
+Each view of the streaming overlay should be a scene with a Browser source configured like this:
+
+| Browser Source Setup | |
+|-|-|
+| _URL_                                       | https://localhost:5001/overlay* |
+| _Control audio via OBS_                     | Checked                         |
+| _Custom CSS_                                | Empty                           |
+| _Shutdown source when not visible_          | Checked                         |
+| _Refresh browser when scene becomes active_ | Checked                         |
+
+*`localhost://5001` should match the URL shown in the command window.
+
+### Customizing the Overlay
+
+The overlay page accepts 5 URL parameters which control whether different overlay components are visible or hidden. By default, all overlay components are visible.
+
+The general formula for using the parameters is `.../overlay?param1=value1&param2=value2&param3=value3...`, where `param#` is an entry from the below table and `value#` is either `true` (show component) or `false` (hide component).
+
+| URL Parameters | Controls... |
+|-|-|
+| _players_    | List of players on the left & right side of the page |
+| _report_     | The match stats report in the center of the page     |
+| _scoreboard_ | The scoreboard at the top center of the page. Disabling the scoreboard also hides the killfeed. |
+| _feed_       | The killfeed in the center, below the scoreboard. The killfeed is always hidden if the scoreboard is hidden. |
+| _title_      | The match title at the top center of the page        |
+
+#### Examples
+
+https://localhost:5001/Overlay?players=false&feed=false
+
+* Hides the players and the killfeed, for a typical half-time or match-end scene.
+
+https://localhost:5001/Overlay?report=false
+
+* Hides the match stats report. This is what you'd want for streaming a match in-progress.
+
+
 ## Match & Events Reporting
 
 Results from matches, along with several types of events, are stored in the same database as the census data. Feel free to use it for your own reporting needs.
