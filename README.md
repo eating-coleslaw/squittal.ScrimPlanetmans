@@ -31,6 +31,16 @@ Using a registered Service ID permits unthrottled querying of the Census API. Wi
 3. Under __User veriables for <*Windows username*>__, select `New..`. to add a new user variable with name "DaybreakGamesServiceKey" (without the quotes) and a value of your census API service key. Click OK to accept the new variable.  
    * Note: The "s:" prefix in an API query string is not part of the service key. For example, you would set the environment variable to `example`, not `s:example`.  
 
+### _(For Streaming Only)_ Internet Information Services (IIS) 10.0 Express
+
+IIS Express is necessary for displaying the streaming overlay in OBS. If only need to score matches or collect data, you can skip this requirement.
+
+1. Open the [IIS Express 10.0 download page](https://www.microsoft.com/en-us/download/details.aspx?id=48264 "IIS Express 10.0 download page").
+
+2. Click the "Download" button, then select the option corresponding to your processor and language. Click "Next" to begin the download.
+
+3. Run the downloaded installer.
+
 ### _(For Development Only)_ Visual Studio 2019 (v16.4)
 
 .NET Core 3.1 is only compatible with Visual Studio 2019 (v16.4). Download the free community edition [here](https://visualstudio.microsoft.com/free-developer-offers/ "Visual Studio Preview download page").
@@ -48,16 +58,30 @@ Several of these must be run as administrator (`Right Click > Run as administrat
      `Right Click on the shortcut > Shortcut tab > Click the Advanced... button at the bottom > Check the _Run as administrator_ box`.
 
 ### Getting Started
+__!!Important!!__  
+The specific .bat files you need to run differ depending on whether you are displaying the streaming overlay in OBS.
 
-__BuildApp.bat__  
+#### Non-Streaming Steps
+
+1. `BuildApp.bat`   
+Run this if it's the first time running the app, or you just synced changes from the repository.  
+ After a successful build, you'll be prompted to run the app. While the build itself does not require being run as administrator, if you want to run the app from this prompt you must run BuildApp.bat as administrator.
+
+2. `RunApp.bat`  
+Run this as administrator to start the app. In a web browser navigate to the URL displayed after the `Now listening on: ...` console message (e.g. <https://localhost:5001>).  
+To stop the app _gracefully_, press `Ctrl+C` in the Command Prompt. Enter `Y` at the `Cancel batch job?` prompt.
+
+#### Streaming Steps
+
+1. `PublishApp.bat`   
 Run this if it's the first time running the app, or you just synced changes from the repository.
 
-After a successful build, you'll be prompted to run the app. While the build itself does not require being run as administrator, if you want to run the app from this prompt you must run BuildApp.bat as administrator.
+2. 1. `InstallWebSite.bat`  
+Run this after running `PublishApp.bat` for the very first time (you don't need to repeat this when taking changes). This registers the website squittal.ScrimPlanetmans in your IIS Express configuration.
 
-__RunApp.bat__  
-Run this as administrator to start the app. In a web browser navigate to the URL displayed after the `Now listening on: ...` console message (e.g. <https://localhost:5001>).
-
-To stop the app _gracefully_, press `Ctrl+C` in the Command Prompt. Enter `Y` at the `Cancel batch job?` prompt.
+2. `RunApp_IISExpress.bat`  
+Run this as administrator to start the app. In a web browser navigate to https://localhost:44347.
+To stop the app _gracefully_, press `Ctrl+Q` in the IIS Express console window.
 
 __Review Database Population__  
 The app uses census data stored in a local database for a variety of purposes, the most important of which is <u>scoring</u>. On first startup, the database automatically attempts to populate from the Census API. If that fails, it backup scripts are used to populate the database. It's crucial to verify that the database is properly set up before trying to run a match.
@@ -108,13 +132,11 @@ Each view of the streaming overlay should be a scene with a Browser source confi
 
 | Browser Source Setup | |
 |-|-|
-| _URL_                                       | https://localhost:5001/overlay* |
+| _URL_                                       | https://localhost:44347/overlay... |
 | _Control audio via OBS_                     | Checked                         |
 | _Custom CSS_                                | Empty                           |
 | _Shutdown source when not visible_          | Checked                         |
 | _Refresh browser when scene becomes active_ | Checked                         |
-
-*`localhost://5001` should match the URL shown in the command window.
 
 ### Customizing the Overlay
 
@@ -132,11 +154,11 @@ The general formula for using the parameters is `.../overlay?param1=value1&param
 
 #### Examples
 
-https://localhost:5001/Overlay?players=false&feed=false
+https://localhost:44347/Overlay?players=false&feed=false
 
 * Hides the players and the killfeed, for a typical half-time or match-end scene.
 
-https://localhost:5001/Overlay?report=false
+https://localhost:44347/Overlay?report=false
 
 * Hides the match stats report. This is what you'd want for streaming a match in-progress.
 

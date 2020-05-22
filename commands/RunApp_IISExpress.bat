@@ -8,6 +8,7 @@ if %ERRORLEVEL% NEQ 0 (
     exit
 )
 pause
+exit
 
 :StartIisApp
 pushd "%PROGRAMFILES%\IIS Express"

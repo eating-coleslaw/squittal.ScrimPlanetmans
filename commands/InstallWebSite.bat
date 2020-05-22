@@ -1,7 +1,7 @@
 @echo off
 
 cd "%~dp0"
-cd "../squittal.ScrimPlanetmans.App/"
+cd "../squittal.ScrimPlanetmans.App/bin/Release/netcoreapp3.1/publish/"
 set appDir=%cd%
 echo Site content directory: %appDir%
 
@@ -17,9 +17,9 @@ pause
 :RegisterSite
 pushd "%PROGRAMFILES%\IIS Express"
 
-appcmd add site /name:squittal.ScrimPlanetmans /id:44345 /bindings:"http/*:5000:localhost" /physicalPath:"%appDir%"
+appcmd add site /name:squittal.ScrimPlanetmans /id:44346 /bindings:"http/*:44346:localhost" /physicalPath:"%appDir%"
 appcmd set site /site.name:squittal.ScrimPlanetmans /[path='/'].applicationPool:Clr4IntegratedAppPool
-appcmd set site /site.name:squittal.ScrimPlanetmans /+bindings.[protocol='https',bindingInformation='*:5001:localhost']
+appcmd set site /site.name:squittal.ScrimPlanetmans /+bindings.[protocol='https',bindingInformation='*:44347:localhost']
 
 popd
 exit /B
