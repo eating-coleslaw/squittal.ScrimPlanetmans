@@ -1,10 +1,5 @@
 @echo off
 
-cd "%~dp0"
-cd "../config/"
-set appDir=%cd%
-echo Site content directory: %appDir%
-
 echo Starting squittal.ScrimPlanetmans app...
 call :StartIisApp
 if %ERRORLEVEL% NEQ 0 (
@@ -12,10 +7,13 @@ if %ERRORLEVEL% NEQ 0 (
     pause
     exit
 )
+pause
 exit
 
 :StartIisApp
 pushd "%PROGRAMFILES%\IIS Express"
-iisexpress /site:squittal.ScrimPlanetmans /config:"%appDir%\applicationhost.config"
+
+iisexpress /site:squittal.ScrimPlanetmans
+
 popd
 exit /B

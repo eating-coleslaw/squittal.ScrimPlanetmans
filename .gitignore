@@ -342,4 +342,3 @@ healthchecksdb
 # squittal files to ignore
 match_logs/*.txt
 /_stream test images
-config/applicationhost.config

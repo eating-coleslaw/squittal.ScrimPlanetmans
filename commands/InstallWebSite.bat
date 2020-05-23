@@ -5,16 +5,6 @@ cd "../squittal.ScrimPlanetmans.App/bin/Release/netcoreapp3.1/publish/"
 set appDir=%cd%
 echo Site content directory: %appDir%
 
-echo Deleting existing squittal.ScrimPlanetmans site...
-call :DeleteSite
-REM if %ERRORLEVEL% NEQ 0 (
-REM     echo Failed to register the site.
-REM     pause
-REM     exit
-REM )
-REM pause
-REM exit
-
 echo Registering squittal.ScrimPlanetmans site...
 call :RegisterSite
 if %ERRORLEVEL% NEQ 0 (
@@ -23,13 +13,6 @@ if %ERRORLEVEL% NEQ 0 (
     exit
 )
 pause
-exit
-
-:DeleteSite
-pushd "%PROGRAMFILES%\IIS Express"
-appcmd delete site squittal.ScrimPlanetmans
-popd
-exit /B
 
 :RegisterSite
 pushd "%PROGRAMFILES%\IIS Express"
