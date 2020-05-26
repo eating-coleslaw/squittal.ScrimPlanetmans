@@ -1,5 +1,9 @@
 ﻿@import url('squittal-colors.css');
 
+body {
+    /*background-image: url("../images/overlay_test_background.jpg");*/
+}
+
 .main.overlay {
     /*background-image: url("../images/overlay_test_background.jpg");*/
     background-color: transparent;
@@ -10,30 +14,30 @@
     font-weight: 600;
 }
 
-    .overlay.wrapper {
-        /*display: grid;*/
-        /*grid-template-columns: 25% 50% 25%;
+.overlay.wrapper {
+    /*display: grid;*/
+    /*grid-template-columns: 25% 50% 25%;
         grid-template-rows: 32px 1fr;
         grid-template-areas:
             "top  top    top"
             "left center right";
         grid-gap: 4px;*/
-        /*background-image: url("../images/overlay_test_background.jpg");
+    /*background-image: url("../images/overlay_test_background.jpg");
         background-color: transparent;
         background-position: center center;*/
-    }
+}
 
 /**********************
     Match Title
 ***********************/
-    .overlay .title-container {
-        position: relative;
-        /*left: calc(50% - 175px);*/
-        /*grid-area: top;*/
-        text-align: center;
-        /*background-color: orange;*/
-        margin: 0;
-    }
+.overlay .title-container {
+    position: relative;
+    /*left: calc(50% - 175px);*/
+    /*grid-area: top;*/
+    text-align: center;
+    /*background-color: orange;*/
+    margin: 0;
+}
 
     .overlay .title-container .title-text {
         display: inline-block;
@@ -55,273 +59,272 @@
 /**********************
     Team Players
 ***********************/
-    .overlay .players {
-        white-space: nowrap;
-        width: calc(22% - 70px - 30px);
-        box-sizing: border-box;
-        /*background-color: mediumorchid;*/
-        display: grid;
-        grid-row-gap: 4px;
-        font-weight: 500;
-        font-size: 18px;
-        /*color: var(--sq-ps2-primary);*/
-        /*color: var(--sq-ov-ps2-primary);*/
-        color: var(--sq-ov-ps2-primary-light);
-        grid-column-gap: 8px;
-        width: calc(22% - 32px - 30px);
+.overlay .players {
+    white-space: nowrap;
+    width: calc(22% - 70px - 30px);
+    box-sizing: border-box;
+    /*background-color: mediumorchid;*/
+    display: grid;
+    grid-row-gap: 4px;
+    font-weight: 500;
+    font-size: 18px;
+    /*color: var(--sq-ps2-primary);*/
+    /*color: var(--sq-ov-ps2-primary);*/
+    color: var(--sq-ov-ps2-primary-light);
+    grid-column-gap: 8px;
+    width: calc(22% - 32px - 30px);
+}
+
+    .overlay .players.players1 {
+        /*grid-area: left;*/
+        float: left;
+        grid-template-columns: 32px 1fr;
+        text-align: left;
     }
 
-        .overlay .players.players1 {
-            /*grid-area: left;*/
-            float: left;
-            grid-template-columns: 32px 1fr;
-            text-align: left;
+    .overlay .players.players2 {
+        /*grid-area: right;*/
+        float: right;
+        grid-template-columns: 1fr 32px;
+        text-align: right;
+    }
+
+    .overlay .players .playerStatusContainer {
+        display: grid;
+        /*grid-template-rows: 24px 4px;*/
+        /*grid-template-rows: 32px 4px;*/
+        grid-template-rows: 30px 4px;
+        /*background-color: #1F233090;*/
+        background-color: var(--sq-ov-bg-dark-gray-alpha-55);
+        /*border: 1px solid #0F1320;*/
+        border: 1px solid var(--sq-ov-bg-dark-gray);
+        text-overflow: ellipsis;
+        overflow: hidden;
+        /*border: 1px solid var(--sq-ov-ps2-primary);*/
+        /*border: 1px solid var(--sq-ov-ps2-primary-alpha-75);*/
+        border: 1px solid var(--sq-ov-ps2-primary-alpha-50);
+        grid-row-gap: 2px;
+    }
+
+    .overlay .players.vs .playerStatusContainer {
+        border: 1px solid var(--sq-ov-ps2-primary-alpha-75);
+    }
+
+    .overlay .players.players1 .playerStatusContainer {
+        /*grid-template-columns: 1fr 96px;*/
+        /*grid-template-columns: 1fr 104px;*/
+        grid-template-columns: 1fr 112px;
+        grid-template-areas: "name score" "event event";
+        background: -moz-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        background: -webkit-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
+        text-shadow: 0 0 1px var(--sq-black);
+    }
+
+        .overlay .players.players1 .playerStatusContainer:nth-child(2) {
+            border-top-right-radius: 5px;
         }
 
-        .overlay .players.players2 {
-            /*grid-area: right;*/
-            float: right;
-            grid-template-columns: 1fr 32px;
-            text-align: right;
+        .overlay .players.players1 .playerStatusContainer:nth-last-child(1) {
+            border-bottom-left-radius: 5px;
         }
 
-        .overlay .players .playerStatusContainer {
-            display: grid;
-            /*grid-template-rows: 24px 4px;*/
-            grid-template-rows: 32px 4px;
-            /*background-color: #1F233090;*/
-            background-color: var(--sq-ov-bg-dark-gray-alpha-55);
-            /*border: 1px solid #0F1320;*/
-            border: 1px solid var(--sq-ov-bg-dark-gray);
-            text-overflow: ellipsis;
-            overflow: hidden;
-            /*border: 1px solid var(--sq-ov-ps2-primary);*/
-            /*border: 1px solid var(--sq-ov-ps2-primary-alpha-75);*/
-            border: 1px solid var(--sq-ov-ps2-primary-alpha-50);
-            grid-row-gap: 2px;
+    .overlay .players.players2 .playerStatusContainer {
+        /*grid-template-columns: 96px 1fr;*/
+        /*grid-template-columns: 104px 1fr;*/
+        grid-template-columns: 112px 1fr;
+        grid-template-areas: "score name" "event event";
+        background: -moz-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
+        grid-column-gap: 8px;
+    }
+
+        .overlay .players.players2 .playerStatusContainer:nth-child(1) {
+            border-top-left-radius: 5px;
         }
 
-        .overlay .players.vs .playerStatusContainer {
-            border: 1px solid var(--sq-ov-ps2-primary-alpha-75);
+        .overlay .players.players2 .playerStatusContainer:nth-last-child(2) {
+            border-bottom-right-radius: 5px;
         }
 
-        .overlay .players.players1 .playerStatusContainer {
-            /*grid-template-columns: 1fr 96px;*/
-            /*grid-template-columns: 1fr 104px;*/
-            grid-template-columns: 1fr 112px;
-            grid-template-areas:
-                "name score"
-                "event event";
-            background: -moz-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-            background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-            background: -webkit-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-            box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
-            text-shadow: 0 0 1px var(--sq-black);
-        }
+    .overlay .players .playerStatusContainer .name {
+        grid-area: name;
+        /*display: inline-block;*/
+        display: inline;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        z-index: 1;
+        vertical-align: bottom;
+        color: var(--sq-ov-ps2-primary-lightest);
+        font-size: 1.25rem;
+    }
 
-            .overlay .players.players1 .playerStatusContainer:nth-child(2) {
-                border-top-right-radius: 5px;
-            }
+    .overlay .players .playerStatusContainer.deadTextPlay .name {
+        color: var(--sq-bg-white-lit-alpha-30);
+    }
 
-            .overlay .players.players1 .playerStatusContainer:nth-last-child(1) {
-                border-bottom-left-radius: 5px;
-            }
+    .overlay .players .playerStatusContainer .score {
+        grid-area: score;
+        display: inline-block;
+        box-sizing: border-box;
+        z-index: 1;
+        display: grid;
+        align-items: baseline;
+    }
 
-        .overlay .players.players2 .playerStatusContainer {
-            /*grid-template-columns: 96px 1fr;*/
-            /*grid-template-columns: 104px 1fr;*/
-            grid-template-columns: 112px 1fr;
-            grid-template-areas:
-                "score name"
-                "event event";
-            background: -moz-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-            background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-            background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-            box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
-            grid-column-gap: 8px;
-        }
-
-            .overlay .players.players2 .playerStatusContainer:nth-child(1) {
-                border-top-left-radius: 5px;
-            }
-
-            .overlay .players.players2 .playerStatusContainer:nth-last-child(2) {
-                border-bottom-right-radius: 5px;
-            }
-
-        .overlay .players .playerStatusContainer .name {
-            grid-area: name;
-            /*display: inline-block;*/
-            display: inline;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            z-index: 1;
-            vertical-align: bottom;
-            color: var(--sq-ov-ps2-primary-lightest);
-            font-size: 1.25rem;
-        }
-
-            .overlay .players .playerStatusContainer.deadTextPlay .name {
-                color: var(--sq-bg-white-lit-alpha-30);
-            }
-
-        .overlay .players .playerStatusContainer .score {
-            grid-area: score;
+        .overlay .players .playerStatusContainer .score .points {
+            grid-area: points;
+            color: var(--sq-bg-white-lit);
+            width: 100%;
+            /*font-size: 1.6rem;*/
+            font-size: 1.4rem;
             display: inline-block;
-            box-sizing: border-box;
-            z-index: 1;
-            display: grid;
-            align-items: baseline;
+            vertical-align: bottom;
+            text-align: right;
+            /*height: 32px;*/
+            height: 28px;
         }
 
-            .overlay .players .playerStatusContainer .score .points {
-                grid-area: points;
-                color: var(--sq-bg-white-lit);
-                width: 100%;
-                font-size: 1.6rem;
-                display: inline-block;
-                vertical-align: bottom;
-                text-align: right;
-                height: 32px;
-            }
+    .overlay .players .playerStatusContainer.deadTextPlay .score .points {
+        color: var(--sq-bg-white-lit-alpha-30);
+    }
 
-            .overlay .players .playerStatusContainer.deadTextPlay .score .points {
-                color: var(--sq-bg-white-lit-alpha-30);
-            }
-
-            .overlay .players .playerStatusContainer .score .net {
-                grid-area: net;
-                /*display: inline-block;*/
-                display: inline;
-                vertical-align: bottom;
-                /*text-align: left;*/
-                /*font-size: 0.85rem;*/
-                font-size: 1.1rem;
-                /*height: 32px;*/
-                /*display: grid;
+    .overlay .players .playerStatusContainer .score .net {
+        grid-area: net;
+        /*display: inline-block;*/
+        display: inline;
+        vertical-align: bottom;
+        /*text-align: left;*/
+        /*font-size: 0.85rem;*/
+        font-size: 1.1rem;
+        /*height: 32px;*/
+        /*display: grid;
                 grid-template-rows: 1fr 1fr;
                 grid-template-areas:
                     "label"
                     "value";*/
-            }
+    }
 
-                .overlay .players .playerStatusContainer .score .net .label {
-                    /*grid-area: label;
+        .overlay .players .playerStatusContainer .score .net .label {
+            /*grid-area: label;
                     /*display: inline-block;
                     display: inline;
                     vertical-align: bottom;
                     text-align: left;*/
-                    color: var(--sq-ov-ps2-primary);
-                    padding-left: 4px;
-                    /*font-weight: 700;*/
-                }
+            color: var(--sq-ov-ps2-primary);
+            padding-left: 4px;
+            /*font-weight: 700;*/
+        }
 
-                    .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
-                        color: var(--sq-ov-ps2-primary-alpha-50);
-                    }
+    .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
+        color: var(--sq-ov-ps2-primary-alpha-50);
+    }
 
-                .overlay .players .playerStatusContainer .score .net .value {
-                    /*grid-area: value;
+    .overlay .players .playerStatusContainer .score .net .value {
+        /*grid-area: value;
                     /*display: inline-block;
                     display: inline;
                     vertical-align: bottom;
                     text-align: left;*/
-                    /*color: var(--sq-bg-white-unlit);*/
-                    color: var(--sq-ov-ps2-primary-lightest);
-                }
-                
-                    .overlay .players .playerStatusContainer.deadTextPlay .score .net .value {
-                        color: var(--sq-bg-white-lit-alpha-30);
-                    }
+        /*color: var(--sq-bg-white-unlit);*/
+        color: var(--sq-ov-ps2-primary-lightest);
+    }
 
-        .overlay .players.players1 .playerStatusContainer .score {
-            text-align: right;
-            /*grid-template-columns: 42px 54px;*/
-            /*grid-template-columns: 4fr 5fr;*/
-            grid-template-columns: 1fr 1fr;
-            grid-template-areas: "net points";
-        }
+    .overlay .players .playerStatusContainer.deadTextPlay .score .net .value {
+        color: var(--sq-bg-white-lit-alpha-30);
+    }
 
-            .overlay .players.players1 .playerStatusContainer .score .points {
-                /*padding-right: 4px;*/
-                padding-right: 8px;
-            }
+    .overlay .players.players1 .playerStatusContainer .score {
+        text-align: right;
+        /*grid-template-columns: 42px 54px;*/
+        /*grid-template-columns: 4fr 5fr;*/
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "net points";
+    }
 
-            .overlay .players.players1 .playerStatusContainer .score .net {
-                /*padding-right: 4px;*/
-                padding-right: 8px;
-            }
-
-        .overlay .players.players2 .playerStatusContainer .score {
-            text-align: left;
-            /*grid-template-columns: 54px 42px;*/
-            /*grid-template-columns: 5fr 4fr;*/
-            grid-template-columns: 1fr 1fr;
-            grid-template-areas: "points net";
-        }
-
-            .overlay .players.players2 .playerStatusContainer .score .points {
-                /*padding-left: 4px;*/
-                padding-left: 8px;
-            }
-
-            .overlay .players.players2 .playerStatusContainer .score .net {
-                /*padding-left: 4px;*/
-                padding-left: 8px;
-                text-align: right;
-            }
-
-        /*.overlay .players.players2 .playerStatusContainer .score,*/
-        .overlay .players.players1 .playerStatusContainer .name {
-            /*padding-left: 4px;*/
-            padding-left: 8px;
-        }
-
-        /*.overlay .players.players1 .playerStatusContainer .score,*/
-        .overlay .players.players2 .playerStatusContainer .name {
+        .overlay .players.players1 .playerStatusContainer .score .points {
             /*padding-right: 4px;*/
             padding-right: 8px;
         }
 
-        .overlay .players .playerStatusContainer .eventMask {
-            grid-area: event;
-            height: 5px;
-            position: relative;
-            overflow: hidden;
-            /*margin-top: -2px;*/
-            z-index: 0;
-            background-color: var(--sq-black-alpha-50);
+        .overlay .players.players1 .playerStatusContainer .score .net {
+            /*padding-right: 4px;*/
+            padding-right: 8px;
         }
 
-            .overlay .players .playerStatusContainer .eventMask:empty {
-                border-top-color: transparent;
-                border-right-color: transparent;
-                border-left-color: transparent;
-                border-style: outset;
-                border-bottom-color: transparent;
-            }
+    .overlay .players.players2 .playerStatusContainer .score {
+        text-align: left;
+        /*grid-template-columns: 54px 42px;*/
+        /*grid-template-columns: 5fr 4fr;*/
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "points net";
+    }
 
-        .overlay .players .playerLoadoutIcon {
-            display: inline-block;
-            background-image: url('../images/even_borders/Icon_white_unknown_no_border_32.png');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            /*height: 24px;*/
-            height: 30px;
-            /*width: 24px;*/
-            width: 30px;
-            /*margin-top: 2px;*/
-            margin-top: 3px;
-            justify-self: center;
-            /*filter: drop-shadow(0px 0px 2px var(--sq-ps2-primary), rgba(20, 20, 20, 0.8));*/
-            /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary), rgba(20, 20, 20, 0.8));*/
-            /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));*/
-            filter: drop-shadow(0px 0px 1px var(--sq-black));
-            opacity: 0.9;
-            position: relative;
-            top: 1px;
+        .overlay .players.players2 .playerStatusContainer .score .points {
+            /*padding-left: 4px;*/
+            padding-left: 8px;
         }
+
+        .overlay .players.players2 .playerStatusContainer .score .net {
+            /*padding-left: 4px;*/
+            padding-left: 8px;
+            text-align: right;
+        }
+
+    /*.overlay .players.players2 .playerStatusContainer .score,*/
+    .overlay .players.players1 .playerStatusContainer .name {
+        /*padding-left: 4px;*/
+        padding-left: 8px;
+    }
+
+    /*.overlay .players.players1 .playerStatusContainer .score,*/
+    .overlay .players.players2 .playerStatusContainer .name {
+        /*padding-right: 4px;*/
+        padding-right: 8px;
+    }
+
+    .overlay .players .playerStatusContainer .eventMask {
+        grid-area: event;
+        height: 5px;
+        position: relative;
+        overflow: hidden;
+        /*margin-top: -2px;*/
+        z-index: 0;
+        background-color: var(--sq-black-alpha-50);
+    }
+
+        .overlay .players .playerStatusContainer .eventMask:empty {
+            border-top-color: transparent;
+            border-right-color: transparent;
+            border-left-color: transparent;
+            border-style: outset;
+            border-bottom-color: transparent;
+        }
+
+    .overlay .players .playerLoadoutIcon {
+        display: inline-block;
+        background-image: url('../images/even_borders/Icon_white_unknown_no_border_32.png');
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+        /*height: 24px;*/
+        height: 30px;
+        /*width: 24px;*/
+        width: 30px;
+        /*margin-top: 2px;*/
+        margin-top: 3px;
+        justify-self: center;
+        /*filter: drop-shadow(0px 0px 2px var(--sq-ps2-primary), rgba(20, 20, 20, 0.8));*/
+        /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary), rgba(20, 20, 20, 0.8));*/
+        /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));*/
+        filter: drop-shadow(0px 0px 1px var(--sq-black));
+        opacity: 0.9;
+        position: relative;
+        top: 1px;
+    }
 
 .ps2-icon.medic {
     background-image: url('../images/Icon_white_combatMedic_32.png') !important;
@@ -818,9 +821,9 @@
                 color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
             }
 
-            .tr .factionLabel {
-                color: var(--sq-ov-ps2-primary-dark) !important;
-            }
+.tr .factionLabel {
+    color: var(--sq-ov-ps2-primary-dark) !important;
+}
 
 
 .inactiveWhiteText {
@@ -890,7 +893,7 @@
 /**********************
     Killfeed
 ***********************/
-    /*.overlay .killfeed {
+/*.overlay .killfeed {
         grid-area: killfeed;
         background-color: aquamarine;
     }*/
@@ -1000,9 +1003,9 @@
         animation: 1s cubic-bezier(.6,-0.28,.74,.05) 0s 1 normal forwards eventFadeOut;
     }
 
-.killfeedRowContainer.expired {
-    opacity: 0;
-}
+    .killfeedRowContainer.expired {
+        opacity: 0;
+    }
 
 .killfeedRowContainer {
     padding-top: 3px;
@@ -1184,7 +1187,7 @@
     Stats Report
        - Infantry Match Report
 ***********************/
-    /*.overlay .report {
+/*.overlay .report {
         grid-area: report;
         background-color: chartreuse;
     }*/
@@ -1221,13 +1224,13 @@
         background-color: var(--sq-ov-bg-dark-gray-alpha-55);
     }
 
-    .overlay .match-report .team-report.vs {
-        border-color: var(--sq-ov-ps2-primary-alpha-75);
-    }
+        .overlay .match-report .team-report.vs {
+            border-color: var(--sq-ov-ps2-primary-alpha-75);
+        }
 
-    .overlay .match-report .team-report.team1 {
-        grid-area: team1;
-        border-top-left-radius: 5px;
+    .overlay .match-report .team-report /*.team1*/ {
+        /*grid-area: team1;*/
+        /*border-top-left-radius: 5px;*/
         /*background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
         background: -moz-linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: -webkit-linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
@@ -1235,15 +1238,20 @@
         box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
     }
 
-    .overlay .match-report .team-report.team2 {
-        grid-area: team2;
-        border-bottom-right-radius: 5px;
-        /*background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
-        background: -moz-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        .overlay .match-report .team-report.team1 {
+            grid-area: team1;
+            border-top-left-radius: 5px;
+        }
+
+        .overlay .match-report .team-report.team2 {
+            grid-area: team2;
+            border-bottom-right-radius: 5px;
+            /*background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
+            /*background: -moz-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: -webkit-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-        background: linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-        box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
-    }
+        background: linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
+            /*box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);*/
+        }
 
     .overlay .match-report .stats-row {
         display: grid;
@@ -1264,30 +1272,30 @@
         /*text-align: left;*/
     }
 
-        .overlay .match-report .stats-row.player {
-            border-top: 1px outset var(--sq-ov-ps2-flavor-alpha-50, rgba(35, 35, 35, 0.55));
-            padding: 4px 0px 4px 0px;
-            margin: 2px 0px 2px 0px;
+    .overlay .match-report .stats-row.player {
+        border-top: 1px outset var(--sq-ov-ps2-flavor-alpha-50, rgba(35, 35, 35, 0.55));
+        padding: 4px 0px 4px 0px;
+        margin: 2px 0px 2px 0px;
+    }
+
+        .overlay .match-report .stats-row.player:nth-child(3) {
+            border-top: 0px solid transparent !important;
         }
 
-            .overlay .match-report .stats-row.player:nth-child(3) {
-                border-top: 0px solid transparent !important;
-            }
+    .overlay .match-report .stats-row.adjustments {
+        color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);
+        border-top: 1px outset var(--sq-ov-ps2-flavor-alpha-50, rgba(35, 35, 35, 0.55));
+        padding: 4px 0px 4px 0px;
+        margin: 2px 0px 2px 0px;
+    }
 
-        .overlay .match-report .stats-row.adjustments {
-            color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);
-            border-top: 1px outset var(--sq-ov-ps2-flavor-alpha-50, rgba(35, 35, 35, 0.55));
-            padding: 4px 0px 4px 0px;
-            margin: 2px 0px 2px 0px;
+        .overlay .match-report .stats-row.adjustments:nth-child(3) {
+            border-top: 0px solid transparent !important;
         }
 
-            .overlay .match-report .stats-row.adjustments:nth-child(3) {
-                border-top: 0px solid transparent !important;
-            }
-
-            .overlay .match-report .stats-row.adjustments .label {
-                font-style: italic;
-            }
+        .overlay .match-report .stats-row.adjustments .label {
+            font-style: italic;
+        }
 
     .overlay .match-report .stats-row-header {
         display: grid;
@@ -1304,10 +1312,10 @@
         margin-top: 4px;
     }
 
-        .overlay .match-report.no-hsr .stats-row-header {
-            grid-template-columns: 1fr 155px repeat(5, 90px);
-            grid-template-areas: "label score net kills deaths assists utils";
-        }
+    .overlay .match-report.no-hsr .stats-row-header {
+        grid-template-columns: 1fr 155px repeat(5, 90px);
+        grid-template-areas: "label score net kills deaths assists utils";
+    }
 
     .overlay .match-report .stats-row.team {
         font-size: 24px;
@@ -1331,93 +1339,97 @@
         padding-right: 8px;
     }
 
-            .overlay .match-report .stats-row-header .stats-col-header.score {
-                grid-area: score;
-                text-align: left;
-            }
-
-        .overlay .match-report .stats-row .stats-value {
-            padding: 0px;
-            margin: 0px;
-            grid-gap: 0px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            /*padding-right: 4px;*/
-            padding-right: 8px;
-        }
-
-        .overlay .match-report .stats-row .label {
-            grid-area: label;
-            text-align: left;
-            /*border-left: 4px solid transparent;*/
-            overflow: hidden;
-            text-overflow: ellipsis;
-            /*color: var(--sq-ov-ps2-primary-lightest);*/
-            padding-left: 8px;
-        }
-
-        .overlay .match-report .stats-row.player .label {
-            padding-left: 8px;
-            color: var(--sq-ov-ps2-primary-lightest);
-        }
-
-        /*.overlay .match-report .stats-row.team .label {
-            padding-left: 8px;
-        }*/
-
-        .overlay .match-report .stats-row .stats-value.score {
+        .overlay .match-report .stats-row-header .stats-col-header.score {
             grid-area: score;
-            text-align: right;
-            /*color: var(--sq-ov-ps2-primary-lightest);*/
-            /*text-align: left;*/
+            text-align: left;
         }
 
-        .overlay .match-report .stats-row.player .stats-value.score {
-            color: var(--sq-ov-ps2-primary-lightest);
-        }
+    .overlay .match-report .stats-row .stats-value {
+        padding: 0px;
+        margin: 0px;
+        grid-gap: 0px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /*padding-right: 4px;*/
+        padding-right: 8px;
+    }
 
-        /*.overlay .match-report .stats-row .stats-value.net {
+    .overlay .match-report .stats-row .label {
+        grid-area: label;
+        text-align: left;
+        /*border-left: 4px solid transparent;*/
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /*color: var(--sq-ov-ps2-primary-lightest);*/
+        padding-left: 8px;
+    }
+
+    .overlay .match-report .stats-row.player .label {
+        padding-left: 8px;
+        color: var(--sq-ov-ps2-primary-lightest);
+    }
+
+    /*.overlay .match-report .stats-row.team .label {
+            padding-left: 8px;
+        }*/
+
+    .overlay .match-report .stats-row .stats-value.score {
+        grid-area: score;
+        text-align: right;
+        /*color: var(--sq-ov-ps2-primary-lightest);*/
+        /*text-align: left;*/
+    }
+
+    .overlay .match-report .stats-row.player .stats-value.score {
+        color: var(--sq-ov-ps2-primary-lightest);
+    }
+
+    .overlay .match-report .stats-row.player .stats-value {
+        color: var(--sq-ov-ps2-primary-lightest);
+    }
+
+    /*.overlay .match-report .stats-row .stats-value.net {
             color: var(--sq-ov-ps2-primary-lightest);
         }*/
 
-        .overlay .match-report .stats-row .stats-value.graph, .stats-col-header.graph {
-            grid-area: graph;
-        }
+    .overlay .match-report .stats-row .stats-value.graph, .stats-col-header.graph {
+        grid-area: graph;
+    }
 
-        .overlay .match-report .stats-row .graph .graph-bar {
-            height: 18px;
-            margin: 3px 0px 3px 0px;
-            background-color: var(--sq-ov-ps2-primary);
-            opacity: 0.9;
-            box-sizing: border-box;
-            border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80);
-            border-left: 2px solid var(--sq-ov-ps2-primary-dark);
-        }
+    .overlay .match-report .stats-row .graph .graph-bar {
+        height: 18px;
+        margin: 3px 0px 3px 0px;
+        background-color: var(--sq-ov-ps2-primary);
+        opacity: 0.9;
+        box-sizing: border-box;
+        border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80);
+        border-left: 2px solid var(--sq-ov-ps2-primary-dark);
+    }
 
-        .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net {
-            grid-area: net;
-        }
+    .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net {
+        grid-area: net;
+    }
 
-        .overlay .match-report .stats-row .stats-value.kills, .stats-col-header.kills {
-            grid-area: kills;
-        }
+    .overlay .match-report .stats-row .stats-value.kills, .stats-col-header.kills {
+        grid-area: kills;
+    }
 
-        .overlay .match-report .stats-row .stats-value.deaths, .stats-col-header.deaths {
-            grid-area: deaths;
-        }
+    .overlay .match-report .stats-row .stats-value.deaths, .stats-col-header.deaths {
+        grid-area: deaths;
+    }
 
-        .overlay .match-report .stats-row .stats-value.hsr, .stats-col-header.hsr {
-            grid-area: hsr;
-        }
+    .overlay .match-report .stats-row .stats-value.hsr, .stats-col-header.hsr {
+        grid-area: hsr;
+    }
 
-        .overlay .match-report .stats-row .stats-value.assists, .stats-col-header.assists {
-            grid-area: assists;
-        }
+    .overlay .match-report .stats-row .stats-value.assists, .stats-col-header.assists {
+        grid-area: assists;
+    }
 
-        .overlay .match-report .stats-row .stats-value.utils, .stats-col-header.utils {
-            grid-area: utils;
-        }
+    .overlay .match-report .stats-row .stats-value.utils, .stats-col-header.utils {
+        grid-area: utils;
+    }
 
-        .overlay .match-report .stats-row .stats-value.hsr, .stats-col-header.hsr {
-            grid-area: hsr;
-        }
+    .overlay .match-report .stats-row .stats-value.hsr, .stats-col-header.hsr {
+        grid-area: hsr;
+    }
