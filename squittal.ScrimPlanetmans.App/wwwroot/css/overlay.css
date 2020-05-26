@@ -1,7 +1,7 @@
 ﻿@import url('squittal-colors.css');
 
 .main.overlay {
-    background-image: url("../images/overlay_test_background.jpg");
+    /*background-image: url("../images/overlay_test_background.jpg");*/
     background-color: transparent;
     background-position: center center;
     background-repeat: repeat repeat;
