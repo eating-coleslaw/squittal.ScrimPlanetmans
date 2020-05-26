@@ -1,9 +1,5 @@
 ﻿@import url('squittal-colors.css');
 
-body {
-    background-image: url("../images/overlay_test_background.jpg");
-}
-
 .main.overlay {
     /*background-image: url("../images/overlay_test_background.jpg");*/
     background-color: transparent;
@@ -92,8 +88,7 @@ body {
         .overlay .players .playerStatusContainer {
             display: grid;
             /*grid-template-rows: 24px 4px;*/
-            /*grid-template-rows: 32px 4px;*/
-            grid-template-rows: 30px 4px;
+            grid-template-rows: 32px 4px;
             /*background-color: #1F233090;*/
             background-color: var(--sq-ov-bg-dark-gray-alpha-55);
             /*border: 1px solid #0F1320;*/
@@ -183,13 +178,11 @@ body {
                 grid-area: points;
                 color: var(--sq-bg-white-lit);
                 width: 100%;
-                /*font-size: 1.6rem;*/
-                font-size: 1.4rem;
+                font-size: 1.6rem;
                 display: inline-block;
                 vertical-align: bottom;
                 text-align: right;
-                /*height: 32px;*/
-                height: 28px;
+                height: 32px;
             }
 
             .overlay .players .playerStatusContainer.deadTextPlay .score .points {
@@ -1232,9 +1225,9 @@ body {
         border-color: var(--sq-ov-ps2-primary-alpha-75);
     }
 
-    .overlay .match-report .team-report/*.team1*/ {
-        /*grid-area: team1;*/
-        /*border-top-left-radius: 5px;*/
+    .overlay .match-report .team-report.team1 {
+        grid-area: team1;
+        border-top-left-radius: 5px;
         /*background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
         background: -moz-linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: -webkit-linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
@@ -1242,19 +1235,14 @@ body {
         box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
     }
 
-        .overlay .match-report .team-report.team1 {
-            grid-area: team1;
-            border-top-left-radius: 5px;
-        }
-
     .overlay .match-report .team-report.team2 {
         grid-area: team2;
         border-bottom-right-radius: 5px;
         /*background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
-        /*background: -moz-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        background: -moz-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: -webkit-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-        background: linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
-        /*box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);*/
+        background: linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
+        box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
     }
 
     .overlay .match-report .stats-row {
@@ -1385,10 +1373,6 @@ body {
         }
 
         .overlay .match-report .stats-row.player .stats-value.score {
-            color: var(--sq-ov-ps2-primary-lightest);
-        }
-
-        .overlay .match-report .stats-row.player .stats-value {
             color: var(--sq-ov-ps2-primary-lightest);
         }
 
