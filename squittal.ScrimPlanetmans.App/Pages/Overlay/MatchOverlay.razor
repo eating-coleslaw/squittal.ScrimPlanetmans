@@ -25,7 +25,7 @@
 
 @if (_report)
 { 
-    <InfantryMatchReport />
+    <InfantryMatchReport i_showHsr=_showHsr/>
 }
 
 @if (_feed)
@@ -51,6 +51,9 @@
 
     [Parameter]
     public bool _legacyUi { get; set; } = false;
+
+    [Parameter]
+    public bool _showHsr { get; set; } = true;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -180,6 +183,23 @@
             else
             {
                 _legacyUi = false;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("reportHsr", out var qShowHsr))
+        {
+            if (bool.TryParse(qShowHsr, out var showHsr))
+            {
+                if (showHsr != _showHsr)
+                {
+                    _showHsr = showHsr;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _showHsr = true;
                 stateChanged = true;
             }
         }

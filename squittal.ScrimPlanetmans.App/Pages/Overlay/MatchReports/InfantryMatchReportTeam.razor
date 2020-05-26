@@ -15,21 +15,30 @@
     <div id="@($"T{_renderedTeamOrdinal}Stats")" class="team-report @($"team{_renderedTeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
         <div id="@($"T{_renderedTeamOrdinal}Stats-header")" class="stats-row-header">
             <div class="score stats-col-header">Total Points</div>
-            <div class="net stats-col-header">Net</div>
+            @*<div class="net stats-col-header">Net<br/>Score (Δ)</div>*@
+            @*<div class="net stats-col-header">
+                <span style="text-align: right;width: 60%;display: inline-block;padding-right: 4px;">Net<br>Score</span>(Δ)
+            </div>*@
+            @*<div class="net stats-col-header">Net<br>Score</div>*@
+            <div class="net stats-col-header">Net (Δ)</div>
+
             <div class="kills stats-col-header">Kills</div>
             <div class="deaths stats-col-header">Deaths</div>
-            <div class="hsr stats-col-header">HSR</div>
-            <div class="assists stats-col-header">Dmg<br>Assists</div>
-            <div class="utils stats-col-header">Util<br>Assists</div>
+            @if (_showHsr)
+            {
+                <div class="hsr stats-col-header">HSR</div>
+            }
+            <div class="assists stats-col-header">Damage<br>Assists</div>
+            <div class="utils stats-col-header">Grenade<br>Assists</div>
         </div>
 
-        <InfantryMatchReportTeamRow i_TeamOrdinal=_renderedTeamOrdinal />
+        <InfantryMatchReportTeamRow i_TeamOrdinal=_renderedTeamOrdinal i_showHsr=_showHsr/>
 
         @lock (_renderedPlayers)
         {
             @foreach (var player in _renderedPlayers)
             {
-                <InfantryMatchReportPlayerStatsRow i_CharacterId=@player.Id i_Player=player />
+                <InfantryMatchReportPlayerStatsRow i_CharacterId=@player.Id i_Player=player i_showHsr=_showHsr/>
             }
         }
 
@@ -40,10 +49,14 @@
 @code {
     [Parameter]
     public int i_TeamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
+
+    [Parameter]
+    public bool i_showHsr { get; set; } = true;
+    private bool _showHsr { get; set; } = true;
 
     private Team _team { get; set; }
 
-    private int _renderedTeamOrdinal { get; set; }
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
     private int _renderedPlayersCount { get; set; } = 0;
@@ -72,11 +85,18 @@
 
     protected override void OnParametersSet()
     {
-        if (i_TeamOrdinal != _renderedTeamOrdinal)
+        var legacyUiChanged = false;
+
+        if (i_showHsr != _showHsr)
+        {
+            _showHsr = i_showHsr;
+            legacyUiChanged = true;
+        }
+
+        if (i_TeamOrdinal != _renderedTeamOrdinal || legacyUiChanged)
         {
             _renderedTeamOrdinal = i_TeamOrdinal;
             _team = ScrimTeamsManager.GetTeam(_renderedTeamOrdinal);
-
 
             InvokeAsync(() =>
             {

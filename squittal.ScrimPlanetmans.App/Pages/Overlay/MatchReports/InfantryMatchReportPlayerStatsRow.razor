@@ -19,7 +19,10 @@
         <div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">@_renderedEventAggregate.NetScore</div>
         <div id="@($"{_player.NameDisplay}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
         <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
-        <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@_renderedEventAggregate.HeadshotRatio<span style="font-size: small;">%</span></div>
+        @if (_showHsr)
+        {
+            <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@_renderedEventAggregate.HeadshotRatio<span style="font-size: small;">%</span></div>
+        }
         <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
         <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>
     </div>
@@ -28,13 +31,15 @@
 @code {
     [Parameter]
     public Player i_Player { get; set; }
+    private Player _player { get; set; }
 
     [Parameter]
     public string i_CharacterId { get; set; }
-
-    private Player _player { get; set; }
-
     private string _renderedCharacterId { get; set; }
+
+    [Parameter]
+    public bool i_showHsr { get; set; } = true;
+    private bool _showHsr { get; set; } = true;
 
     private ScrimEventAggregate _renderedEventAggregate { get; set; } = new ScrimEventAggregate();
 
@@ -71,7 +76,15 @@
 
     protected override void OnParametersSet()
     {
-        if (_player != i_Player)
+        var legacyUiChanged = false;
+
+        if (i_showHsr != _showHsr)
+        {
+            _showHsr = i_showHsr;
+            legacyUiChanged = true;
+        }
+
+        if (_player != i_Player || legacyUiChanged)
         {
             _renderedCharacterId = i_CharacterId;
             _player = i_Player;

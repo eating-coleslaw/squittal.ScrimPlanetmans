@@ -18,7 +18,8 @@
 
 @implements IDisposable
 
-<div class="killfeed @(_legacyUi ? "legacy" : string.Empty)" id="killfeedContainer">
+@*<div class="killfeed @(_legacyUi ? "legacy" : string.Empty)" id="killfeedContainer">*@
+<div class="killfeed" id="killfeedContainer">
     <table>
         <tbody id="killfeed" class="killfeedBody">
             @for (var i = 0; i <= 3; i++)
