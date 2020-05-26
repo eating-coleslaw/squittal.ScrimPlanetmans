@@ -1,7 +1,7 @@
 ﻿@import url('squittal-colors.css');
 
 .main.overlay {
-    /*background-image: url("../images/overlay_test_background.jpg");*/
+    background-image: url("../images/overlay_test_background.jpg");
     background-color: transparent;
     background-position: center center;
     background-repeat: repeat repeat;
@@ -68,6 +68,7 @@
         /*color: var(--sq-ov-ps2-primary);*/
         color: var(--sq-ov-ps2-primary-light);
         grid-column-gap: 8px;
+        width: calc(22% - 32px - 30px);
     }
 
         .overlay .players.players1 {
@@ -86,18 +87,28 @@
 
         .overlay .players .playerStatusContainer {
             display: grid;
-            /*grid-template-rows: 25px 3px;*/
-            grid-template-rows: 24px 4px;
+            /*grid-template-rows: 24px 4px;*/
+            grid-template-rows: 32px 4px;
             /*background-color: #1F233090;*/
             background-color: var(--sq-ov-bg-dark-gray-alpha-55);
             /*border: 1px solid #0F1320;*/
             border: 1px solid var(--sq-ov-bg-dark-gray);
             text-overflow: ellipsis;
             overflow: hidden;
+            /*border: 1px solid var(--sq-ov-ps2-primary);*/
+            /*border: 1px solid var(--sq-ov-ps2-primary-alpha-75);*/
+            border: 1px solid var(--sq-ov-ps2-primary-alpha-50);
+            grid-row-gap: 2px;
+        }
+
+        .overlay .players.vs .playerStatusContainer {
+            border: 1px solid var(--sq-ov-ps2-primary-alpha-75);
         }
 
         .overlay .players.players1 .playerStatusContainer {
-            grid-template-columns: 1fr 70px;
+            /*grid-template-columns: 1fr 96px;*/
+            /*grid-template-columns: 1fr 104px;*/
+            grid-template-columns: 1fr 112px;
             grid-template-areas:
                 "name score"
                 "event event";
@@ -117,7 +128,9 @@
             }
 
         .overlay .players.players2 .playerStatusContainer {
-            grid-template-columns: 70px 1fr;
+            /*grid-template-columns: 96px 1fr;*/
+            /*grid-template-columns: 104px 1fr;*/
+            grid-template-columns: 112px 1fr;
             grid-template-areas:
                 "score name"
                 "event event";
@@ -125,6 +138,7 @@
             background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
             background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
             box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
+            grid-column-gap: 8px;
         }
 
             .overlay .players.players2 .playerStatusContainer:nth-child(1) {
@@ -137,35 +151,136 @@
 
         .overlay .players .playerStatusContainer .name {
             grid-area: name;
-            display: inline-block;
+            /*display: inline-block;*/
+            display: inline;
             text-overflow: ellipsis;
             overflow: hidden;
             z-index: 1;
+            vertical-align: bottom;
+            color: var(--sq-ov-ps2-primary-lightest);
+            font-size: 1.25rem;
         }
+
+            .overlay .players .playerStatusContainer.deadTextPlay .name {
+                color: var(--sq-bg-white-lit-alpha-30);
+            }
 
         .overlay .players .playerStatusContainer .score {
             grid-area: score;
             display: inline-block;
             box-sizing: border-box;
             z-index: 1;
+            display: grid;
+            align-items: baseline;
         }
+
+            .overlay .players .playerStatusContainer .score .points {
+                grid-area: points;
+                color: var(--sq-bg-white-lit);
+                width: 100%;
+                font-size: 1.6rem;
+                display: inline-block;
+                vertical-align: bottom;
+                text-align: right;
+                height: 32px;
+            }
+
+            .overlay .players .playerStatusContainer.deadTextPlay .score .points {
+                color: var(--sq-bg-white-lit-alpha-30);
+            }
+
+            .overlay .players .playerStatusContainer .score .net {
+                grid-area: net;
+                /*display: inline-block;*/
+                display: inline;
+                vertical-align: bottom;
+                /*text-align: left;*/
+                /*font-size: 0.85rem;*/
+                font-size: 1.1rem;
+                /*height: 32px;*/
+                /*display: grid;
+                grid-template-rows: 1fr 1fr;
+                grid-template-areas:
+                    "label"
+                    "value";*/
+            }
+
+                .overlay .players .playerStatusContainer .score .net .label {
+                    /*grid-area: label;
+                    /*display: inline-block;
+                    display: inline;
+                    vertical-align: bottom;
+                    text-align: left;*/
+                    color: var(--sq-ov-ps2-primary);
+                    padding-left: 4px;
+                    /*font-weight: 700;*/
+                }
+
+                    .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
+                        color: var(--sq-ov-ps2-primary-alpha-50);
+                    }
+
+                .overlay .players .playerStatusContainer .score .net .value {
+                    /*grid-area: value;
+                    /*display: inline-block;
+                    display: inline;
+                    vertical-align: bottom;
+                    text-align: left;*/
+                    /*color: var(--sq-bg-white-unlit);*/
+                    color: var(--sq-ov-ps2-primary-lightest);
+                }
+                
+                    .overlay .players .playerStatusContainer.deadTextPlay .score .net .value {
+                        color: var(--sq-bg-white-lit-alpha-30);
+                    }
 
         .overlay .players.players1 .playerStatusContainer .score {
             text-align: right;
+            /*grid-template-columns: 42px 54px;*/
+            /*grid-template-columns: 4fr 5fr;*/
+            grid-template-columns: 1fr 1fr;
+            grid-template-areas: "net points";
         }
+
+            .overlay .players.players1 .playerStatusContainer .score .points {
+                /*padding-right: 4px;*/
+                padding-right: 8px;
+            }
+
+            .overlay .players.players1 .playerStatusContainer .score .net {
+                /*padding-right: 4px;*/
+                padding-right: 8px;
+            }
 
         .overlay .players.players2 .playerStatusContainer .score {
             text-align: left;
+            /*grid-template-columns: 54px 42px;*/
+            /*grid-template-columns: 5fr 4fr;*/
+            grid-template-columns: 1fr 1fr;
+            grid-template-areas: "points net";
         }
 
-        .overlay .players.players1 .playerStatusContainer .name,
-        .overlay .players.players2 .playerStatusContainer .score {
-            padding-left: 4px;
+            .overlay .players.players2 .playerStatusContainer .score .points {
+                /*padding-left: 4px;*/
+                padding-left: 8px;
+            }
+
+            .overlay .players.players2 .playerStatusContainer .score .net {
+                /*padding-left: 4px;*/
+                padding-left: 8px;
+                text-align: right;
+            }
+
+        /*.overlay .players.players2 .playerStatusContainer .score,*/
+        .overlay .players.players1 .playerStatusContainer .name {
+            /*padding-left: 4px;*/
+            padding-left: 8px;
         }
 
-        .overlay .players.players2 .playerStatusContainer .name,
-        .overlay .players.players1 .playerStatusContainer .score {
-            padding-right: 4px;
+        /*.overlay .players.players1 .playerStatusContainer .score,*/
+        .overlay .players.players2 .playerStatusContainer .name {
+            /*padding-right: 4px;*/
+            padding-right: 8px;
         }
 
         .overlay .players .playerStatusContainer .eventMask {
@@ -175,6 +290,7 @@
             overflow: hidden;
             /*margin-top: -2px;*/
             z-index: 0;
+            background-color: var(--sq-black-alpha-50);
         }
 
             .overlay .players .playerStatusContainer .eventMask:empty {
@@ -191,9 +307,12 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            height: 24px;
-            width: 24px;
-            margin-top: 2px;
+            /*height: 24px;*/
+            height: 30px;
+            /*width: 24px;*/
+            width: 30px;
+            /*margin-top: 2px;*/
+            margin-top: 3px;
             justify-self: center;
             /*filter: drop-shadow(0px 0px 2px var(--sq-ps2-primary), rgba(20, 20, 20, 0.8));*/
             /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary), rgba(20, 20, 20, 0.8));*/
@@ -294,6 +413,8 @@
     -moz-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
     -webkit-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
     animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
+    border-color: var(--sq-ov-bg-dark-gray-alpha-33) !important;
+    color: var(--sq-bg-white-lit-alpha-30) !important;
 }
 
 .players1 > .playerStatusContainer.deadTextPlay {
@@ -307,6 +428,11 @@
     background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
     background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
 }
+
+.deadTextPlay .label {
+    color: var(--sq-ov-ps2-primary-alpha-50) !important;
+}
+
 
 .deadIconPlay {
     -moz-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
@@ -575,12 +701,14 @@
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore {
                 text-align: right;
-                padding-right: 5px;
+                /*padding-right: 5px;*/
+                padding-right: 8px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitScore {
                 text-align: left;
-                padding-left: 5px;
+                /*padding-left: 5px;*/
+                padding-left: 8px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .outfitAlias {
@@ -612,13 +740,15 @@
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitAlias {
-                padding-left: 3px;
+                /*padding-left: 3px;*/
+                padding-left: 4px;
                 border-bottom-left-radius: 1px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitAlias {
                 text-align: right;
-                padding-right: 3px;
+                /*padding-right: 3px;*/
+                padding-right: 4px;
                 border-bottom-right-radius: 1px;
             }
 

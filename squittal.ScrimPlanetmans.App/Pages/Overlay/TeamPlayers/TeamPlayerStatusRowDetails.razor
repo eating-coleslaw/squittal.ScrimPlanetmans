@@ -11,8 +11,26 @@
 @if (i_player != null)
 {
     <div class="playerStatusContainer @GetContainerCssClass()">
-        <div class="score">@i_player.EventAggregate.NetScore</div>
-        <div class="name">@i_player.NameDisplay</div>
+        @if (_legacyUi)
+        {
+            <div class="score">
+                @*<div class="points">@i_player.EventAggregate.NetScore</div>*@
+                <div class="points">@_renderedNetScore</div>
+            </div>
+
+        }
+        else
+        {
+            <div class="score">
+                <div class="points">@_renderedPoints</div>
+                <div class="net">
+                    <span class="value">@_renderedNetScore</span><span class="label">Δ</span>
+                </div>
+            </div>
+        }
+
+        @*<div class="name">@i_player.NameDisplay</div>*@
+        <div class="name">@_renderedName</div>
         <div class="eventMask">
             @if (_renderedStatus == PlayerStatus.ContestingObjective)
             {
@@ -33,9 +51,14 @@
     [Parameter]
     public int i_teamOrdinal { get; set; }
 
+    [Parameter]
+    public bool i_legacyUi { get; set; } = false;
+
     private string _renderedPlayerId;
     private string _renderedName;
     private int _renderedNetScore;
+    private int _renderedPoints;
+    private bool _legacyUi;
 
 
     private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
@@ -76,7 +99,26 @@
 
     protected override void OnParametersSet()
     {
-        CheckForChanges(i_player);
+        var stateHasChanged = false;
+
+        if (CheckForChanges(i_player))
+        {
+            stateHasChanged = true;
+        }
+
+        if (_legacyUi != i_legacyUi)
+        {
+            _legacyUi = i_legacyUi;
+            stateHasChanged = true;
+        }
+
+        if (stateHasChanged)
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
     }
     #endregion Initialization Methods
 
@@ -335,7 +377,7 @@
     }
     #endregion Timer Handling
 
-    private void CheckForChanges(Player player)
+    private bool CheckForChanges(Player player)
     {
         bool stateHasChanged = false;
 
@@ -357,13 +399,21 @@
             stateHasChanged = true;
         }
 
-        if (stateHasChanged)
+        if (!i_legacyUi && player.EventAggregate.Points != _renderedPoints)
         {
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            _renderedPoints = player.EventAggregate.Points;
+            stateHasChanged = true;
         }
+
+        return stateHasChanged;
+
+        //if (stateHasChanged)
+        //{
+        //    InvokeAsync(() =>
+        //    {
+        //        StateHasChanged();
+        //    });
+        //}
     }
 
     private string GetContainerCssClass()

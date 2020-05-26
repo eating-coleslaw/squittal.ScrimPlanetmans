@@ -2,6 +2,7 @@
     --sq-pink: #e0397e;
     --sq-pink-darker: #B32D64;
     --sq-pink-lighter: #e34f8c;
+    --sq-pink-lightest: rgb(251,231,240);
     --sq-pink-lighter-alpha-80: rgba(227, 79, 140, 0.8);
     --sq-pink-lighter-alpha-50: rgba(227, 79, 140, 0.5);
     --sq-pink-lighter-alpha-40: rgba(227, 79, 140, 0.4);
@@ -15,6 +16,7 @@
     --sq-light-blue-gray-alpha-80: #d4d4ff80;
     --sq-light-blue-gray-alpha-a0: #d4d4ffa0;
     --sq-bg-white-lit: #fcf6ff;
+    --sq-bg-white-lit-alpha-30: rgba(252, 246, 255, 0.3);
     --sq-bg-white-unlit: #f6f0ff;
     --sq-black: #27273A;
     --sq-black-alpha-50: #27273A50;
@@ -69,10 +71,13 @@
     --sq-ps2-primary-light-alpha-80: #CABCFF80;
     /* Overlay Colors */
     --sq-ov-ps2-primary: rgb(112, 80, 237);
+    --sq-ov-ps2-primary-alpha-75: rgba(112, 80, 237, 0.75);
+    --sq-ov-ps2-primary-alpha-50: rgba(112, 80, 237, 0.5);
     --sq-ov-ps2-primary-dark: rgb(46, 33, 96);
     --sq-ov-ps2-primary-dark-alpha-80: rgba(46, 33, 96, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(46, 33, 96, 0.7);
     --sq-ov-ps2-primary-light: rgb(202, 188, 255);
+    --sq-ov-ps2-primary-lightest: rgb(228,222,252);
     /*--sq-ov-ps2-flavor: rgb(184, 233, 227);*/
     /*--sq-ov-ps2-flavor-alpha-50: rgba(184, 233, 227, 0.5);*/
     --sq-ov-ps2-flavor: #adf4eb;
@@ -88,10 +93,13 @@
     --sq-ps2-primary-light-alpha-80: #B6DDFD80;
     /* Overlay Colors */
     --sq-ov-ps2-primary: rgb(30, 153, 252);
+    --sq-ov-ps2-primary-alpha-75: rgba(30, 153, 252, 0.75);
+    --sq-ov-ps2-primary-alpha-50: rgba(30, 153, 252, 0.5);
     --sq-ov-ps2-primary-dark: rgb(7, 37, 61);
     --sq-ov-ps2-primary-dark-alpha-80: rgba(7, 37, 61, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(7, 37, 61, 0.7);
     --sq-ov-ps2-primary-light: rgb(182, 221, 253);
+    --sq-ov-ps2-primary-lightest: rgb(224,241,255);
     --sq-ov-ps2-flavor: rgb(255, 247, 175);
     --sq-ov-ps2-flavor-alpha-50: rgba(255, 247, 175, 0.5);
 }
@@ -105,11 +113,15 @@
     --sq-ps2-primary-light-alpha-80: #FFD2D380;
     /* Overlay Colors */
     /*--sq-ov-ps2-primary: rgb(255, 108, 112);*/
-    --sq-ov-ps2-primary: #ea506a;
+    /*--sq-ov-ps2-primary: #ea506a;*/
+    --sq-ov-ps2-primary: rgb(234, 80, 106);
+    --sq-ov-ps2-primary-alpha-75: rgba(234, 80, 106, 0.75);
+    --sq-ov-ps2-primary-alpha-50: rgba(234, 80, 106, 0.5);
     --sq-ov-ps2-primary-dark: rgb(64, 27, 28);
     --sq-ov-ps2-primary-dark-alpha-80: rgba(64, 27, 28, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(64, 27, 28, 0.7);
     --sq-ov-ps2-primary-light: rgb(255, 190, 191);
+    --sq-ov-ps2-primary-lightest: rgb(251,220,225);
     /*--sq-ov-ps2-flavor: rgb(229, 217, 212);
     --sq-ov-ps2-flavor-alpha-50: rgba(229, 217, 212, 0.5);*/
     --sq-ov-ps2-flavor: #dae0e5; /* Gray */
@@ -136,6 +148,8 @@
     /*--sq-ov-ps2-primary: var(--sq-pink);*/
     /*--sq-ov-ps2-primary: rgb(10, 0, 25, 0.8);*/
     --sq-ov-ps2-primary: rgb(0, 0, 15);
+    --sq-ov-ps2-primary-alpha-75: rgba(0, 0, 15, 0.75);
+    --sq-ov-ps2-primary-alpha-50: rgba(0, 0, 15, 0.5);
     /*--sq-ov-ps2-primary-dark: var(--sq-pink-darker);*/
     /*--sq-ov-ps2-primary-dark: #652fdc;*/
     --sq-ov-ps2-primary-dark: rgb(25, 20, 30, 1);
@@ -146,6 +160,7 @@
     --sq-ov-ps2-primary-dark-alpha-80: rgba(0, 0, 15, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(0, 0, 15, 0.7);
     --sq-ov-ps2-primary-light: var(--sq-pink-lighter);
+    --sq-ov-ps2-primary-lightest: var(--sq-pink-lightest);
     --sq-ov-ps2-flavor: #d4d4ff;
     --sq-ov-ps2-flavor-alpha-50: rgba(212, 212, 255, 0.5);
 }
