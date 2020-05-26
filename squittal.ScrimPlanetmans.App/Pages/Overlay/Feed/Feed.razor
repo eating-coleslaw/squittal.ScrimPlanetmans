@@ -1,0 +1,186 @@
+﻿@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+@using squittal.ScrimPlanetmans.Models;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+<div class="killfeed @(_legacyUi ? "legacy" : string.Empty)" id="killfeedContainer">
+    <table>
+        <tbody id="killfeed" class="killfeedBody">
+            @for (var i = 0; i <= 3; i++)
+            {
+                @if (_renderedEvents[i] != null)
+                {
+                    <FeedRow i_killfeedEvent=_renderedEvents[i] i_index=i />
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter]
+    public bool i_legacyUi { get; set; } = false;
+
+    private int _maxKillfeedRows = 4;
+
+    private ScrimKillfeedEvent[] _renderedEvents { get; set; } = new ScrimKillfeedEvent[4];
+
+    private bool _legacyUi { get; set; } = false;
+    private int _renderedEventCount { get; set; } = 0;
+    private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
+        //MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseScrimDeathActionEvent -= ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent -= ReceiveScrimReviveActionEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_legacyUi != _legacyUi)
+        {
+            _legacyUi = i_legacyUi;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion InitializationMethods
+
+    #region Event Handling
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    {
+        var deathEvent = e.Message.DeathEvent;
+
+        var killfeedEvent = ConvertToKillfeedEvent(deathEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedEvents();
+    }
+
+    private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    {
+        var reviveEvent = e.Message.ReviveEvent;
+
+        var killfeedEvent = ConvertToKillfeedEvent(reviveEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedEvents();
+    }
+
+    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    {
+        var objectiveTickEvent = e.Message.ObjectiveTickEvent;
+
+        //var killfeedEvent = ConvertToKillfeedEvent(objectiveTickEvent);
+
+        //_eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedEvents();
+    }
+
+    #endregion Event Handling
+
+    #region ScrimKillfeedEvent Conversions
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimDeathActionEvent deathEvent)
+    {
+        var weaponName = deathEvent.Weapon?.Name;
+        if (string.IsNullOrWhiteSpace(weaponName))
+        {
+            weaponName = "Unknown Weapon";
+        }
+
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = deathEvent.AttackerPlayer,
+            RecipientPlayer = deathEvent.VictimPlayer,
+            Timestamp = deathEvent.Timestamp,
+            EventType = KillfeedEventType.Kill,
+            WeaponName = weaponName,
+            Points = deathEvent.Points,
+            IsHeadshot = deathEvent.IsHeadshot,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now
+        };
+    }
+
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimReviveActionEvent reviveEvent)
+    {
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = reviveEvent.MedicPlayer,
+            RecipientPlayer = reviveEvent.RevivedPlayer,
+            Timestamp = reviveEvent.Timestamp,
+            EventType = KillfeedEventType.Revive,
+            WeaponName = "Revive",
+            Points = reviveEvent.Points,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now
+        };
+    }
+    #endregion ScrimKillfeedEvent Conversions
+
+    private void UpdateRenderedEvents()
+    {
+        InvokeAsync(() =>
+        {
+            while (_eventsQueue.TryDequeue(out ScrimKillfeedEvent newEvent))
+            {
+                lock (_renderedEvents)
+                {
+                    for (var i = 3; i > 0; i--)
+                    {
+                        _renderedEvents[i] = _renderedEvents[i - 1];
+                    }
+
+                    _renderedEvents[0] = newEvent;
+
+                    StateHasChanged();
+                }
+
+            }
+
+            StateHasChanged();
+        });
+    }
+
+    private string GetPlayerName(Player player)
+    {
+        if (player == null)
+        {
+            return "Unknown Player";
+        }
+        else
+        {
+            return player.NameDisplay;
+        }
+    }
+}

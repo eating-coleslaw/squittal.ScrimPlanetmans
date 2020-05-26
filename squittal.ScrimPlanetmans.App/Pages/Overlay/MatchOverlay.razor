@@ -3,6 +3,7 @@
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.TeamPlayers;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Scoreboard;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.MatchReports;
+@using squittal.ScrimPlanetmans.App.Pages.Overlay.Feed;
 
 @inject NavigationManager NavManager
 
@@ -27,6 +28,11 @@
     <InfantryMatchReport />
 }
 
+@if (_feed)
+{
+    <Feed i_legacyUi=_legacyUi/>
+}
+
 @code {
     [Parameter]
     public bool _report { get; set; } = true;
@@ -42,6 +48,9 @@
 
     [Parameter]
     public bool _title { get; set; } = true;
+
+    [Parameter]
+    public bool _legacyUi { get; set; } = false;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -154,6 +163,23 @@
             else
             {
                 _title = true;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("legacy", out var qLegacy))
+        {
+            if (bool.TryParse(qLegacy, out var legacy))
+            {
+                if (legacy != _legacyUi)
+                {
+                    _legacyUi = legacy;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _legacyUi = false;
                 stateChanged = true;
             }
         }

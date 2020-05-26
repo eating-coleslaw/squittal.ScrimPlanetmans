@@ -896,26 +896,38 @@
     }*/
 
 .killfeed {
-    display: inline-block;
-    width: 400px;
+    /*display: inline-block;*/
+    /*width: 400px;*/
     box-sizing: inherit;
-    position: relative;
-    top: -15px;
+    /*position: relative;*/
+    /*top: -15px;*/
     text-shadow: 0px 0px 1px #141414;
     line-height: 1.2;
     font-weight: 600;
     font-size: 14px;
     white-space: nowrap;
-    z-index: -1;
-    padding-top: 20px;
+    /*z-index: -1;*/
+    /*padding-top: 20px;*/
     -moz-transition: height 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     -webkit-transition: height 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     transition: height 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     filter: drop-shadow(0px 0px 1px rgb(20, 20, 20));
+    color: var(--sq-bg-white-lit);
+    width: 500px;
+    position: fixed;
+    bottom: 24px;
+    /*left: calc(50% - 250px);*/
+    left: calc(50% - 245px);
+}
+
+.killfeed.legacy {
+    top: 88px;
+    bottom: 0;
 }
 
     .killfeed table {
-        margin: auto;
+        /*margin: auto;*/
+        width: 100%
     }
 
     .killfeed.killfeedInactive {
@@ -923,7 +935,7 @@
     }
 
 /* TODO: remove this, probably */
-#killfeedContainer::after {
+/*#killfeedContainer::after {
     display: none;
     box-sizing: inherit;
     width: 30px;
@@ -934,7 +946,7 @@
     border-top: 5px double rgba(255, 216, 58, 0.8);
     border-left: 3px solid transparent;
     border-right: 3px solid transparent;
-}
+}*/
 
 .killfeedHeader {
     font-weight: 400;
@@ -947,7 +959,9 @@
     overflow-y: hidden;
     box-sizing: inherit;
     box-sizing: border-box;
-    max-width: 394px;
+    /*max-width: 394px;*/
+    /*max-width: calc(500px - 8px);*/
+    max-width: 500px;
 }
 
 .killfeedRowContainer {
@@ -955,9 +969,10 @@
     text-align: center;
     grid-gap: 7px;
     box-sizing: border-box;
-    grid-template-columns: 16px 1fr 35px 1fr 1fr;
+    /*grid-template-columns: 16px 1fr 36px 1fr 1fr;*/
+    grid-template-columns: 16px 3fr 36px 2fr 3fr;
     padding: 0px 5px 0px 5px;
-    max-width: calc(375px - 8px);
+    /*max-width: calc(375px - 8px);*/
     /*-moz-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
     /*-webkit-animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
     /*animation: 0.5s cubic-bezier(.17,.84,.44,1) 0s 1 normal forwards eventFadeIn, 1s cubic-bezier(.6,-0.28,.74,.05) 8s 1 normal forwards eventFadeOut;*/
@@ -1001,13 +1016,12 @@
     vertical-align: top;
 }
 
-
-.weaponPointsContainer {
+/*.weaponPointsContainer {
     display: grid;
     grid-template-columns: 80px 30px;
     box-sizing: inherit;
     grid-gap: 5px;
-}
+}*/
 
 .killWeapon {
     text-align: left;
@@ -1016,7 +1030,8 @@
 }
 
 .killfeedCell.killfeedWeapon {
-    width: 105px;
+    /*width: 105px;*/
+    width: 128px;
     /*-webkit-filter: drop-shadow(0px 0px 2px rgba(20, 20, 20, 0.8));*/
     filter: drop-shadow(0px 0px 2px rgba(20, 20, 20, 0.8));
 }
@@ -1035,7 +1050,8 @@
 .killfeedCell.killfeedPlayer1, .killfeedCell.killfeedPlayer2, .killfeedCell.killfeedPlayer3 {
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 124px;
+    /*width: 124px;*/
+    width: 144px;
 }
 
 .killfeedCell.killfeedPlayer {
@@ -1044,6 +1060,7 @@
     color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
     /*-webkit-filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));*/
     filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));
+    width: 144px;
 }
 
     .killfeedCell.killfeedPlayer.killfeedWinner {
