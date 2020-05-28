@@ -39,7 +39,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int RevivesTaken { get; set; } = 0;
 
         public int DamageAssists { get; set; } = 0;
-        public int UtilityAssists { get; set; } = 0;
+
+        public int GrenadeAssists { get; set; } = 0;
+        public int SpotAssists { get; set; } = 0;
+        public int HealSupportAssists { get; set; } = 0;
+        public int ProtectAlliesAssists { get; set; } = 0;
+
+        //public int UtilityAssists { get; set; } = 0;
+        public int UtilityAssists
+        {
+            get
+            {
+                return GrenadeAssists + SpotAssists + HealSupportAssists + ProtectAlliesAssists;
+            }
+        }
         public int Assists
         {
             get
@@ -49,7 +62,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         }
 
         public int DamageAssistedDeaths { get; set; } = 0;
-        public int UtilityAssistedDeaths { get; set; } = 0;
+
+
+        public int GrenadeAssistedDeaths { get; set; } = 0;
+        public int SpotAssistedDeaths { get; set; } = 0;
+        public int ProtectAlliesAssistedDeaths { get; set; } = 0;
+        //public int UtilityAssistedDeaths { get; set; } = 0;
+        public int UtilityAssistedDeaths
+        {
+            get
+            {
+                return GrenadeAssistedDeaths + SpotAssistedDeaths + ProtectAlliesAssistedDeaths;
+            }
+        }
 
         public int ObjectiveCaptureTicks { get; set; } = 0;
         public int ObjectiveDefenseTicks { get; set; } = 0;
@@ -257,9 +282,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             RevivesGiven += addend.RevivesGiven;
             RevivesTaken += addend.RevivesTaken;
             DamageAssists += addend.DamageAssists;
-            UtilityAssists += addend.UtilityAssists;
+            //UtilityAssists += addend.UtilityAssists;
+            GrenadeAssists += addend.GrenadeAssists;
+            SpotAssists += addend.SpotAssists;
+            HealSupportAssists += addend.HealSupportAssists;
+            ProtectAlliesAssists += addend.ProtectAlliesAssists;
+
             DamageAssistedDeaths += addend.DamageAssistedDeaths;
-            UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
+            //UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
+            GrenadeAssistedDeaths += addend.GrenadeAssistedDeaths;
+            SpotAssistedDeaths += addend.SpotAssistedDeaths;
+            ProtectAlliesAssistedDeaths += addend.ProtectAlliesAssistedDeaths;
 
             VehiclesDestroyed += addend.VehiclesDestroyed;
             VehiclesLost += addend.VehiclesLost;
@@ -326,9 +359,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             RevivesGiven -= subtrahend.RevivesGiven;
             RevivesTaken -= subtrahend.RevivesTaken;
             DamageAssists -= subtrahend.DamageAssists;
-            UtilityAssists -= subtrahend.UtilityAssists;
+
+            //UtilityAssists -= subtrahend.UtilityAssists;
+            GrenadeAssists -= subtrahend.GrenadeAssists;
+            SpotAssists -= subtrahend.SpotAssists;
+            HealSupportAssists -= subtrahend.HealSupportAssists;
+            ProtectAlliesAssists -= subtrahend.ProtectAlliesAssists;
+
             DamageAssistedDeaths -= subtrahend.DamageAssistedDeaths;
-            UtilityAssistedDeaths -= subtrahend.UtilityAssistedDeaths;
+            //UtilityAssistedDeaths -= subtrahend.UtilityAssistedDeaths;
+            GrenadeAssistedDeaths -= subtrahend.GrenadeAssistedDeaths;
+            SpotAssistedDeaths -= subtrahend.SpotAssistedDeaths;
+            ProtectAlliesAssistedDeaths -= subtrahend.ProtectAlliesAssistedDeaths;
 
             VehiclesDestroyed -= subtrahend.VehiclesDestroyed;
             VehiclesLost -= subtrahend.VehiclesLost;

@@ -16,7 +16,11 @@
         <div id="@($"{_player.NameDisplay}-graph")" class="graph">
             <div id="@($"{_player.NameDisplay}-graph-bar")" class="graph-bar" style="width: @($"{_pointGraphWidth}%")"></div>
         </div>
-        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">@_renderedEventAggregate.NetScore</div>
+        @*<div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">*@
+        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity:">
+            <span class="value">@_renderedEventAggregate.NetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
+            @*@_renderedEventAggregate.NetScore*@
+        </div>
         <div id="@($"{_player.NameDisplay}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
         <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
         @if (_showHsr)
@@ -24,7 +28,8 @@
             <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@_renderedEventAggregate.HeadshotRatio<span style="font-size: small;">%</span></div>
         }
         <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
-        <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>
+        @*<div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>*@
+        <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.GrenadeAssists);">@_renderedEventAggregate.GrenadeAssists</div>
     </div>
 }
 
@@ -186,7 +191,7 @@
         {
             return true;
         }
-        else if (_renderedEventAggregate.UtilityAssists != newAggregate.UtilityAssists)
+        else if (_renderedEventAggregate.GrenadeAssists != newAggregate.GrenadeAssists)
         {
             return true;
         }
@@ -210,6 +215,34 @@
         return (value != 0)
             ? 1.0
             : 0.5;
+    }
+
+    private string GetNetScoreLabelCssClass()
+    {
+        if (_renderedEventAggregate.NetScore == 0)
+        {
+            return "neutral";
+        }
+        else if (_renderedEventAggregate.NetScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText()
+    {
+        if (_renderedEventAggregate.NetScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
+        }
     }
 
     private void InvokeAsyncStateHasChanged()

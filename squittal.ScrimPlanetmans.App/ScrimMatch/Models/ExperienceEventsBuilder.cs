@@ -30,7 +30,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public static int[] DamageAssistIds =
         {
             2,      // Kill Player Assist (100xp)
-            335,    // Savior Kill (Non MAX) (25xp)
+            //335,    // Savior Kill (Non MAX) (25xp)
             371,    // Kill Player Priority Assist (150xp)
             372     // Kill Player High Priority Assist (300xp)
         };
@@ -50,6 +50,36 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             1394,   // Draw Fire Award (25xp)
             36,     // Spot Kill (20xp)
             54      // Squad Spot Kill (30xp)
+        };
+
+        public static int[] GrenadeAssistIds =
+        {
+            550,    // Concussion Grenade Assist (50xp)
+            551,    // Concussion Grenade Squad Assist (75xp)
+            552,    // EMP Grenade Assist (50xp)
+            553,    // EMP Grenade Squad Assist (75xp)
+            554,    // Flashbang Assist (50xp)
+            555     // Flashbang Squad Assist (75xp)
+        };
+
+        public static int[] HealSupportAssistIds =
+        {
+            5,      // Heal Assist (5xp)
+            438,    // Shield Repair (10xp)
+            439     // Squad Shield Repair (15xp)
+        };
+
+        public static int[] SpotAssistIds =
+        {
+            36,     // Spot Kill (20xp)
+            54      // Squad Spot Kill (30xp)
+        };
+
+        public static int[] ProtectAlliesAssistIds =
+        {
+            335,    // Savior Kill (Non MAX) (25xp)
+            1393,   // Hardlight Cover - Blocking Exp (placeholder until code is done) (50xp)
+            1394    // Draw Fire Award (25xp)
         };
 
         public static int[] BannedIds =
@@ -115,6 +145,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             else if (DamageAssistIds.Contains(experienceId))
             {
                 return ExperienceType.DamageAssist;
+            }
+            else if (GrenadeAssistIds.Contains(experienceId))
+            {
+                return ExperienceType.GrenadeAssist;
+            }
+            else if (HealSupportAssistIds.Contains(experienceId))
+            {
+                return ExperienceType.HealSupportAssist;
+            }
+            else if (SpotAssistIds.Contains(experienceId))
+            {
+                return ExperienceType.SpotAssist;
+            }
+            else if (ProtectAlliesAssistIds.Contains(experienceId))
+            {
+                return ExperienceType.ProtectAlliesAssist;
             }
             else if (UtilityAssistIds.Contains(experienceId))
             {

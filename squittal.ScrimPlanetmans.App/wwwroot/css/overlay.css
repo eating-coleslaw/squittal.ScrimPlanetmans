@@ -1230,6 +1230,7 @@ body {
     grid-template-areas: "team1" "spacer" "team2";
     font-size: 18px;
     font-weight: 500;
+    z-index: 1;
 }
 
     .overlay .match-report .team-report {
@@ -1278,7 +1279,8 @@ body {
 
     .overlay .match-report .stats-row {
         display: grid;
-        grid-template-columns: 1fr 55px 100px repeat(6, 90px);
+/*        grid-template-columns: 1fr 55px 100px repeat(6, 90px);*/
+        grid-template-columns: 1fr 65px 110px 70px repeat(6, 90px);
         grid-template-areas: "label score graph net kills deaths hsr assists utils";
         /*grid-gap: 5px;*/
         grid-gap: 4px;
@@ -1288,7 +1290,8 @@ body {
 
     .overlay .match-report.no-hsr .stats-row {
         /*display: grid;*/
-        grid-template-columns: 1fr 55px 100px repeat(5, 90px);
+/*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
+        grid-template-columns: 1fr 65px 110px 70px repeat(4, 90px);
         grid-template-areas: "label score graph net kills deaths assists utils";
         /*grid-gap: 5px;*/
         /*grid-gap: 4px;*/
@@ -1324,7 +1327,8 @@ body {
         display: grid;
         /*color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);*/
         color: var(--sq-ov-ps2-primary-light, --sq-ov-bg-dark-gray);
-        grid-template-columns: 1fr 155px repeat(6, 90px);
+/*        grid-template-columns: 1fr 155px repeat(6, 90px);*/
+        grid-template-columns: 1fr 175px 70px repeat(5, 90px);
         grid-template-areas: "label score net kills deaths hsr assists utils";
         /*grid-gap: 5px;*/
         grid-gap: 4px;
@@ -1336,7 +1340,8 @@ body {
     }
 
     .overlay .match-report.no-hsr .stats-row-header {
-        grid-template-columns: 1fr 155px repeat(5, 90px);
+/*        grid-template-columns: 1fr 155px repeat(5, 90px);*/
+        grid-template-columns: 1fr 175px 70px repeat(4, 90px);
         grid-template-areas: "label score net kills deaths assists utils";
     }
 
@@ -1420,8 +1425,10 @@ body {
     }
 
     .overlay .match-report .stats-row .graph .graph-bar {
-        height: 18px;
-        margin: 3px 0px 3px 0px;
+/*        height: 18px;*/
+        height: 17px;
+/*        margin: 3px 0px 3px 0px;*/
+        margin: 5px 0 0 0;
         background-color: var(--sq-ov-ps2-primary);
         opacity: 0.9;
         box-sizing: border-box;
@@ -1432,6 +1439,53 @@ body {
     .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net {
         grid-area: net;
     }
+
+    .overlay .match-report .stats-row.player .stats-value.net {
+        overflow: visible;
+        display: inline;
+        vertical-align: bottom;
+        font-size: 1.1rem;
+    }
+
+        .overlay .match-report .stats-row .stats-value.net .value {
+            /*overflow: visible;
+            display: inline;
+            vertical-align: bottom;
+            font-size: 1.1rem;*/
+        }
+        
+/*        .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net .value {
+            grid-area: net;
+            overflow: visible;
+        }*/
+
+        .overlay .match-report .stats-row .stats-value.net .label {
+            padding-left: 4px;
+            font-size: 1rem;
+            color: var(--sq-ov-semantic-green);
+        }
+
+            .overlay .match-report .stats-row .stats-value.net .label.neutral {
+                color: var(--sq-ov-semantic-orange);
+                display: inline-block;
+                font-weight: 700;
+                position: relative;
+/*                top: 4px;*/
+                top: 2px;
+                height: 20px;
+            }
+
+            .overlay .match-report .stats-row .stats-value.net .label.negative {
+                color: var(--sq-ov-semantic-red);
+                display: inline-block;
+                transform-origin: center;
+                transform: rotateZ(180deg);
+/*                padding: 0 4px 1px 0;*/
+                padding: 0 4px 0 0;
+                position: relative;
+                top: 6px;
+                height: 20px;
+            }
 
     .overlay .match-report .stats-row .stats-value.kills, .stats-col-header.kills {
         grid-area: kills;

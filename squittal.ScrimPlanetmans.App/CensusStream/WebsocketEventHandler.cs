@@ -860,11 +860,27 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     return;
 
                 case ExperienceType.UtilityAssist:
-                    ProcessAssistPayload(baseEvent, payload);
+                    //ProcessAssistPayload(baseEvent, payload);
                     return;
 
                 case ExperienceType.PointControl:
                     ProcessPointControlPayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.GrenadeAssist:
+                    ProcessAssistPayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.HealSupportAssist:
+                    ProcessAssistPayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.ProtectAlliesAssist:
+                    ProcessAssistPayload(baseEvent, payload);
+                    return;
+
+                case ExperienceType.SpotAssist:
+                    ProcessAssistPayload(baseEvent, payload);
                     return;
 
                 default:
@@ -987,9 +1003,19 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
-            return assistEvent.ExperienceType == ExperienceType.DamageAssist
-                        ? ScrimActionType.DamageAssist
-                        : ScrimActionType.UtilityAssist;
+            return assistEvent.ExperienceType switch
+            {
+                ExperienceType.DamageAssist => ScrimActionType.DamageAssist,
+                ExperienceType.GrenadeAssist => ScrimActionType.GrenadeAssist,
+                ExperienceType.HealSupportAssist => ScrimActionType.HealSupportAssist,
+                ExperienceType.ProtectAlliesAssist => ScrimActionType.ProtectAlliesAssist,
+                ExperienceType.SpotAssist => ScrimActionType.SpotAssist,
+                _ => ScrimActionType.UtilityAssist
+            };
+
+            //return assistEvent.ExperienceType == ExperienceType.DamageAssist
+            //            ? ScrimActionType.DamageAssist
+            //            : ScrimActionType.UtilityAssist;
         }
 
         private void ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)

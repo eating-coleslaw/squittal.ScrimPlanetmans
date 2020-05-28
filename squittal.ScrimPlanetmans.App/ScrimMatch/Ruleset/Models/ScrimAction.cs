@@ -110,6 +110,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         //MaxTakeRevive               = 303,
         DamageAssist                = 304,
         UtilityAssist               = 305,
+        GrenadeAssist               = 306,
+        HealSupportAssist           = 307,
+        SpotAssist                  = 308,
+        ProtectAlliesAssist         = 309,
 
         // Vehicles: 400 - 499        
         VehicleKillInfantry                = 400,

@@ -353,15 +353,33 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 attackerUpdate.DamageAssists = 1;
                 victimUpdate.DamageAssistedDeaths = 1;
             }
-            else
+            else if (actionType == ScrimActionType.GrenadeAssist)
             {
-                attackerUpdate.UtilityAssists = 1;
-                victimUpdate.UtilityAssistedDeaths = 1;
+                attackerUpdate.GrenadeAssists = 1;
+                victimUpdate.GrenadeAssistedDeaths = 1;
+            }
+            else if (actionType == ScrimActionType.HealSupportAssist)
+            {
+                attackerUpdate.HealSupportAssists = 1;
+            }
+            else if (actionType == ScrimActionType.ProtectAlliesAssist)
+            {
+                attackerUpdate.ProtectAlliesAssists = 1;
+                victimUpdate.ProtectAlliesAssistedDeaths = 1;
+            }
+            else if (actionType == ScrimActionType.SpotAssist)
+            {
+                attackerUpdate.SpotAssists = 1;
+                victimUpdate.SpotAssistedDeaths = 1;
             }
 
             // Player Stats update automatically updates the appropriate team's stats
             _teamsManager.UpdatePlayerStats(assist.AttackerPlayer.Id, attackerUpdate);
-            _teamsManager.UpdatePlayerStats(assist.VictimPlayer.Id, victimUpdate);
+
+            if (assist.VictimPlayer != null)
+            {
+                _teamsManager.UpdatePlayerStats(assist.VictimPlayer.Id, victimUpdate);
+            }
 
             return points;
         }

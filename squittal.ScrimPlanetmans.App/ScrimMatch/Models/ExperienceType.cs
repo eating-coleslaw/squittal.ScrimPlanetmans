@@ -6,6 +6,10 @@
         PointControl,
         DamageAssist,
         UtilityAssist,
+        GrenadeAssist,
+        HealSupportAssist,
+        ProtectAlliesAssist,
+        SpotAssist,
         Unknown = 99
     };
 }
