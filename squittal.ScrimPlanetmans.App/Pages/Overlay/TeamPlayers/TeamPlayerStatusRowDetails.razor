@@ -24,7 +24,7 @@
             <div class="score">
                 <div class="points">@_renderedPoints</div>
                 <div class="net">
-                    <span class="value">@_renderedNetScore</span><span class="label">Δ</span>
+                    <span class="value">@_renderedNetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
                 </div>
             </div>
         }
@@ -429,6 +429,34 @@
         else
         {
             return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelCssClass()
+    {
+        if (_renderedNetScore == 0)
+        {
+            return "neutral";
+        }
+        else if (_renderedNetScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText()
+    {
+        if (_renderedNetScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
         }
     }
 }

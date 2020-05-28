@@ -104,6 +104,7 @@ body {
         /*border: 1px solid var(--sq-ov-ps2-primary-alpha-75);*/
         border: 1px solid var(--sq-ov-ps2-primary-alpha-50);
         grid-row-gap: 2px;
+        grid-column-gap: 16px;
     }
 
     .overlay .players.vs .playerStatusContainer {
@@ -139,7 +140,8 @@ body {
         background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
-        grid-column-gap: 8px;
+        /*grid-column-gap: 8px;*/
+        
     }
 
         .overlay .players.players2 .playerStatusContainer:nth-child(1) {
@@ -159,7 +161,8 @@ body {
         z-index: 1;
         vertical-align: bottom;
         color: var(--sq-ov-ps2-primary-lightest);
-        font-size: 1.25rem;
+/*        font-size: 1.25rem;*/
+        font-size: 1.2rem;
     }
 
     .overlay .players .playerStatusContainer.deadTextPlay .name {
@@ -217,11 +220,29 @@ body {
             color: var(--sq-ov-ps2-primary);
             padding-left: 4px;
             /*font-weight: 700;*/
+            font-size: 1rem;
+            color: var(--sq-ov-semantic-green);
         }
 
-    .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
-        color: var(--sq-ov-ps2-primary-alpha-50);
-    }
+            .overlay .players .playerStatusContainer .score .net .label.neutral {
+                color: var(--sq-ov-semantic-orange);
+                display: inline-block;
+                font-weight: 700;
+            }
+
+            .overlay .players .playerStatusContainer .score .net .label.negative {
+                color: var(--sq-ov-semantic-red);
+                display: inline-block;
+                transform-origin: center;
+                transform: rotateZ(180deg);
+                padding: 0 4px 1px 0;
+            }
+
+        .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
+            /*color: var(--sq-ov-ps2-primary-alpha-50);*/
+            color:  var(--sq-bg-white-lit-alpha-30);
+        }
+
 
     .overlay .players .playerStatusContainer .score .net .value {
         /*grid-area: value;
@@ -432,9 +453,9 @@ body {
     background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
 }
 
-.deadTextPlay .label {
+/*.deadTextPlay .label {
     color: var(--sq-ov-ps2-primary-alpha-50) !important;
-}
+}*/
 
 
 .deadIconPlay {
@@ -578,7 +599,7 @@ body {
 @-moz-keyframes fadeOutSimple {
     from {
         opacity: 0.4;
-        mix-blend-mode: soft-light;
+        /*mix-blend-mode: soft-light;*/
     }
 
     to {
@@ -589,7 +610,7 @@ body {
 @-webkit-keyframes fadeOutSimple {
     from {
         opacity: 0.4;
-        mix-blend-mode: soft-light;
+        /*mix-blend-mode: soft-light;*/
     }
 
     to {
@@ -600,7 +621,7 @@ body {
 @keyframes fadeOutSimple {
     from {
         opacity: 0.4;
-        mix-blend-mode: soft-light;
+        /*mix-blend-mode: soft-light;*/
     }
 
     to {
@@ -919,9 +940,11 @@ body {
     width: 500px;
     position: fixed;
     /*bottom: 24px;*/
-    top: 88px;
-    /*left: calc(50% - 250px);*/
-    left: calc(50% - 245px);
+    /*top: 88px;*/
+    top: 72px;
+/*    left: calc(50% - 250px);*/
+/*    left: calc(50% - 245px);*/
+    left: calc(50% - 240px);
 }
 
     .killfeed.bottom {

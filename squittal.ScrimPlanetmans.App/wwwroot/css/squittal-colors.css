@@ -59,6 +59,9 @@
     --sq-ov-bg-dark-gray-alpha-55: rgba(31, 35, 48, 0.55); /*#1F233090*/
     --sq-ov-bg-dark-gray-alpha-90: rgba(31, 35, 48, 0.90); /*#1F2330E5
     /*--sq-ov-bg-dark-gray-alpha-90: rgba(0, 0, 15, 0.8);*/
+    --sq-ov-semantic-green: rgb(16,191,107); /*#10BF6B*/
+    --sq-ov-semantic-orange: rgb(248,194,117); /*#f8c275*/
+    --sq-ov-semantic-red: rgb(224,76,112); /*#E04C70*/
 }
 
 
