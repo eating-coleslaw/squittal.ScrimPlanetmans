@@ -35,6 +35,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public bool IsOutfitless { get; set; } = false;
 
+        public int? ConstructedTeamId { get; set; }
+
+        public bool IsFromConstructedTeam => ConstructedTeamId != null;
+
         // Dynamic Attributes
         public int? LoadoutId { get; set; }
         public PlayerStatus Status { get; set; } = PlayerStatus.Unknown;

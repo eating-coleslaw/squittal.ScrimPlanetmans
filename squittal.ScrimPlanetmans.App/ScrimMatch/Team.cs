@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
+using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -28,6 +29,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public List<Outfit> Outfits { get => _outfits; }
         public List<Player> NonOutfitCharacters { get; } = new List<Player>();
+
+        public List<ConstructedTeam> ConstructedTeams { get; set; } = new List<ConstructedTeam>();
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
@@ -80,6 +83,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _seedOutfitAliases.Contains(alias);
         }
 
+        public bool ContainsConstructedTeam(int constructedTeamId)
+        {
+            return ConstructedTeams.Any(ct => ct.Id == constructedTeamId);
+        }
+
         public bool TryAddPlayer(Player player)
         {
             if (ContainsPlayer(player.Id))
@@ -113,6 +121,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+
         public bool TryAddOutfit(Outfit outfit)
         {
             if (ContainsOutfit(outfit.AliasLower))
@@ -140,6 +149,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _seedOutfitAliases.RemoveAll(alias => alias == aliasLower);
             _seedOutfitIds.RemoveAll(id => id == outfit.Id);
 
+            return true;
+        }
+
+        
+        public bool TryAddConstructedTeam(ConstructedTeam constructedTeam)
+        {
+            if (!ContainsConstructedTeam(constructedTeam.Id))
+            {
+                return false;
+            }
+
+            ConstructedTeams.Add(constructedTeam);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeam(int constructedTeamId)
+        {
+            if (!ContainsConstructedTeam(constructedTeamId))
+            {
+                return false;
+            }
+
+            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
             return true;
         }
 

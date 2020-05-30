@@ -108,6 +108,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public Team GetTeamFromConstructedTeamId(int constructedTeamId)
+        {
+            if (!IsConstructedTeamAvailable(constructedTeamId, out Team owningTeam))
+            {
+                return owningTeam;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public int? GetFirstTeamWithFactionId(int factionId)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
@@ -1312,6 +1324,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 owningTeam = team2;
                 return false;
+            }
+
+            owningTeam = null;
+            return true;
+        }
+
+        public bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeam(constructedTeamId))
+                {
+                    owningTeam = team;
+                    return false;
+                }
             }
 
             owningTeam = null;
