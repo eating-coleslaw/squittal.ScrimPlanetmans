@@ -1279,8 +1279,9 @@ body {
 
     .overlay .match-report .stats-row {
         display: grid;
-/*        grid-template-columns: 1fr 55px 100px repeat(6, 90px);*/
-        grid-template-columns: 1fr 65px 110px 70px repeat(6, 90px);
+        /*        grid-template-columns: 1fr 55px 100px repeat(6, 90px);*/
+        /*grid-template-columns: 1fr 65px 110px 70px repeat(6, 90px);*/
+        grid-template-columns: 1fr 65px 110px 70px repeat(5, 90px);
         grid-template-areas: "label score graph net kills deaths hsr assists utils";
         /*grid-gap: 5px;*/
         grid-gap: 4px;
