@@ -8,9 +8,11 @@
 
 The .NET Core 3.1 SDK and Runtime (the runtime is included with the SDK) is required to build and run the app. [Download the latest version of the .NET Core 3.1 SDK from the downloads page.](https://dotnet.microsoft.com/download "Download .NET Core 3.0")
 
-### SQL Server 2019 Express LocalDb
+### SQL Server Express LocalDb
 
 This is the database provider used to store data for the app.
+
+Windows 10 installation:
 
 1. Download and run the installer for the Express edition from [Microsoft's website](https://www.microsoft.com/en-us/sql-server/sql-server-downloads "SQL Server downloads page").
 
@@ -19,6 +21,14 @@ This is the database provider used to store data for the app.
 3. On the following screen, select the LocalDb package and note the download location. Click Download.
 
 4. __Find the download location and run SqlLocalDb.exe.__ Go through it with all of the default options.
+
+Windows 7 & Windows 8.1 installation:
+
+1. Navigate to the Microsoft SQL Server 2014 Express download page [here]([Microsoft® SQL Server® 2014 Express](https://www.microsoft.com/en-US/download/details.aspx?id=42299) "Microsoft SQL Server 2014 Express download page") and cick the Download button.
+
+2. Select `LocalDB 64BIT\SqlLocalDB.msi` or `LocalDB 32BIT\SqlLocalDB.msi` (64BIT for 64-bit OS, 32BIT for 32-bit OS), then click Next to start the download.
+
+3. __Find the download location and run SqlLocalDb.exe.__ Go through it with all of the default options.
 
 ### Daybreak Games Service ID
 
@@ -31,19 +41,31 @@ Using a registered Service ID permits unthrottled querying of the Census API. Wi
 3. Under __User veriables for <*Windows username*>__, select `New..`. to add a new user variable with name "DaybreakGamesServiceKey" (without the quotes) and a value of your census API service key. Click OK to accept the new variable.  
    * Note: The "s:" prefix in an API query string is not part of the service key. For example, you would set the environment variable to `example`, not `s:example`.  
 
-### _(For Streaming Only)_ Internet Information Services (IIS) 10.0 Express
+### _(For Streaming & Development)_ Visual Studio 2019 Community Edition
 
-IIS Express is necessary for displaying the streaming overlay in OBS. If only need to score matches or collect data, you can skip this requirement.
+.NET Core 3.1 is only compatible with Visual Studio 2019.
 
-1. Open the [IIS Express 10.0 download page](https://www.microsoft.com/en-us/download/details.aspx?id=48264 "IIS Express 10.0 download page").
+1. Download the free Community 2019 edition [here](https://visualstudio.microsoft.com/vs/ "Visual Studio 2019 download page").
 
-2. Click the "Download" button, then select the option corresponding to your processor and language. Click "Next" to begin the download.
+2. Select these workloads in the installer: ASP.NET and web development, .NET desktop development, & .NET Core cross-platform development (this will be ~8-10 GB).
 
-3. Run the downloaded installer.
+If you intend to stream matches using OBS (or other software), you'll need to run the app from Visual Studio once before the app will be picked up by OBS's browser source.
 
-### _(For Development Only)_ Visual Studio 2019 (v16.4)
+1. Open `squittal.ScrimPlanetmans.sln` in Visual Studio (it's in the top-level directory).
 
-.NET Core 3.1 is only compatible with Visual Studio 2019 (v16.4). Download the free community edition [here](https://visualstudio.microsoft.com/free-developer-offers/ "Visual Studio Preview download page").
+2. Open any file with a .cs file extension via the Solution Explorer panel (should be on right of the screen by default), such as `Startup.cs` or `Program.cs` The specific file doesn't matter.
+
+3. Press "Ctrl + Shift + B" to Build the solution. Wait a moment for it to finish (the Output panel should open, displaying the progress).
+
+4. (Assuming the Build is successful) At the top of the screen should be a green "play" button (sideways triangle) with an "IIS Express" label and a dropdown arrow. Click the dropdown arrow, then select "squittal.ScrimPlanetmans.App". __Don't press the button__.
+
+5. Press Ctrl + F5 to run the app from Visual Studio. It should automatically open a browser to https://localhost:5001/.
+
+6. Open OBS and configure a browser source with a URL of https://localhost:5001/overlay, following the instructions in the [Streaming Overlay](#streaming-overlay) section below. Disable & re-enable the browser source to refresh it. After enabling, it might take a second or two for the site to render. __If the overlay is visible in OBS, then you're done with these steps__.
+
+7. If it still didn't work, close the command line window that open with Ctrl + c, disable the firewall again, then re-doing steps 5 - 6.
+
+8. If it still doesn't work, restart your computer and try again.
 
 ## Running the App
 
@@ -58,12 +80,8 @@ Several of these must be run as administrator (`Right Click > Run as administrat
      `Right Click on the shortcut > Shortcut tab > Click the Advanced... button at the bottom > Check the _Run as administrator_ box`.
 
 ### Getting Started
-__!!Important!!__  
-The specific .bat files you need to run differ depending on whether you are displaying the streaming overlay in OBS.
 
-#### Non-Streaming Steps
-
-1. `BuildApp.bat`   
+1. `BuildApp.bat`  
 Run this if it's the first time running the app, or you just synced changes from the repository.  
  After a successful build, you'll be prompted to run the app. While the build itself does not require being run as administrator, if you want to run the app from this prompt you must run BuildApp.bat as administrator.
 
@@ -73,18 +91,8 @@ To stop the app _gracefully_, press `Ctrl+C` in the Command Prompt. Enter `Y` at
 
 #### Streaming Steps
 
-1. `PublishApp.bat`   
-Run this if it's the first time running the app, or you just synced changes from the repository.
-
-2. 1. `InstallWebSite.bat`  
-Run this after running `PublishApp.bat` for the very first time (you don't need to repeat this when taking changes). This registers the website squittal.ScrimPlanetmans in your IIS Express configuration.
-
-2. `RunApp_IISExpress.bat`  
-Run this as administrator to start the app. In a web browser navigate to https://localhost:44347.
-To stop the app _gracefully_, press `Ctrl+Q` in the IIS Express console window.
-
 __Review Database Population__  
-The app uses census data stored in a local database for a variety of purposes, the most important of which is <u>scoring</u>. On first startup, the database automatically attempts to populate from the Census API. If that fails, it backup scripts are used to populate the database. It's crucial to verify that the database is properly set up before trying to run a match.
+The app uses census data stored in a local database for a variety of purposes, the most important of which is scoring. On first startup, the database automatically attempts to populate from the Census API. If that fails, it backup scripts are used to populate the database. It's crucial to verify that the database is properly set up before trying to run a match.
 
 1. On the Database Maintenance page (`/DbAdmin`), everything in the Database Count column should have a non-zero value. If that's not the case, refer to the Maintenance section below for steps to correct a collection.
 
@@ -119,7 +127,7 @@ The app uses census data stored in a local database for a variety of purposes. T
 | Column | Description |
 |--------|-------------|
 | Collection | The name of the data set, generally aligning with the Census API terminology |
-| Database Count | The number of entities for this collection currently in your local database. Should not be zero, and should match the Census Count value (with some exceptions<b>\*</b>). Click the refresh icon to recalculate the count |
+| Database Count | The number of entities for this collection currently in your local database. Should not be zero, and should match the Census Count value (with some exceptions __\*__). Click the refresh icon to recalculate the count |
 | Census Count | The number of entities for this collection returned by the Census API. If zero or a warning icon, then this collection is broken in the Census API. Click the refresh icon to query the Census API for an updated count |
 | Update from Census | Click this button to populate the local database with new values from the Census API and update existing values with data from the Census API. If the Census API is broken or returning no results for a collection, the local database will not be truncated or otherwise harmed |
 | Update from Backup | Click this button to populate the local database from a hard-coded set of values for the collection. The database collection will be emptied before it's re-populated |
@@ -132,7 +140,7 @@ Each view of the streaming overlay should be a scene with a Browser source confi
 
 | Browser Source Setup | |
 |-|-|
-| _URL_                                       | https://localhost:44347/overlay... |
+| _URL_                                       | https://localhost:5001/overlay... |
 | _Control audio via OBS_                     | Checked                         |
 | _Custom CSS_                                | Empty                           |
 | _Shutdown source when not visible_          | Checked                         |
@@ -151,14 +159,19 @@ The general formula for using the parameters is `.../overlay?param1=value1&param
 | _scoreboard_ | The scoreboard at the top center of the page. Disabling the scoreboard also hides the killfeed. |
 | _feed_       | The killfeed in the center, below the scoreboard. The killfeed is always hidden if the scoreboard is hidden. |
 | _title_      | The match title at the top center of the page        |
+| _reportHsr_  | The HSR column in the match report                   |
 
 #### Examples
 
-https://localhost:44347/Overlay?players=false&feed=false
+https://localhost:5001/Overlay?players=false&feed=false
 
 * Hides the players and the killfeed, for a typical half-time or match-end scene.
 
-https://localhost:44347/Overlay?report=false
+https://localhost:5001/Overlay?players=false&feed=false&reportHsr=false
+
+* Same as above, except that the HSR column is excluded from the match report. 
+
+https://localhost:5001/Overlay?report=false
 
 * Hides the match stats report. This is what you'd want for streaming a match in-progress.
 
@@ -221,8 +234,8 @@ Each team in each match has one row in this table containing a team's final scor
 | TeamkillDeaths        | int           | No        | Total number of times the team's players were killed by a player on their team. |
 | RevivesGiven          | int           | No        | Total number of times the team's players gave a revive to a player on their team. Only accepted revives are counted. |
 | RevivesTaken          | int           | No        | Total number of times the team's players accepted a revive from a player on their team. |
-| DamageAssists         | int           | No        | Total number of times the team's players received an experience tick with one of the following experience gain IDs: <br>2-Kill Player Assist<br>335-Savior Kill (Non MAX)<br>371-Kill Player Priority Assist<br>372Kill Player High Priority Assist |
-| UtilityAssists        | int           | No        | Total number of times the team's players received an experience tick with one of the following experience gain IDs: <br>5-Heal Assis<br>438-Shield Repair<br>439-Squad Shield Repair<br>550-Concussion Grenade Assist<br>551-Concussion Grenade Squad Assist<br>552-EMP Grenade Assist<br>553-EMP Grenade Squad Assist<br>554-Flashbang Assist<br>555-Flashbang Squad Assist<br>1393-Hardlight Cover - Blocking Exp<br>1394-Draw Fire Award<br>36-Spot Kill<br>54-Squad Spot Kill |
+| DamageAssists         | int           | No        | Total number of times the team's players received an experience tick with one of the following experience gain IDs: <br>2-Kill Player Assist<br>371-Kill Player Priority Assist<br>372Kill Player High Priority Assist |
+| UtilityAssists        | int           | No        | Total number of times the team's players received an experience tick with one of the following experience gain IDs: <br>5-Heal Assis<br>335-Savior Kill (Non MAX)<br>438-Shield Repair<br>439-Squad Shield Repair<br>550-Concussion Grenade Assist<br>551-Concussion Grenade Squad Assist<br>552-EMP Grenade Assist<br>553-EMP Grenade Squad Assist<br>554-Flashbang Assist<br>555-Flashbang Squad Assist<br>1393-Hardlight Cover - Blocking Exp<br>1394-Draw Fire Award<br>36-Spot Kill<br>54-Squad Spot Kill |
 | DamageAssistedDeaths  | int           | No        | Total number of times the team's players had a death assisted by a Damage Assist. A player is considered such a victim if they appear in the `other_id` field of a relevant experience gain stream payload. |
 | UtilityAssistedDeaths | int           | No        | Total number of times the team's players ad a death assisted by a Utility Assist. A player is considered such a victim if they appear in the `other_id` field of a relevant experience gain stream payload. |
 | ObjectiveCaptureTicks | int           | No        | Total number of times the team's players receive an experience tick with one of the following experience gain IDs: <br>16-Control Point - Attack <br>272-Convert Capture Point <br>557-Objective Pulse Capture |
