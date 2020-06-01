@@ -17,7 +17,7 @@
             <div id="@($"{_player.NameDisplay}-graph-bar")" class="graph-bar" style="width: @($"{_pointGraphWidth}%")"></div>
         </div>
         @*<div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">*@
-        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity:">
+        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value" >
             <span class="value">@_renderedEventAggregate.NetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
             @*@_renderedEventAggregate.NetScore*@
         </div>
@@ -48,6 +48,8 @@
 
     private ScrimEventAggregate _renderedEventAggregate { get; set; } = new ScrimEventAggregate();
 
+    private string _renderedDisplayName { get; set; } = string.Empty;
+
     private decimal _pointGraphWidth { get; set; } = 4;
     private int _currentMaxPoints { get; set; } = 0;
 
@@ -56,17 +58,20 @@
     protected override void OnInitialized()
     {
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
 
         if (_player == null)
         {
             _player = i_Player;
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_player.EventAggregate);
+            _renderedDisplayName = _player.NameDisplay;
         }
         else
         {
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_player.EventAggregate);
+            _renderedDisplayName = _player.NameDisplay;
         }
 
         _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
@@ -77,6 +82,7 @@
     public void Dispose()
     {
         MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
     }
 
     protected override void OnParametersSet()
@@ -96,6 +102,8 @@
 
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_player.EventAggregate);
+
+            _renderedDisplayName = _player.NameDisplay;
 
             InvokeAsync(() =>
             {
@@ -160,6 +168,25 @@
             _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
 
             UpdatePointGraphWidth();
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player != _player)
+        {
+            return;
+        }
+
+        var newDisplayName = e.Message.NewNameDisplay;
+
+        if (newDisplayName != _renderedDisplayName)
+        {
+            _renderedDisplayName = newDisplayName;
 
             InvokeAsyncStateHasChanged();
         }

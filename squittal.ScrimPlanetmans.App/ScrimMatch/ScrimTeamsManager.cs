@@ -180,8 +180,38 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _logger.LogInformation($"Couldn't change {team.NameInternal} display Alias: custom alias already set");
                 return false;
             }
+        }
 
-            //TODO: add event for "Team X Alias Change"
+        public bool UdatePlayerTemporaryAlias(string playerId, string newAlias)
+        {
+            var player = GetPlayerFromId(playerId);
+            var oldAlias = (player.NameDisplay != player.NameFull) ? player.NameDisplay : string.Empty;
+
+            if (player.TrySetNameAlias(newAlias))
+            {
+                _messageService.BroadcastPlayerNameDisplayChangeMessage(new PlayerNameDisplayChangeMessage(player, newAlias, oldAlias));
+                return true;
+            }
+            else
+            {
+                _messageService.BroadcastSimpleMessage($"<span style=\"color: red; font-weight: 700;\">Couldn't change {player.NameFull} match alias: new alias is invalid</span>");
+                return false;
+            }
+        }
+
+        public void ClearPlayerDisplayName(string playerId)
+        {
+            var player = GetPlayerFromId(playerId);
+
+            if (string.IsNullOrWhiteSpace(player.NameTrimmed) && string.IsNullOrWhiteSpace(player.NameAlias))
+            {
+                return;
+            }
+
+            var oldAlias = (player.NameDisplay != player.NameFull) ? player.NameDisplay : string.Empty;
+
+            player.ClearAllDisplayNameSources();
+            _messageService.BroadcastPlayerNameDisplayChangeMessage(new PlayerNameDisplayChangeMessage(player, string.Empty, oldAlias));
         }
 
         public async Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString)

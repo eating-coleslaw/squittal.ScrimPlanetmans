@@ -233,7 +233,7 @@
                                 <tr style="border-top: 1px solid var(--sq-ps2-primary-light); border-bottom: 1px solid var(--sq-ps2-primary-light); background-color: var(--sq-ps2-primary-light-alpha-40);">
                                     <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
                                     <td title="@member.NameFull [@(member.Id)]">
-                                        <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
+                                        <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameDisplay</span>
                                         <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
                                     </td>
                                     <Test_PlayerStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id />
@@ -358,7 +358,7 @@
                             <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="border-top: 1px solid var(--sq-ps2-primary-light); border-bottom: 1px solid var(--sq-ps2-primary-light); background-color: var(--sq-ps2-primary-light-alpha-40);">
                                 <td title="@(player.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(player.IsOnline)</td>
                                 <td title="@player.NameFull [@(player.Id)]">
-                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameFull</span>
+                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
                                     <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(player.Id)]</span>
                                 </td>
                                 <Test_PlayerStatsRow EventAggregate=@player.EventAggregate PlayerId=@player.Id />
@@ -454,6 +454,8 @@
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
+
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
@@ -491,6 +493,8 @@
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
 
         MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
 
@@ -781,6 +785,26 @@
         if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
         {
             _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersVisible.Contains(player))
+        {
+            return;
         }
 
         InvokeAsync(() =>

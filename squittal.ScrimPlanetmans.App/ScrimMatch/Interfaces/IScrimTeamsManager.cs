@@ -66,5 +66,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower);
         Task<bool> RemoveCharacterFromTeamAndDb(string characterId);
         int? GetTeamScoreDisplay(int teamOrdinal);
+
+        bool UdatePlayerTemporaryAlias(string playerId, string newAlias);
+        void ClearPlayerDisplayName(string playerId);
     }
 }

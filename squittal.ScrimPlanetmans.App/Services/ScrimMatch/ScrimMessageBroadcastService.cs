@@ -25,6 +25,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
         public delegate void TeamAliasChangeEventHandler(object sender, TeamAliasChangeEventArgs e);
+        
+        public event EventHandler<PlayerNameDisplayChangeEventArgs> RaisePlayerNameDisplayChangeEvent;
+        public delegate void PlayerNameDisplayChangeEventHandler(object sender, PlayerNameDisplayChangeEventArgs e);
 
         public event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
         public delegate void TeamFactionChangeEventHandler(object sender, TeamFactionChangeEventArgs e);
@@ -315,6 +318,17 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseTeamAliasChangeEvent(TeamAliasChangeEventArgs e)
         {
             RaiseTeamAliasChangeEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastPlayerNameDisplayChangeMessage(PlayerNameDisplayChangeMessage message)
+        {
+            OnRaisePlayerNameDisplayChangeEvent(new PlayerNameDisplayChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaisePlayerNameDisplayChangeEvent(PlayerNameDisplayChangeEventArgs e)
+        {
+            RaisePlayerNameDisplayChangeEvent?.Invoke(this, e);
         }
 
         public void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message)

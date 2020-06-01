@@ -1,5 +1,5 @@
 ﻿using squittal.ScrimPlanetmans.Models.Planetside;
-using System;
+using System.Text.RegularExpressions;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
@@ -20,9 +20,28 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
         public string NameFull { get; set; }
-        public string NameDisplay { get; set; }
         public string NameTrimmed { get; set; }
         public string NameAlias { get; set; }
+
+        //public string NameDisplay { get; set; }
+        public string NameDisplay
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(NameAlias))
+                {
+                    return NameAlias;
+                }
+                else if (!string.IsNullOrWhiteSpace(NameTrimmed))
+                {
+                    return NameTrimmed;
+                }
+                else
+                {
+                    return NameFull;
+                }
+            }
+        }
 
         public int FactionId { get; set; }
         public int WorldId { get; set; }
@@ -44,13 +63,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsParticipating { get; set; } = false;
         public bool IsBenched { get; set; } = false;
 
+        private static readonly Regex _nameRegex = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public Player(Character character)
         {
             Id = character.Id;
             NameFull = character.Name;
             NameTrimmed = GetTrimmedPlayerName(NameFull);
-            NameDisplay = NameTrimmed;
+            //NameDisplay = NameTrimmed;
             IsOnline = character.IsOnline;
             PrestigeLevel = character.PrestigeLevel;
             FactionId = character.FactionId;
@@ -60,7 +80,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitAliasLower = character.OutfitAliasLower;
         }
 
-        private static string GetTrimmedPlayerName(string name)
+        public static string GetTrimmedPlayerName(string name)
         {
             var trimmed = name;
 
@@ -93,15 +113,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             return trimmed;
         }
 
-        public void SetNameAlias(string alias)
+        public bool TrySetNameAlias(string alias)
         {
-            if (string.IsNullOrWhiteSpace(alias))
+            Match match = _nameRegex.Match(alias);
+            if (!match.Success)
             {
-                throw new ArgumentNullException();
+                return false;
             }
 
             NameAlias = alias;
-            NameDisplay = NameAlias;
+
+            return true;
+        }
+
+        public void ClearAllDisplayNameSources()
+        {
+            NameAlias = string.Empty;
+            NameTrimmed = string.Empty;
         }
 
         public void AddStatsUpdate(ScrimEventAggregate update)
