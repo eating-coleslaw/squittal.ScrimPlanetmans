@@ -16,6 +16,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         Task AddConstructedTeamToMatch(int constructedTeamId, int matchTeamOrdinal, int factionId);
 
-        Task SaveConstructedTeam(ConstructedTeam constructedTeam);
+        Task<ConstructedTeam> CreateConstructedTeam(ConstructedTeam constructedTeam);
+        Task SaveConstructedTeam(ConstructedTeamFormInfo constructedTeamFormInfo);
     }
 }

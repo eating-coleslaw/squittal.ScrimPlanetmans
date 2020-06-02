@@ -1,0 +1,463 @@
+﻿@page "/TeamBuilder"
+
+@using squittal.ScrimPlanetmans.Data.Models; 
+@using squittal.ScrimPlanetmans.ScrimMatch.Models; 
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@using System.Collections;
+
+@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.Models.ScrimEngine
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+
+@inject IConstructedTeamService ConstructedTeamService
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <div class="col-lg-3">
+
+            <div class="header-card-container default">
+                <h3>Team Builder</h3>
+
+                @*<EditForm Model="@_inputTeamStringId" style="margin-top: 0.5rem;">*@
+                <EditForm Model="@_inputTeamStringId" style="display: inline-block;">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div style="margin-bottom: 0.2rem;">
+                        <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
+
+                        @*<InputSelect type="submit" style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@i_teamStringId>
+                        @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => i_teamStringId)">*@
+                        <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
+                            <option value=@_noTeamSelectedStringId>No Team</option>
+
+                            @foreach (var team in _storedTeamsList)
+                            {
+                                <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                </EditForm>
+
+                @if (!_showCreateNewTeamForm)
+                {
+                    @*<button class="btn btn-outline-primary" @onclick="ToggleCreateNewTeamFormVisibility" style="display: block; margin: 8px 0 16px 0; font-size: small;">*@
+                    <button class="btn btn-outline-primary" @onclick="ToggleCreateNewTeamFormVisibility" style="display: inline-block; margin: 12px 0 16px 0; font-size: small;">
+                        <span class="oi oi-plus"></span>Create New
+                    </button>
+                }
+
+            </div>
+
+            @if (_showCreateNewTeamForm)
+            {
+                <div class="sq-mini-card-12 default">
+
+                    @*<div style="display: block; border-top: 1px solid var(--sq-black); margin: 8px 0;">
+
+                    </div>*@
+
+                    <h5 class="default" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;">
+                        Team Creation Form
+                    </h5>
+
+                    <div class="sq-content">
+                        <EditForm Model="@_newTeamForm" OnValidSubmit="HandleCreateNewTeamSubmit" style="margin-top: 0.5rem;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+
+                            <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_newTeamForm.Name /></p>
+                            <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias" @bind-Value=@_newTeamForm.Alias /></p>
+
+                            <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;" >
+                                <span class="oi oi-check"></span>Save
+                            </button>
+
+                            <button @onclick="HandleCreateNewTeamCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
+                                <span class="oi oi-x" style="top: 0;"></span>Cancel
+                            </button>
+
+                            <p style="margin: 8px 0; font-size: 0.9rem;">Open Team On Save? <InputCheckbox id="openNewTeamOnSave" @bind-Value="_openNewTeamOnSave" />@($"{(_openNewTeamOnSave ? " Yes" : " No")}")</p>
+
+                        </EditForm>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+
+    @if (!string.IsNullOrWhiteSpace(_inputTeamStringId))
+    {
+        <div class="col-lg-6">
+            <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
+        </div>
+    }
+
+
+    </div>
+
+    @*<div class="row">
+        <div class="col-lg-4">
+            <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
+        </div>
+    </div>*@
+
+
+    @if (_storedTeamsList != null && _storedTeamsList.Any())
+    {
+        @*<div class="styled-select" style="margin-left: 0;">
+            <select id="worldSelect" @onchange="HandleOnSelectTeamChange" class="btn-sm">
+                <option value=@_noTeamSelectedStringId>No Team</option>
+
+                @foreach (var team in _storedTeamsList)
+                {
+                    <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                }
+            </select>
+        </div>*@
+
+
+        @*<EditForm Model="@i_teamStringId" style="margin-top: 0.5rem;">  @*OnValidSubmit="HandleOnSelectTeamChange">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+
+            <div style="margin-bottom: 0.2rem;">
+                <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
+
+                @*<InputSelect type="submit" style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@i_teamStringId>
+                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => i_teamStringId)">
+                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((i_teamStringId) => HandleOnSelectTeamChange(i_teamStringId))" ValueExpression="@(() => i_teamStringId)">
+                    <option value=@_noTeamSelectedStringId>No Team</option>
+
+                    @foreach (var team in _storedTeamsList)
+                    {
+                        <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                    }
+                </InputSelect>
+            </div>
+        </EditForm>
+        *@
+    
+        <EditForm Model="@_inputTeamStringId" style="margin-top: 0.5rem;">  @*OnValidSubmit="HandleOnSelectTeamChange">*@
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+
+            <div style="margin-bottom: 0.2rem;">
+                <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
+
+                @*<InputSelect type="submit" style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@i_teamStringId>*@
+                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => i_teamStringId)">*@
+                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
+                    <option value=@_noTeamSelectedStringId>No Team</option>
+
+                    @foreach (var team in _storedTeamsList)
+                    {
+                        <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                    }
+                </InputSelect>
+            </div>
+        </EditForm>
+
+
+    }
+
+    @*@if (_renderedTeam != null)
+    {
+        <EditForm Model="@_renderedTeam" style="margin-top: 0.5rem;">
+
+            <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" Value="@_renderedTeam.Name" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _renderedTeam.Name)" /></p>
+            <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias "Value="@_renderedTeam.Alias" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _renderedTeam.Name)"  /></p>
+
+            <div style="margin-bottom: 0.2rem;">
+                <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
+
+                <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
+                    @foreach (var world in _worlds)
+                    {
+                        <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
+                    }
+                </InputSelect>
+
+                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
+                    <option value=@_noFacilitIdValue>No Base</option>
+
+                    @foreach (var zone in _mapZones)
+                    {
+                        <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                        @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                        {
+                            <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                        }
+                    }
+                </InputSelect>
+            </div>
+
+        </EditForm>
+    }*@
+
+    @if (_renderedTeam != null)
+    {
+        <EditForm Model="@_renderedTeam" OnValidSubmit="HandleNewTeamSubmit" style="margin-top: 0.5rem;">
+            <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+
+            <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_renderedTeam.Name /></p>
+            <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias" @bind-Value=@_renderedTeam.Alias /></p>
+
+            <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-plus"></span>Add
+            </button>
+
+        </EditForm>
+    }
+
+</div>
+
+<p style="margin-bottom: 4px;">i_teamStringId: @i_teamStringId</p>
+<p style="margin-bottom: 4px;">_renderedTeamStringId: @_renderedTeamStringId</p>
+<p style="margin-bottom: 4px;">_debug: @_debug</p>
+
+
+@code {
+    [Parameter]
+    public string i_teamStringId { get; set; }
+
+    private string _renderedTeamStringId { get; set; }
+
+    private string _inputTeamStringId { get; set; } = string.Empty;
+
+    //public int i_teamId { get; set; }
+    private int _renderedTeamId { get; set; }
+
+    private string _noTeamSelectedStringId { get; set; } = "-1";
+    private int _noTeamSelectedId { get; set; } = -1;
+
+    [Parameter]
+    public bool i_viewOnly { get; set; } = true;
+
+    private bool _renderedViewOnly { get; set; } = true;
+
+    private ConstructedTeamFormInfo _renderedTeam { get; set; } = new ConstructedTeamFormInfo();
+
+    private IEnumerable<ConstructedTeam> _storedTeamsList { get; set; } = new List<ConstructedTeam>();
+
+
+    private bool _showCreateNewTeamForm { get; set; } = false;
+    private ConstructedTeam _newTeamForm { get; set; } = new ConstructedTeam();
+    private bool _openNewTeamOnSave { get; set; } = true;
+
+    private string _debug;
+
+    #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        _debug = $"Passed through OPSA 1 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
+
+
+        if (i_teamStringId != _renderedTeamStringId)
+        {
+            _debug = $"Passed through OPSA 2 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
+
+            _renderedTeamStringId = i_teamStringId;
+
+            _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
+
+            paramsChanged = true;
+        }
+
+        if (i_viewOnly != _renderedViewOnly)
+        {
+            _renderedViewOnly = i_viewOnly;
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            StateHasChanged();
+            //// TODO: do I acutally need to use InvokeAsync here?
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+        }
+    }
+
+    /*
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        _debug = $"Passed through OPSA 3 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
+
+        if (string.IsNullOrWhiteSpace(i_teamStringId))
+        {
+            i_teamStringId = _noTeamSelectedStringId;
+        }
+        if (string.IsNullOrWhiteSpace(_renderedTeamStringId))
+        {
+            _renderedTeamStringId = _noTeamSelectedStringId;
+        }
+
+        if (i_teamStringId != _renderedTeamStringId)
+        {
+            _debug = $"Passed through OPSA 4 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
+
+            _renderedTeamStringId = i_teamStringId;
+
+            _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
+
+            _renderedTeam = await ConstructedTeamService.GetConstructedTeamFormInfo(_renderedTeamId);
+
+            paramsChanged = true;
+        }
+
+        if (i_viewOnly != _renderedViewOnly)
+        {
+            _renderedViewOnly = i_viewOnly;
+
+            paramsChanged = true;
+        }
+
+        StateHasChanged();
+        if (paramsChanged)
+        {
+            StateHasChanged();
+            //// TODO: do I acutally need to use InvokeAsync here?
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+        }
+    }
+    */
+
+    #endregion Initialization Methods
+
+    #region UI & Form Handling
+    private async void HandleNewTeamSubmit()
+    {
+        await ConstructedTeamService.SaveConstructedTeam(_renderedTeam);
+    }
+
+    //private void HandleOnSelectTeamChange(ChangeEventArgs eventArgs)
+    private void HandleOnSelectTeamChange(string inputTeamStringId)
+    {
+        //if (i_teamStringId != _renderedTeamStringId && i_teamStringId != _noTeamSelectedStringId)
+        //var inputStringId = eventArgs.Value.ToString();
+
+        //if (inputStringId != _renderedTeamStringId && inputStringId != _noTeamSelectedStringId)
+        //{
+        //    i_teamStringId = inputStringId;
+
+        //    InvokeAsync(() =>
+        //    {
+        //        StateHasChanged();
+        //    });
+        //}
+
+        //i_teamStringId = inputStringId;
+        //_renderedTeamStringId = i_teamStringId;
+
+        if (inputTeamStringId == _noTeamSelectedStringId)
+        {
+            i_teamStringId = string.Empty;
+            _inputTeamStringId = string.Empty;
+            _renderedTeamId = GetTeamIdFromStringId(_noTeamSelectedStringId);
+        }
+        else
+        {
+            i_teamStringId = inputTeamStringId;
+            _inputTeamStringId = inputTeamStringId;
+            _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private async void HandleCreateNewTeamSubmit()
+    {
+        var newTeam = _newTeamForm;
+
+        if (string.IsNullOrWhiteSpace(_newTeamForm.Name) || string.IsNullOrWhiteSpace(_newTeamForm.Alias))
+        {
+            return;
+        }
+
+        var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
+
+        _newTeamForm = new ConstructedTeam();
+
+        _showCreateNewTeamForm = false;
+
+        if (_openNewTeamOnSave && newTeamEntity != null)
+        {
+            HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
+        }
+
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleCreateNewTeamCancel()
+    {
+        _newTeamForm = new ConstructedTeam();
+
+        _showCreateNewTeamForm = false;
+    }
+
+
+    private void ToggleCreateNewTeamFormVisibility()
+    {
+        _showCreateNewTeamForm = !_showCreateNewTeamForm;
+    }
+
+    #endregion UI & Form Handling
+
+
+    public int GetTeamIdFromStringId(string stringId)
+    {
+        if (int.TryParse(stringId, out int intId))
+        {
+            return intId;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

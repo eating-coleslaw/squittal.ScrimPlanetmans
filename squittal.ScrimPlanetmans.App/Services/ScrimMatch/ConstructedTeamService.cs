@@ -174,6 +174,22 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             };
         }
 
+        private ConstructedTeam ConvertToDbModel(ConstructedTeamFormInfo formInfo)
+        {
+            //if (formInfo.Id == null || formInfo.Id < 0)
+            //{
+            //    return null;
+            //}
+            
+            return new ConstructedTeam
+            {
+                //Id = (int)formInfo.Id,
+                Name = formInfo.Name,
+                Alias = formInfo.Alias
+                //FactionPreferences = formInfo.FactionPreferences
+            };
+        }
+
         public async Task AddConstructedTeamToMatch(int constructedTeamId, int matchTeamOrdinal, int factionId)
         {
             throw new NotImplementedException();
@@ -183,12 +199,116 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var teams = await dbContext.ConstructedTeams.ToListAsync();
+
+
+                if (ignoreCollections || !teams.Any())
+                {
+                    return teams;
+                }
+
+                foreach (var team in teams)
+                {
+                    team.FactionPreferences = await dbContext.ConstructedTeamFactionPreferences.Where(pref => pref.ConstructedTeamId == team.Id).ToListAsync();
+                    team.PlayerMemberships = await dbContext.ConstructedTeamPlayerMemberships.Where(m => m.ConstructedTeamId == team.Id).ToListAsync();
+                }
+
+                return teams;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return null;
+            }
         }
 
-        public async Task SaveConstructedTeam(ConstructedTeam constructedTeam)
+        public async Task SaveConstructedTeam(ConstructedTeamFormInfo constructedTeamFormInfo)
         {
-            throw new NotImplementedException();
+            await CreateConstructedTeam(ConvertToDbModel(constructedTeamFormInfo));
+        }
+
+        public async Task<ConstructedTeam> CreateConstructedTeam(ConstructedTeam constructedTeam)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                dbContext.ConstructedTeams.Add(constructedTeam);
+
+                //var storeTeamEntity = await dbContext.ConstructedTeams.FirstOrDefaultAsync(ct => ct.Id == constructedTeam.Id);
+
+                //if (storeTeamEntity == null)
+                //{
+                //    dbContext.ConstructedTeams.Add(constructedTeam);
+                //}
+                //else
+                //{
+                //    storeTeamEntity = constructedTeam;
+                //    dbContext.ConstructedTeams.Update(constructedTeam);
+                //}
+
+
+                //// Team Results Point Adjustments
+                //var updateAdjustments = resultsAggregate.PointAdjustments.ToList();
+
+                //var storeAdjustmentEntities = await dbContext.ScrimMatchTeamPointAdjustments
+                //                                        .Where(adj => adj.ScrimMatchId == currentScrimMatchId && adj.TeamOrdinal == teamOrdinal)
+                //                                        .ToListAsync();
+
+                //var allAdjustments = new List<PointAdjustment>();
+
+                //allAdjustments.AddRange(updateAdjustments);
+                //allAdjustments.AddRange(storeAdjustmentEntities
+                //                            .Select(ConvertFromDbModel)
+                //                            .Where(e => !allAdjustments.Any(a => a.Timestamp == e.Timestamp))
+                //                            .ToList());
+
+                //var createdAdjustments = new List<ScrimMatchTeamPointAdjustment>();
+
+                //foreach (var adjustment in allAdjustments)
+                //{
+                //    var storeEntity = storeAdjustmentEntities.Where(e => e.Timestamp == adjustment.Timestamp).FirstOrDefault();
+                //    var updateAdjustment = updateAdjustments.Where(a => a.Timestamp == adjustment.Timestamp).FirstOrDefault();
+
+                //    if (storeEntity == null)
+                //    {
+                //        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
+                //        createdAdjustments.Add(updateEntity);
+                //    }
+                //    else if (updateAdjustment == null)
+                //    {
+                //        dbContext.ScrimMatchTeamPointAdjustments.Remove(storeEntity);
+                //    }
+                //    else
+                //    {
+                //        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
+                //        storeEntity = updateEntity;
+                //        dbContext.ScrimMatchTeamPointAdjustments.Update(storeEntity);
+                //    }
+                //}
+
+                //if (createdAdjustments.Any())
+                //{
+                //    await dbContext.ScrimMatchTeamPointAdjustments.AddRangeAsync(createdAdjustments);
+                //}
+
+                await dbContext.SaveChangesAsync();
+
+                return constructedTeam;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return null;
+            }
         }
 
         
