@@ -14,8 +14,44 @@
     <tr class="@SqCssHelper.GetFactionClassFromId(Player.FactionId)">
         <td style="padding-right: 5px; width: 15px;" title="@(Player.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(Player.IsOnline)</td>
 
+        @if (_showTemporaryAliasEditForm)
+        {
+            <td>
+                
+                <p style="margin: 4px 0; color: var(--sq-black);">
+                    <span style="width: 112px; display: inline-block; margin-right: 4px;">Full Name:</span><span style="color: var(--sq-ps2-primary);">@Player.NameFull</span></p>
+                
+                <p style="margin: 4px 0; color: var(--sq-black);">
+                    <span style="width: 112px; display: inline-block; margin-right: 4px;">Current Alias:</span><span style="color: var(--sq-ps2-primary);">@Player.NameDisplay</span></p>
+
+                <EditForm Model="@_inputTemporaryAlias" OnValidSubmit="HandleTemporaryAliasSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <span style="width: 112px; display: inline-block; margin-right: 4px; color: var(--sq-black);">New Alias:</span><InputText id="inputTemporaryAlias" @bind-Value="_inputTemporaryAlias" style="width: 176px; margin: 0.2rem 0.4rem 0.2rem 0; display: inline-block;" />
+
+                    <div style="display: inline-block; margin-left: auto; margin-right: auto;">
+
+                        <button type="submit" style="padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Submit player match alias">
+                            <span class="oi oi-check"></span>
+                        </button>
+
+                        <button @onclick="HandleTemporaryAliasCancel" style="color: var(--sq-gray); padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Cancel editing match display name">
+                            <span class="oi oi-x" style="top: 0;"></span>
+                        </button>
+
+                        <button @onclick="HandleClearDisplayName" style="color: var(--sq-gray); padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Reset player display name to full name">
+                            <span class="oi oi-trash"></span>
+                        </button>
+                    </div>
+
+                </EditForm>
+            </td>
+        }
+        else
+        {
         <td title="@Player.NameFull [@(Player.Id)]">
-            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@Player.NameFull</span>
+            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@Player.NameDisplay</span>
             @if (Player.PrestigeLevel != 0)
             {
                 <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
@@ -24,8 +60,13 @@
                     </sup>
                 </div>
             }
-            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(Player.Id)]</span> @*opacity: 0.8;*@
+            <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(Player.Id)]</span>
+
+            <button @onclick="HandleShowEditTemporaryAliasForm" style=" color: var(--sq-gray); padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Change this player's display name for the match">
+                <span class="oi oi-pencil" style="top: 0;"></span>
+            </button>
         </td>
+        }
 
         <td style="opacity: @GetStatOpacity(Player.EventAggregate.Kills);">@(Player.EventAggregate.Kills)</td>
         <td style="opacity: @GetStatOpacity(Player.EventAggregate.Deaths);">@(Player.EventAggregate.Deaths)</td>
@@ -61,9 +102,14 @@
 @code {
     [Parameter]
     public Player Player { get; set; }
+    private Player _renderedPlayer { get; set; }
+
 
     [Parameter]
     public bool ShowRemovalControls { get; set; }
+
+    private bool _showTemporaryAliasEditForm { get; set; } = false;
+    private string _inputTemporaryAlias { get; set; } = string.Empty;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -72,6 +118,7 @@
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
     }
 
     public void Dispose()
@@ -80,11 +127,35 @@
         MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
     }
 
     protected override void OnParametersSet()
     {
-        base.OnParametersSet();
+        var paramsChanged = false;
+
+        //base.OnParametersSet();
+        if (_renderedPlayer != Player)
+        {
+            _renderedPlayer = Player;
+            _showTemporaryAliasEditForm = false;
+
+            paramsChanged = true;
+        }
+
+        if (Player != null)
+        {
+            _inputTemporaryAlias = Player.NameDisplay;
+            paramsChanged = true;
+        }
+
+        if (paramsChanged == true)
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
     }
     #endregion
 
@@ -110,6 +181,11 @@
     }
 
     private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        InvokeStateHasChangedIfPlayer(e.Message.Player);
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
     {
         InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
@@ -143,6 +219,45 @@
     {
         ScrimTeamsManager.SetPlayerBenchedStatus(Player.Id, !Player.IsBenched);
     }
+
+    private void HandleShowEditTemporaryAliasForm()
+    {
+        if (!_showTemporaryAliasEditForm)
+        {
+            _showTemporaryAliasEditForm = true;
+        }
+    }
+
+    private void HandleTemporaryAliasSubmit()
+    {
+        var newAlias = _inputTemporaryAlias;
+
+        if (string.IsNullOrWhiteSpace(newAlias))
+        {
+            return;
+        }
+
+        if (ScrimTeamsManager.UdatePlayerTemporaryAlias(Player.Id, newAlias))
+        {
+            _inputTemporaryAlias = Player.NameDisplay;
+            _showTemporaryAliasEditForm = false;
+        }
+
+    }
+
+    private void HandleTemporaryAliasCancel()
+    {
+        _showTemporaryAliasEditForm = false;
+        _inputTemporaryAlias = Player.NameDisplay;
+    }
+
+    private void HandleClearDisplayName()
+    {
+        ScrimTeamsManager.ClearPlayerDisplayName(Player.Id);
+        _inputTemporaryAlias = Player.NameDisplay;
+        _showTemporaryAliasEditForm = false;
+    }
+
     #endregion
 
     private double GetStatOpacity(int value)

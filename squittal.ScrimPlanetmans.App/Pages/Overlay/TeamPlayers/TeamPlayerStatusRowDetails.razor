@@ -81,6 +81,8 @@
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
 
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
+
         MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
         MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
@@ -91,6 +93,8 @@
     public void Dispose()
     {
         MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
 
         MessageService.RaiseScrimDeathActionEvent -= ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent -= ReceiveScrimReviveActionEvent;
@@ -133,7 +137,13 @@
             return;
         }
 
-        CheckForChanges(player);
+        if (CheckForChanges(player))
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
     }
 
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
@@ -204,6 +214,29 @@
 
         UpdateRenderedStatus();
     }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.Id != _renderedPlayerId)
+        {
+            return;
+        }
+
+        var newDisplayName = e.Message.NewNameDisplay;
+
+        if (newDisplayName != _renderedName)
+        {
+            _renderedName = newDisplayName;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
     #endregion
 
     #region ScrimKillfeedEvent Conversions
