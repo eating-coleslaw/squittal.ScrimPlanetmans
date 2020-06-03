@@ -62,10 +62,6 @@
             {
                 <div class="sq-mini-card-12 default">
 
-                    @*<div style="display: block; border-top: 1px solid var(--sq-black); margin: 8px 0;">
-
-                    </div>*@
-
                     <h5 class="default" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;">
                         Team Creation Form
                     </h5>
@@ -113,124 +109,11 @@
         </div>
     </div>*@
 
-
-    @if (_storedTeamsList != null && _storedTeamsList.Any())
-    {
-        @*<div class="styled-select" style="margin-left: 0;">
-            <select id="worldSelect" @onchange="HandleOnSelectTeamChange" class="btn-sm">
-                <option value=@_noTeamSelectedStringId>No Team</option>
-
-                @foreach (var team in _storedTeamsList)
-                {
-                    <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
-                }
-            </select>
-        </div>*@
-
-
-        @*<EditForm Model="@i_teamStringId" style="margin-top: 0.5rem;">  @*OnValidSubmit="HandleOnSelectTeamChange">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-
-            <div style="margin-bottom: 0.2rem;">
-                <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
-
-                @*<InputSelect type="submit" style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@i_teamStringId>
-                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => i_teamStringId)">
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((i_teamStringId) => HandleOnSelectTeamChange(i_teamStringId))" ValueExpression="@(() => i_teamStringId)">
-                    <option value=@_noTeamSelectedStringId>No Team</option>
-
-                    @foreach (var team in _storedTeamsList)
-                    {
-                        <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
-                    }
-                </InputSelect>
-            </div>
-        </EditForm>
-        *@
-    
-        <EditForm Model="@_inputTeamStringId" style="margin-top: 0.5rem;">  @*OnValidSubmit="HandleOnSelectTeamChange">*@
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-
-            <div style="margin-bottom: 0.2rem;">
-                <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
-
-                @*<InputSelect type="submit" style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@i_teamStringId>*@
-                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => i_teamStringId)">*@
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
-                    <option value=@_noTeamSelectedStringId>No Team</option>
-
-                    @foreach (var team in _storedTeamsList)
-                    {
-                        <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
-                    }
-                </InputSelect>
-            </div>
-        </EditForm>
-
-
-    }
-
-    @*@if (_renderedTeam != null)
-    {
-        <EditForm Model="@_renderedTeam" style="margin-top: 0.5rem;">
-
-            <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" Value="@_renderedTeam.Name" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _renderedTeam.Name)" /></p>
-            <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias "Value="@_renderedTeam.Alias" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _renderedTeam.Name)"  /></p>
-
-            <div style="margin-bottom: 0.2rem;">
-                <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
-
-                <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
-                    @foreach (var world in _worlds)
-                    {
-                        <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
-                    }
-                </InputSelect>
-
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
-                    <option value=@_noFacilitIdValue>No Base</option>
-
-                    @foreach (var zone in _mapZones)
-                    {
-                        <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
-
-                        @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                        {
-                            <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                        }
-                    }
-                </InputSelect>
-            </div>
-
-        </EditForm>
-    }*@
-
-    @if (_renderedTeam != null)
-    {
-        <EditForm Model="@_renderedTeam" OnValidSubmit="HandleNewTeamSubmit" style="margin-top: 0.5rem;">
-            <DataAnnotationsValidator />
-                    <ValidationSummary />
-
-
-            <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_renderedTeam.Name /></p>
-            <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias" @bind-Value=@_renderedTeam.Alias /></p>
-
-            <button type="submit" class="btn btn-primary">
-                    <span class="oi oi-plus"></span>Add
-            </button>
-
-        </EditForm>
-    }
-
 </div>
 
-<p style="margin-bottom: 4px;">i_teamStringId: @i_teamStringId</p>
+@*<p style="margin-bottom: 4px;">i_teamStringId: @i_teamStringId</p>
 <p style="margin-bottom: 4px;">_renderedTeamStringId: @_renderedTeamStringId</p>
-<p style="margin-bottom: 4px;">_debug: @_debug</p>
+<p style="margin-bottom: 4px;">_debug: @_debug</p>*@
 
 
 @code {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Data.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
@@ -9,6 +10,7 @@ using squittal.ScrimPlanetmans.Services.Planetside;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatch
@@ -311,6 +313,144 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
 
-        
+        public async Task<bool> IsCharacterIdOnTeam(int teamId, string characterId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.ConstructedTeamPlayerMemberships.AnyAsync(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId);
+        }
+
+        public async Task<Character> TryAddCharacterToConstructedTeam(int teamId, string characterInput)
+        {
+            Regex idRegex = new Regex("^[0-9]{19}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            bool isId = idRegex.Match(characterInput).Success;
+
+            Character characterOut;
+
+            try
+            {
+                if (isId)
+                {
+                    characterOut = await TryAddCharacterIdToTeam(teamId, characterInput);
+
+                    if (characterOut != null)
+                    {
+                        return characterOut;
+                    }
+
+                    //if (await TryAddCharacterIdToTeam(teamId, characterInput))
+                    //{
+                    //    return true;
+                    //}
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error trying to add character ID to constructed team: {ex}");
+            }
+
+            try
+            {
+                Regex nameRegex = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                bool isName = nameRegex.Match(characterInput).Success;
+
+                if (isName)
+                {
+                    return await TryAddCharacterNameToTeam(teamId, characterInput);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error trying to add character name to constructed team: {ex}");
+            }
+
+            return null;
+        }
+
+        private async Task<Character> TryAddCharacterIdToTeam(int teamId, string characterId)
+        {
+            if (!(await IsCharacterIdOnTeam(teamId, characterId)))
+            {
+                return null;
+            }
+
+            var character = await _characterService.GetCharacterAsync(characterId);
+
+            if (character == null)
+            {
+                return null;
+            }
+
+
+            if (await TryAddCharacterToTeamDb(teamId, characterId))
+            {
+                return character;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private async Task<Character> TryAddCharacterNameToTeam(int teamId, string characterName)
+        {
+            var character = await _characterService.GetCharacterByNameAsync(characterName);
+
+            if (character == null)
+            {
+                return null;
+            }
+
+            if (await IsCharacterIdOnTeam(teamId, character.Id))
+            {
+                return null;
+            }
+
+            if (await TryAddCharacterToTeamDb(teamId, character.Id))
+            {
+                return character;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private async Task<bool> TryAddCharacterToTeamDb(int teamId, string characterId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var newEntity = new ConstructedTeamPlayerMembership
+            {
+                ConstructedTeamId = teamId,
+                CharacterId = characterId
+            };
+
+            try
+            {
+                var storeEntity = await dbContext.ConstructedTeamPlayerMemberships
+                                            .Where(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId)
+                                            .FirstOrDefaultAsync();
+                
+                if (storeEntity != null)
+                {
+                    return false;
+                }
+                
+                dbContext.ConstructedTeamPlayerMemberships.Add(newEntity);
+
+                await dbContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error adding character ID {characterId} to team ID {teamId} in database: {ex}");
+
+                return false;
+            }
+        }
     }
 }
