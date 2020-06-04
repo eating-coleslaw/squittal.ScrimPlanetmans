@@ -240,10 +240,59 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             await CreateConstructedTeam(ConvertToDbModel(constructedTeamFormInfo));
         }
 
+        public async Task<bool> UpdateConstructedTeamInfo(ConstructedTeam teamUpdate)
+        {
+            var updateId = teamUpdate.Id;
+            var updateName = teamUpdate.Name;
+            var updateAlias = teamUpdate.Alias;
+
+            //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (!nameRegex.Match(updateName).Success)
+            {
+                return false;
+            }
+
+            Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (!aliasRegex.Match(updateAlias).Success)
+            {
+                return false;
+            }
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeEntity = await GetConstructedTeam(updateId, true);
+
+                if (storeEntity == null)
+                {
+                    return false;
+                }
+
+                storeEntity.Name = updateName;
+                storeEntity.Alias = updateAlias;
+
+                dbContext.ConstructedTeams.Update(storeEntity);
+
+                await dbContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error update Constructed Team {updateId} info: {ex}");
+                return false;
+            }
+        }
+
         public async Task<ConstructedTeam> CreateConstructedTeam(ConstructedTeam constructedTeam)
         {
             //Regex nameRegex = new Regex("^[A-Za-z0-9]{1,50}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            Regex nameRegex = new Regex("^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //Regex nameRegex = new Regex("^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             if (!nameRegex.Match(constructedTeam.Name).Success)
             {
                 return null;

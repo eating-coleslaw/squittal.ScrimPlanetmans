@@ -1195,6 +1195,7 @@ button.refresh {
 .sq-mini-card-12.default,
 .sq-mini-card-9.default,
 .sq-mini-card-6.default,
+.sq-mini-card-4.default,
 .sq-mini-card-3.default {
     background-color: var(--sq-bg-white-lit);
     border: 1px solid var(--sq-pink-lighter-alpha-25);
@@ -1204,6 +1205,7 @@ button.refresh {
 .sq-mini-card-12,
 .sq-mini-card-9,
 .sq-mini-card-6,
+.sq-mini-card-4,
 .sq-mini-card-3 {
     line-height: 1rem;
     /*margin: 0.3125rem 0;*/
@@ -1220,10 +1222,12 @@ button.refresh {
     .sq-mini-card-12 h5,
     .sq-mini-card-9 h5,
     .sq-mini-card-6 h5,
+    .sq-mini-card-4 h5,
     .sq-mini-card-3 h5 {
         font-size: 1rem;
-        margin-bottom: 0.25rem;
-        padding: 0.5rem 0 0 0.5rem;
+/*        margin-bottom: 0.25rem;*/
+        margin-bottom: 8px;
+/*        padding: 0.5rem 0 0 0.5rem;*/
         width: 100%;
         font-weight: 400;
     }
@@ -1231,10 +1235,12 @@ button.refresh {
     .sq-mini-card-12 .sq-content,
     .sq-mini-card-9 .sq-content,
     .sq-mini-card-6 .sq-content,
+    .sq-mini-card-4 .sq-content,
     .sq-mini-card-3 .sq-content {
         /*max-height: calc(360px - 1.5rem);*/
         overflow: auto;
-        padding: 0 0 0 0.5rem;
+        /*        padding: 0 0 0 0.5rem;*/
+        padding: 8px 0 0 16px;
         margin-bottom: 0.5rem;
     }
 
@@ -1250,6 +1256,7 @@ button.refresh {
         .sq-mini-card-12 .sq-content table,
         .sq-mini-card-9 .sq-content table
         .sq-mini-card-6 .sq-content table,
+        .sq-mini-card-4 .sq-content table,
         .sq-mini-card-3 .sq-content table {
             max-width: calc(100% - 0.75rem);
             font-size: 0.8rem !important;
@@ -1260,6 +1267,7 @@ button.refresh {
             .sq-mini-card-12 .sq-content table.sq-table-fit-content,
             .sq-mini-card-9 .sq-content table.sq-table-fit-content,
             .sq-mini-card-6 .sq-content table.sq-table-fit-content,
+            .sq-mini-card-4 .sq-content table.sq-table-fit-content,
             .sq-mini-card-3 .sq-content table.sq-table-fit-content {
                 width: auto;
                 width: min-content;
@@ -1268,6 +1276,7 @@ button.refresh {
     .sq-mini-card-12.default .sq-content table,
     .sq-mini-card-9.default .sq-content table
     .sq-mini-card-6.default .sq-content table,
+    .sq-mini-card-4.default .sq-content table,
     .sq-mini-card-3.default .sq-content table {
         /*max-width: calc(100% - 0.75rem);
         font-size: 0.8rem !important;*/
@@ -1278,6 +1287,7 @@ button.refresh {
         .sq-mini-card-12 .sq-content thead,
         .sq-mini-card-9 .sq-content thead,
         .sq-mini-card-6 .sq-content thead,
+        .sq-mini-card-4 .sq-content thead,
         .sq-mini-card-3 .sq-content thead {
             vertical-align: bottom;
         }
@@ -1285,6 +1295,7 @@ button.refresh {
             .sq-mini-card-12 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-9 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-6 .sq-content thead.fit-stacked-labels,
+            .sq-mini-card-4 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-3 .sq-content thead.fit-stacked-labels {
                 line-height: 0.5rem;
             }
@@ -1292,6 +1303,7 @@ button.refresh {
     .sq-mini-card-12 .table-responsive-sm.table-striped-light,
     .sq-mini-card-9 .table-responsive-sm.table-striped-light,
     .sq-mini-card-6 .table-responsive-sm.table-striped-light,
+    .sq-mini-card-4 .table-responsive-sm.table-striped-light,
     .sq-mini-card-3 .table-responsive-sm.table-striped-light {
         width: calc(100% - 0.75rem);
         font-size: 0.8rem !important;
@@ -1301,6 +1313,7 @@ button.refresh {
         .sq-mini-card-12 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-9 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-6 .table-responsive-sm.table-striped-light th,
+        .sq-mini-card-4 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-3 .table-responsive-sm.table-striped-light th {
             font-weight: 400;
         }
@@ -1308,6 +1321,7 @@ button.refresh {
     .sq-mini-card-12.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-9.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-6.default .table-responsive-sm.table-striped-light,
+    .sq-mini-card-4.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-3.default .table-responsive-sm.table-striped-light {
         /*width: calc(100% - 0.75rem);
         font-size: 0.8rem !important;*/
@@ -1336,6 +1350,20 @@ button.refresh {
     .sq-mini-card-6:first-of-type {
         margin-right: 1rem;
     }
+
+.sq-mini-card-4 {
+    flex: 0 0 calc(33% - 0.5rem);
+    max-width: 33%;
+}
+
+    .sq-mini-card-4:first-of-type {
+        margin-right: 16px;
+    }
+    
+    .sq-mini-card-4:nth-of-type(2) {
+        margin-right: 16px;
+    }
+
 
 .sq-mini-card-3 {
     flex: 0 0 calc(30% - 0.5rem) !important;
