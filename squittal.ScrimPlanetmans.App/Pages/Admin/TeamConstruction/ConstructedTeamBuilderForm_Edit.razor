@@ -7,144 +7,194 @@
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Collections.Concurrent; 
+@using squittal.ScrimPlanetmans.App.Pages.Shared; 
 
 @inject IConstructedTeamService ConstructedTeamsService
+@inject IScrimMessageBroadcastService MessageService
 @inject IFactionService FactionService
 @inject IWorldService WorldService
 
+@implements IDisposable
 
 <div class="header-card-container default">
 
     @if (_renderedTeam != null)
     {
-        <h3 style="font-size: 1.25rem;">@($"{(!string.IsNullOrWhiteSpace(_renderedTeam.Alias) ? $"[{_renderedTeam.Alias}] " : string.Empty)} {_renderedTeam.Name} ({_renderedTeam.Id})")</h3>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0;">
+            <span><b>@($"{(!string.IsNullOrWhiteSpace(_renderedTeam.Alias) ? $"[{_renderedTeam.Alias}]" : string.Empty)}")</b></span>
+            <span style="font-family: 'Helvetica Neue',Arial,'Noto Sans',sans-serif;"><b>@_renderedTeam.Name</b> (@_renderedTeam.Id)</span>
+        </h3>
 
-        <EditForm Model="@_renderedTeam" style="margin-top: 0.5rem;">
-            @*OnValidSubmit="HandleNewTeamSubmit" *@
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <p style="margin: 0 0 0.1rem 0;">
 
-            <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_renderedTeam.Name /></p>
-            <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias" @bind-Value=@_renderedTeam.Alias /></p>
+            @if (!_showEditForm)
+            {
+                @*<button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditTeamFormVisibility">@(_showEditForm ? "Edit Players" : "Show Players")</button>*@
+                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditTeamFormVisibility">Edit Team Info</button>
+            }
+            @*<span>|</span><button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="(() => RefreshOutfitPlayers(outfit.AliasLower))">Refresh</button>*@
+            @*@if (_showRemovals)
+            {
+                <span>|</span><button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="(() => RemoveOutfit(outfit.AliasLower))">Remove</button>
+            }*@
+        </p>
 
-            <button type="submit" class="btn btn-primary">
-                <span class="oi oi-check"></span>Save
-            </button>
+        @if (_showEditForm)
+        {
+            <EditForm Model="@_editFormTeam" style="margin-top: 0.5rem; margin-left: 4px;">
+                @*OnValidSubmit="HandleEditTeamSubmit" *@
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-        </EditForm>
+                <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]"/></p>
+                <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias" @bind-Value=@_editFormTeam.Alias maxlength="4" pattern="[A-Za-z0-9]{1,4}"/></p>
 
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-check"></span>Save
+                </button>
 
-        <div class="sq-content">
+                <button @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                    <span class="oi oi-x" style="top: 0;"></span>Cancel
+                </button>
 
-            <table class="table-responsive-sm table-striped-light mono-font smaller">
-
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Character</th>
-                        <th>Faction</th>
-                        <th>Server</th>
-                        <th>[Edit]</th>
-                    </tr>
-                </thead>
-
-                @lock (_renderedCharacters)
-                { 
-                    @if (_renderedCharacters != null && _renderedCharacters.Any() && _renderedCharactersCount > 0)
-                    {
-                        <tbody>
-                            @foreach (var indexedCharacter in _renderedCharacters
-                                                .OrderBy(c => c.Name)
-                                                .AsEnumerable()
-                                                .Select((c, Index) => new { Character = c, Index = Index }))
-                            {
-                                @*<ConstructedTeamBuilderForm_EditPlayerRow i_character=@indexedCharacter.Character i_index=@(_renderedTeam.Characters.ToList().IndexOf(character)+1) />*@
-                                <ConstructedTeamBuilderForm_EditPlayerRow i_character=@indexedCharacter.Character i_index=@(indexedCharacter.Index + 1) />
-                            
-                                @*
-                                <tr class="@SqCssHelper.GetFactionClassFromId(character.FactionId)" style="color: var(--sq-ps2-primary);">
-                                    @*<td>@(_renderedTeam.Characters.ToList().IndexOf(character)+1)</td>
-                                    <td>@(
-                                            _renderedCharacters
-                                                .OrderBy(c => c.Name)
-                                                .AsEnumerable()
-                                                .Select((c, Index) => new { Character = c, Index = Index })
-                                                .Where(ci => ci.Character.Id == character.Id)
-                                                .Select(ci => ci.Index + 1)
-                                                .FirstOrDefault())</td>
-                                    <td title="@character.Name [@(character.Id)]">
-                                        <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@character.Name</span>
-                                        @if (character.PrestigeLevel != 0)
-                                        {
-                                            <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
-                                                <sup>
-                                                    <span class="oi oi-star small" aria-hidden="true"></span>
-                                                </sup>
-                                            </div>
-                                        }
-                                        <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(character.Id)]</span>
-                                    </td>
-
-                                    <td>
-                                        @GetFactionAbbreviationFromId(character.FactionId)
-                                    </td>
+            </EditForm>
+        }
 
 
+        <div class="" style="margin-top: 8px; color: var(--sq-black);"> @*class="sq-content"*@
 
-                                </tr>
-                                *@
-                            }
-
-                            @*@for (var i = 0; i < _renderedTeam.Characters.Count(); i++) // in _renderedTeam.Characters)
-                            @for (var i = 0; i < _renderedCharactersCount; i++) // in _renderedTeam.Characters)
-                            {
-                                <ConstructedTeamBuilderForm_EditPlayerRow i_character=@_renderedTeam.Characters.ElementAt(i) i_index=@(i+1) />
-                                @*<tr class="@SqCssHelper.GetFactionClassFromId(_renderedTeam.Characters.ElementAt(i).FactionId)" style="color: var(--sq-ps2-primary);">
-                                    <td>
-                                        @(i+1)
-                                    </td>
-                                    <td title="@_renderedTeam.Characters.ElementAt(i).Name [@(_renderedTeam.Characters.ElementAt(i).Id)]">
-                                        <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@_renderedTeam.Characters.ElementAt(i).Name</span>
-                                        @if (_renderedTeam.Characters.ElementAt(i).PrestigeLevel != 0)
-                                        {
-                                            <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
-                                                <sup>
-                                                    <span class="oi oi-star small" aria-hidden="true"></span>
-                                                </sup>
-                                            </div>
-                                        }
-                                        <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(_renderedTeam.Characters.ElementAt(i).Id)]</span>
-                                    </td>
-
-                                    <td>
-                                        @GetFactionAbbreviationFromId(_renderedTeam.Characters.ElementAt(i).FactionId)
-                                    </td>
-
-
-                                </tr>
-                            }*@
-
-                        </tbody>
-                    }
-                }
-
-            </table>
+            <h6> Team Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h6>
 
             <div style="display: block; margin: 0.2rem 0;">
                 <EditForm Model="@_inputCharacter" OnValidSubmit="HandleAddCharacterSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    Add Player: <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" />
+                    Add Player: <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" />
 
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" title="Add character to team">
                         <span class="oi oi-person"></span>Add
                     </button>
                 </EditForm>
             </div>
 
+
+
+            <div class="sq-mini-card-6">
+                <div class="sq-content">
+
+                    <table class="table-responsive-sm table-striped-light mono-font smaller" style="font-size: 0.85rem;">
+
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Character</th>
+                                @*<th>Faction</th>*@
+                                <th>Server</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        @lock (_renderedCharacters)
+                        {
+                            @if (_renderedCharacters != null && _renderedCharacters.Any() && _renderedCharactersCount > 0)
+                            {
+                                <tbody>
+                                    @foreach (var indexedCharacter in _renderedCharacters
+                                                       .OrderBy(c => c.FactionId)
+                                                       .ThenBy(c => c.Name)
+                                                       .AsEnumerable()
+                                                       .Select((c, Index) => new { Character = c, Index = Index }))
+                                    {
+                                        @*<ConstructedTeamBuilderForm_EditPlayerRow i_character=@indexedCharacter.Character i_index=@(_renderedTeam.Characters.ToList().IndexOf(character)+1) />*@
+                                        <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@indexedCharacter.Character i_index=@(indexedCharacter.Index + 1) />
+
+                                        @*
+                                            <tr class="@SqCssHelper.GetFactionClassFromId(character.FactionId)" style="color: var(--sq-ps2-primary);">
+                                                @*<td>@(_renderedTeam.Characters.ToList().IndexOf(character)+1)</td>
+                                                <td>@(
+                                                        _renderedCharacters
+                                                            .OrderBy(c => c.Name)
+                                                            .AsEnumerable()
+                                                            .Select((c, Index) => new { Character = c, Index = Index })
+                                                            .Where(ci => ci.Character.Id == character.Id)
+                                                            .Select(ci => ci.Index + 1)
+                                                            .FirstOrDefault())</td>
+                                                <td title="@character.Name [@(character.Id)]">
+                                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@character.Name</span>
+                                                    @if (character.PrestigeLevel != 0)
+                                                    {
+                                                        <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
+                                                            <sup>
+                                                                <span class="oi oi-star small" aria-hidden="true"></span>
+                                                            </sup>
+                                                        </div>
+                                                    }
+                                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(character.Id)]</span>
+                                                </td>
+
+                                                <td>
+                                                    @GetFactionAbbreviationFromId(character.FactionId)
+                                                </td>
+
+
+
+                                            </tr>
+                                        *@
+                                    }
+
+                                    @*@for (var i = 0; i < _renderedTeam.Characters.Count(); i++) // in _renderedTeam.Characters)
+                                        @for (var i = 0; i < _renderedCharactersCount; i++) // in _renderedTeam.Characters)
+                                        {
+                                            <ConstructedTeamBuilderForm_EditPlayerRow i_character=@_renderedTeam.Characters.ElementAt(i) i_index=@(i+1) />
+                                            @*<tr class="@SqCssHelper.GetFactionClassFromId(_renderedTeam.Characters.ElementAt(i).FactionId)" style="color: var(--sq-ps2-primary);">
+                                                <td>
+                                                    @(i+1)
+                                                </td>
+                                                <td title="@_renderedTeam.Characters.ElementAt(i).Name [@(_renderedTeam.Characters.ElementAt(i).Id)]">
+                                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@_renderedTeam.Characters.ElementAt(i).Name</span>
+                                                    @if (_renderedTeam.Characters.ElementAt(i).PrestigeLevel != 0)
+                                                    {
+                                                        <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
+                                                            <sup>
+                                                                <span class="oi oi-star small" aria-hidden="true"></span>
+                                                            </sup>
+                                                        </div>
+                                                    }
+                                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(_renderedTeam.Characters.ElementAt(i).Id)]</span>
+                                                </td>
+
+                                                <td>
+                                                    @GetFactionAbbreviationFromId(_renderedTeam.Characters.ElementAt(i).FactionId)
+                                                </td>
+
+
+                                            </tr>
+                                        }*@
+
+                                </tbody>
+                            }
+                        }
+
+                    </table>
+
+                    @if (_processingInputs.Any())
+                    {
+                        <span class="thin">
+                            <SpinnerEllipsis />
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
         </div>
 
+    }
+    else
+    {
+        <SpinnerEllipsis />
     }
 
 </div>
@@ -158,6 +208,9 @@
     public bool i_viewOnly { get; set; } = true;
     private bool _renderedViewOnly { get; set; } = true;
 
+    private bool _showEditForm { get; set; } = false;
+    private ConstructedTeam _editFormTeam { get; set; } = new ConstructedTeam();
+
 
     private int _noTeamSelectedId { get; set; } = -1;
 
@@ -168,13 +221,27 @@
     private string _inputCharacter { get; set; } = string.Empty;
     private bool _isSavingCharacter { get; set; } = false;
 
+    private List<string> _processingInputs { get; set; } = new List<string>();
+
     private ConcurrentQueue<ConstructedTeamCharacterChange> _characterEditQueue { get; set; } = new ConcurrentQueue<ConstructedTeamCharacterChange>();
+
+    private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
 
 
     private IEnumerable<World> _worlds;
 
 
     #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _worlds = await WorldService.GetAllWorldsAsync();
@@ -199,6 +266,8 @@
 
             _renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId);
 
+            _processingInputs = new List<string>();
+
             //_renderedCharacters = _renderedTeam.Characters.ToList();
             //paramsChanged = true;
 
@@ -212,7 +281,10 @@
                     {
                         _renderedCharacters.AddRange(_renderedTeam?.Characters.ToList());
 
-                        _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
+                        _renderedCharacters = _renderedCharacters
+                                                .OrderBy(c => c.FactionId)
+                                                .ThenBy(c => c.Name)
+                                                .ToList();
 
                         _renderedCharactersCount = _renderedCharacters.Count();
                     }
@@ -230,8 +302,30 @@
     }
     #endregion Initialization Methods
 
-    #region Form Input Handling
+    #region Event Handling
+    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    {
+        var message = e.Message;
 
+        var teamId = message.TeamId;
+        if (message.TeamId != _renderedTeamId)
+        {
+            return;
+        }
+
+        var changeType = message.ChangeType;
+        if (changeType != ConstructedTeamMemberChangeType.Add && changeType != ConstructedTeamMemberChangeType.Remove)
+        {
+            return;
+        }
+
+        _changeMessagesQueue.Enqueue(message);
+
+        UpdateRenderedMembers();
+    }
+    #endregion Event Handling
+
+    #region Form Input Handling
     private async void HandleAddCharacterSubmit()
     {
         var input = _inputCharacter;
@@ -241,19 +335,36 @@
             return;
         }
 
-        //InfantryMatchReporTeam.ReceiveTeamPlayerChangeEvent
-        var characterChange = new ConstructedTeamCharacterChange
+        var characterInput = _inputCharacter;
+        _processingInputs.Add(characterInput);
+
+        InvokeAsyncStateHasChanged();
+
+        var character = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, characterInput);
+
+        // Don't clear input field if failed to find this character
+        if (character != null)
         {
-            CharacterInput = input,
-            ChangeType = TeamPlayerChangeType.Add
-        };
+            _inputCharacter = string.Empty;
+        }
+
+        _processingInputs.Remove(characterInput);
+
+        InvokeAsyncStateHasChanged();
+
+        //InfantryMatchReporTeam.ReceiveTeamPlayerChangeEvent
+        //var characterChange = new ConstructedTeamCharacterChange
+        //{
+        //    CharacterInput = input,
+        //    ChangeType = TeamPlayerChangeType.Add
+        //};
 
 
-        _characterEditQueue.Enqueue(characterChange);
+        //_characterEditQueue.Enqueue(characterChange);
 
-        _inputCharacter = string.Empty;
+        //_inputCharacter = string.Empty;
 
-        await ProcessTeamCharacterChanges();
+        //await ProcessTeamCharacterChanges();
 
 
         //// TeamBuilder.HandleAddPlayerSubmit
@@ -296,9 +407,65 @@
         //});
     }
 
+    //private async void HandleEditTeamSubmit()
+    //{
+
+    //}
+
+    private void HandleEditTeamCancel()
+    {
+        _editFormTeam = new ConstructedTeam();
+
+        _showEditForm = false;
+    }
+
+
+    private void ToggleEditTeamFormVisibility()
+    {
+        _showEditForm = !_showEditForm;
+    }
     #endregion Form Input Handling
 
     #region Character Processing
+    private void UpdateRenderedMembers()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedCharacters)
+            {
+                while (_changeMessagesQueue.TryDequeue(out ConstructedTeamMemberChangeMessage changeMessage))
+                {
+                    var changeType = changeMessage.ChangeType;
+                    var characterId = changeMessage.CharacterId;
+
+
+                    if (changeType == ConstructedTeamMemberChangeType.Remove)
+                    {
+                        _renderedCharacters.RemoveAll(c => c.Id == characterId);
+                    }
+                    else if (changeType == ConstructedTeamMemberChangeType.Add)
+                    {
+                        var character = changeMessage.Character;
+
+                        if (!_renderedCharacters.Any(c => c.Id == characterId))
+                        {
+                            _renderedCharacters.Add(character);
+                        }
+                    }
+                }
+
+                _renderedCharacters = _renderedCharacters
+                                        .OrderBy(c => c.FactionId)
+                                        .ThenBy(c => c.Name)
+                                        .ToList();
+
+                _renderedCharactersCount = _renderedCharacters.Count();
+
+                StateHasChanged();
+            }
+        });
+    }
+
     private async Task ProcessTeamCharacterChanges()
     {
         await InvokeAsync(async () =>

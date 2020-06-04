@@ -21,5 +21,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         Task SaveConstructedTeam(ConstructedTeamFormInfo constructedTeamFormInfo);
         Task<Character> TryAddCharacterToConstructedTeam(int teamId, string characterInput);
         Task<bool> IsCharacterIdOnTeam(int teamId, string characterId);
+        Task<bool> TryRemoveCharacterFromConstructedTeam(int teamId, string characterId);
     }
 }

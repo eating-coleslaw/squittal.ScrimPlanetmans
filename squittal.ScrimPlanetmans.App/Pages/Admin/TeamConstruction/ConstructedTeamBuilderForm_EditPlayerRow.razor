@@ -9,6 +9,7 @@
 @using System.Collections.Concurrent;
 
 @inject IConstructedTeamService ConstructedTeamsService
+@inject ICharacterService CharacterService
 @inject IFactionService FactionService
 @inject IWorldService WorldService
 
@@ -29,13 +30,22 @@
             <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(_renderedCharacter.Id)]</span>
         </td>
 
-        <td>
+        @*<td>
             @GetFactionAbbreviationFromId(_renderedCharacter.FactionId)
-        </td>
+        </td>*@
 
         <td>
             @WorldService.GetWorld(_renderedCharacter.WorldId).Name
         </td>
+
+        @if (_renderedShowRemoveControls)
+        {
+            <td style="width: 15px; text-align: right;">
+                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleRemovePlayer" title="Remove Character from Team">
+                    <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                </button>
+            </td>
+        }
     </tr>
 }
 
@@ -48,20 +58,38 @@
     public int i_index { get; set; } = 0;
     private int _renderedIndex { get; set; } = 0;
 
-    #region Initialization Methods
+    [Parameter]
+    public int i_teamId { get; set; }
+    private int _renderedTeamId { get; set; }
 
+    //[Parameter]
+    public bool i_showRemovalControls { get; set; } = true;
+    private bool _renderedShowRemoveControls { get; set; } = true;
+
+    #region Initialization Methods
     protected override void OnParametersSet()
     {
-        if (i_index != _renderedIndex || i_character.Id != _renderedCharacter.Id)
+        if (i_index != _renderedIndex || i_character.Id != _renderedCharacter.Id || i_teamId != _renderedTeamId)
         {
             _renderedCharacter = i_character;
             _renderedIndex = i_index;
+            _renderedTeamId = i_teamId;
 
             InvokeAsyncStateHasChanged();
         }
     }
     #endregion Initialization Methods
 
+    #region UI & Form Controls
+    private async void HandleRemovePlayer()
+    {
+        await ConstructedTeamsService.TryRemoveCharacterFromConstructedTeam(_renderedTeamId, _renderedCharacter.Id);
+
+        //InvokeAsyncStateHasChanged();
+    }
+    #endregion UI & Form Controls
+
+    #region Helper Methods
     private string GetFactionAbbreviationFromId(int factionId)
     {
         return FactionService.GetFactionAbbrevFromId(factionId);
@@ -74,5 +102,6 @@
             StateHasChanged();
         });
     }
+    #endregion Helper Methods
 
 }

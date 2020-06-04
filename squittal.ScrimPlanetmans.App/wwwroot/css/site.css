@@ -457,7 +457,8 @@ No-Link Brand Header
     font-size: small;
     /*color: var(--sq-ps2-primary);*/
     margin-bottom: 0px;
-    padding: 5px 10px;
+/*    padding: 5px 10px;*/
+    padding: 8px 8px;
     border: 2px solid var(--sq-light-blue-gray-alpha);
     border-top: 2px solid var(--sq-ps2-primary);
     border-radius: 0.2rem;

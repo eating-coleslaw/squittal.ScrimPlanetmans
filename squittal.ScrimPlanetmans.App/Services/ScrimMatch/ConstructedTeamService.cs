@@ -3,8 +3,10 @@ using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Data.Models;
+using squittal.ScrimPlanetmans.Models.Forms;
 using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.ScrimMatch;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using System;
@@ -20,16 +22,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimTeamsManager _teamsManager;
         private readonly ICharacterService _characterService;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ConstructedTeamService> _logger;
 
         public string CurrentMatchId { get; set; }
         public int CurrentMatchRound { get; set; } = 0;
 
-        public ConstructedTeamService(IDbContextHelper dbContextHelper, IScrimTeamsManager teamsManager, ICharacterService characterService, ILogger<ConstructedTeamService> logger)
+        public ConstructedTeamService(IDbContextHelper dbContextHelper, IScrimTeamsManager teamsManager, ICharacterService characterService,
+            IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _teamsManager = teamsManager;
             _characterService = characterService;
+            _messageService = messageService;
             _logger = logger;
         }
 
@@ -237,6 +242,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public async Task<ConstructedTeam> CreateConstructedTeam(ConstructedTeam constructedTeam)
         {
+            //Regex nameRegex = new Regex("^[A-Za-z0-9]{1,50}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Regex nameRegex = new Regex("^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (!nameRegex.Match(constructedTeam.Name).Success)
+            {
+                return null;
+            }
+
+            Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (!aliasRegex.Match(constructedTeam.Alias).Success)
+            {
+                return null;
+            }
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
@@ -332,7 +350,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             {
                 if (isId)
                 {
-                    characterOut = await TryAddCharacterIdToTeam(teamId, characterInput);
+                    characterOut = await TryAddCharacterIdToConstructedTeam(teamId, characterInput);
 
                     if (characterOut != null)
                     {
@@ -357,7 +375,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                 if (isName)
                 {
-                    return await TryAddCharacterNameToTeam(teamId, characterInput);
+                    return await TryAddCharacterNameToConstructedTeam(teamId, characterInput);
                 }
             }
             catch (Exception ex)
@@ -368,7 +386,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             return null;
         }
 
-        private async Task<Character> TryAddCharacterIdToTeam(int teamId, string characterId)
+        private async Task<Character> TryAddCharacterIdToConstructedTeam(int teamId, string characterId)
         {
             if (!(await IsCharacterIdOnTeam(teamId, characterId)))
             {
@@ -383,8 +401,11 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
 
 
-            if (await TryAddCharacterToTeamDb(teamId, characterId))
+            if (await TryAddCharacterToConstructedTeamDb(teamId, characterId))
             {
+                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, ConstructedTeamMemberChangeType.Add);
+                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+
                 return character;
             }
             else
@@ -393,7 +414,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
 
-        private async Task<Character> TryAddCharacterNameToTeam(int teamId, string characterName)
+        private async Task<Character> TryAddCharacterNameToConstructedTeam(int teamId, string characterName)
         {
             var character = await _characterService.GetCharacterByNameAsync(characterName);
 
@@ -407,8 +428,11 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return null;
             }
 
-            if (await TryAddCharacterToTeamDb(teamId, character.Id))
+            if (await TryAddCharacterToConstructedTeamDb(teamId, character.Id))
             {
+                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, ConstructedTeamMemberChangeType.Add);
+                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+
                 return character;
             }
             else
@@ -417,7 +441,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
 
-        private async Task<bool> TryAddCharacterToTeamDb(int teamId, string characterId)
+        private async Task<bool> TryAddCharacterToConstructedTeamDb(int teamId, string characterId)
         {
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
@@ -452,5 +476,52 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return false;
             }
         }
+
+        public async Task<bool> TryRemoveCharacterFromConstructedTeam(int teamId, string characterId)
+        {
+            if (await TryRemoveCharacterFromConstructedTeamDb(teamId, characterId))
+            {
+                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.Remove);
+                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        private async Task<bool> TryRemoveCharacterFromConstructedTeamDb(int teamId, string characterId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            try
+            {
+                var storeEntity = await dbContext.ConstructedTeamPlayerMemberships
+                                            .Where(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId)
+                                            .FirstOrDefaultAsync();
+
+                if (storeEntity == null)
+                {
+                    return false;
+                }
+
+                dbContext.ConstructedTeamPlayerMemberships.Remove(storeEntity);
+
+                await dbContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error removing character ID {characterId} from team ID {teamId} in database: {ex}");
+
+                return false;
+            }
+        }
+
     }
 }

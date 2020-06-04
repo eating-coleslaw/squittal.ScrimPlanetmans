@@ -74,6 +74,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
+        
+        public event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
+        public delegate void ConstructedTeamMemberChangeEventHandler(object sender, ConstructedTeamMemberChangeEventArgs e);
 
         #endregion Handler Events & Delegates
 
@@ -340,6 +343,17 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseTeamFactionChangeEvent(TeamFactionChangeEventArgs e)
         {
             RaiseTeamFactionChangeEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message)
+        {
+            OnRaiseConstructedTeamMemberChangeEvent(new ConstructedTeamMemberChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseConstructedTeamMemberChangeEvent(ConstructedTeamMemberChangeEventArgs e)
+        {
+            RaiseConstructedTeamMemberChangeEvent?.Invoke(this, e);
         }
     }
 }
