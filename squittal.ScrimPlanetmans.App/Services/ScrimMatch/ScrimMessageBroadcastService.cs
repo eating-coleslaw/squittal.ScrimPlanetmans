@@ -77,6 +77,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         
         public event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
         public delegate void ConstructedTeamMemberChangeEventHandler(object sender, ConstructedTeamMemberChangeEventArgs e);
+        
+        public event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
+        public delegate void ConstructedTeamInfoChangeEventHandler(object sender, ConstructedTeamInfoChangeEventArgs e);
 
         #endregion Handler Events & Delegates
 
@@ -344,7 +347,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseTeamFactionChangeEvent?.Invoke(this, e);
         }
-        
+
+        #region Constructed Team Messages
         public void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message)
         {
             OnRaiseConstructedTeamMemberChangeEvent(new ConstructedTeamMemberChangeEventArgs(message));
@@ -355,5 +359,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseConstructedTeamMemberChangeEvent?.Invoke(this, e);
         }
+        
+        public void BroadcastConstructedTeamInfoChangeMessage(ConstructedTeamInfoChangeMessage message)
+        {
+            OnRaiseConstructedTeamInfoChangeEvent(new ConstructedTeamInfoChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseConstructedTeamInfoChangeEvent(ConstructedTeamInfoChangeEventArgs e)
+        {
+            RaiseConstructedTeamInfoChangeEvent?.Invoke(this, e);
+        }
+
+        #endregion Constructed Team Messages
     }
 }

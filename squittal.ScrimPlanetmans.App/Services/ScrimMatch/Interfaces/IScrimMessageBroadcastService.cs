@@ -41,6 +41,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         
         event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
+        event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
 
         void BroadcastSimpleMessage(string message);
 
@@ -71,5 +72,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message);
 
         void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message);
+        void BroadcastConstructedTeamInfoChangeMessage(ConstructedTeamInfoChangeMessage message);
     }
 }
