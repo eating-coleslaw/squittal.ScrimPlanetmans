@@ -87,36 +87,6 @@
             InvokeAsyncStateHasChanged();
         }
     }
-    /*
-    protected override async Task OnParametersSetAsync()
-    {
-        if (i_character != _renderedCharacter || i_index != _renderedIndex || i_factionId != _renderedFactionId || i_teamId != _renderedTeamId)
-        {
-            _renderedIndex = i_index;
-            _renderedFactionId = i_factionId;
-            _renderedTeamId = i_teamId;
-
-            _renderedCharacterId = i_character.Id;
-
-            _renderedCharacter = i_character;
-
-            _renderedCharacter = await CharacterService.GetCharacterAsync(_renderedCharacterId);
-
-            //if ((string.IsNullOrWhiteSpace(_renderedWorldName) || _renderedCharacter.Name == "Unnamed Character"))
-            //{
-            //    _renderedCharacter = await CharacterService.GetCharacterAsync(_renderedCharacterId);
-
-            //}
-
-            if (_renderedCharacter != null)
-            {
-                _renderedWorldName = WorldService.GetWorld(_renderedCharacter.WorldId).Name;
-            }
-
-            InvokeAsyncStateHasChanged();
-        }
-    }
-    */
     #endregion Initialization Methods
 
     #region UI & Form Controls
