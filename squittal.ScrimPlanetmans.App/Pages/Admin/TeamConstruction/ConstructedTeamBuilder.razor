@@ -5,10 +5,13 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Text.RegularExpressions;
-@using squittal.ScrimPlanetmans.ScrimMatch.Messages; 
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IConstructedTeamService ConstructedTeamService
 @inject IScrimMessageBroadcastService MessageService
+
+@inject NavigationManager NavManager
 
 @implements IDisposable
 
@@ -48,6 +51,10 @@
                 }
 
             </div>
+
+            <p>URI ID: @_uriTeamId</p>
+            <p>Input String ID: @i_teamStringId</p>
+            <p>Rendered String ID: @_renderedTeamId</p>
 
             <div class="sq-mini-card-12">
                 <TeamConstructionLog />
@@ -109,6 +116,9 @@
     public string i_teamStringId { get; set; }
     private string _renderedTeamStringId { get; set; }
 
+    [Parameter]
+    public int? _uriTeamId { get; set; }
+
     private string _inputTeamStringId { get; set; } = string.Empty;
 
     private int _renderedTeamId { get; set; }
@@ -134,11 +144,13 @@
     protected override void OnInitialized()
     {
         MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
+        NavManager.LocationChanged += OnLocationChanged;
     }
 
     public void Dispose()
     {
         MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
+        NavManager.LocationChanged -= OnLocationChanged;
     }
 
     protected override async Task OnInitializedAsync()
@@ -149,6 +161,8 @@
     protected override void OnParametersSet()
     {
         var paramsChanged = false;
+
+        UpdateUriParameters();
 
         if (i_teamStringId != _renderedTeamStringId)
         {
@@ -197,6 +211,8 @@
             _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
         }
 
+        NavManager.NavigateTo($"/TeamBuilder?teamId={i_teamStringId}");
+
         _isChangingTeam = false;
         InvokeAsyncStateHasChanged();
     }
@@ -239,7 +255,6 @@
         _showCreateNewTeamForm = false;
     }
 
-
     private void ToggleCreateNewTeamFormVisibility()
     {
         _showCreateNewTeamForm = !_showCreateNewTeamForm;
@@ -248,6 +263,14 @@
 
 
     #region Event Handling
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            StateHasChanged();
+        }
+    }
+
     public void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
     {
         var team = e.Message.ConstructedTeam;
@@ -265,6 +288,41 @@
         InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("teamId", out var qTeamId))
+        {
+            if (int.TryParse(qTeamId, out var teamId))
+            {
+                if (_uriTeamId == null || teamId != (int)_uriTeamId)
+                {
+                    _uriTeamId = teamId;
+
+                    i_teamStringId = _uriTeamId.ToString();
+                    _inputTeamStringId = _uriTeamId.ToString();
+                    _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
+
+                    stateChanged = true;
+                }
+                else
+                {
+                    _uriTeamId = null;
+
+                    i_teamStringId = string.Empty;
+                    _inputTeamStringId = string.Empty;
+                    _renderedTeamId = GetTeamIdFromStringId(_noTeamSelectedStringId);
+
+                    stateChanged = false;
+                }
+            }
+        }
+
+        return stateChanged;
+    }
 
     public int GetTeamIdFromStringId(string stringId)
     {
