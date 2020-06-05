@@ -103,10 +103,10 @@
                                                                      .OrderBy(c => c.Name)
                                                                      //.ThenBy(c => c.Id)
                                                                      .AsEnumerable()
-                                                                     .Select((c, Index) => new { Id = c.Id, Index = Index }))
+                                                                     .Select((c, Index) => new { Character = c, Index = Index }))
                                 {
                                     @*<ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@null i_index=@(indexedCharacter.Index + 1) />*@
-                                    <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_characterId=@(indexedCharacter.Id) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) OnCharacterApiDataLoad="MemberCharacterDataLoaded" />
+                                    <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@(indexedCharacter.Character) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) OnCharacterApiDataLoad="MemberCharacterDataLoaded" />
                                 }
                             </tbody>
                         }
@@ -181,7 +181,6 @@
 
         if (i_teamId != _renderedTeamId || i_factionId != _renderedFactionId || viewOnlyChanged)
         {
-
             _renderedFactionId = i_factionId;
             _renderedFactionAbbreviation = GetFactionAbbreviationFromId(_renderedFactionId);
 
@@ -189,6 +188,8 @@
 
             var characterIds = await ConstructedTeamsService.GetConstructedTeamFactionMemberIds(_renderedTeamId, _renderedFactionId);
             var memberships = await ConstructedTeamsService.GetConstructedTeamFactionMembers(_renderedTeamId, _renderedFactionId);
+
+            var characters = await ConstructedTeamsService.GetConstructionTeamFactionCharacters(_renderedTeamId, _renderedFactionId);
 
             await InvokeAsync(() =>
             {
@@ -210,9 +211,20 @@
                             _renderedCharacterIdsCount = _renderedCharacterIds.Count();
                         }
 
-                        if (memberships != null && memberships.Any())
+                        //if (memberships != null && memberships.Any())
+                        //{
+                        //    _renderedCharacters.AddRange(memberships.Select(GetPlaceholderCharacter).ToList());
+
+                        //    _renderedCharacters = _renderedCharacters
+                        //                             .OrderBy(c => c.Name)
+                        //                             .ToList();
+
+                        //    _renderedCharactersCount = _renderedCharacters.Count();
+                        //}
+
+                        if (characters != null && characters.Any())
                         {
-                            _renderedCharacters.AddRange(memberships.Select(GetPlaceholderCharacter).ToList());
+                            _renderedCharacters.AddRange(characters.ToList());
 
                             _renderedCharacters = _renderedCharacters
                                                      .OrderBy(c => c.Name)

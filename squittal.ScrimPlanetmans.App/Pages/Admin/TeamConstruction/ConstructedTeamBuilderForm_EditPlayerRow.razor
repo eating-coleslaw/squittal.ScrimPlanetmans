@@ -79,10 +79,14 @@
 
 @code {
     [Parameter]
-    public string i_characterId { get; set; } = string.Empty;
+    public Character i_character { get; set; } = new Character();
+    private Character _renderedCharacter { get; set; } = new Character();
+
+    //[Parameter]
+    //public string i_characterId { get; set; } = string.Empty;
     private string _renderedCharacterId { get; set; } = string.Empty;
 
-    private Character _renderedCharacter = new Character();
+    //private Character _renderedCharacter = new Character();
 
     [Parameter]
     public EventCallback<Character> OnCharacterApiDataLoad { get; set; }
@@ -122,12 +126,15 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (i_characterId != _renderedCharacterId || i_index != _renderedIndex || i_factionId != _renderedFactionId)
+        //if (i_characterId != _renderedCharacterId || i_index != _renderedIndex || i_factionId != _renderedFactionId)
+        if (i_character != _renderedCharacter || i_index != _renderedIndex || i_factionId != _renderedFactionId || i_teamId != _renderedTeamId)
         {
             _renderedIndex = i_index;
             _renderedFactionId = i_factionId;
+            _renderedTeamId = i_teamId;
 
-            _renderedCharacterId = i_characterId;
+            //_renderedCharacterId = i_characterId;
+            _renderedCharacterId = i_character.Id;
             _renderedCharacter = await CharacterService.GetCharacterAsync(_renderedCharacterId);
 
             if (_renderedCharacter != null)
@@ -135,7 +142,7 @@
                 _renderedWorldName = WorldService.GetWorld(_renderedCharacter.WorldId).Name;
             }
 
-            await OnCharacterApiDataLoad.InvokeAsync(_renderedCharacter);
+            //await OnCharacterApiDataLoad.InvokeAsync(_renderedCharacter);
 
             InvokeAsyncStateHasChanged();
         }
