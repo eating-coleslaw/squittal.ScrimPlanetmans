@@ -1,0 +1,232 @@
+﻿@using squittal.ScrimPlanetmans.Data.Models;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+
+@inject IConstructedTeamService ConstructedTeamsService
+@inject IScrimMessageBroadcastService MessageService
+@inject IFactionService FactionService
+@inject IWorldService WorldService
+
+@implements IDisposable
+
+
+<div class="sq-mini-card-4 @_renderedFactionAbbreviation.ToLower()">
+    <div class="sq-content">
+
+        <h5>@_renderedFactionAbbreviation.ToUpper() Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h5>
+
+        @if (_renderedCharactersCount <= 0)
+        {
+            <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
+                Team has no @_renderedFactionAbbreviation.ToUpper() members
+            </p>
+        }
+        else
+        {
+            <table class="table-responsive-sm table-striped-light mono-font smaller" style="font-size: 0.85rem;">
+
+                <thead>
+                    <tr>
+                        <th></th> @* Row Number *@
+                        <th></th> @* Character *@
+                        <th></th> @* Server *@
+                        <th></th> @* Remove Button *@
+                    </tr>
+                </thead>
+
+                @lock (_renderedCharacterIds)
+                {
+                    @if (_renderedCharacterIds != null && _renderedCharacterIds.Any() && _renderedCharactersCount > 0)
+                    {
+                        <tbody>
+                            @foreach (var indexedCharacter in _renderedCharacterIds
+                                                .OrderBy(c => c)
+                                                .AsEnumerable()
+                                                .Select((c, Index) => new { Id = c, Index = Index }))
+                            {
+                                @*<ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@null i_index=@(indexedCharacter.Index + 1) />*@
+                                <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_characterId=@(indexedCharacter.Id) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) />
+
+                            }
+                        </tbody>
+                    }
+                }
+
+            </table>
+        }
+
+    </div>
+
+</div>
+
+
+
+@code {
+    [Parameter]
+    public int i_teamId { get; set; }
+    private int _renderedTeamId { get; set; }
+
+    [Parameter]
+    public int i_factionId { get; set; }
+    private int _renderedFactionId { get; set; }
+
+    private string _renderedFactionAbbreviation { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool i_viewOnly { get; set; } = true;
+    private bool _renderedViewOnly { get; set; } = true;
+
+    private List<string> _renderedCharacterIds { get; set; } = new List<string>();
+    private int _renderedCharactersCount { get; set; } = 0;
+
+    private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
+
+    private IEnumerable<World> _worlds;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+
+        var s = _worlds.ElementAt(1);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var viewOnlyChanged = false;
+
+        if (i_viewOnly != _renderedViewOnly)
+        {
+            _renderedViewOnly = i_viewOnly;
+
+            viewOnlyChanged = true;
+        }
+
+        if (i_teamId != _renderedTeamId || i_factionId != _renderedFactionId || viewOnlyChanged)
+        {
+
+            _renderedFactionId = i_factionId;
+            _renderedFactionAbbreviation = GetFactionAbbreviationFromId(_renderedFactionId);
+
+            _renderedTeamId = i_teamId;
+
+            var characterIds = await ConstructedTeamsService.GetConstructedTeamFactionMemberIds(_renderedTeamId, _renderedFactionId);
+
+            await InvokeAsync(() =>
+            {
+                lock (_renderedCharacterIds)
+                {
+                    _renderedCharacterIds = new List<string>();
+
+                    if (characterIds != null && characterIds.Any())
+                    {
+                        _renderedCharacterIds.AddRange(characterIds.ToList());
+
+                        _renderedCharacterIds = _renderedCharacterIds
+                                                    .OrderBy(c => c)
+                                                    .ToList();
+
+                        _renderedCharactersCount = _renderedCharacterIds.Count();
+                    }
+
+                    StateHasChanged();
+                }
+            });
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamId = message.TeamId;
+        if (message.TeamId != _renderedTeamId || message.Character.FactionId != _renderedFactionId)
+        {
+            return;
+        }
+
+        var changeType = message.ChangeType;
+        if (changeType != ConstructedTeamMemberChangeType.Add && changeType != ConstructedTeamMemberChangeType.Remove)
+        {
+            return;
+        }
+
+        _changeMessagesQueue.Enqueue(message);
+
+        UpdateRenderedMembers();
+    }
+    #endregion Event Handling
+
+    #region Character Processing
+    private void UpdateRenderedMembers()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedCharacterIds)
+            {
+                while (_changeMessagesQueue.TryDequeue(out ConstructedTeamMemberChangeMessage changeMessage))
+                {
+                    var changeType = changeMessage.ChangeType;
+                    var characterId = changeMessage.CharacterId;
+
+                    if (changeType == ConstructedTeamMemberChangeType.Remove)
+                    {
+                        _renderedCharacterIds.RemoveAll(c => c == characterId);
+                    }
+                    else if (changeType == ConstructedTeamMemberChangeType.Add)
+                    {
+                        //var character = changeMessage.Character;
+
+                        if (!_renderedCharacterIds.Any(c => c == characterId))
+                        {
+                            _renderedCharacterIds.Add(characterId);
+                        }
+                    }
+                }
+
+                _renderedCharacterIds = _renderedCharacterIds
+                                            .OrderBy(c => c)
+                                            .ToList();
+
+                _renderedCharactersCount = _renderedCharacterIds.Count();
+
+                StateHasChanged();
+            }
+        });
+    }
+    #endregion CharacterProcessing
+
+    private string GetFactionAbbreviationFromId(int factionId)
+    {
+        return FactionService.GetFactionAbbrevFromId(factionId);
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+}

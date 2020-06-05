@@ -95,6 +95,8 @@
             <div style="display: flex; flex-wrap: wrap;">
 
                 @* VS Members *@
+                <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=1 i_teamId=@_renderedTeamId />
+                @*
                 <div class="sq-mini-card-4 vs">
                     <div class="sq-content">
 
@@ -114,9 +116,9 @@
                                     <tr>
                                         <th></th>
                                         <th></th>
-                                        @*<th>Character</th>*@
-                                        @*<th>Faction</th>*@
-                                        @*<th>Server</th>*@
+                                        @*<th>Character</th>
+                                        @*<th>Faction</th>
+                                        @*<th>Server</th>
                                         <th></th>
                                         <th></th>
                                     </tr>
@@ -143,18 +145,13 @@
                             </table>
                         }
 
-                        @*@if (_processingInputs.Any())
-                        {
-                            <span class="thin">
-                                <SpinnerEllipsis />
-                            </span>
-                        }*@
-
                     </div>
 
-                </div>
+                </div>*@
 
                 @* NC MEMBERS*@
+                <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=2 i_teamId=@_renderedTeamId />
+                @*
                 <div class="sq-mini-card-4 nc">
                     <div class="sq-content">
 
@@ -174,9 +171,9 @@
                                     <tr>
                                         <th></th>
                                         <th></th>
-                                        @*<th>Character</th>*@
-                                        @*<th>Faction</th>*@
-                                        @*<th>Server</th>*@
+                                        @*<th>Character</th>
+                                        @*<th>Faction</th>
+                                        @*<th>Server</th>
                                         <th></th>
                                         <th></th>
                                     </tr>
@@ -202,19 +199,13 @@
                             </table>
 
                         }
-
-                        @*@if (_processingInputs.Any())
-                        {
-                            <span class="thin">
-                                <SpinnerEllipsis />
-                            </span>
-                        }*@
-
                     </div>
 
-                </div>
+                </div>*@
 
                 @* TR Members *@
+                <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=3 i_teamId=@_renderedTeamId />
+                @*
                 <div class="sq-mini-card-4 tr">
                     <div class="sq-content">
 
@@ -234,9 +225,9 @@
                                     <tr>
                                         <th></th>
                                         <th></th>
-                                        @*<th>Character</th>*@
-                                        @*<th>Faction</th>*@
-                                        @*<th>Server</th>*@
+                                        @*<th>Character</th>
+                                        @*<th>Faction</th>
+                                        @*<th>Server</th>
                                         <th></th>
                                         <th></th>
                                     </tr>
@@ -263,16 +254,8 @@
                             </table>
                         }
 
-                        @*@if (_processingInputs.Any())
-                        {
-                            <span class="thin">
-                                <SpinnerEllipsis />
-                            </span>
-                        }*@
-
                     </div>
-
-                </div>
+                </div>*@
 
             </div>
 
@@ -326,12 +309,12 @@
     #region Initialization Methods
     protected override void OnInitialized()
     {
-        MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+        //MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
     }
 
     public void Dispose()
     {
-        MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+        //MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
     }
 
     protected override async Task OnInitializedAsync()
@@ -359,7 +342,8 @@
 
             _renderedTeamId = i_teamId;
 
-            _renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId);
+            //_renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId);
+            _renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId, true);
 
             _editFormTeam = new ConstructedTeam();
             _editFormTeam.Name = _renderedTeam.Name;
@@ -370,32 +354,37 @@
             //_renderedCharacters = _renderedTeam.Characters.ToList();
             //paramsChanged = true;
 
-            await InvokeAsync(() =>
+            await InvokeAsync(async () =>
             {
-                lock (_renderedCharacters)
-                {
-                    _renderedCharacters = new List<Character>();
+                _renderedCharactersCount = await ConstructedTeamsService.GetConstructedTeamMemberCount(_renderedTeamId);
 
-                    if (_renderedTeam.Characters != null && _renderedTeam.Characters.Any())
-                    {
-                        _renderedCharacters.AddRange(_renderedTeam?.Characters.ToList());
+                _isChangingTeam = false;
+                StateHasChanged();
 
-                        _renderedCharacters = _renderedCharacters
-                                                .OrderBy(c => c.FactionId)
-                                                .ThenBy(c => c.Name)
-                                                .ToList();
+                //lock (_renderedCharacters)
+                //{
+                //    _renderedCharacters = new List<Character>();
 
-                        _renderedCharactersCount = _renderedCharacters.Count();
+                //    if (_renderedTeam.Characters != null && _renderedTeam.Characters.Any())
+                //    {
+                //        _renderedCharacters.AddRange(_renderedTeam?.Characters.ToList());
 
-                        _renderedVsCharactersCount = _renderedCharacters.Where(c => c.FactionId == 1).Count();
-                        _renderedNcCharactersCount = _renderedCharacters.Where(c => c.FactionId == 2).Count();
-                        _renderedTrCharactersCount = _renderedCharacters.Where(c => c.FactionId == 3).Count();
-                    }
+                //        _renderedCharacters = _renderedCharacters
+                //                                .OrderBy(c => c.FactionId)
+                //                                .ThenBy(c => c.Name)
+                //                                .ToList();
+
+                //        _renderedCharactersCount = _renderedCharacters.Count();
+
+                //        //_renderedVsCharactersCount = _renderedCharacters.Where(c => c.FactionId == 1).Count();
+                //        //_renderedNcCharactersCount = _renderedCharacters.Where(c => c.FactionId == 2).Count();
+                //        //_renderedTrCharactersCount = _renderedCharacters.Where(c => c.FactionId == 3).Count();
+                //    }
 
 
-                    _isChangingTeam = false;
-                    StateHasChanged();
-                }
+                //    _isChangingTeam = false;
+                //    StateHasChanged();
+                //}
             });
         }
 

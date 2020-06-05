@@ -28,6 +28,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public string CurrentMatchId { get; set; }
         public int CurrentMatchRound { get; set; } = 0;
 
+        public static Regex ConstructedTeamNameRegex { get; } = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public static Regex ConstructedTeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         public ConstructedTeamService(IDbContextHelper dbContextHelper, IScrimTeamsManager teamsManager, ICharacterService characterService,
             IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
         {
@@ -63,6 +66,134 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                 return null;
             }
+        }
+
+        public async Task<int> GetConstructedTeamMemberCount(int teamId)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var team = await dbContext.ConstructedTeams.FirstOrDefaultAsync(t => t.Id == teamId);
+
+                if (team == null)
+                {
+                    return -1;
+                }
+
+                return await dbContext.ConstructedTeamPlayerMemberships
+                                .Where(m => m.ConstructedTeamId == teamId)
+                                .CountAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return -1;
+            }
+        }
+
+        public async Task<IEnumerable<string>> GetConstructedTeamFactionMemberIds(int teamId, int factionId)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var team = await dbContext.ConstructedTeams.FirstOrDefaultAsync(t => t.Id == teamId);
+
+                if (team == null)
+                {
+                    return null;
+                }
+
+                return await dbContext.ConstructedTeamPlayerMemberships
+                                .Where(m => m.ConstructedTeamId == teamId && m.FactionId == factionId)
+                                .Select(m => m.CharacterId)
+                                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ConstructedTeamPlayerMembership>> GetConstructedTeamFactionMembers(int teamId, int factionId)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var team = await dbContext.ConstructedTeams.FirstOrDefaultAsync(t => t.Id == teamId);
+
+                if (team == null)
+                {
+                    return null;
+                }
+
+                return await dbContext.ConstructedTeamPlayerMemberships
+                                .Where(m => m.ConstructedTeamId == teamId && m.FactionId == factionId)
+                                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<Character>> GetConstructionTeamFactionCharacters(int teamId, int factionId)
+        {
+            var members = await GetConstructedTeamFactionMembers(teamId, factionId);
+
+            if (members == null || !members.Any())
+            {
+                return null;
+            }
+
+            List<ConstructedTeamPlayerMembership> unprocessedMembers = new List<ConstructedTeamPlayerMembership>();
+            unprocessedMembers.AddRange(members.ToList());
+
+            List<Character> processedCharacters = new List<Character>();
+
+            IEnumerable<Task<Character>> getCharacterTasksQuery =
+                from member in members select _characterService.GetCharacterAsync(member.CharacterId);
+            
+            List<Task<Character>> getCharacterTasks = getCharacterTasksQuery.ToList();
+
+            while (getCharacterTasks.Count > 0)
+            {
+                Task<Character> firstFinishedTask = await Task.WhenAny(getCharacterTasks);
+
+                getCharacterTasks.Remove(firstFinishedTask);
+
+                var character = firstFinishedTask.Result;
+
+                if (character != null)
+                {
+                    processedCharacters.Add(character);
+                    unprocessedMembers.RemoveAll(m => m.CharacterId == character.Id);
+                }
+            }
+
+            foreach (var member in unprocessedMembers)
+            {
+                var character = new Character
+                {
+                    Name = "Unnamed Player",
+                    Id = member.CharacterId,
+                    FactionId = member.FactionId
+                };
+
+                processedCharacters.Add(character);
+            }
+
+            return processedCharacters;
         }
 
         public async Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId)
@@ -124,9 +255,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 };
         }
 
-        public async Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId)
+        public async Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId, bool ignoreCollections = false)
         {
-            var constructedTeam = await GetConstructedTeam(teamId, false);
+            //var constructedTeam = await GetConstructedTeam(teamId, false);
+            var constructedTeam = await GetConstructedTeam(teamId, ignoreCollections);
 
             if (constructedTeam == null)
             {
@@ -135,7 +267,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
             var teamInfo = ConvertToTeamFormInfo(constructedTeam);
 
-            if (!constructedTeam.PlayerMemberships.Any())
+            if (ignoreCollections || !constructedTeam.PlayerMemberships.Any())
             {
                 return teamInfo;
             }
@@ -161,8 +293,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 {
                     _logger.LogError($"Error fetching Census API data for characterId {member.CharacterId}: {ex}");
                 }
-
-                
             }
 
             teamInfo.Characters = teamCharacters;
@@ -247,14 +377,24 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             var updateAlias = teamUpdate.Alias;
 
             //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (!nameRegex.Match(updateName).Success)
+            //Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //if (!nameRegex.Match(updateName).Success)
+            //{
+            //    return false;
+            //}
+
+            if (!IsValidConstructedTeamName(updateName))
             {
                 return false;
             }
 
-            Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (!aliasRegex.Match(updateAlias).Success)
+            //Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //if (!aliasRegex.Match(updateAlias).Success)
+            //{
+            //    return false;
+            //}
+
+            if (!IsValidConstructedTeamAlias(updateAlias))
             {
                 return false;
             }
@@ -271,12 +411,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                     return false;
                 }
 
+                var oldName = storeEntity.Name;
+                var oldAlias = storeEntity.Alias;
+
                 storeEntity.Name = updateName;
                 storeEntity.Alias = updateAlias;
 
                 dbContext.ConstructedTeams.Update(storeEntity);
 
                 await dbContext.SaveChangesAsync();
+
+                var message = new ConstructedTeamInfoChangeMessage(storeEntity, oldName, oldAlias);
+                _messageService.BroadcastConstructedTeamInfoChangeMessage(message);
 
                 return true;
             }
@@ -292,14 +438,24 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             //Regex nameRegex = new Regex("^[A-Za-z0-9]{1,50}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             //Regex nameRegex = new Regex("^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (!nameRegex.Match(constructedTeam.Name).Success)
+            //Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //if (!nameRegex.Match(constructedTeam.Name).Success)
+            //{
+            //    return null;
+            //}
+
+            if (!IsValidConstructedTeamName(constructedTeam.Name))
             {
                 return null;
             }
 
-            Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (!aliasRegex.Match(constructedTeam.Alias).Success)
+            //Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //if (!aliasRegex.Match(constructedTeam.Alias).Success)
+            //{
+            //    return null;
+            //}
+
+            if (!IsValidConstructedTeamAlias(constructedTeam.Alias))
             {
                 return null;
             }
@@ -310,63 +466,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 var dbContext = factory.GetDbContext();
 
                 dbContext.ConstructedTeams.Add(constructedTeam);
-
-                //var storeTeamEntity = await dbContext.ConstructedTeams.FirstOrDefaultAsync(ct => ct.Id == constructedTeam.Id);
-
-                //if (storeTeamEntity == null)
-                //{
-                //    dbContext.ConstructedTeams.Add(constructedTeam);
-                //}
-                //else
-                //{
-                //    storeTeamEntity = constructedTeam;
-                //    dbContext.ConstructedTeams.Update(constructedTeam);
-                //}
-
-
-                //// Team Results Point Adjustments
-                //var updateAdjustments = resultsAggregate.PointAdjustments.ToList();
-
-                //var storeAdjustmentEntities = await dbContext.ScrimMatchTeamPointAdjustments
-                //                                        .Where(adj => adj.ScrimMatchId == currentScrimMatchId && adj.TeamOrdinal == teamOrdinal)
-                //                                        .ToListAsync();
-
-                //var allAdjustments = new List<PointAdjustment>();
-
-                //allAdjustments.AddRange(updateAdjustments);
-                //allAdjustments.AddRange(storeAdjustmentEntities
-                //                            .Select(ConvertFromDbModel)
-                //                            .Where(e => !allAdjustments.Any(a => a.Timestamp == e.Timestamp))
-                //                            .ToList());
-
-                //var createdAdjustments = new List<ScrimMatchTeamPointAdjustment>();
-
-                //foreach (var adjustment in allAdjustments)
-                //{
-                //    var storeEntity = storeAdjustmentEntities.Where(e => e.Timestamp == adjustment.Timestamp).FirstOrDefault();
-                //    var updateAdjustment = updateAdjustments.Where(a => a.Timestamp == adjustment.Timestamp).FirstOrDefault();
-
-                //    if (storeEntity == null)
-                //    {
-                //        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
-                //        createdAdjustments.Add(updateEntity);
-                //    }
-                //    else if (updateAdjustment == null)
-                //    {
-                //        dbContext.ScrimMatchTeamPointAdjustments.Remove(storeEntity);
-                //    }
-                //    else
-                //    {
-                //        var updateEntity = BuildScrimMatchTeamPointAdjustment(currentScrimMatchId, teamOrdinal, updateAdjustment);
-                //        storeEntity = updateEntity;
-                //        dbContext.ScrimMatchTeamPointAdjustments.Update(storeEntity);
-                //    }
-                //}
-
-                //if (createdAdjustments.Any())
-                //{
-                //    await dbContext.ScrimMatchTeamPointAdjustments.AddRangeAsync(createdAdjustments);
-                //}
 
                 await dbContext.SaveChangesAsync();
 
@@ -579,5 +678,14 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
 
+        public static bool IsValidConstructedTeamName(string name)
+        {
+            return ConstructedTeamNameRegex.Match(name).Success;
+        }
+
+        public static bool IsValidConstructedTeamAlias(string alias)
+        {
+            return ConstructedTeamAliasRegex.Match(alias).Success;
+        }
     }
 }

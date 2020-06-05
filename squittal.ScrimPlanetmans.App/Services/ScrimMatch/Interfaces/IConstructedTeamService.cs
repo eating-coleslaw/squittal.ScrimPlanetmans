@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         Task<ConstructedTeam> GetConstructedTeam(int teamId, bool ignoreCollections = false);
 
         Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId);
-        Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId);
+        Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId, bool ignoreCollections = false);
 
         Task AddConstructedTeamToMatch(int constructedTeamId, int matchTeamOrdinal, int factionId);
 
@@ -23,5 +23,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         Task<bool> IsCharacterIdOnTeam(int teamId, string characterId);
         Task<bool> TryRemoveCharacterFromConstructedTeam(int teamId, string characterId);
         Task<bool> UpdateConstructedTeamInfo(ConstructedTeam teamUpdate);
+        Task<int> GetConstructedTeamMemberCount(int teamId);
+        Task<IEnumerable<string>> GetConstructedTeamFactionMemberIds(int teamId, int factionId);
+        Task<IEnumerable<ConstructedTeamPlayerMembership>> GetConstructedTeamFactionMembers(int teamId, int factionId);
+        Task<IEnumerable<Character>> GetConstructionTeamFactionCharacters(int teamId, int factionId);
     }
 }
