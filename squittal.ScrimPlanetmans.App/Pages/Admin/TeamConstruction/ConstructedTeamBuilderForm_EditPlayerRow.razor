@@ -85,6 +85,9 @@
     private Character _renderedCharacter = new Character();
 
     [Parameter]
+    public EventCallback<Character> OnCharacterApiDataLoad { get; set; }
+
+    [Parameter]
     public int i_index { get; set; } = 0;
     private int _renderedIndex { get; set; } = 0;
 
@@ -119,8 +122,11 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (i_characterId != _renderedCharacterId)
+        if (i_characterId != _renderedCharacterId || i_index != _renderedIndex || i_factionId != _renderedFactionId)
         {
+            _renderedIndex = i_index;
+            _renderedFactionId = i_factionId;
+
             _renderedCharacterId = i_characterId;
             _renderedCharacter = await CharacterService.GetCharacterAsync(_renderedCharacterId);
 
@@ -128,6 +134,8 @@
             {
                 _renderedWorldName = WorldService.GetWorld(_renderedCharacter.WorldId).Name;
             }
+
+            await OnCharacterApiDataLoad.InvokeAsync(_renderedCharacter);
 
             InvokeAsyncStateHasChanged();
         }

@@ -20,9 +20,10 @@
 <div class="sq-mini-card-4 @_renderedFactionAbbreviation.ToLower()">
     <div class="sq-content">
 
-        <h5>@_renderedFactionAbbreviation.ToUpper() Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h5>
+        <h5>@_renderedFactionAbbreviation.ToUpper() Members <span style="font-weight: 400;">(@_renderedCharacterIdsCount) | (@_renderedCharactersCount)</span></h5>
 
-        @if (_renderedCharactersCount <= 0)
+        @*
+        @if (_renderedCharacterIdsCount <= 0)
         {
             <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
                 Team has no @_renderedFactionAbbreviation.ToUpper() members
@@ -34,28 +35,81 @@
 
                 <thead>
                     <tr>
-                        <th></th> @* Row Number *@
-                        <th></th> @* Character *@
-                        <th></th> @* Server *@
-                        <th></th> @* Remove Button *@
+                        <th title="Row Number"></th>
+                        <th title="Character Name"></th>
+                        <th title="Server Name"></th>
+                        <th title="Remove Member Button"></th>
                     </tr>
                 </thead>
 
                 @lock (_renderedCharacterIds)
                 {
-                    @if (_renderedCharacterIds != null && _renderedCharacterIds.Any() && _renderedCharactersCount > 0)
+                    @if (_renderedCharacterIds != null && _renderedCharacterIds.Any() && _renderedCharacterIdsCount > 0)
                     {
                         <tbody>
                             @foreach (var indexedCharacter in _renderedCharacterIds
-                                                .OrderBy(c => c)
-                                                .AsEnumerable()
-                                                .Select((c, Index) => new { Id = c, Index = Index }))
+                                               .OrderBy(c => c)
+                                               .AsEnumerable()
+                                               .Select((c, Index) => new { Id = c, Index = Index }))
                             {
-                                @*<ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@null i_index=@(indexedCharacter.Index + 1) />*@
-                                <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_characterId=@(indexedCharacter.Id) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) />
+                                @*<ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@null i_index=@(indexedCharacter.Index + 1) />
+                                <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_characterId=@(indexedCharacter.Id) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) OnCharacterApiDataLoad="MemberCharacterDataLoaded" />
 
                             }
                         </tbody>
+                    }
+                }
+
+            </table>
+        }*@
+
+        @if (_renderedCharactersCount != _renderedCharacterIdsCount && _renderedCharactersCount > 0)
+        {
+            <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
+                Loading members character data...
+            </p>
+
+            <span class="thin">
+                <SpinnerEllipsis />
+            </span>
+        }
+        else if (_renderedCharactersCount != _renderedCharacterIdsCount && _renderedCharactersCount <= 0)
+        {
+            <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
+                Team has no @_renderedFactionAbbreviation.ToUpper() members
+            </p>
+        }
+        else
+        {
+            <table class="table-responsive-sm table-striped-light mono-font smaller" style="font-size: 0.85rem;">
+
+                <thead>
+                    <tr>
+                        <th title="Row Number"></th>
+                        <th title="Character Name"></th>
+                        <th title="Server Name"></th>
+                        <th title="Remove Member Button"></th>
+                    </tr>
+                </thead>
+
+                @lock (_renderedCharacterIds)
+                {
+                    lock (_renderedCharacters)
+                    {
+                        if (_renderedCharacters != null && _renderedCharacters.Any() && _renderedCharactersCount > 0)
+                        {
+                            <tbody>
+                                @foreach (var indexedCharacter in _renderedCharacters
+                                                                     .OrderBy(c => c.Name)
+                                                                     //.ThenBy(c => c.Id)
+                                                                     .AsEnumerable()
+                                                                     .Select((c, Index) => new { Id = c.Id, Index = Index }))
+                                {
+                                    @*<ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@null i_index=@(indexedCharacter.Index + 1) />*@
+                                    <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_characterId=@(indexedCharacter.Id) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) OnCharacterApiDataLoad="MemberCharacterDataLoaded" />
+                                }
+                            </tbody>
+                        }
                     }
                 }
 
@@ -84,9 +138,14 @@
     private bool _renderedViewOnly { get; set; } = true;
 
     private List<string> _renderedCharacterIds { get; set; } = new List<string>();
-    private int _renderedCharactersCount { get; set; } = 0;
+    private int _renderedCharacterIdsCount { get; set; } = 0;
 
     private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
+
+    private List<Character> _renderedCharacters = new List<Character>();
+    private ConcurrentQueue<Character> _characterDataUpdateQueue { get; set; } = new ConcurrentQueue<Character>();
+    private int _renderedCharactersCount { get; set; } = 0;
+
 
     private IEnumerable<World> _worlds;
 
@@ -129,25 +188,41 @@
             _renderedTeamId = i_teamId;
 
             var characterIds = await ConstructedTeamsService.GetConstructedTeamFactionMemberIds(_renderedTeamId, _renderedFactionId);
+            var memberships = await ConstructedTeamsService.GetConstructedTeamFactionMembers(_renderedTeamId, _renderedFactionId);
 
             await InvokeAsync(() =>
             {
                 lock (_renderedCharacterIds)
                 {
-                    _renderedCharacterIds = new List<string>();
-
-                    if (characterIds != null && characterIds.Any())
+                    lock (_renderedCharacters)
                     {
-                        _renderedCharacterIds.AddRange(characterIds.ToList());
+                        _renderedCharacterIds = new List<string>();
+                        _renderedCharacters = new List<Character>();
 
-                        _renderedCharacterIds = _renderedCharacterIds
-                                                    .OrderBy(c => c)
-                                                    .ToList();
+                        if (characterIds != null && characterIds.Any())
+                        {
+                            _renderedCharacterIds.AddRange(characterIds.ToList());
 
-                        _renderedCharactersCount = _renderedCharacterIds.Count();
+                            _renderedCharacterIds = _renderedCharacterIds
+                                                        .OrderBy(c => c)
+                                                        .ToList();
+
+                            _renderedCharacterIdsCount = _renderedCharacterIds.Count();
+                        }
+
+                        if (memberships != null && memberships.Any())
+                        {
+                            _renderedCharacters.AddRange(memberships.Select(GetPlaceholderCharacter).ToList());
+
+                            _renderedCharacters = _renderedCharacters
+                                                     .OrderBy(c => c.Name)
+                                                     .ToList();
+
+                            _renderedCharactersCount = _renderedCharacters.Count();
+                        }
+
+                        StateHasChanged();
                     }
-
-                    StateHasChanged();
                 }
             });
         }
@@ -160,13 +235,25 @@
         var message = e.Message;
 
         var teamId = message.TeamId;
-        if (message.TeamId != _renderedTeamId || message.Character.FactionId != _renderedFactionId)
+        if (message.TeamId != _renderedTeamId)
         {
             return;
         }
 
         var changeType = message.ChangeType;
-        if (changeType != ConstructedTeamMemberChangeType.Add && changeType != ConstructedTeamMemberChangeType.Remove)
+        //if (changeType != ConstructedTeamMemberChangeType.Add && changeType != ConstructedTeamMemberChangeType.Remove)
+        //{
+        //    return;
+        //}
+
+        if (changeType == ConstructedTeamMemberChangeType.Add)
+        {
+            if (message.Character.FactionId != _renderedFactionId)
+            {
+                return;
+            }
+        }
+        else if (changeType != ConstructedTeamMemberChangeType.Remove)
         {
             return;
         }
@@ -175,44 +262,130 @@
 
         UpdateRenderedMembers();
     }
+
+    public void MemberCharacterDataLoaded(Character character)
+    {
+        if (character.FactionId != _renderedFactionId)
+        {
+            return;
+        }
+
+        _characterDataUpdateQueue.Enqueue(character);
+
+        UpdateRenderedCharacters();
+    }
     #endregion Event Handling
 
     #region Character Processing
+    private void UpdateRenderedCharacters()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedCharacterIds)
+            {
+                lock (_renderedCharacters)
+                {
+                    while (_characterDataUpdateQueue.TryDequeue(out Character updateCharacter))
+                    {
+                        var updateName = updateCharacter.Name;
+                        var updateId = updateCharacter.Id;
+
+                        //if (!_renderedCharacterIds.Contains(updateId))
+                        //{
+                        //    continue;
+                        //}
+
+                        var renderedCharacter = _renderedCharacters.Where(c => c.Id == updateId).FirstOrDefault();
+
+                        if (renderedCharacter == null)
+                        {
+                            _renderedCharacters.Add(updateCharacter);
+                        }
+                        else
+                        {
+                            renderedCharacter.Name = updateName;
+                        }
+                    }
+
+                    _renderedCharacters = _renderedCharacters
+                                            .OrderBy(c => c.Name)
+                                            .ToList();
+
+                    _renderedCharactersCount = _renderedCharacters.Count();
+
+                    StateHasChanged();
+                }
+            }
+        });
+    }
+
     private void UpdateRenderedMembers()
     {
         InvokeAsync(() =>
         {
             lock (_renderedCharacterIds)
             {
-                while (_changeMessagesQueue.TryDequeue(out ConstructedTeamMemberChangeMessage changeMessage))
+                lock (_renderedCharacters)
                 {
-                    var changeType = changeMessage.ChangeType;
-                    var characterId = changeMessage.CharacterId;
-
-                    if (changeType == ConstructedTeamMemberChangeType.Remove)
+                    while (_changeMessagesQueue.TryDequeue(out ConstructedTeamMemberChangeMessage changeMessage))
                     {
-                        _renderedCharacterIds.RemoveAll(c => c == characterId);
-                    }
-                    else if (changeType == ConstructedTeamMemberChangeType.Add)
-                    {
-                        //var character = changeMessage.Character;
+                        var changeType = changeMessage.ChangeType;
+                        var characterId = changeMessage.CharacterId;
 
-                        if (!_renderedCharacterIds.Any(c => c == characterId))
+                        if (changeType == ConstructedTeamMemberChangeType.Remove)
                         {
-                            _renderedCharacterIds.Add(characterId);
+                            _renderedCharacterIds.RemoveAll(c => c == characterId);
+                            _renderedCharacters.RemoveAll(c => c.Id == characterId);
+                        }
+                        else if (changeType == ConstructedTeamMemberChangeType.Add)
+                        {
+                            var character = changeMessage.Character;
+
+                            if (!_renderedCharacterIds.Any(c => c == characterId))
+                            {
+                                _renderedCharacterIds.Add(characterId);
+                            }
+
+                            if (!_renderedCharacters.Any(c => c.Id == characterId))
+                            {
+                                var tempMembership = new ConstructedTeamPlayerMembership
+                                {
+                                    ConstructedTeamId = _renderedTeamId,
+                                    CharacterId = characterId,
+                                    FactionId = character.FactionId
+                                };
+
+                                _renderedCharacters.Add(GetPlaceholderCharacter(tempMembership));
+                            }
                         }
                     }
-                }
 
-                _renderedCharacterIds = _renderedCharacterIds
-                                            .OrderBy(c => c)
+                    _renderedCharacterIds = _renderedCharacterIds
+                                                .OrderBy(c => c)
+                                                .ToList();
+
+                    _renderedCharacterIdsCount = _renderedCharacterIds.Count();
+
+                    _renderedCharacters = _renderedCharacters
+                                            .OrderBy(c => c.Name)
                                             .ToList();
 
-                _renderedCharactersCount = _renderedCharacterIds.Count();
+                    _renderedCharactersCount = _renderedCharacters.Count();
 
-                StateHasChanged();
+                    StateHasChanged();
+                }
             }
         });
+    }
+
+    private Character GetPlaceholderCharacter(ConstructedTeamPlayerMembership membership)
+    {
+        return new Character
+        {
+            Name = string.Empty,
+            Id = membership.CharacterId,
+            FactionId = membership.FactionId
+        };
     }
     #endregion CharacterProcessing
 
