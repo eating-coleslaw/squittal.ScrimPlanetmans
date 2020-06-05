@@ -5,8 +5,12 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Text.RegularExpressions;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages; 
 
 @inject IConstructedTeamService ConstructedTeamService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
 
 <div class="container-fluid">
 
@@ -17,7 +21,6 @@
             <div class="header-card-container default">
                 <h3>Team Builder</h3>
 
-                @*<EditForm Model="@_inputTeamStringId" style="margin-top: 0.5rem;">*@
                 <EditForm Model="@_inputTeamStringId" style="display: inline-block;">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
@@ -25,8 +28,6 @@
                     <div style="margin-bottom: 0.2rem;">
                         <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
 
-                        @*<InputSelect type="submit" style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@i_teamStringId>
-                            @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@i_teamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => i_teamStringId)">*@
                         <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
                             <option value=@_noTeamSelectedStringId>No Team</option>
 
@@ -41,45 +42,12 @@
 
                 @if (!_showCreateNewTeamForm)
                 {
-                    @*<button class="btn btn-outline-primary" @onclick="ToggleCreateNewTeamFormVisibility" style="display: block; margin: 8px 0 16px 0; font-size: small;">*@
                     <button class="btn btn-outline-primary" @onclick="ToggleCreateNewTeamFormVisibility" style="display: inline-block; margin: 12px 0 16px 0; font-size: small;">
                         <span class="oi oi-plus"></span>Create New
                     </button>
                 }
 
             </div>
-
-            @*@if (_showCreateNewTeamForm)
-                {
-                    <div class="sq-mini-card-12 default">
-
-                        <h5 class="default" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;">
-                            Team Creation Form
-                        </h5>
-
-                        <div class="sq-content">
-                            <EditForm Model="@_newTeamForm" OnValidSubmit="HandleCreateNewTeamSubmit" style="margin-top: 0.5rem;">
-                                <DataAnnotationsValidator />
-                                <ValidationSummary />
-
-
-                                <p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_newTeamForm.Name /></p>
-                                <p style="margin-bottom: 0.5rem;">Alias: <InputText id="inputTeamAlias" @bind-Value=@_newTeamForm.Alias /></p>
-
-                                <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;" >
-                                    <span class="oi oi-check"></span>Save
-                                </button>
-
-                                <button @onclick="HandleCreateNewTeamCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
-                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                </button>
-
-                                <p style="margin: 8px 0; font-size: 0.9rem;">Open Team On Save? <InputCheckbox id="openNewTeamOnSave" @bind-Value="_openNewTeamOnSave" />@($"{(_openNewTeamOnSave ? " Yes" : " No")}")</p>
-
-                            </EditForm>
-                        </div>
-                    </div>
-                }*@
 
             <div class="sq-mini-card-12">
                 <TeamConstructionLog />
@@ -94,7 +62,7 @@
 
                 <div class="header-card-container default">
 
-                    <h5 class="default" style="margin-bottom: 0.1rem;"> @*color: var(--sq-ps2-primary);*@
+                    <h5 class="default" style="margin-bottom: 0.1rem;">
                         Team Creation Form
                     </h5>
 
@@ -103,8 +71,6 @@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-
-                            @*<p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_newTeamForm.Name maxlength="50" pattern="^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$"/></p>*@
                             <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_newTeamForm.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
                             <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_newTeamForm.Alias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" /></p>
 
@@ -123,10 +89,6 @@
                 </div>
             </div>
         }
-        @*else if (_isChangingTeam)
-        {
-            <SpinnerEllipsis />
-        }*@
         else if (_isChangingTeam)
         {
             <SpinnerEllipsis />
@@ -137,25 +99,9 @@
                 <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
             </div>
         }
-
-        @*<div class="col-lg-3">
-            <TeamConstructionLog />
-        </div>*@
-
-
     </div>
 
-    @*<div class="row">
-            <div class="col-lg-4">
-                <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
-            </div>
-        </div>*@
-
 </div>
-
-@*<p style="margin-bottom: 4px;">i_teamStringId: @i_teamStringId</p>
-    <p style="margin-bottom: 4px;">_renderedTeamStringId: @_renderedTeamStringId</p>
-    <p style="margin-bottom: 4px;">_debug: @_debug</p>*@
 
 
 @code {
@@ -166,7 +112,6 @@
 
     private string _inputTeamStringId { get; set; } = string.Empty;
 
-    //public int i_teamId { get; set; }
     private int _renderedTeamId { get; set; }
 
     private string _noTeamSelectedStringId { get; set; } = "-1";
@@ -190,6 +135,16 @@
     private string _debug;
 
     #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
@@ -226,91 +181,13 @@
         {
             _isChangingTeam = false;
             InvokeAsyncStateHasChanged();
-            //StateHasChanged();
-            //// TODO: do I acutally need to use InvokeAsync here?
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
     }
-
-    /*
-    protected override async Task OnParametersSetAsync()
-    {
-        var paramsChanged = false;
-
-        _debug = $"Passed through OPSA 3 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
-
-        if (string.IsNullOrWhiteSpace(i_teamStringId))
-        {
-            i_teamStringId = _noTeamSelectedStringId;
-        }
-        if (string.IsNullOrWhiteSpace(_renderedTeamStringId))
-        {
-            _renderedTeamStringId = _noTeamSelectedStringId;
-        }
-
-        if (i_teamStringId != _renderedTeamStringId)
-        {
-            _debug = $"Passed through OPSA 4 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
-
-            _renderedTeamStringId = i_teamStringId;
-
-            _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
-
-            _renderedTeam = await ConstructedTeamService.GetConstructedTeamFormInfo(_renderedTeamId);
-
-            paramsChanged = true;
-        }
-
-        if (i_viewOnly != _renderedViewOnly)
-        {
-            _renderedViewOnly = i_viewOnly;
-
-            paramsChanged = true;
-        }
-
-        StateHasChanged();
-        if (paramsChanged)
-        {
-            StateHasChanged();
-            //// TODO: do I acutally need to use InvokeAsync here?
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-        }
-    }
-    */
-
     #endregion Initialization Methods
 
     #region UI & Form Handling
-    //private async void HandleNewTeamSubmit()
-    //{
-    //    await ConstructedTeamService.SaveConstructedTeam(_renderedTeam);
-    //}
-
-    //private void HandleOnSelectTeamChange(ChangeEventArgs eventArgs)
     private void HandleOnSelectTeamChange(string inputTeamStringId)
     {
-        //if (i_teamStringId != _renderedTeamStringId && i_teamStringId != _noTeamSelectedStringId)
-        //var inputStringId = eventArgs.Value.ToString();
-
-        //if (inputStringId != _renderedTeamStringId && inputStringId != _noTeamSelectedStringId)
-        //{
-        //    i_teamStringId = inputStringId;
-
-        //    InvokeAsync(() =>
-        //    {
-        //        StateHasChanged();
-        //    });
-        //}
-
-        //i_teamStringId = inputStringId;
-        //_renderedTeamStringId = i_teamStringId;
-
         _isChangingTeam = true;
         InvokeAsyncStateHasChanged();
 
@@ -329,20 +206,12 @@
 
         _isChangingTeam = false;
         InvokeAsyncStateHasChanged();
-
-        //InvokeAsync(() =>
-        //{
-        //    StateHasChanged();
-        //});
     }
 
     private async void HandleCreateNewTeamSubmit()
     {
         var newTeam = _newTeamForm;
 
-        //Regex nameRegex = new Regex("^[A-Za-z0-9]{1,50}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //Regex nameRegex = new Regex("^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         if (!nameRegex.Match(newTeam.Name).Success)
         {
@@ -354,18 +223,6 @@
         {
             return;
         }
-
-        //if (_openNewTeamOnSave)
-        //{
-        //    _isChangingTeam = true;
-        //    //InvokeAsyncStateHasChanged();
-        //}
-
-        //if (string.IsNullOrWhiteSpace(_newTeamForm.Name) || string.IsNullOrWhiteSpace(_newTeamForm.Alias))
-        //{
-        //    return;
-        //}
-
         var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
 
         _newTeamForm = new ConstructedTeam();
@@ -378,8 +235,6 @@
         }
 
         _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
-
-        //_isChangingTeam = false;
 
         InvokeAsyncStateHasChanged();
     }
@@ -396,9 +251,27 @@
     {
         _showCreateNewTeamForm = !_showCreateNewTeamForm;
     }
-
     #endregion UI & Form Handling
 
+
+    #region Event Handling
+    public void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    {
+        var team = e.Message.ConstructedTeam;
+
+        var listedTeam = _storedTeamsList.Where(t => t.Id == team.Id).FirstOrDefault();
+
+        if (listedTeam == null)
+        {
+            return;
+        }
+
+        listedTeam.Name = team.Name;
+        listedTeam.Alias = team.Alias;
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
 
     public int GetTeamIdFromStringId(string stringId)
     {

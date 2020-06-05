@@ -26,17 +26,10 @@
         </h3>
 
         <p style="margin: 0 0 0.1rem 0;">
-
             @if (!_showEditForm)
             {
-                @*<button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditTeamFormVisibility">@(_showEditForm ? "Edit Players" : "Show Players")</button>*@
                 <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditTeamFormVisibility">Edit Team Info</button>
             }
-            @*<span>|</span><button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="(() => RefreshOutfitPlayers(outfit.AliasLower))">Refresh</button>*@
-            @*@if (_showRemovals)
-            {
-                <span>|</span><button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="(() => RemoveOutfit(outfit.AliasLower))">Remove</button>
-            }*@
         </p>
 
         @if (_showEditForm)
@@ -45,8 +38,6 @@
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                @*<p style="margin-bottom: 0.5rem;">Name: <InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]"/></p>*@
-                @*<p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]"/></p>*@
                 <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
                 <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_editFormTeam.Alias maxlength="4" pattern="[A-Za-z0-9]{1,4}" style="display: inline-block; width: 48px;" /></p>
 
@@ -77,10 +68,6 @@
                         <span class="oi oi-plus"></span>Add
                     </button>
 
-                    @*<span class="inline">
-                        <SpinnerEllipsis />
-                    </span>*@
-
                     @if (_processingInputs.Any())
                     {
                         <span class="inline">
@@ -96,170 +83,14 @@
 
                 @* VS Members *@
                 <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=1 i_teamId=@_renderedTeamId />
-                @*
-                <div class="sq-mini-card-4 vs">
-                    <div class="sq-content">
-
-                        <h5>VS Members <span style="font-weight: 400;">(@_renderedVsCharactersCount)</span></h5>
-
-                        @if (_renderedVsCharactersCount <= 0)
-                        {
-                            <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
-                                Team has no VS members
-                            </p>
-                        }
-                        else
-                        {
-                            <table class="table-responsive-sm table-striped-light mono-font smaller" style="font-size: 0.85rem;">
-
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th></th>
-                                        @*<th>Character</th>
-                                        @*<th>Faction</th>
-                                        @*<th>Server</th>
-                                        <th></th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-
-                                @lock (_renderedCharacters)
-                                {
-                                    @if (_renderedCharacters != null && _renderedCharacters.Any() && _renderedVsCharactersCount > 0)
-                                    {
-                                        <tbody>
-                                            @foreach (var indexedCharacter in _renderedCharacters
-                                                              .Where(c => c.FactionId == 1)
-                                                              .OrderBy(c => c.Name)
-                                                              .AsEnumerable()
-                                                              .Select((c, Index) => new { Character = c, Index = Index }))
-                                            {
-                                                <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@indexedCharacter.Character i_index=@(indexedCharacter.Index + 1) />
-
-                                            }
-                                        </tbody>
-                                    }
-                                }
-
-                            </table>
-                        }
-
-                    </div>
-
-                </div>*@
 
                 @* NC MEMBERS*@
                 <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=2 i_teamId=@_renderedTeamId />
-                @*
-                <div class="sq-mini-card-4 nc">
-                    <div class="sq-content">
-
-                        <h5>NC Members <span style="font-weight: 400;">(@_renderedNcCharactersCount)</span></h5>
-
-                        @if (_renderedNcCharactersCount <= 0)
-                        {
-                            <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
-                                Team has no NC members
-                            </p>
-                        }
-                        else
-                        {
-                            <table class="table-responsive-sm table-striped-light mono-font smaller" style="font-size: 0.85rem;">
-
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th></th>
-                                        @*<th>Character</th>
-                                        @*<th>Faction</th>
-                                        @*<th>Server</th>
-                                        <th></th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-
-                                @lock (_renderedCharacters)
-                                {
-                                    @if (_renderedCharacters != null && _renderedCharacters.Any() && _renderedNcCharactersCount > 0)
-                                    {
-                                        <tbody>
-                                            @foreach (var indexedCharacter in _renderedCharacters
-                                                           .Where(c => c.FactionId == 2)
-                                                           .OrderBy(c => c.Name)
-                                                           .AsEnumerable()
-                                                           .Select((c, Index) => new { Character = c, Index = Index }))
-                                            {
-                                                <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@indexedCharacter.Character i_index=@(indexedCharacter.Index + 1) />
-
-                                            }
-                                        </tbody>
-                                    }
-                                }
-                            </table>
-
-                        }
-                    </div>
-
-                </div>*@
 
                 @* TR Members *@
                 <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=3 i_teamId=@_renderedTeamId />
-                @*
-                <div class="sq-mini-card-4 tr">
-                    <div class="sq-content">
-
-                        <h5>TR Members <span style="font-weight: 400;">(@_renderedTrCharactersCount)</span></h5>
-
-                        @if (_renderedTrCharactersCount <= 0)
-                        {
-                            <p style="margin: 4px 0; color: var(--sq-ps2-primary); font-style: italic;">
-                                Team has no TR members
-                            </p>
-                        }
-                        else
-                        {
-                            <table class="table-responsive-sm table-striped-light mono-font smaller" style="font-size: 0.85rem;">
-
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th></th>
-                                        @*<th>Character</th>
-                                        @*<th>Faction</th>
-                                        @*<th>Server</th>
-                                        <th></th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-
-                                @lock (_renderedCharacters)
-                                {
-                                    @if (_renderedCharacters != null && _renderedCharacters.Any() && _renderedTrCharactersCount > 0)
-                                    {
-                                        <tbody>
-                                            @foreach (var indexedCharacter in _renderedCharacters
-                                                               .Where(c => c.FactionId == 3)
-                                                               .OrderBy(c => c.Name)
-                                                               .AsEnumerable()
-                                                               .Select((c, Index) => new { Character = c, Index = Index }))
-                                            {
-                                                <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@indexedCharacter.Character i_index=@(indexedCharacter.Index + 1) />
-
-                                            }
-                                        </tbody>
-                                    }
-                                }
-
-                            </table>
-                        }
-
-                    </div>
-                </div>*@
 
             </div>
-
-
         </div>
 
     }
@@ -289,9 +120,6 @@
     private ConstructedTeamFormInfo _renderedTeam { get; set; }
     private List<Character> _renderedCharacters { get; set; } = new List<Character>();
     private int _renderedCharactersCount { get; set; } = 0;
-    private int _renderedVsCharactersCount { get; set; } = 0;
-    private int _renderedNcCharactersCount { get; set; } = 0;
-    private int _renderedTrCharactersCount { get; set; } = 0;
 
     private string _inputCharacter { get; set; } = string.Empty;
     private bool _isSavingCharacter { get; set; } = false;
@@ -309,12 +137,14 @@
     #region Initialization Methods
     protected override void OnInitialized()
     {
-        //MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
     }
 
     public void Dispose()
     {
-        //MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
     }
 
     protected override async Task OnInitializedAsync()
@@ -360,44 +190,13 @@
 
                 _isChangingTeam = false;
                 StateHasChanged();
-
-                //lock (_renderedCharacters)
-                //{
-                //    _renderedCharacters = new List<Character>();
-
-                //    if (_renderedTeam.Characters != null && _renderedTeam.Characters.Any())
-                //    {
-                //        _renderedCharacters.AddRange(_renderedTeam?.Characters.ToList());
-
-                //        _renderedCharacters = _renderedCharacters
-                //                                .OrderBy(c => c.FactionId)
-                //                                .ThenBy(c => c.Name)
-                //                                .ToList();
-
-                //        _renderedCharactersCount = _renderedCharacters.Count();
-
-                //        //_renderedVsCharactersCount = _renderedCharacters.Where(c => c.FactionId == 1).Count();
-                //        //_renderedNcCharactersCount = _renderedCharacters.Where(c => c.FactionId == 2).Count();
-                //        //_renderedTrCharactersCount = _renderedCharacters.Where(c => c.FactionId == 3).Count();
-                //    }
-
-
-                //    _isChangingTeam = false;
-                //    StateHasChanged();
-                //}
             });
         }
-
-        //if (paramsChanged)
-        //{
-        //    // TODO: do I acutally need to use InvokeAsync here?
-        //    InvokeAsyncStateHasChanged();
-        //}
     }
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    private async void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
     {
         var message = e.Message;
 
@@ -413,9 +212,28 @@
             return;
         }
 
-        _changeMessagesQueue.Enqueue(message);
+        _renderedCharactersCount = await ConstructedTeamsService.GetConstructedTeamMemberCount(_renderedTeamId);
 
-        UpdateRenderedMembers();
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    {
+        var message = e.Message;
+        var team = message.ConstructedTeam;
+
+        if (team.Id != _renderedTeamId)
+        {
+            return;
+        }
+
+        _renderedTeam.Name = team.Name;
+        _renderedTeam.Alias = team.Alias;
+
+        _editFormTeam.Name = team.Name;
+        _editFormTeam.Alias = team.Alias;
+
+        InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
 
@@ -445,60 +263,6 @@
         _processingInputs.Remove(characterInput);
 
         InvokeAsyncStateHasChanged();
-
-        //InfantryMatchReporTeam.ReceiveTeamPlayerChangeEvent
-        //var characterChange = new ConstructedTeamCharacterChange
-        //{
-        //    CharacterInput = input,
-        //    ChangeType = TeamPlayerChangeType.Add
-        //};
-
-
-        //_characterEditQueue.Enqueue(characterChange);
-
-        //_inputCharacter = string.Empty;
-
-        //await ProcessTeamCharacterChanges();
-
-
-        //// TeamBuilder.HandleAddPlayerSubmit
-        //_teamNonOutfitPlayersLoading.Add(input);
-
-        //try
-        //{
-        //    var success = await ScrimTeamsManager.TryAddCharacterToTeam(i_teamOrdinal, input);
-
-        //    if (success)
-        //    {
-        //        _inputPlayer = string.Empty;
-        //        _teamNonOutfitPlayersLoading.Remove(input);
-        //    }
-        //    else
-        //    {
-        //        _teamNonOutfitPlayersLoading.Remove(input);
-
-        //        await InvokeAsync(() =>
-        //        {
-        //            StateHasChanged();
-        //        });
-        //    }
-        //}
-        //catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
-        //{
-        //    _teamNonOutfitPlayersLoading.Remove(input);
-
-        //    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>. The Census API Character service may be broken: {ex}</span>");
-        //}
-        //catch (Exception ex)
-        //{
-        //    _teamNonOutfitPlayersLoading.Remove(input);
-        //    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>: {ex}</span>");
-        //}
-
-        //await InvokeAsync(() =>
-        //{
-        //    StateHasChanged();
-        //});
     }
 
     private async void HandleEditTeamSubmit()
@@ -508,8 +272,8 @@
 
         if (await ConstructedTeamsService.UpdateConstructedTeamInfo(updateTeam))
         {
-            _renderedTeam.Name = updateTeam.Name;
-            _renderedTeam.Alias = updateTeam.Alias;
+            //_renderedTeam.Name = updateTeam.Name;
+            //_renderedTeam.Alias = updateTeam.Alias;
 
             _editFormTeam = new ConstructedTeam();
             _editFormTeam.Name = _renderedTeam.Name;
@@ -572,77 +336,66 @@
 
                 _renderedCharactersCount = _renderedCharacters.Count();
 
-                _renderedVsCharactersCount = _renderedCharacters.Where(c => c.FactionId == 1).Count();
-                _renderedNcCharactersCount = _renderedCharacters.Where(c => c.FactionId == 2).Count();
-                _renderedTrCharactersCount = _renderedCharacters.Where(c => c.FactionId == 3).Count();
-
                 StateHasChanged();
             }
         });
     }
 
-    private async Task ProcessTeamCharacterChanges()
-    {
-        await InvokeAsync(async () =>
-        {
-            //lock (_renderedCharacters)
-            //{
-            while (_characterEditQueue.TryDequeue(out ConstructedTeamCharacterChange changeMessage))
-            {
-                var characterInput = changeMessage.CharacterInput;
+    //private async Task ProcessTeamCharacterChanges()
+    //{
+    //    await InvokeAsync(async () =>
+    //    {
+    //        while (_characterEditQueue.TryDequeue(out ConstructedTeamCharacterChange changeMessage))
+    //        {
+    //            var characterInput = changeMessage.CharacterInput;
 
-                if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
-                {
-                    lock (_renderedCharacters)
-                    {
+    //            if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
+    //            {
+    //            }
+    //            else if (changeMessage.ChangeType == TeamPlayerChangeType.Add)
+    //            {
+    //                _isSavingCharacter = true;
+    //                StateHasChanged();
 
-                        //_renderedCharacters.Remove(player);
-                    }
-                }
-                else if (changeMessage.ChangeType == TeamPlayerChangeType.Add)
-                {
-                    _isSavingCharacter = true;
-                    StateHasChanged();
+    //                var newCharacter = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, characterInput);
 
-                    var newCharacter = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, characterInput);
+    //                if (newCharacter != null)
+    //                {
+    //                    lock (_renderedCharacters)
+    //                    {
+    //                        if (!_renderedCharacters.Any(c => c.Id == newCharacter.Id))
+    //                        {
+    //                            _renderedCharacters.Add(newCharacter);
+    //                            //_renderedCharacters = _renderedCharacters.ToList();
+    //                            _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
 
-                    if (newCharacter != null)
-                    {
-                        lock (_renderedCharacters)
-                        {
-                            if (!_renderedCharacters.Any(c => c.Id == newCharacter.Id))
-                            {
-                                _renderedCharacters.Add(newCharacter);
-                                //_renderedCharacters = _renderedCharacters.ToList();
-                                _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
+    //                            _renderedCharactersCount = _renderedCharacters.Count();
+    //                        }
+    //                    }
+    //                    //if (newCharacter != null && !_renderedCharacters.Any(c => c.Id == newCharacter.Id))
+    //                    //{
+    //                    //    _renderedCharacters.Add(newCharacter)
+    //                    //}
 
-                                _renderedCharactersCount = _renderedCharacters.Count();
-                            }
-                        }
-                        //if (newCharacter != null && !_renderedCharacters.Any(c => c.Id == newCharacter.Id))
-                        //{
-                        //    _renderedCharacters.Add(newCharacter)
-                        //}
+    //                }
 
-                    }
+    //                _isSavingCharacter = false;
+    //                StateHasChanged();
+    //            }
 
-                    _isSavingCharacter = false;
-                    StateHasChanged();
-                }
+    //            StateHasChanged();
+    //            //}
+    //        }
 
-                StateHasChanged();
-                //}
-            }
-
-            lock (_renderedCharacters)
-            {
-                //_renderedCharacters = _renderedCharacters.ToList();
-                _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
-                _renderedCharactersCount = _renderedCharacters.Count();
-            }
-            StateHasChanged();
-        });
-    }
+    //        lock (_renderedCharacters)
+    //        {
+    //            //_renderedCharacters = _renderedCharacters.ToList();
+    //            _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
+    //            _renderedCharactersCount = _renderedCharacters.Count();
+    //        }
+    //        StateHasChanged();
+    //    });
+    //}
 
     #endregion CharacterProcessing
 

@@ -28,7 +28,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public string CurrentMatchId { get; set; }
         public int CurrentMatchRound { get; set; } = 0;
 
-        public static Regex ConstructedTeamNameRegex { get; } = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public static Regex ConstructedTeamNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public static Regex ConstructedTeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public ConstructedTeamService(IDbContextHelper dbContextHelper, IScrimTeamsManager teamsManager, ICharacterService characterService,
@@ -385,6 +385,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
             if (!IsValidConstructedTeamName(updateName))
             {
+                _logger.LogError($"Error update Constructed Team {updateId} info: invalid team name");
                 return false;
             }
 
@@ -396,6 +397,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
             if (!IsValidConstructedTeamAlias(updateAlias))
             {
+                _logger.LogError($"Error update Constructed Team {updateId} info: invalid team alias");
                 return false;
             }
 
