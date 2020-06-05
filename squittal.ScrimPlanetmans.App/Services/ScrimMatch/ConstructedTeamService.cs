@@ -376,24 +376,11 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             var updateName = teamUpdate.Name;
             var updateAlias = teamUpdate.Alias;
 
-            //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (!nameRegex.Match(updateName).Success)
-            //{
-            //    return false;
-            //}
-
             if (!IsValidConstructedTeamName(updateName))
             {
                 _logger.LogError($"Error update Constructed Team {updateId} info: invalid team name");
                 return false;
             }
-
-            //Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (!aliasRegex.Match(updateAlias).Success)
-            //{
-            //    return false;
-            //}
 
             if (!IsValidConstructedTeamAlias(updateAlias))
             {
@@ -437,25 +424,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public async Task<ConstructedTeam> CreateConstructedTeam(ConstructedTeam constructedTeam)
         {
-            //Regex nameRegex = new Regex("^[A-Za-z0-9]{1,50}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //Regex nameRegex = new Regex("^([A-Za-z0-9](\b \b){0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //Regex nameRegex = new Regex("^([A-Za-z0-9][ ]{0,1}){1,49}[A-Za-z0-9]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (!nameRegex.Match(constructedTeam.Name).Success)
-            //{
-            //    return null;
-            //}
-
             if (!IsValidConstructedTeamName(constructedTeam.Name))
             {
                 return null;
             }
-
-            //Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (!aliasRegex.Match(constructedTeam.Alias).Success)
-            //{
-            //    return null;
-            //}
 
             if (!IsValidConstructedTeamAlias(constructedTeam.Alias))
             {
@@ -506,11 +478,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                     {
                         return characterOut;
                     }
-
-                    //if (await TryAddCharacterIdToTeam(teamId, characterInput))
-                    //{
-                    //    return true;
-                    //}
                 }
             }
             catch (Exception ex)
@@ -538,7 +505,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         private async Task<Character> TryAddCharacterIdToConstructedTeam(int teamId, string characterId)
         {
-            if (!(await IsCharacterIdOnTeam(teamId, characterId)))
+            if (await IsCharacterIdOnTeam(teamId, characterId))
             {
                 return null;
             }

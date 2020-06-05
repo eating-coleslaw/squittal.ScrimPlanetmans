@@ -107,7 +107,6 @@
 @code {
     [Parameter]
     public string i_teamStringId { get; set; }
-
     private string _renderedTeamStringId { get; set; }
 
     private string _inputTeamStringId { get; set; } = string.Empty;
@@ -119,7 +118,6 @@
 
     [Parameter]
     public bool i_viewOnly { get; set; } = true;
-
     private bool _renderedViewOnly { get; set; } = true;
 
     private ConstructedTeamFormInfo _renderedTeam { get; set; } = new ConstructedTeamFormInfo();
@@ -131,8 +129,6 @@
     private bool _showCreateNewTeamForm { get; set; } = false;
     private ConstructedTeam _newTeamForm { get; set; } = new ConstructedTeam();
     private bool _openNewTeamOnSave { get; set; } = true;
-
-    private string _debug;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -154,11 +150,8 @@
     {
         var paramsChanged = false;
 
-        _debug = $"Passed through OPSA 1 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
-
         if (i_teamStringId != _renderedTeamStringId)
         {
-            _debug = $"Passed through OPSA 2 (i_teamStringId == {i_teamStringId} | _renderedTeamStringId == {_renderedTeamStringId})";
 
             _isChangingTeam = true;
             InvokeAsyncStateHasChanged();

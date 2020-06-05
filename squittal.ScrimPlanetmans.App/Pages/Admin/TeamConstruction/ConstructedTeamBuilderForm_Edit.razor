@@ -53,7 +53,7 @@
         }
 
 
-        <div class="" style="margin-top: 16px; color: var(--sq-black);"> @*class="sq-content"*@
+        <div class="" style="margin-top: 16px; color: var(--sq-black);">
 
             <h6> Team Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h6>
 
@@ -172,7 +172,6 @@
 
             _renderedTeamId = i_teamId;
 
-            //_renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId);
             _renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId, true);
 
             _editFormTeam = new ConstructedTeam();
@@ -180,9 +179,6 @@
             _editFormTeam.Alias = _renderedTeam.Alias;
 
             _processingInputs = new List<string>();
-
-            //_renderedCharacters = _renderedTeam.Characters.ToList();
-            //paramsChanged = true;
 
             await InvokeAsync(async () =>
             {
@@ -272,9 +268,6 @@
 
         if (await ConstructedTeamsService.UpdateConstructedTeamInfo(updateTeam))
         {
-            //_renderedTeam.Name = updateTeam.Name;
-            //_renderedTeam.Alias = updateTeam.Alias;
-
             _editFormTeam = new ConstructedTeam();
             _editFormTeam.Name = _renderedTeam.Name;
             _editFormTeam.Alias = _renderedTeam.Alias;
@@ -340,63 +333,6 @@
             }
         });
     }
-
-    //private async Task ProcessTeamCharacterChanges()
-    //{
-    //    await InvokeAsync(async () =>
-    //    {
-    //        while (_characterEditQueue.TryDequeue(out ConstructedTeamCharacterChange changeMessage))
-    //        {
-    //            var characterInput = changeMessage.CharacterInput;
-
-    //            if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
-    //            {
-    //            }
-    //            else if (changeMessage.ChangeType == TeamPlayerChangeType.Add)
-    //            {
-    //                _isSavingCharacter = true;
-    //                StateHasChanged();
-
-    //                var newCharacter = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, characterInput);
-
-    //                if (newCharacter != null)
-    //                {
-    //                    lock (_renderedCharacters)
-    //                    {
-    //                        if (!_renderedCharacters.Any(c => c.Id == newCharacter.Id))
-    //                        {
-    //                            _renderedCharacters.Add(newCharacter);
-    //                            //_renderedCharacters = _renderedCharacters.ToList();
-    //                            _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
-
-    //                            _renderedCharactersCount = _renderedCharacters.Count();
-    //                        }
-    //                    }
-    //                    //if (newCharacter != null && !_renderedCharacters.Any(c => c.Id == newCharacter.Id))
-    //                    //{
-    //                    //    _renderedCharacters.Add(newCharacter)
-    //                    //}
-
-    //                }
-
-    //                _isSavingCharacter = false;
-    //                StateHasChanged();
-    //            }
-
-    //            StateHasChanged();
-    //            //}
-    //        }
-
-    //        lock (_renderedCharacters)
-    //        {
-    //            //_renderedCharacters = _renderedCharacters.ToList();
-    //            _renderedCharacters = _renderedCharacters.OrderBy(c => c.Name).ToList();
-    //            _renderedCharactersCount = _renderedCharacters.Count();
-    //        }
-    //        StateHasChanged();
-    //    });
-    //}
-
     #endregion CharacterProcessing
 
     private string GetFactionAbbreviationFromId(int factionId)
