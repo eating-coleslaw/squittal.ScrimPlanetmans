@@ -450,7 +450,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
 
 
-            if (await TryAddCharacterToConstructedTeamDb(teamId, characterId))
+            if (await TryAddCharacterToConstructedTeamDb(teamId, characterId, character.FactionId))
             {
                 var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, ConstructedTeamMemberChangeType.Add);
                 _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
@@ -477,7 +477,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return null;
             }
 
-            if (await TryAddCharacterToConstructedTeamDb(teamId, character.Id))
+            if (await TryAddCharacterToConstructedTeamDb(teamId, character.Id, character.FactionId))
             {
                 var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, ConstructedTeamMemberChangeType.Add);
                 _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
@@ -490,15 +490,22 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
 
-        private async Task<bool> TryAddCharacterToConstructedTeamDb(int teamId, string characterId)
+        private async Task<bool> TryAddCharacterToConstructedTeamDb(int teamId, string characterId, int factionId)
         {
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
+            // Don't allow NSO characters onto teams
+            if (factionId > 3 || factionId <= 0)
+            {
+                return false;
+            }    
+
             var newEntity = new ConstructedTeamPlayerMembership
             {
                 ConstructedTeamId = teamId,
-                CharacterId = characterId
+                CharacterId = characterId,
+                FactionId = factionId
             };
 
             try
