@@ -130,7 +130,6 @@
 
     private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
 
-
     private IEnumerable<World> _worlds;
 
 
@@ -139,19 +138,14 @@
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
         MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
+
+        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
         MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        _worlds = await WorldService.GetAllWorldsAsync();
-
-        var s = _worlds.ElementAt(1);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -305,7 +299,6 @@
                 {
                     var changeType = changeMessage.ChangeType;
                     var characterId = changeMessage.CharacterId;
-
 
                     if (changeType == ConstructedTeamMemberChangeType.Remove)
                     {

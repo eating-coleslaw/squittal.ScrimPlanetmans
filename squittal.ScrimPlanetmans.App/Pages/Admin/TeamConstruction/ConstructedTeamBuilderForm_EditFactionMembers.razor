@@ -106,18 +106,13 @@
     protected override void OnInitialized()
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+
+        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        _worlds = await WorldService.GetAllWorldsAsync();
-
-        var s = _worlds.ElementAt(1);
     }
 
     protected override async Task OnParametersSetAsync()
