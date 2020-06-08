@@ -26,6 +26,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         Task<int> GetConstructedTeamMemberCount(int teamId);
         Task<IEnumerable<string>> GetConstructedTeamFactionMemberIds(int teamId, int factionId);
         Task<IEnumerable<ConstructedTeamPlayerMembership>> GetConstructedTeamFactionMembers(int teamId, int factionId);
-        Task<IEnumerable<Character>> GetConstructionTeamFactionCharacters(int teamId, int factionId);
+        Task<IEnumerable<Character>> GetConstructedTeamFactionCharacters(int teamId, int factionId);
+        Task<IEnumerable<Player>> GetConstructedTeamFactionPlayers(int teamId, int factionId);
     }
 }

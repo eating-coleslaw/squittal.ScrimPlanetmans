@@ -134,7 +134,7 @@
             _isLoadingCharacters = true;
             InvokeAsyncStateHasChanged();
 
-            var characters = await ConstructedTeamsService.GetConstructionTeamFactionCharacters(_renderedTeamId, _renderedFactionId);
+            var characters = await ConstructedTeamsService.GetConstructedTeamFactionCharacters(_renderedTeamId, _renderedFactionId);
 
             await InvokeAsync(() =>
             {

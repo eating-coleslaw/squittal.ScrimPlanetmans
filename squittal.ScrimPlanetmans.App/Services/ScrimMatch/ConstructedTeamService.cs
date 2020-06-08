@@ -20,8 +20,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
     public class ConstructedTeamService : IConstructedTeamService
     {
         private readonly IDbContextHelper _dbContextHelper;
-        private readonly IScrimTeamsManager _teamsManager;
+        //private readonly IScrimTeamsManager _teamsManager;
         private readonly ICharacterService _characterService;
+        private readonly IScrimPlayersService _playerService;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<ConstructedTeamService> _logger;
 
@@ -31,12 +32,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public static Regex ConstructedTeamNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public static Regex ConstructedTeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public ConstructedTeamService(IDbContextHelper dbContextHelper, IScrimTeamsManager teamsManager, ICharacterService characterService,
-            IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
+        public ConstructedTeamService(IDbContextHelper dbContextHelper,/* IScrimTeamsManager teamsManager,*/ ICharacterService characterService,
+            IScrimPlayersService playerService, IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
         {
             _dbContextHelper = dbContextHelper;
-            _teamsManager = teamsManager;
+            //_teamsManager = teamsManager;
             _characterService = characterService;
+            _playerService = playerService;
             _messageService = messageService;
             _logger = logger;
         }
@@ -147,7 +149,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
 
-        public async Task<IEnumerable<Character>> GetConstructionTeamFactionCharacters(int teamId, int factionId)
+        public async Task<IEnumerable<Character>> GetConstructedTeamFactionCharacters(int teamId, int factionId)
         {
             var members = await GetConstructedTeamFactionMembers(teamId, factionId);
 
@@ -196,51 +198,101 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             return processedCharacters;
         }
 
+        public async Task<IEnumerable<Player>> GetConstructedTeamFactionPlayers(int teamId, int factionId)
+        {
+            var members = await GetConstructedTeamFactionMembers(teamId, factionId);
+
+            if (members == null || !members.Any())
+            {
+                return null;
+            }
+
+            List<ConstructedTeamPlayerMembership> unprocessedMembers = new List<ConstructedTeamPlayerMembership>();
+            unprocessedMembers.AddRange(members.ToList());
+
+            List<Player> processedPlayers = new List<Player>();
+
+            IEnumerable<Task<Player>> getPlayerTasksQuery =
+                from member in members select _playerService.GetPlayerFromCharacterId(member.CharacterId);
+
+            List<Task<Player>> getPlayersTasks = getPlayerTasksQuery.ToList();
+
+            while (getPlayersTasks.Count > 0)
+            {
+                Task<Player> firstFinishedTask = await Task.WhenAny(getPlayersTasks);
+
+                getPlayersTasks.Remove(firstFinishedTask);
+
+                var player = firstFinishedTask.Result;
+
+                if (player != null)
+                {
+                    processedPlayers.Add(player);
+                    unprocessedMembers.RemoveAll(m => m.CharacterId == player.Id);
+                }
+            }
+
+            //foreach (var member in unprocessedMembers)
+            //{
+            //    var character = new Character
+            //    {
+            //        Name = "Unnamed Player",
+            //        Id = member.CharacterId,
+            //        FactionId = member.FactionId
+            //    };
+
+            //    processedCharacters.Add(character);
+            //}
+
+            return processedPlayers;
+        }
+
         public async Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId)
         {
-                var constructedTeam = await GetConstructedTeam(teamId, false);
+            throw new NotImplementedException();
+            //var constructedTeam = await GetConstructedTeam(teamId, false);
 
-                if (constructedTeam == null)
-                {
-                    return null;
-                }
+            //if (constructedTeam == null)
+            //{
+            //    return null;
+            //}
 
-                var teamInfo = ConvertToTeamMatchInfo(constructedTeam);
+            //var teamInfo = ConvertToTeamMatchInfo(constructedTeam);
 
-                var matchTeam = _teamsManager.GetTeamFromConstructedTeamId(teamId);
+            //var matchTeam = _teamsManager.GetTeamFromConstructedTeamId(teamId);
 
-                if (matchTeam == null)
-                {
-                    return teamInfo;
-                }
+            //if (matchTeam == null)
+            //{
+            //    return teamInfo;
+            //}
 
-                teamInfo.TeamOrdinal = matchTeam.TeamOrdinal;
+            //teamInfo.TeamOrdinal = matchTeam.TeamOrdinal;
 
-                if (!constructedTeam.PlayerMemberships.Any())
-                {
-                    return teamInfo;
-                }
+            //if (!constructedTeam.PlayerMemberships.Any())
+            //{
+            //    return teamInfo;
+            //}
 
-                var teamPlayers = new List<Player>();
+            //var teamPlayers = new List<Player>();
 
-                foreach (var member in constructedTeam.PlayerMemberships)
-                {
-                    var player = _teamsManager.GetPlayerFromId(member.CharacterId);
-                    if (player != null)
-                    {
-                        teamPlayers.Add(player);
-                        teamInfo.OnlineMembersCount += (player.IsOnline ? 1 : 0);
+            //foreach (var member in constructedTeam.PlayerMemberships)
+            //{
+            //    var player = _teamsManager.GetPlayerFromId(member.CharacterId);
+            //    if (player != null)
+            //    {
+            //        teamPlayers.Add(player);
+            //        teamInfo.OnlineMembersCount += (player.IsOnline ? 1 : 0);
 
-                        if (teamInfo.ActiveFactionId == null)
-                        {
-                            teamInfo.ActiveFactionId = player.FactionId;
-                        }
-                    }
-                }
+            //        if (teamInfo.ActiveFactionId == null)
+            //        {
+            //            teamInfo.ActiveFactionId = player.FactionId;
+            //        }
+            //    }
+            //}
 
-                teamInfo.Players = teamPlayers;
+            //teamInfo.Players = teamPlayers;
 
-                return teamInfo;
+            //return teamInfo;
         }
 
         private ConstructedTeamMatchInfo ConvertToTeamMatchInfo(ConstructedTeam constructedTeam)

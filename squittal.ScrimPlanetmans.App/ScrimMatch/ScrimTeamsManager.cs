@@ -20,6 +20,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimPlayersService _scrimPlayers;
         private readonly IOutfitService _outfitService;
         private readonly IFactionService _factionService;
+        private readonly IConstructedTeamService _constructedTeamService;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMatchDataService _matchDataService;
@@ -42,13 +43,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
 
         public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService,
-            IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
+            IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService,
+            IConstructedTeamService constructedTeamService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _outfitService = outfitService;
             _factionService = factionService;
             _messageService = messageService;
             _matchDataService = matchDataService;
+            _constructedTeamService = constructedTeamService;
             _dbContextHelper = dbContextHelper;
             _logger = logger;
 
@@ -250,7 +253,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return false;
         }
 
-
         public async Task<bool> TryAddCharacterIdToTeam(int teamOrdinal, string characterId)
         {
             if (!IsCharacterAvailable(characterId))
@@ -392,7 +394,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             // If not yet set, set team alias to alias of the first outfit added to it
-            if (TeamOutfitCount(teamOrdinal) == 1 && team.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
+            if (TeamOutfitCount(teamOrdinal) == 1 && TeamConstructedTeamCount(teamOrdinal) == 0 && team.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
             {
                 UpdateTeamAlias(teamOrdinal, outfit.Alias);
             }
@@ -425,6 +427,83 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 player.WorldId = (int)outfit.WorldId;
 
                 if (team.TryAddPlayer(player))
+                {
+                    _allCharacterIds.Add(player.Id);
+                    _allPlayers.Add(player);
+
+                    var isLastPlayer = (player == lastPlayer);
+
+                    SendTeamPlayerAddedMessage(player, isLastPlayer);
+
+                    anyPlayersAdded = true;
+                }
+            }
+
+            return anyPlayersAdded;
+        }
+
+        public async Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId)
+        {
+            if (!IsConstructedTeamAvailable(constructedTeamId)) //, out Team owningTeam))
+            {
+                return false;
+            }
+
+            var owningTeam = GetTeam(teamOrdinal);
+
+            if (owningTeam == null)
+            {
+                return false;
+            }
+
+            var constructedTeam = await _constructedTeamService.GetConstructedTeam(constructedTeamId, true);
+
+            if (constructedTeam == null)
+            {
+                return false;
+            }
+
+            if (!owningTeam.TryAddConstructedTeam(constructedTeam))
+            {
+                return false;
+            }
+
+            // If not yet set, set team alias to alias of the first constructed team added to it
+            if (TeamOutfitCount(teamOrdinal) == 0 && TeamConstructedTeamCount(teamOrdinal) == 1 && owningTeam.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
+            {
+                UpdateTeamAlias(teamOrdinal, constructedTeam.Alias);
+            }
+
+            if (owningTeam.FactionId == null)
+            {
+                UpdateTeamFaction(teamOrdinal, factionId);
+            }
+
+            // TODO: send Constructed Team Added message
+            var message = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.Add);
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(message);
+
+            var players = await _constructedTeamService.GetConstructedTeamFactionPlayers(constructedTeamId, factionId);
+
+            if (players == null || !players.Any())
+            {
+                return false;
+            }
+
+            var anyPlayersAdded = false;
+
+            var lastPlayer = players.LastOrDefault();
+
+            //TODO: track which players were added and which weren't
+
+            foreach (var player in players)
+            {
+                player.TeamOrdinal = teamOrdinal;
+                player.ConstructedTeamId = constructedTeamId;
+
+                player.IsOutfitless = true; // IsPlayerOutfitless(player);
+
+                if (owningTeam.TryAddPlayer(player))
                 {
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
@@ -1360,6 +1439,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        public bool IsConstructedTeamAvailable(int constructedTeamId)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeam(constructedTeamId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam)
         {
             foreach (var team in _ordinalTeamMap.Values)
@@ -1430,6 +1522,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
         
+        private int TeamConstructedTeamCount(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team != null)
+            {
+                return team.ConstructedTeams.Count();
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
         public void UpdatePlayerStats(string characterId, ScrimEventAggregate updates)
         {
             var player = GetPlayerFromId(characterId);

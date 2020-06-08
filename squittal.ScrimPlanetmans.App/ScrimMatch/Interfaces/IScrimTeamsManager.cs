@@ -72,5 +72,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         bool UdatePlayerTemporaryAlias(string playerId, string newAlias);
         void ClearPlayerDisplayName(string playerId);
+        bool IsConstructedTeamAvailable(int constructedTeamId);
+        Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId);
     }
 }

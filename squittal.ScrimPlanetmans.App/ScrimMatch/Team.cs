@@ -155,7 +155,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         
         public bool TryAddConstructedTeam(ConstructedTeam constructedTeam)
         {
-            if (!ContainsConstructedTeam(constructedTeam.Id))
+            if (ContainsConstructedTeam(constructedTeam.Id))
             {
                 return false;
             }
