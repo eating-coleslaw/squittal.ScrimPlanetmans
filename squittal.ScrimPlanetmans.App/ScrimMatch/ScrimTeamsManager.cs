@@ -151,6 +151,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return GetTeam(teamOrdinal).GetOutfitPlayers(outfitAliasLower);
         }
+        
+        public IEnumerable<Player> GetTeamNonOutfitPlayers(int teamOrdinal)
+        {
+            return GetTeam(teamOrdinal).GetNonOutfitPlayers();
+        }
 
         public int? GetNextWorldId(int previousWorldId)
         {
