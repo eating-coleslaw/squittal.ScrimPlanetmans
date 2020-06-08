@@ -74,5 +74,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void ClearPlayerDisplayName(string playerId);
         bool IsConstructedTeamAvailable(int constructedTeamId);
         Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId);
+        IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower);
     }
 }

@@ -1,0 +1,821 @@
+﻿@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Data.Models;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+
+@inject IScrimTeamsManager TeamsManager
+@inject IConstructedTeamService ConstructedTeamsService
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+
+@if (_renderedOutfit != null)
+{
+    <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)">
+
+        <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
+            @*margin-top: 0.5rem;*@
+            <b><span class="mono-font">[@_renderedOutfit.Alias]</span> @_renderedOutfit.Name</b> (@_renderedOutfit.MemberCount | @_renderedOutfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == _renderedOutfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)_renderedOutfit.FactionId)</span>
+        </h5>
+
+        <p style="margin: 0 0 0.1rem 0;  padding-left: 16px;">
+            @if (!_isLoadingMembers)
+            {
+                @if (_renderedPlayersCount > 0)
+                {
+                    <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="(() => TogglePlayersVisibility(_renderedOutfit.AliasLower))">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
+                    <span>|</span>
+                }
+                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RefreshOutfitPlayers">Refresh</button>
+                @if (_renderedShowRemovals)
+                {
+                    <span>|</span><button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="(() => RemoveOutfit(_renderedOutfit.AliasLower))">Remove</button>
+                }
+            }
+        </p>
+
+        <div class="sq-content" style="padding-top: 0;">
+
+            @*if (_teamOutfitsLoadingMembers.Contains(_renderedOutfit.AliasLower))&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == _renderedOutfit.Id)))*@
+            @if (_isLoadingMembers)@*&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == _renderedOutfit.Id)))*@
+            {
+                <SpinnerEllipsis />
+            }
+            else if (_renderedPlayers.Any() && _extendPlayers)
+            {
+                @lock (_renderedPlayers)
+                {
+                    @if (_renderedPlayers.Any(p => !p.IsBenched))
+                    {
+                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="margin-bottom: 0.5rem;">
+                            <thead>
+                                <tr>
+                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th></th>
+                                    <th>K</th>
+                                    <th>D</th>
+                                    <th>P</th>
+                                    <th>N</th>
+                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    @if (_renderedShowRemovals)
+                                    {
+                                        <th style="width: 15px; padding-right: 5px;"></th>
+                                    }
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var member in _renderedPlayers.Where(p => !p.IsBenched).ToList())
+                                {
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                    @if (_renderedPlayers.Any(p => p.IsBenched))
+                    {
+                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="margin-bottom: 0.5rem;">
+                            <thead>
+
+                                <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
+                                    @if (!_renderedPlayers.Any(p => !p.IsBenched))
+                                    {
+                                        <th colspan="2" style="font-weight: 400;">Benched Players</th>
+                                        <th>K</th>
+                                        <th>D</th>
+                                        <th>P</th>
+                                        <th>N</th>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="6" style="font-weight: 400;">Benched Players</td>
+                                    }
+
+                                    <th style="padding-right: 5px;width: 15px;"></th>
+
+                                    @if (_renderedShowRemovals)
+                                    {
+                                        <th style="width: 15px; padding-right: 5px;"></th>
+                                    }
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+                                @foreach (var member in _renderedPlayers.Where(p => p.IsBenched).ToList())
+                                {
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                }
+                            </tbody>
+                        </table>
+                    }
+                }
+            }
+        </div>
+    </div>
+}
+else
+{
+    <SpinnerEllipsis />
+}
+
+
+
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
+
+    [Parameter]
+    public Outfit i_outfit { get; set; } = new Outfit();
+    private Outfit _renderedOutfit { get; set; } = new Outfit();
+
+    [Parameter]
+    public bool i_showRemovals { get; set; } = false;
+    private bool _renderedShowRemovals { get; set; } = false;
+
+    private bool _isLoadingMembers { get; set; } = false;
+    private bool _isLoadingMembers2 => !(_playerChangesQueue.IsEmpty);
+    private bool _isLoadingOutfit { get; set; } = false;
+
+    private List<Player> _renderedPlayers { get; set; } = new List<Player>();
+    private int _renderedPlayersCount { get; set; } = 0;
+    private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
+
+    #region UI & Layout Variables
+    private bool _extendPlayers = true;
+
+    private int _defaultMaxPlayersToExtend = 8;
+    #endregion
+
+    #region Helpers
+    private IEnumerable<World> _worlds;
+    #endregion
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        //MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
+        //MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
+
+        _worlds = WorldService.GetAllWorlds();
+
+        //_isLoadingMembers = true;
+    }
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    _worlds = await WorldService.GetAllWorldsAsync();
+    //}
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        //MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+
+        //MessageService.RaiseTeamAliasChangeEvent -= ReceiveTeamAliasChangeEvent;
+        //MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        if (i_showRemovals != _renderedShowRemovals)
+        {
+            _renderedShowRemovals = i_showRemovals;
+            paramsChanged = true;
+        }
+
+        //if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        if (i_teamOrdinal != _renderedTeamOrdinal || i_outfit.AliasLower != _renderedOutfit.AliasLower)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+            _renderedOutfit = i_outfit;
+
+            //_isLoadingMembers = true;
+            InvokeAsyncStateHasChanged();
+
+            InitializeTeamData();
+
+            //_isLoadingMembers = false;
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void InitializeTeamData()
+    {
+        //var message = $"Starting to reload Team {_renderedTeamOrdinal} data...";
+        //_isLoadingOutfit = true;
+
+        var message = $"Started loading Team {_renderedTeamOrdinal} Outfit data: [{_renderedOutfit.Alias}] {_renderedOutfit.Name}...";
+        LogMessage(message);
+
+        //_team = TeamsManager.GetTeam(_renderedTeamOrdinal);
+
+        //if (_team == null)
+        //{
+        //    return;
+        //}
+
+        //_isLoadingMembers = true;
+        //InvokeAsyncStateHasChanged();
+
+        var outfitPlayers = TeamsManager.GetTeamOutfitPlayers(_renderedTeamOrdinal, _renderedOutfit.AliasLower);
+
+        foreach (var player in outfitPlayers)
+        {
+            TeamPlayerChangeMessage changeMessage;
+
+            if (player.IsParticipating)
+            {
+                changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+
+                _playerChangesQueue.Enqueue(changeMessage);
+            }
+            else if (player.IsOnline)
+            {
+                changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+                _playerChangesQueue.Enqueue(changeMessage);
+            }
+        }
+
+        ProcessPlayerChangesQueue();
+
+        if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+        {
+            _extendPlayers = false;
+        }
+        else
+        {
+            _extendPlayers = true;
+        }
+
+        //message = $"Loaded Team {_renderedTeamOrdinal} outfit: [{outfit.Alias}] {outfit.Name}";
+
+        //foreach (var outfit in _teamOutfits)
+        //{
+        //    LogMessage(message);
+
+        //    if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless) > _defaultMaxPlayersToExtend)
+        //    {
+        //        _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
+        //    }
+        //    else
+        //    {
+        //        _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+        //    }
+
+        //    SetOutfitMembersOnlineCount();
+        //}
+
+        //message = $"Finished reloading Team {i_teamOrdinal} data";
+        message = $"Finished loading Team {_renderedTeamOrdinal} Outfit data: [{_renderedOutfit.Alias}] {_renderedOutfit.Name}...";
+        LogMessage(message);
+
+        //_isLoadingMembers = false;
+    }
+    #endregion Initialization Methods
+
+    #region  Form Submission & Validation
+    //private async void HandleValidOutfitAliasSubmit()
+    //{
+    //    Outfit newOutfit;
+
+    //    var newAlias = _inputAlias.Alias;
+    //    var newAliasLower = newAlias.ToLower();
+
+    //    if (!_validOutfitAliasHistory.Contains(newAliasLower) && TeamsManager.IsOutfitAvailable(newAliasLower, out Team owningTeam))
+    //    {
+    //        _teamOutfitsLoading.Add(newAliasLower);
+
+    //        try
+    //        {
+    //            newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
+
+    //            if (newOutfit != null && newOutfit.MemberCount > 0)
+    //            {
+    //                _validOutfitAliasHistory.Add(newAliasLower);
+    //                _inputAlias.Alias = string.Empty;
+
+    //                _teamOutfitsLoadingMembers.Add(newAliasLower);
+
+    //                var success = await TeamsManager.AddOutfitAliasToTeam(i_teamOrdinal, newAliasLower, newAlias);
+
+    //                _teamOutfitsLoading.Remove(newAliasLower);
+
+    //                if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == newAliasLower) > _defaultMaxPlayersToExtend)
+    //                {
+    //                    _outfitPlayersExtendedMap.Add(newAliasLower, false);
+    //                }
+    //                else
+    //                {
+    //                    _outfitPlayersExtendedMap.Add(newAliasLower, true);
+    //                }
+
+    //                _teamOutfitsLoadingMembers.Remove(newAliasLower);
+    //            }
+    //            else
+    //            {
+    //                if (newOutfit != null && newOutfit.MemberCount == 0)
+    //                {
+    //                    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>. Outfit has no members</span>");
+    //                }
+
+    //                _teamOutfitsLoading.Remove(newAliasLower);
+
+    //                await InvokeAsync(() =>
+    //                {
+    //                    StateHasChanged();
+    //                });
+    //            }
+    //        }
+    //        catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+    //        {
+    //            _teamOutfitsLoading.Remove(newAliasLower);
+    //            _teamOutfitsLoadingMembers.Remove(newAliasLower);
+
+    //            LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>. The Census API Outfit service may be broken: {ex}</span>");
+
+    //            await InvokeAsync(() =>
+    //            {
+    //                StateHasChanged();
+    //            });
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _teamOutfitsLoading.Remove(newAliasLower);
+    //            _teamOutfitsLoadingMembers.Remove(newAliasLower);
+
+    //            LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>: {ex}</span>");
+
+    //            await InvokeAsync(() =>
+    //            {
+    //                StateHasChanged();
+    //            });
+    //        }
+    //    }
+    //}
+
+    private async void RefreshOutfitPlayers()
+    {
+        if (!_isLoadingMembers)
+        {
+            _isLoadingMembers = true;
+
+            var alias = _renderedOutfit.Alias;
+
+            string message;
+
+            try
+            {
+                var success = await TeamsManager.RefreshOutfitPlayers(_renderedOutfit.AliasLower);
+
+                _isLoadingMembers = false;
+
+                message = success ? $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: Players Added"
+                                  : $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: No Players Added";
+
+                //LogMessage(message);
+                //InvokeAsyncStateHasChanged();
+            }
+            catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+            {
+                _isLoadingMembers = false;
+
+                message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The Census API Outfit service may be broken:</span> {ex.ToString()}</span>";
+
+                //LogMessage(message);
+                //InvokeAsyncStateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                _isLoadingMembers = false;
+
+                message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The outfit may no longer exist:</span> {ex.ToString()}</span>";
+
+                //LogMessage(message);
+                //InvokeAsyncStateHasChanged();
+            }
+
+            LogMessage(message);
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async void RemoveOutfit(string aliasLower)
+    {
+        //if (!_teamOutfitsLoading.Contains(aliasLower) && !_teamOutfitsLoadingMembers.Contains(aliasLower))
+        if (!_isLoadingMembers)
+        {
+            await TeamsManager.RemoveOutfitFromTeamAndDb(aliasLower);
+        }
+    }
+    #endregion Form Submission & Validation
+
+    #region UI & Layout Controls
+    private void TogglePlayersVisibility(string aliasLower)
+    {
+        _extendPlayers = !_extendPlayers;
+    }
+    #endregion UI & Layout Controls
+
+    #region Event Handling
+    private void LogMessage(string message)
+    {
+        MessageService.BroadcastSimpleMessage(message);
+    }
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+        //if (player.TeamOrdinal != i_teamOrdinal)
+        //{
+        //    return;
+        //}
+
+        if (player.TeamOrdinal != i_teamOrdinal || player.OutfitId != _renderedOutfit.Id || player.IsOutfitless || player.IsFromConstructedTeam)
+        {
+            return;
+        }
+
+        _playerChangesQueue.Enqueue(message);
+
+        ProcessPlayerChangesQueue();
+
+
+        //switch (message.ChangeType)
+        //{
+        //    case TeamPlayerChangeType.Add:
+        //        HandleTeamPlayerChangeAdd(message);
+        //        break;
+
+        //    case TeamPlayerChangeType.Remove:
+        //        HandleTeamPlayerChangeRemove(message);
+        //        break;
+        //}
+
+        //InvokeAsyncStateHasChanged();
+    }
+
+    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    {
+        var outfit = e.Message.Outfit;
+        var changeType = e.Message.ChangeType;
+
+        if (outfit.Id != _renderedOutfit.Id)
+        {
+            return;
+        }
+
+        if (changeType == TeamChangeType.OutfitMembersLoadStarted)
+        {
+            _isLoadingMembers = true;
+            InvokeAsyncStateHasChanged();
+        }
+        else if (changeType == TeamChangeType.OutfitMembersLoadCompleted)
+        {
+            _isLoadingMembers = false;
+
+            if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+            {
+                _extendPlayers = false;
+            }
+            else
+            {
+                _extendPlayers = true;
+            }
+
+            InvokeAsyncStateHasChanged();
+        }
+
+
+        //if (message.ChangeType == TeamChangeType.Add)
+        //{
+        //    _teamOutfitsLoading.Remove(aliasLower);
+        //}
+        //else if (message.ChangeType == TeamChangeType.Remove)
+        //{
+        //    //_validOutfitAliasHistory.RemoveAll(alias => alias == aliasLower);
+        //    //_outfitPlayersExtendedMap.Remove(aliasLower);
+        //}
+
+        //InvokeAsyncStateHasChanged();
+    }
+
+    //private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
+    //{
+    //    _isLoadingOutfit = false;
+
+    //    var player = message.Player;
+
+    //    if (player.IsOnline)
+    //    {
+    //        _teamPlayersOnline.Add(player);
+
+    //        if (!player.IsOutfitless)
+    //        {
+    //            SetOutfitMembersOnlineCount();
+    //        }
+
+    //        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+    //        {
+    //            _teamPlayersVisible.Add(player);
+    //        }
+    //    }
+
+    //    if (message.IsLastOfOutfit)
+    //    {
+    //        _teamOutfitsLoadingMembers.Remove(player.OutfitAliasLower);
+    //    }
+    //}
+
+    //private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
+    //{
+    //    var player = message.Player;
+
+    //    _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
+    //    _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
+    //    _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+
+    //    if (player.IsOutfitless)
+    //    {
+    //        _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
+    //    }
+    //    else
+    //    {
+    //        SetOutfitMembersOnlineCount();
+    //    }
+    //}
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var player = e.Message.Player;
+        //var player = message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal || player.OutfitId != _renderedOutfit.Id || player.IsOutfitless || player.IsFromConstructedTeam)
+        {
+            return;
+        }
+
+        TeamPlayerChangeMessage changeMessage;
+
+        if (player.IsParticipating)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else if (player.IsOnline)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+        }
+        else
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        }
+
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+
+
+        ////if (player.TeamOrdinal != i_teamOrdinal)
+        ////{
+        ////    return;
+        ////}
+
+        //if (player.IsParticipating && !_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        //{
+        //    _teamPlayersParticipating.Add(player);
+        //}
+
+        //if ((player.IsParticipating || player.IsOnline) && !_teamPlayersVisible.Any(p => p.Id == player.Id))
+        //{
+        //    _teamPlayersVisible.Add(player);
+        //}
+
+        //if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        //{
+        //    _teamNonOutfitPlayers.Add(player);
+        //}
+
+        //InvokeAsyncStateHasChanged();
+    }
+
+    //private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    //{
+    //    var message = e.Message;
+    //    var team = message.Team;
+
+    //    if (team.TeamOrdinal != i_teamOrdinal)
+    //    {
+    //        return;
+    //    }
+
+    //    InvokeAsyncStateHasChanged();
+    //}
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal || player.OutfitId != _renderedOutfit.Id || player.IsOutfitless || player.IsFromConstructedTeam)
+        {
+            return;
+        }
+
+        TeamPlayerChangeMessage changeMessage;
+
+        if (player.IsParticipating)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+        }
+
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+
+
+        //if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
+        //{
+        //    _teamPlayersOnline.Add(player);
+
+        //    if (_teamOutfits.Any(o => o.Id == player.OutfitId) && !player.IsOutfitless)
+        //    {
+        //        SetOutfitMembersOnlineCount();
+        //    }
+        //}
+
+        //if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        //{
+        //    _teamPlayersVisible.Add(player);
+        //}
+
+        //InvokeAsyncStateHasChanged();
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal || player.OutfitId != _renderedOutfit.Id || player.IsOutfitless || player.IsFromConstructedTeam)
+        {
+            return;
+        }
+
+        // Participating players stay visible even when online
+        if (player.IsParticipating)
+        {
+            return;
+        }
+
+        var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+
+
+        //if (_teamPlayersOnline.Any(p => p.Id == player.Id))
+        //{
+        //    _teamPlayersOnline.Remove(player);
+
+        //    if (_renderedOutfit.Id == player.OutfitId) && !player.IsOutfitless)
+        //    {
+        //        SetOutfitMembersOnlineCount();
+        //    }
+        //}
+
+        //// Only remove the player from the visible list if they haven't done anything in the match
+        //if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        //{
+        //    _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        //}
+
+        //InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    private void ProcessPlayerChangesQueue()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedPlayers)
+            {
+                var changes = 0;
+
+                while (_playerChangesQueue.TryDequeue(out TeamPlayerChangeMessage changeMessage))
+                {
+                    var player = changeMessage.Player;
+                    var changeType = changeMessage.ChangeType;
+
+                    if (changeType == TeamPlayerChangeType.Add)
+                    {
+                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        {
+                            _renderedPlayers.Add(player);
+                            changes += 1;
+                        }
+                    }
+                    else if (changeType == TeamPlayerChangeType.Remove)
+                    {
+                        _renderedPlayers.Remove(player);
+                        changes += 1;
+                    }
+                    else if (changeType == TeamPlayerChangeType.SetActive)
+                    {
+                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        {
+                            _renderedPlayers.Add(player);
+                            changes += 1;
+                        }
+                    }
+                    else if (changeType == TeamPlayerChangeType.SetInactive)
+                    {
+                        _renderedPlayers.Remove(player);
+                        changes += 1;
+                    }
+
+                    //if (changes == 1 && _renderedPlayersCount == 0)
+                    //{
+                    //    _isLoadingMembers = true;
+                    //    StateHasChanged();
+                    //}
+                }
+
+                _renderedOutfit.MembersOnlineCount = _renderedPlayers.Where(p => p.IsOnline).Count();
+                _renderedPlayersCount = _renderedPlayers.Count();
+
+                //_isLoadingMembers = false;
+
+                if (changes > 0)
+                {
+                    StateHasChanged();
+                }
+            }
+        });
+    }
+
+    //private void SetOutfitMembersOnlineCount()
+    //{
+    //    _renderedOutfit.MembersOnlineCount = _teamPlayersOnline.Count();
+    //}
+
+    //private void UpdateOutfitMembersOnlineCount(string aliasLower, int addend)
+    //{
+    //    outfit.MembersOnlineCount += addend;
+    //}
+
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

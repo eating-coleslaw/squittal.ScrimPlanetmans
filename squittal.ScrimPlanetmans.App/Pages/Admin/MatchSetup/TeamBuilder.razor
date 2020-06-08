@@ -10,6 +10,7 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup.MatchTeamComposer;
 
 @inject IScrimTeamsManager TeamsManager
 @inject IConstructedTeamService ConstructedTeamsService
@@ -341,6 +342,9 @@
                 }
             </div>
         </div>
+
+        <TeamComposerOutfitPlayers i_outfit=@outfit i_showRemovals=@_showRemovals i_teamOrdinal=@i_teamOrdinal />
+
     }
 }
 

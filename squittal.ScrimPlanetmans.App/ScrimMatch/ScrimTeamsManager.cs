@@ -147,6 +147,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _participatingPlayers;
         }
 
+        public IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower)
+        {
+            return GetTeam(teamOrdinal).GetOutfitPlayers(outfitAliasLower);
+        }
+
         public int? GetNextWorldId(int previousWorldId)
         {
             if (_allPlayers.Any(p => p.WorldId == previousWorldId))
@@ -406,6 +411,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             SendTeamOutfitAddedMessage(outfit);
 
+            var loadStartedMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadStarted);
+            _messageService.BroadcastTeamOutfitChangeMessage(loadStartedMessage);
+
             /* Add Outfit Players to Team */
             var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
 
@@ -438,6 +446,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersAdded = true;
                 }
             }
+
+            var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+            _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
 
             return anyPlayersAdded;
         }
@@ -590,6 +601,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var newMemberCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
 
             outfit.MemberCount = newMemberCount;
+
+            var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+            _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
 
             return anyPlayersAdded;
         }

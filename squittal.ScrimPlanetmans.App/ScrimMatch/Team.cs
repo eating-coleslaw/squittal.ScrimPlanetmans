@@ -175,6 +175,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        public IEnumerable<Player> GetOutfitPlayers(string aliasLower)
+        {
+            lock(Players)
+            {
+                return Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
         public void AddStatsUpdate(ScrimEventAggregate update)
         {
             EventAggregateTracker.AddToCurrent(update);
