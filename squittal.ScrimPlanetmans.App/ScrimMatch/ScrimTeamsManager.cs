@@ -1007,18 +1007,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var players = team.GetConstructedTeamPlayers(constructedTeamId).ToList();
 
-            if (players == null || !players.Any())
-            {
-                return false;
-            }
-
             var anyPlayersRemoved = false;
-
-            foreach (var player in players)
+            
+            if (players != null && players.Any())
             {
-                if (RemovePlayerFromTeam(player))
+                //return false;
+                foreach (var player in players)
                 {
-                    anyPlayersRemoved = true;
+                    if (RemovePlayerFromTeam(player))
+                    {
+                        anyPlayersRemoved = true;
+                    }
                 }
             }
 

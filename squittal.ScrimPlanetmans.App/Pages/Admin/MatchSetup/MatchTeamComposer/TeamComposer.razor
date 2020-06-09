@@ -493,6 +493,11 @@
 
         newSelection.FactionStringId = factionId.ToString();
 
+        if (newSelection.ConstructedTeamStringId == _noTeamSelectedStringId)
+        {
+            return;
+        }
+
         if (TeamsManager.IsConstructedTeamAvailable(newSelection.ConstructedTeamId) && !_constructedTeamsLoading.Any(t => t.ConstructedTeamId == newSelection.ConstructedTeamId && t.FactionId == newSelection.FactionId))
         {
             _constructedTeamsLoading.Add(newSelection);
@@ -511,6 +516,8 @@
                     _inputConstructedTeamFactionSelection = new ConstructedTeamFactionSelection();
                     _inputConstructedTeamFactionSelection.ConstructedTeamStringId = _noTeamSelectedStringId;
                 }
+
+                InvokeAsyncStateHasChanged();
             }
             catch (Exception ex)
             {
@@ -518,10 +525,7 @@
 
                 LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add constructed team {newSelection.ConstructedTeamStringId} faction {newSelection.FactionStringId} to team {i_teamOrdinal} </span>: {ex}</span>");
 
-                await InvokeAsync(() =>
-                {
-                    StateHasChanged();
-                });
+                InvokeAsyncStateHasChanged();
             }
         }
     }
@@ -638,18 +642,32 @@
         var message = e.Message;
 
         var teamOrdinal = message.TeamOrdinal;
+        var changeType = message.ChangeType;
+        var constructedTeam = message.ConstructedTeam;
 
         if (teamOrdinal != i_teamOrdinal)
         {
+            if (changeType == TeamChangeType.Add)
+            {
+                _availableConstructedTeams.RemoveAll(t => t.Id == constructedTeam.Id);
+            }
+            else if (message.ChangeType == TeamChangeType.Remove)
+            {
+                _availableConstructedTeams.Add(constructedTeam);
+            }
+
+            InvokeAsyncStateHasChanged();
+
             return;
         }
 
-        var constructedTeam = message.ConstructedTeam;
-        var changeType = message.ChangeType;
+
         var factionId = message.FactionId;
 
         if (changeType == TeamChangeType.Add)
         {
+            _availableConstructedTeams.RemoveAll(t => t.Id == constructedTeam.Id);
+
             _constructedTeamsLoading.RemoveAll(t => t.ConstructedTeamId == constructedTeam.Id && t.FactionId == factionId);
 
             var constructedTeamMatchInfo = new ConstructedTeamMatchInfo

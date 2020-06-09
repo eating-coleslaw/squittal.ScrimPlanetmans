@@ -26,26 +26,30 @@
     <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)">
 
         <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
-            <b><span class="mono-font">[@_renderedConstructedTeamMatchInfo.ConstructedTeam.Alias]</span> @_renderedConstructedTeamMatchInfo.ConstructedTeam.Name</b> (@_renderedConstructedTeamMatchInfo.MembersFactionCount| @_renderedConstructedTeamMatchInfo.MembersOnlineCount) <span> @FactionService.GetFactionAbbrevFromId((int)_renderedConstructedTeamMatchInfo.ActiveFactionId)</span>
+            <b><span class="mono-font">[@_renderedConstructedTeamMatchInfo.ConstructedTeam.Alias]</span> @_renderedConstructedTeamMatchInfo.ConstructedTeam.Name</b> (@((int)_renderedConstructedTeamMatchInfo.MembersFactionCount) | @((int)_renderedConstructedTeamMatchInfo.MembersOnlineCount)) <span> @FactionService.GetFactionAbbrevFromId((int)_renderedConstructedTeamMatchInfo.ActiveFactionId)</span>
         </h5>
 
-        <p style="margin: 0 0 0.1rem 0;  padding-left: 16px;">
-            @if (!_isLoadingMembers)
+    <p style="margin: 0 0 0.1rem 0;  padding-left: 16px;">
+        @if (!_isLoadingMembers || _renderedConstructedTeamMatchInfo.MembersFactionCount != null)
+        {
+            @if (_renderedPlayersCount > 0)
             {
-                @if (_renderedPlayersCount > 0)
-                {
-                    <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
-                }
+                <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
                 @if (_renderedShowRemovals)
                 {
-                    <span>|</span><button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveConstructedTeam">Remove</button>
+                    <span>|</span>
                 }
             }
-        </p>
+            @if (_renderedShowRemovals)
+            {
+                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveConstructedTeam">Remove</button>
+            }
+        }
+    </p>
 
         <div class="sq-content" style="padding-top: 0;">
 
-            @if (_isLoadingMembers)
+            @if (_isLoadingMembers || _renderedConstructedTeamMatchInfo.MembersFactionCount == null)
             {
                 <SpinnerEllipsis />
             }
@@ -314,7 +318,7 @@ else
         {
             _isLoadingMembers = false;
 
-            _renderedConstructedTeamMatchInfo.MembersFactionCount = (int)e.Message.PlayersFound;
+            _renderedConstructedTeamMatchInfo.MembersFactionCount = e.Message.PlayersFound == null ? 0 : e.Message.PlayersFound;
 
             if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
             {

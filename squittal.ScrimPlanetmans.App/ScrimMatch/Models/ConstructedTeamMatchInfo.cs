@@ -11,8 +11,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int TeamOrdinal { get; set; }
         public int ActiveFactionId { get; set; }
 
-        public int MembersOnlineCount { get; set; } = 0;
-        public int MembersFactionCount { get; set; } = 0;
+        public int? MembersOnlineCount { get; set; } // = 0;
+        public int? MembersFactionCount { get; set; } // = 0;
         public int TotalMembersCount { get; set; } = 0;
 
         //public IEnumerable<Player> Players { get; set; }
