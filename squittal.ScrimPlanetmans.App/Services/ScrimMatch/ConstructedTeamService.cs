@@ -20,7 +20,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
     public class ConstructedTeamService : IConstructedTeamService
     {
         private readonly IDbContextHelper _dbContextHelper;
-        //private readonly IScrimTeamsManager _teamsManager;
         private readonly ICharacterService _characterService;
         private readonly IScrimPlayersService _playerService;
         private readonly IScrimMessageBroadcastService _messageService;
@@ -32,11 +31,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public static Regex ConstructedTeamNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public static Regex ConstructedTeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public ConstructedTeamService(IDbContextHelper dbContextHelper,/* IScrimTeamsManager teamsManager,*/ ICharacterService characterService,
-            IScrimPlayersService playerService, IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
+        public ConstructedTeamService(IDbContextHelper dbContextHelper, ICharacterService characterService, IScrimPlayersService playerService,
+            IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
         {
             _dbContextHelper = dbContextHelper;
-            //_teamsManager = teamsManager;
             _characterService = characterService;
             _playerService = playerService;
             _messageService = messageService;
@@ -57,7 +55,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                     return team;
                 }
 
-                team.FactionPreferences = await dbContext.ConstructedTeamFactionPreferences.Where(pref => pref.ConstructedTeamId == teamId).ToListAsync();
                 team.PlayerMemberships = await dbContext.ConstructedTeamPlayerMemberships.Where(m => m.ConstructedTeamId == teamId).ToListAsync();
 
                 return team;
@@ -231,85 +228,11 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                     unprocessedMembers.RemoveAll(m => m.CharacterId == player.Id);
                 }
             }
-
-            //foreach (var member in unprocessedMembers)
-            //{
-            //    var character = new Character
-            //    {
-            //        Name = "Unnamed Player",
-            //        Id = member.CharacterId,
-            //        FactionId = member.FactionId
-            //    };
-
-            //    processedCharacters.Add(character);
-            //}
-
             return processedPlayers;
         }
 
-        //public async Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId)
-        //{
-        //    throw new NotImplementedException();
-        //    //var constructedTeam = await GetConstructedTeam(teamId, false);
-
-        //    //if (constructedTeam == null)
-        //    //{
-        //    //    return null;
-        //    //}
-
-        //    //var teamInfo = ConvertToTeamMatchInfo(constructedTeam);
-
-        //    //var matchTeam = _teamsManager.GetTeamFromConstructedTeamId(teamId);
-
-        //    //if (matchTeam == null)
-        //    //{
-        //    //    return teamInfo;
-        //    //}
-
-        //    //teamInfo.TeamOrdinal = matchTeam.TeamOrdinal;
-
-        //    //if (!constructedTeam.PlayerMemberships.Any())
-        //    //{
-        //    //    return teamInfo;
-        //    //}
-
-        //    //var teamPlayers = new List<Player>();
-
-        //    //foreach (var member in constructedTeam.PlayerMemberships)
-        //    //{
-        //    //    var player = _teamsManager.GetPlayerFromId(member.CharacterId);
-        //    //    if (player != null)
-        //    //    {
-        //    //        teamPlayers.Add(player);
-        //    //        teamInfo.OnlineMembersCount += (player.IsOnline ? 1 : 0);
-
-        //    //        if (teamInfo.ActiveFactionId == null)
-        //    //        {
-        //    //            teamInfo.ActiveFactionId = player.FactionId;
-        //    //        }
-        //    //    }
-        //    //}
-
-        //    //teamInfo.Players = teamPlayers;
-
-        //    //return teamInfo;
-        //}
-
-        //private ConstructedTeamMatchInfo ConvertToTeamMatchInfo(ConstructedTeam constructedTeam)
-        //{
-        //        return new ConstructedTeamMatchInfo
-        //        {
-        //            Id = constructedTeam.Id,
-        //            Name = constructedTeam.Name,
-        //            Alias = constructedTeam.Alias,
-        //            FactionPreferences = constructedTeam.FactionPreferences,
-        //            TotalMembersCount = constructedTeam.PlayerMemberships.Count()
-        //        };
-        //}
-
         public async Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId, bool ignoreCollections = false)
         {
-            //var constructedTeam = await GetConstructedTeam(teamId, false);
             var constructedTeam = await GetConstructedTeam(teamId, ignoreCollections);
 
             if (constructedTeam == null)
@@ -365,26 +288,12 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         private ConstructedTeam ConvertToDbModel(ConstructedTeamFormInfo formInfo)
         {
-            //if (formInfo.Id == null || formInfo.Id < 0)
-            //{
-            //    return null;
-            //}
-            
             return new ConstructedTeam
             {
-                //Id = (int)formInfo.Id,
                 Name = formInfo.Name,
                 Alias = formInfo.Alias
-                //FactionPreferences = formInfo.FactionPreferences
             };
         }
-
-        public async Task AddConstructedTeamToMatch(int constructedTeamId, int matchTeamOrdinal, int factionId)
-        {
-            throw new NotImplementedException();
-        }
-
-        
 
         public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false)
         {
@@ -403,7 +312,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                 foreach (var team in teams)
                 {
-                    team.FactionPreferences = await dbContext.ConstructedTeamFactionPreferences.Where(pref => pref.ConstructedTeamId == team.Id).ToListAsync();
                     team.PlayerMemberships = await dbContext.ConstructedTeamPlayerMemberships.Where(m => m.ConstructedTeamId == team.Id).ToListAsync();
                 }
 
