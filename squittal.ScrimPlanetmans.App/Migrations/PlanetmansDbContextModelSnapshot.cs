@@ -19,57 +19,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ConstructedTeam", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Alias")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ConstructedTeam");
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ConstructedTeamFactionPreference", b =>
-                {
-                    b.Property<int>("ConstructedTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PreferenceOrdinalValue")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FactionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ConstructedTeamId", "PreferenceOrdinalValue");
-
-                    b.ToTable("ConstructedTeamFactionPreference");
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ConstructedTeamPlayerMembership", b =>
-                {
-                    b.Property<int>("ConstructedTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CharacterId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("FactionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ConstructedTeamId", "CharacterId");
-
-                    b.ToTable("ConstructedTeamPlayerMembership");
-                });
-
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimDeath", b =>
                 {
                     b.Property<string>("ScrimMatchId")
@@ -789,24 +738,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.HasKey("Class");
 
                     b.ToTable("VehicleClass");
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ConstructedTeamFactionPreference", b =>
-                {
-                    b.HasOne("squittal.ScrimPlanetmans.Data.Models.ConstructedTeam", "ConstructedTeam")
-                        .WithMany("FactionPreferences")
-                        .HasForeignKey("ConstructedTeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ConstructedTeamPlayerMembership", b =>
-                {
-                    b.HasOne("squittal.ScrimPlanetmans.Data.Models.ConstructedTeam", "ConstructedTeam")
-                        .WithMany("PlayerMemberships")
-                        .HasForeignKey("ConstructedTeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatchTeamPointAdjustment", b =>
