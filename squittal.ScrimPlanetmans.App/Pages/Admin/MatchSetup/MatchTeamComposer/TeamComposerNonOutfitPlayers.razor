@@ -358,7 +358,7 @@
 
                     if (changeType == TeamPlayerChangeType.Add)
                     {
-                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player))// && (player.IsParticipating || player.IsOnline))
                         {
                             _renderedPlayers.Add(player);
                             changes += 1;
