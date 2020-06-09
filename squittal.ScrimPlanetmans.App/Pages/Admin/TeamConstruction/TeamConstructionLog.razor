@@ -33,11 +33,13 @@
     {
         // TODO: use Interface for Info property of messages
         MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
     }
 
     public void Dispose()
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
     }
     #endregion Initialization Methods
 
@@ -46,12 +48,17 @@
     {
         ReceiveMessage(e.Message.Info);
     }
+
+    public void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    {
+        ReceiveMessage(e.Message.Info);
+    }
     #endregion
 
     #region Message Parsing
     private void ReceiveMessage(string message)
     {
-            LogMessage(message);
+        LogMessage(message);
     }
     #endregion
 
