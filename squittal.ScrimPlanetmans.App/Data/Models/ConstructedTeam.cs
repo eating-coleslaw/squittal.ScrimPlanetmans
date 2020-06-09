@@ -20,7 +20,7 @@ namespace squittal.ScrimPlanetmans .Data.Models
         //public int SecondPreferredFactionId { get; set; }
         //public int ThirdPreferredFactionId { get; set; }
 
-        public IEnumerable<ConstructedTeamFactionPreference> FactionPreferences { get; set; }
+        //public IEnumerable<ConstructedTeamFactionPreference> FactionPreferences { get; set; }
         public IEnumerable<ConstructedTeamPlayerMembership> PlayerMemberships { get; set; }
     }
 }

@@ -16,9 +16,9 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
                 e.PreferenceOrdinalValue
             });
 
-            builder.HasOne(faction => faction.ConstructedTeam)
-                .WithMany(team => team.FactionPreferences)
-                .HasForeignKey(faction => faction.ConstructedTeamId);
+            //builder.HasOne(faction => faction.ConstructedTeam)
+            //    .WithMany(team => team.FactionPreferences)
+            //    .HasForeignKey(faction => faction.ConstructedTeamId);
         }
     }
 }

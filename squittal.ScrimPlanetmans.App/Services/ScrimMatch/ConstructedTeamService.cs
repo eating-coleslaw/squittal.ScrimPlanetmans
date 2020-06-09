@@ -281,8 +281,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             {
                 Id = constructedTeam.Id,
                 Name = constructedTeam.Name,
-                Alias = constructedTeam.Alias,
-                FactionPreferences = constructedTeam.FactionPreferences
+                Alias = constructedTeam.Alias
             };
         }
 
