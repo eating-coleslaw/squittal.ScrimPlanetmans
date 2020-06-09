@@ -694,8 +694,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             //TODO: handle updating Match Configuration's Server ID setting here
-
-            if (team.Outfits.Any())
+            if (team.ConstructedTeamsMatchInfo.Any())
+            {
+                var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextTeam.ConstructedTeam.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+            }
+            else if (team.Outfits.Any())
             {
                 var nextOutfit = team.Outfits.FirstOrDefault();
                 UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
@@ -1018,18 +1023,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             //TODO: handle updating Match Configuration's Server ID setting here
-
-            if (team.Outfits.Any())
-            {
-                var nextOutfit = team.Outfits.FirstOrDefault();
-                UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
-                UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
-            }
-            else if (team.ConstructedTeamsMatchInfo.Any())
+            if (team.ConstructedTeamsMatchInfo.Any())
             {
                 var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
                 UpdateTeamAlias(team.TeamOrdinal, nextTeam.ConstructedTeam.Alias);
                 UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+            }
+            else if (team.Outfits.Any())
+            {
+                var nextOutfit = team.Outfits.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
             }
             else if (team.Players.Any())
             {
