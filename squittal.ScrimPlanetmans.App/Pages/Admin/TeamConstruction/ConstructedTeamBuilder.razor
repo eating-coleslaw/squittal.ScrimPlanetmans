@@ -32,11 +32,11 @@
                         <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
 
                         <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
-                            <option value=@_noTeamSelectedStringId>No Team</option>
+                            <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
 
                             @foreach (var team in _storedTeamsList)
                             {
-                                <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                                <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
                             }
                         </InputSelect>
                     </div>
@@ -55,6 +55,28 @@
             <div class="sq-mini-card-12">
                 <TeamConstructionLog />
             </div>
+
+            <table style="display: none;">
+                <tbody>
+                    <tr>
+                        <td>_inputTeamStringId</td>
+                        <td style="padding-left: 8px;">@_inputTeamStringId</td>
+                    </tr>
+                    <tr>
+                        <td>i_teamStringId</td>
+                        <td style="padding-left: 8px;">@i_teamStringId</td>
+                    </tr>
+                    <tr>
+                        <td>_renderedTeamStringId</td>
+                        <td style="padding-left: 8px;">@_renderedTeamStringId</td>
+                    </tr>
+                    <tr>
+                        <td>_renderedTeamId</td>
+                        <td style="padding-left: 8px;">@_renderedTeamId</td>
+                    </tr>
+                </tbody>
+            </table>
+            
 
         </div>
 
@@ -96,12 +118,15 @@
         {
             <SpinnerEllipsis />
         }
-        else if (!string.IsNullOrWhiteSpace(_inputTeamStringId))
+        //else if (!string.IsNullOrWhiteSpace(_inputTeamStringId) && _inputTeamStringId != _noTeamSelectedStringId)
+        else if (/*!string.IsNullOrWhiteSpace(_renderedTeamStringId) && */_renderedTeamId.ToString() != _noTeamSelectedStringId)
         {
             <div class="col-lg-9">
                 <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
             </div>
         }
+
+        
     </div>
 
 </div>
@@ -136,6 +161,7 @@
     private ConstructedTeam _newTeamForm { get; set; } = new ConstructedTeam();
     private bool _openNewTeamOnSave { get; set; } = true;
 
+
     #region Initialization Methods
     protected override void OnInitialized()
     {
@@ -162,7 +188,6 @@
 
         if (i_teamStringId != _renderedTeamStringId)
         {
-
             _isChangingTeam = true;
             InvokeAsyncStateHasChanged();
 
@@ -196,18 +221,24 @@
 
         if (inputTeamStringId == _noTeamSelectedStringId)
         {
-            i_teamStringId = string.Empty;
-            _inputTeamStringId = string.Empty;
+            i_teamStringId = _noTeamSelectedStringId; // string.Empty;
+            _renderedTeamStringId = i_teamStringId; // TEST
+            _inputTeamStringId = _noTeamSelectedStringId; // string.Empty;
             _renderedTeamId = GetTeamIdFromStringId(_noTeamSelectedStringId);
+
+            NavManager.NavigateTo($"/TeamBuilder");
         }
         else
         {
             i_teamStringId = inputTeamStringId;
+            _renderedTeamStringId = i_teamStringId; // TEST
             _inputTeamStringId = inputTeamStringId;
             _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
+
+            NavManager.NavigateTo($"/TeamBuilder?teamId={i_teamStringId}");
         }
 
-        NavManager.NavigateTo($"/TeamBuilder?teamId={i_teamStringId}");
+        //NavManager.NavigateTo($"/TeamBuilder?teamId={i_teamStringId}");
 
         _isChangingTeam = false;
         InvokeAsyncStateHasChanged();
@@ -281,6 +312,12 @@
         listedTeam.Name = team.Name;
         listedTeam.Alias = team.Alias;
 
+        i_teamStringId = _renderedTeamStringId;
+        _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
+        _inputTeamStringId = _renderedTeamStringId;
+
+        //HandleOnSelectTeamChange(_renderedTeamStringId);
+
         InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
@@ -299,6 +336,7 @@
                     _uriTeamId = teamId;
 
                     i_teamStringId = _uriTeamId.ToString();
+                    _renderedTeamStringId = i_teamStringId; // TEST
                     _inputTeamStringId = _uriTeamId.ToString();
                     _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
 
@@ -308,8 +346,9 @@
                 {
                     _uriTeamId = null;
 
-                    i_teamStringId = string.Empty;
-                    _inputTeamStringId = string.Empty;
+                    i_teamStringId = _noTeamSelectedStringId; // TEST string.Empty;
+                    _renderedTeamStringId = i_teamStringId; // TEST
+                    _inputTeamStringId = _noTeamSelectedStringId; // string.Empty;
                     _renderedTeamId = GetTeamIdFromStringId(_noTeamSelectedStringId);
 
                     stateChanged = false;
