@@ -499,11 +499,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            //if (!owningTeam.TryAddConstructedTeam(constructedTeam))
-            //{
-            //    return false;
-            //}
-
             // If not yet set, set team alias to alias of the first constructed team added to it
             if (TeamOutfitCount(teamOrdinal) == 0 && TeamConstructedTeamCount(teamOrdinal) == 1 && owningTeam.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
             {
@@ -541,6 +536,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             foreach (var player in players)
             {
+                if (!IsCharacterAvailable(player.Id))
+                {
+                    continue;
+                }
+                
                 player.TeamOrdinal = teamOrdinal;
                 player.ConstructedTeamId = constructedTeamId;
 
@@ -1335,12 +1335,34 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return false;
             }
-            
+
+            var team = GetTeam(player.TeamOrdinal);
+
             if ( RemovePlayerFromTeam(player))
             {
                 if (characterId == MaxPlayerPointsTracker.GetOwningCharacterId())
                 {
                     // TODO: Update Match Max Player Points
+                }
+
+                if (team.ConstructedTeamsMatchInfo.Any())
+                {
+                    var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
+                    UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+                }
+                else if (team.Outfits.Any())
+                {
+                    var nextOutfit = team.Outfits.FirstOrDefault();
+                    UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
+                }
+                else if (team.Players.Any())
+                {
+                    var nextPlayer = team.Players.FirstOrDefault();
+                    UpdateTeamFaction(team.TeamOrdinal, nextPlayer.FactionId);
+                }
+                else
+                {
+                    UpdateTeamFaction(team.TeamOrdinal, null);
                 }
 
                 return true;
