@@ -31,6 +31,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public List<Player> NonOutfitCharacters { get; } = new List<Player>();
 
         public List<ConstructedTeam> ConstructedTeams { get; set; } = new List<ConstructedTeam>();
+        public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
@@ -172,6 +173,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
+            return true;
+
+            //if (!ContainsConstructedTeam(constructedTeamId))
+            //{
+            //    return false;
+            //}
+
+            //ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            //return true;
+        }
+
+        public bool TryAddConstructedTeamMatchInfo(ConstructedTeamMatchInfo matchInfo)
+        {
+            if (ContainsConstructedTeam(matchInfo.ConstructedTeam.Id))
+            {
+                return false;
+            }
+
+            ConstructedTeams.Add(matchInfo.ConstructedTeam);
+            ConstructedTeamsMatchInfo.Add(matchInfo);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeamMatchInfo(int constructedTeamId)
+        {
+            if (!ContainsConstructedTeam(constructedTeamId))
+            {
+                return false;
+            }
+
+            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
             return true;
         }
 
@@ -188,6 +222,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             lock (Players)
             {
                 return Players.Where(p => p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetConstructedTeamFactionPlayers(int constructedTeamId, int factionId)
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId && p.FactionId == factionId).ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetConstructedTeamPlayers(int constructedTeamId)
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId).ToList();
             }
         }
 

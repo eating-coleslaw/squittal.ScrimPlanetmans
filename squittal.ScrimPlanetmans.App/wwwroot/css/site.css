@@ -288,6 +288,36 @@ app {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
 
+    .btn-outline-primary.vs, .btn-outline-primary.nc, .btn-outline-primary.tr {
+        background-color: #FFFFFF;
+        color: var(--sq-ps2-primary);
+        border-color: var(--sq-ps2-primary);
+    }
+
+        .btn-outline-primary.vs .oi, .btn-outline-primary.nc .oi, .btn-outline-primary.tr .oi {
+            color: var(--sq-ps2-primary);
+        }
+
+        .btn-outline-primary.vs:not(:disabled):not(.disabled):hover, .btn-outline-primary.nc:not(:disabled):not(.disabled):hover, .btn-outline-primary.tr:not(:disabled):not(.disabled):hover,
+        .btn-outline-primary.vs:not(:disabled):not(.disabled):active, .btn-outline-primary.nc:not(:disabled):not(.disabled):active, .btn-outline-primary.tr:not(:disabled):not(.disabled):active {
+            color: #FFFFFF;
+            background-color: var(--sq-ps2-primary);
+            /*border-color: var(--sq-ov-ps2-primary-dark);*/
+            border-color: var(--sq-ps2-primary);
+            /*border-color: var(--sq-ov-ps2-flavor);*/
+        }
+
+            .btn-outline-primary.vs:not(:disabled):not(.disabled):hover .oi, .btn-outline-primary.nc:not(:disabled):not(.disabled):hover .oi, .btn-outline-primary.tr:not(:disabled):not(.disabled):hover .oi,
+            .btn-outline-primary.vs:not(:disabled):not(.disabled):active .oi, .btn-outline-primary.nc:not(:disabled):not(.disabled):active .oi, .btn-outline-primary.tr:not(:disabled):not(.disabled):active .oi {
+                color: #FFFFFF;
+            }
+
+                .btn-outline-primary.vs:not(:disabled):not(.disabled):focus, .btn-outline-primary.nc:not(:disabled):not(.disabled):focus, .btn-outline-primary.tr:not(:disabled):not(.disabled):focus,
+                .btn-outline-primary.vs:not(:disabled):not(.disabled):focus:active, .btn-outline-primary.nc:not(:disabled):not(.disabled):focus:active, .btn-outline-primary.tr:not(:disabled):not(.disabled):focus:active {
+                    /*box-shadow: 0 0 0 .2rem var(--sq-ps2-primary-ligh-alpha-40);*/
+                    box-shadow: 0 0 0 .2rem var(--sq-ov-ps2-primary-alpha-50);
+                }
+
 .btn-icon-primary {
     line-height: 1;
     background-color: transparent;

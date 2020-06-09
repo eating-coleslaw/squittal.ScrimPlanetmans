@@ -247,65 +247,65 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             return processedPlayers;
         }
 
-        public async Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId)
-        {
-            throw new NotImplementedException();
-            //var constructedTeam = await GetConstructedTeam(teamId, false);
+        //public async Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId)
+        //{
+        //    throw new NotImplementedException();
+        //    //var constructedTeam = await GetConstructedTeam(teamId, false);
 
-            //if (constructedTeam == null)
-            //{
-            //    return null;
-            //}
+        //    //if (constructedTeam == null)
+        //    //{
+        //    //    return null;
+        //    //}
 
-            //var teamInfo = ConvertToTeamMatchInfo(constructedTeam);
+        //    //var teamInfo = ConvertToTeamMatchInfo(constructedTeam);
 
-            //var matchTeam = _teamsManager.GetTeamFromConstructedTeamId(teamId);
+        //    //var matchTeam = _teamsManager.GetTeamFromConstructedTeamId(teamId);
 
-            //if (matchTeam == null)
-            //{
-            //    return teamInfo;
-            //}
+        //    //if (matchTeam == null)
+        //    //{
+        //    //    return teamInfo;
+        //    //}
 
-            //teamInfo.TeamOrdinal = matchTeam.TeamOrdinal;
+        //    //teamInfo.TeamOrdinal = matchTeam.TeamOrdinal;
 
-            //if (!constructedTeam.PlayerMemberships.Any())
-            //{
-            //    return teamInfo;
-            //}
+        //    //if (!constructedTeam.PlayerMemberships.Any())
+        //    //{
+        //    //    return teamInfo;
+        //    //}
 
-            //var teamPlayers = new List<Player>();
+        //    //var teamPlayers = new List<Player>();
 
-            //foreach (var member in constructedTeam.PlayerMemberships)
-            //{
-            //    var player = _teamsManager.GetPlayerFromId(member.CharacterId);
-            //    if (player != null)
-            //    {
-            //        teamPlayers.Add(player);
-            //        teamInfo.OnlineMembersCount += (player.IsOnline ? 1 : 0);
+        //    //foreach (var member in constructedTeam.PlayerMemberships)
+        //    //{
+        //    //    var player = _teamsManager.GetPlayerFromId(member.CharacterId);
+        //    //    if (player != null)
+        //    //    {
+        //    //        teamPlayers.Add(player);
+        //    //        teamInfo.OnlineMembersCount += (player.IsOnline ? 1 : 0);
 
-            //        if (teamInfo.ActiveFactionId == null)
-            //        {
-            //            teamInfo.ActiveFactionId = player.FactionId;
-            //        }
-            //    }
-            //}
+        //    //        if (teamInfo.ActiveFactionId == null)
+        //    //        {
+        //    //            teamInfo.ActiveFactionId = player.FactionId;
+        //    //        }
+        //    //    }
+        //    //}
 
-            //teamInfo.Players = teamPlayers;
+        //    //teamInfo.Players = teamPlayers;
 
-            //return teamInfo;
-        }
+        //    //return teamInfo;
+        //}
 
-        private ConstructedTeamMatchInfo ConvertToTeamMatchInfo(ConstructedTeam constructedTeam)
-        {
-                return new ConstructedTeamMatchInfo
-                {
-                    Id = constructedTeam.Id,
-                    Name = constructedTeam.Name,
-                    Alias = constructedTeam.Alias,
-                    FactionPreferences = constructedTeam.FactionPreferences,
-                    TotalMembersCount = constructedTeam.PlayerMemberships.Count()
-                };
-        }
+        //private ConstructedTeamMatchInfo ConvertToTeamMatchInfo(ConstructedTeam constructedTeam)
+        //{
+        //        return new ConstructedTeamMatchInfo
+        //        {
+        //            Id = constructedTeam.Id,
+        //            Name = constructedTeam.Name,
+        //            Alias = constructedTeam.Alias,
+        //            FactionPreferences = constructedTeam.FactionPreferences,
+        //            TotalMembersCount = constructedTeam.PlayerMemberships.Count()
+        //        };
+        //}
 
         public async Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId, bool ignoreCollections = false)
         {

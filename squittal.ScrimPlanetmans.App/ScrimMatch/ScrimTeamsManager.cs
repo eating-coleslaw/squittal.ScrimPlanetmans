@@ -156,6 +156,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return GetTeam(teamOrdinal).GetNonOutfitPlayers();
         }
+        
+        public IEnumerable<Player> GetTeamConstructedTeamFactionPlayers(int teamOrdinal, int constructedTeamId, int factionId)
+        {
+            return GetTeam(teamOrdinal).GetConstructedTeamFactionPlayers(constructedTeamId, factionId);
+        }
 
         public int? GetNextWorldId(int previousWorldId)
         {
@@ -416,14 +421,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             SendTeamOutfitAddedMessage(outfit);
 
+
+            /* Add Outfit Players to Team */
             var loadStartedMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadStarted);
             _messageService.BroadcastTeamOutfitChangeMessage(loadStartedMessage);
 
-            /* Add Outfit Players to Team */
+            var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+
             var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
 
             if (players == null || !players.Any())
             {
+                _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
                 return false;
             }
 
@@ -451,8 +460,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersAdded = true;
                 }
             }
-
-            var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+            
             _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
 
             return anyPlayersAdded;
@@ -460,7 +468,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId)
         {
-            if (!IsConstructedTeamAvailable(constructedTeamId)) //, out Team owningTeam))
+            if (!IsConstructedTeamAvailable(constructedTeamId))
             {
                 return false;
             }
@@ -479,10 +487,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            if (!owningTeam.TryAddConstructedTeam(constructedTeam))
+            var matchInfo = new ConstructedTeamMatchInfo
+            {
+                ConstructedTeam = constructedTeam,
+                TeamOrdinal = teamOrdinal,
+                ActiveFactionId = factionId
+            };
+
+            if (!owningTeam.TryAddConstructedTeamMatchInfo(matchInfo))
             {
                 return false;
             }
+
+            //if (!owningTeam.TryAddConstructedTeam(constructedTeam))
+            //{
+            //    return false;
+            //}
 
             // If not yet set, set team alias to alias of the first constructed team added to it
             if (TeamOutfitCount(teamOrdinal) == 0 && TeamConstructedTeamCount(teamOrdinal) == 1 && owningTeam.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
@@ -495,18 +515,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 UpdateTeamFaction(teamOrdinal, factionId);
             }
 
-            // TODO: send Constructed Team Added message
             var message = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.Add);
             _messageService.BroadcastTeamConstructedTeamChangeMessage(message);
+
+
+            var loadStartedMessage = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.ConstructedTeamMembersLoadStarted);
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(loadStartedMessage);
+
+            var loadCompletedMessage = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.ConstructedTeamMembersLoadCompleted);
 
             var players = await _constructedTeamService.GetConstructedTeamFactionPlayers(constructedTeamId, factionId);
 
             if (players == null || !players.Any())
             {
+                _messageService.BroadcastTeamConstructedTeamChangeMessage(loadCompletedMessage);
                 return false;
             }
 
             var anyPlayersAdded = false;
+            var playersAddedCount = 0;
 
             var lastPlayer = players.LastOrDefault();
 
@@ -529,8 +556,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     SendTeamPlayerAddedMessage(player, isLastPlayer);
 
                     anyPlayersAdded = true;
+                    playersAddedCount += 1;
                 }
             }
+
+            loadCompletedMessage = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.ConstructedTeamMembersLoadCompleted, playersAddedCount);
+
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(loadCompletedMessage);
 
             return anyPlayersAdded;
         }
@@ -953,6 +985,67 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 _logger.LogError(ex.ToString());
             }
+        }
+
+        public bool RemoveConstructedTeamFromTeam(int constructedTeamId)
+        {
+            var team = GetTeamFromConstructedTeamId(constructedTeamId);
+
+            if (team == null)
+            {
+                return false;
+            }
+
+            var constructedTeamMatchInfo = team.ConstructedTeamsMatchInfo.Where(t => t.ConstructedTeam.Id == constructedTeamId).FirstOrDefault();
+
+            team.TryRemoveConstructedTeam(constructedTeamId);
+
+            var players = team.GetConstructedTeamPlayers(constructedTeamId).ToList();
+
+            if (players == null || !players.Any())
+            {
+                return false;
+            }
+
+            var anyPlayersRemoved = false;
+
+            foreach (var player in players)
+            {
+                if (RemovePlayerFromTeam(player))
+                {
+                    anyPlayersRemoved = true;
+                }
+            }
+
+            //TODO: handle updating Match Configuration's Server ID setting here
+
+            if (team.Outfits.Any())
+            {
+                var nextOutfit = team.Outfits.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
+            }
+            else if (team.ConstructedTeamsMatchInfo.Any())
+            {
+                var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextTeam.ConstructedTeam.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+            }
+            else if (team.Players.Any())
+            {
+                var nextPlayer = team.Players.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
+                UpdateTeamFaction(team.TeamOrdinal, nextPlayer.FactionId);
+            }
+            else
+            {
+                UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
+                UpdateTeamFaction(team.TeamOrdinal, null);
+            }
+
+            SendTeamConstructedTeamRemovedMessage(team.TeamOrdinal, constructedTeamMatchInfo);
+
+            return anyPlayersRemoved;
         }
 
         public async Task<bool> RemoveCharacterFromTeamAndDb(string characterId)
@@ -1853,6 +1946,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var payload = new TeamOutfitChangeMessage(outfit, TeamChangeType.Remove);
             _messageService.BroadcastTeamOutfitChangeMessage(payload);
+        }
+
+        private void SendTeamConstructedTeamAddedMessage(int teamOrdinal, ConstructedTeamMatchInfo teamMatchInfo)
+        {
+            var payload = new TeamConstructedTeamChangeMessage(teamOrdinal, teamMatchInfo.ConstructedTeam, teamMatchInfo.ActiveFactionId, TeamChangeType.Add);
+
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(payload);
+        }
+
+        private void SendTeamConstructedTeamRemovedMessage(int teamOrdinal, ConstructedTeamMatchInfo teamMatchInfo)
+        {
+            var payload = new TeamConstructedTeamChangeMessage(teamOrdinal, teamMatchInfo.ConstructedTeam, teamMatchInfo.ActiveFactionId, TeamChangeType.Remove);
+
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(payload);
         }
 
         private void SendPlayerStatUpdateMessage(Player player)

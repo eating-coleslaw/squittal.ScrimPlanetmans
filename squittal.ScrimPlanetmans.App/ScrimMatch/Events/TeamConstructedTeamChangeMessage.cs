@@ -8,15 +8,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         public ConstructedTeam ConstructedTeam { get; set; }
         public int TeamOrdinal { get; set; }
         public int FactionId { get; set; }
+
+        public int? PlayersFound { get; set; }
+
         public TeamChangeType ChangeType { get; set; }
         public string Info { get; set; }
 
-        public TeamConstructedTeamChangeMessage(int teamOrdinal, ConstructedTeam constructedTeam, int factionId, TeamChangeType changeType)
+        public TeamConstructedTeamChangeMessage(int teamOrdinal, ConstructedTeam constructedTeam, int factionId, TeamChangeType changeType, int? playersFound = null)
         {
             TeamOrdinal = teamOrdinal;
             ConstructedTeam = constructedTeam;
             FactionId = factionId;
             ChangeType = changeType;
+
+            PlayersFound = playersFound;
 
             Info = GetInfoMessage();
         }

@@ -120,7 +120,54 @@
         </EditForm>
     </div>
 
-    @if (_teamOutfits.Any() || _teamNonOutfitPlayers.Any())
+    @if (_availableConstructedTeams.Any())
+    {
+        <EditForm Model="@_inputConstructedTeamFactionSelection" style="display: inline-block;"> @*OnValidSubmit="HandleAddConstructedTeamFactionSubmit" >*@
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="margin-bottom: 0.2rem; display: inline-block;">
+                <p style="margin-bottom: 0.2rem;">Select Premade Team: </p>
+
+                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">*@
+                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.ConstructedTeamStringId>
+                    <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
+
+                    @foreach (var team in _availableConstructedTeams)
+                    {
+                        <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                    }
+                </InputSelect>
+
+                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">*@
+                @*<InputSelect style="margin-right: 5px; width: 48px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.FactionStringId>
+                    <option value="1" label="" VS">VS</option>
+                    <option value="2" label="" NC">NC</option>
+                    <option value="3" label="" VS">TR</option>
+                </InputSelect>*@
+            </div>
+
+            <button type="submit" class="btn btn-outline-primary vs" @onclick="(() => HandleAddConstructedTeamFactionSubmit(1))" style="display: inline-block;">
+                @*<span class="oi oi-people"></span>*@VS
+            </button>
+
+            <button type="submit" class="btn btn-outline-primary nc" @onclick="(() => HandleAddConstructedTeamFactionSubmit(2))" style="display: inline-block;">
+                @*<span class="oi oi-people"></span>*@NC
+            </button>
+
+            <button type="submit" class="btn btn-outline-primary tr" @onclick="(() => HandleAddConstructedTeamFactionSubmit(3))" style="display: inline-block;">
+                @*<span class="oi oi-people"></span>*@TR
+            </button>
+
+            @*<button type="submit" class="btn btn-primary" style=" display: inline-block;">
+                <span class="oi oi-people"></span>Add
+            </button>*@
+
+        </EditForm>
+    }
+
+
+    @if (_teamOutfits.Any() || _teamConstructedTeams.Any() || _teamNonOutfitPlayers.Any() )
     {
         <div style="margin: 0.2rem 0;" title="Unlock to show buttons for removing outfits and players from this team">
             <EditForm Model="@_showRemovals">
@@ -132,40 +179,7 @@
             </EditForm>
         </div>
     }
-
-    @if (_availableConstructedTeams.Any())
-    {
-        <EditForm Model="@_inputConstructedTeamFactionSelection" OnValidSubmit="HandleAddConstructedTeamFactionSubmit" style="display: inline-block;">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div style="margin-bottom: 0.2rem;">
-                <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
-
-                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">*@
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.ConstructedTeamStringId>
-                    <option value=@_noTeamSelectedStringId>No Team</option>
-
-                    @foreach (var team in _availableConstructedTeams)
-                    {
-                        <option value=@team.Id.ToString() label="@($"[{team.Alias}] {team.Name}")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
-                    }
-                </InputSelect>
-
-                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">*@
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.FactionStringId>
-                    <option value="1" label="" VS">VS</option>
-                    <option value="2" label="" NC">NC</option>
-                    <option value="3" label="" VS">TR</option>
-                </InputSelect>
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-                <span class="oi oi-people"></span>Add
-            </button>
-
-        </EditForm>
-    }
+    
 
     <div style="margin: 0.4rem 0 0.2rem 0;">
         <div>
@@ -241,6 +255,14 @@
     </div>
 
 </div>
+
+@if (_teamConstructedTeams.Any())
+{
+    foreach (var team in _teamConstructedTeams)
+    {
+        <TeamComposerConstructedTeamPlayers i_constructedTeamMatchInfo=@team i_teamOrdinal=@i_teamOrdinal i_showRemovals=@_showRemovals />
+    }
+}
 
 @if (_teamOutfits.Any())
 {
@@ -480,7 +502,8 @@
     private List<Outfit> _teamOutfits = new List<Outfit>();
 
     private List<Player> _teamPlayers = new List<Player>();
-    private List<ConstructedTeam> _teamConstructedTeams = new List<ConstructedTeam>();
+    //private List<ConstructedTeam> _teamConstructedTeams = new List<ConstructedTeam>();
+    private List<ConstructedTeamMatchInfo> _teamConstructedTeams = new List<ConstructedTeamMatchInfo>();
 
     private List<Player> _teamPlayersOnline = new List<Player>();
 
@@ -539,6 +562,8 @@
 
         MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
         MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
+
+        _inputConstructedTeamFactionSelection.ConstructedTeamStringId = _noTeamSelectedStringId;
     }
 
     protected override async Task OnInitializedAsync()
@@ -588,7 +613,14 @@
 
         _displayAlias.Alias = _team.Alias;
 
-        _teamOutfits = _team.Outfits;
+        //_teamOutfits = _team.Outfits;
+        _teamOutfits = new List<Outfit>();
+        _teamOutfits.AddRange(_team.Outfits);
+
+        //_teamConstructedTeams = _team.ConstructedTeamsMatchInfo;
+        _teamConstructedTeams = new List<ConstructedTeamMatchInfo>();
+        _teamConstructedTeams.AddRange(_team.ConstructedTeamsMatchInfo);
+
 
         _teamPlayersParticipating = _team.ParticipatingPlayers;
 
@@ -598,40 +630,40 @@
 
         _teamPlayers = _team.Players;
 
-        foreach (var player in _teamPlayers)
-        {
-            if (player.IsOnline && !_teamPlayersOnline.Any(p => p.Id == player.Id))
-            {
-                _teamPlayersOnline.Add(player);
-            }
+        //foreach (var player in _teamPlayers)
+        //{
+        //    if (player.IsOnline && !_teamPlayersOnline.Any(p => p.Id == player.Id))
+        //    {
+        //        _teamPlayersOnline.Add(player);
+        //    }
 
-            if (player.IsOnline && !_teamPlayersVisible.Any(p => p.Id == player.Id))
-            {
-                _teamPlayersVisible.Add(player);
-            }
+        //    if (player.IsOnline && !_teamPlayersVisible.Any(p => p.Id == player.Id))
+        //    {
+        //        _teamPlayersVisible.Add(player);
+        //    }
 
-            if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
-            {
-                _teamNonOutfitPlayers.Add(player);
-            }
-        }
+        //    if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        //    {
+        //        _teamNonOutfitPlayers.Add(player);
+        //    }
+        //}
 
-        foreach (var outfit in _teamOutfits)
-        {
-            message = $"Loaded Team {i_teamOrdinal} outfit: [{outfit.Alias}] {outfit.Name}";
-            LogMessage(message);
+        //foreach (var outfit in _teamOutfits)
+        //{
+        //    message = $"Loaded Team {i_teamOrdinal} outfit: [{outfit.Alias}] {outfit.Name}";
+        //    LogMessage(message);
 
-            if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless) > _defaultMaxPlayersToExtend)
-            {
-                _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
-            }
-            else
-            {
-                _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
-            }
+        //    if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless) > _defaultMaxPlayersToExtend)
+        //    {
+        //        _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
+        //    }
+        //    else
+        //    {
+        //        _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+        //    }
 
-            SetOutfitMembersOnlineCount(outfit.AliasLower);
-        }
+        //    SetOutfitMembersOnlineCount(outfit.AliasLower);
+        //}
 
         message = $"Finished reloading Team {i_teamOrdinal} data";
         LogMessage(message);
@@ -784,9 +816,11 @@
         });
     }
 
-    private async void HandleAddConstructedTeamFactionSubmit()
+    private async void HandleAddConstructedTeamFactionSubmit(int factionId)
     {
         var newSelection = _inputConstructedTeamFactionSelection;
+
+        newSelection.FactionStringId = factionId.ToString();
 
         if (TeamsManager.IsConstructedTeamAvailable(newSelection.ConstructedTeamId) && !_constructedTeamsLoading.Any(t => t.ConstructedTeamId == newSelection.ConstructedTeamId && t.FactionId == newSelection.FactionId))
         {
@@ -803,6 +837,8 @@
                     //_constructedTeamsLoading.Remove(newSelection);
                     _availableConstructedTeams.RemoveAll(t => t.Id == newTeam.Id);
 
+                    _inputConstructedTeamFactionSelection = new ConstructedTeamFactionSelection();
+                    _inputConstructedTeamFactionSelection.ConstructedTeamStringId = _noTeamSelectedStringId;
                 }
             }
             catch (Exception ex)
@@ -996,26 +1032,29 @@
         var message = e.Message;
 
         var player = message.Player;
-        if (player.TeamOrdinal != i_teamOrdinal)
-        {
-            return;
-        }
 
-        switch (message.ChangeType)
-        {
-            case TeamPlayerChangeType.Add:
-                HandleTeamPlayerChangeAdd(message);
-                break;
+        return;
 
-            case TeamPlayerChangeType.Remove:
-                HandleTeamPlayerChangeRemove(message);
-                break;
-        }
+        //if (player.TeamOrdinal != i_teamOrdinal)
+        //{
+        //    return;
+        //}
 
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        //switch (message.ChangeType)
+        //{
+        //    case TeamPlayerChangeType.Add:
+        //        HandleTeamPlayerChangeAdd(message);
+        //        break;
+
+        //    case TeamPlayerChangeType.Remove:
+        //        HandleTeamPlayerChangeRemove(message);
+        //        break;
+        //}
+
+        //InvokeAsync(() =>
+        //{
+        //    StateHasChanged();
+        //});
     }
 
     private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
@@ -1040,7 +1079,6 @@
         {
             StateHasChanged();
         });
-
     }
 
     private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
@@ -1061,6 +1099,21 @@
         if (changeType == TeamChangeType.Add)
         {
             _constructedTeamsLoading.RemoveAll(t => t.ConstructedTeamId == constructedTeam.Id && t.FactionId == factionId);
+
+            var constructedTeamMatchInfo = new ConstructedTeamMatchInfo
+            {
+                ConstructedTeam = constructedTeam,
+                TeamOrdinal = i_teamOrdinal,
+                ActiveFactionId = factionId
+            };
+
+            _teamConstructedTeams.Add(constructedTeamMatchInfo);
+        }
+        else if (message.ChangeType == TeamChangeType.Remove)
+        {
+            _teamConstructedTeams.RemoveAll(t => t.ConstructedTeam.Id == constructedTeam.Id);
+
+            _availableConstructedTeams.Add(constructedTeam);
         }
 
         InvokeAsyncStateHasChanged();
@@ -1291,7 +1344,7 @@
 
     private string GetHeaderCardClass()
     {
-        return (_team == null || !_teamOutfits.Any())
+        return (_team == null || (!_teamOutfits.Any() && !_teamConstructedTeams.Any() && !_teamNonOutfitPlayers.Any()))
             ? "default"
             : SqCssHelper.GetFactionClassFromId(_team.FactionId);
     }

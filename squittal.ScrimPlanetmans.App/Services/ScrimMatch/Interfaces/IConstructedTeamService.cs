@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         Task<ConstructedTeam> GetConstructedTeam(int teamId, bool ignoreCollections = false);
 
-        Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId);
+        //Task<ConstructedTeamMatchInfo> GetConstructedTeamMatchInfo(int teamId);
         Task<ConstructedTeamFormInfo> GetConstructedTeamFormInfo(int teamId, bool ignoreCollections = false);
 
         Task AddConstructedTeamToMatch(int constructedTeamId, int matchTeamOrdinal, int factionId);

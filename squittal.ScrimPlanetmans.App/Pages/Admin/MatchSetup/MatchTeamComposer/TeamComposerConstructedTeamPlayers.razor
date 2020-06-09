@@ -24,13 +24,13 @@
 @implements IDisposable
 
 
-@if (_renderedOutfit != null)
+@if (_renderedConstructedTeamMatchInfo != null)
 {
-    <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)">
+    <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)">
 
-        <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
+        <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
             @*margin-top: 0.5rem;*@
-            <b><span class="mono-font">[@_renderedOutfit.Alias]</span> @_renderedOutfit.Name</b> (@_renderedOutfit.MemberCount | @_renderedOutfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == _renderedOutfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)_renderedOutfit.FactionId)</span>
+            <b><span class="mono-font">[@_renderedConstructedTeamMatchInfo.ConstructedTeam.Alias]</span> @_renderedConstructedTeamMatchInfo.ConstructedTeam.Name</b> (@_renderedConstructedTeamMatchInfo.MembersFactionCount| @_renderedConstructedTeamMatchInfo.MembersOnlineCount) <span> @FactionService.GetFactionAbbrevFromId((int)_renderedConstructedTeamMatchInfo.ActiveFactionId)</span>
         </h5>
 
         <p style="margin: 0 0 0.1rem 0;  padding-left: 16px;">
@@ -39,12 +39,12 @@
                 @if (_renderedPlayersCount > 0)
                 {
                     <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
-                    <span>|</span>
+                    @*<span>|</span>*@
                 }
-                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RefreshOutfitPlayers">Refresh</button>
+                @*<button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RefreshOutfitPlayers">Refresh</button>*@
                 @if (_renderedShowRemovals)
                 {
-                    <span>|</span><button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveOutfit">Remove</button>
+                    <span>|</span><button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveConstructedTeam">Remove</button>
                 }
             }
         </p>
@@ -62,7 +62,7 @@
                 {
                     @if (_renderedPlayers.Any(p => !p.IsBenched))
                     {
-                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="margin-bottom: 0.5rem;">
+                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="margin-bottom: 0.5rem;">
                             <thead>
                                 <tr>
                                     <th style="padding-right: 5px;width: 15px;"></th>
@@ -90,7 +90,7 @@
 
                     @if (_renderedPlayers.Any(p => p.IsBenched))
                     {
-                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="margin-bottom: 0.5rem;">
+                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="margin-bottom: 0.5rem;">
                             <thead>
 
                                 <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
@@ -143,8 +143,12 @@ else
     private int _renderedTeamOrdinal { get; set; }
 
     [Parameter]
-    public Outfit i_outfit { get; set; } = new Outfit();
-    private Outfit _renderedOutfit { get; set; } = new Outfit();
+    public ConstructedTeamMatchInfo i_constructedTeamMatchInfo { get; set; } = new ConstructedTeamMatchInfo();
+    private ConstructedTeamMatchInfo _renderedConstructedTeamMatchInfo { get; set; } = new ConstructedTeamMatchInfo();
+
+    //[Parameter]
+    //public ConstructedTeam i_constructedTeam { get; set; } = new ConstructedTeam();
+    //private ConstructedTeam _renderedConstructedTeam { get; set; } = new ConstructedTeam();
 
     [Parameter]
     public bool i_showRemovals { get; set; } = false;
@@ -155,12 +159,13 @@ else
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
     private int _renderedPlayersCount { get; set; } = 0;
+    private int _renderedPlayersOnlineCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
 
-    private int _defaultMaxPlayersToExtend = 8;
+    private int _defaultMaxPlayersToExtend = 12;
     #endregion
 
     #region Helpers
@@ -172,7 +177,8 @@ else
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-        MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+        MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
 
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
@@ -185,7 +191,8 @@ else
     public void Dispose()
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
-        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+        //MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+        MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -203,10 +210,10 @@ else
             paramsChanged = true;
         }
 
-        if (i_teamOrdinal != _renderedTeamOrdinal || i_outfit.AliasLower != _renderedOutfit.AliasLower)
+        if (i_teamOrdinal != _renderedTeamOrdinal || i_constructedTeamMatchInfo.ConstructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id)
         {
             _renderedTeamOrdinal = i_teamOrdinal;
-            _renderedOutfit = i_outfit;
+            _renderedConstructedTeamMatchInfo = i_constructedTeamMatchInfo;
 
             InitializePlayersData();
 
@@ -221,12 +228,16 @@ else
 
     private void InitializePlayersData()
     {
-        var message = $"Started loading Team {_renderedTeamOrdinal} Outfit data: [{_renderedOutfit.Alias}] {_renderedOutfit.Name}...";
+        var constructedTeam = _renderedConstructedTeamMatchInfo.ConstructedTeam;
+
+        var message = $"Started loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name}...";
         LogMessage(message);
 
-        var outfitPlayers = TeamsManager.GetTeamOutfitPlayers(_renderedTeamOrdinal, _renderedOutfit.AliasLower);
+        var constructedTeamPlayers = TeamsManager.GetTeamConstructedTeamFactionPlayers(_renderedTeamOrdinal, constructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
 
-        foreach (var player in outfitPlayers)
+        _renderedConstructedTeamMatchInfo.MembersFactionCount = constructedTeamPlayers.Count();
+
+        foreach (var player in constructedTeamPlayers)
         {
             TeamPlayerChangeMessage changeMessage;
 
@@ -236,7 +247,7 @@ else
 
                 _playerChangesQueue.Enqueue(changeMessage);
             }
-            else if (player.IsOnline)
+            else //if (player.IsOnline)
             {
                 changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
 
@@ -255,64 +266,65 @@ else
             _extendPlayers = true;
         }
 
-        message = $"Finished loading Team {_renderedTeamOrdinal} Outfit data: [{_renderedOutfit.Alias}] {_renderedOutfit.Name}";
+        message = $"Finished loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name}";
         LogMessage(message);
     }
     #endregion Initialization Methods
 
     #region  Form Submission & Validation
-    private async void RefreshOutfitPlayers()
+    // TODO: support this for Constructed Teams
+    //private async void RefreshOutfitPlayers()
+    //{
+    //    if (!_isLoadingMembers)
+    //    {
+    //        _isLoadingMembers = true;
+
+    //        var alias = Constructed Team data: [{_renderedConstructedTeam.Alias}] {_renderedConstructedTeam.Name}.Alias;
+
+    //        string message;
+
+    //        try
+    //        {
+    //            var success = await TeamsManager.RefreshOutfitPlayers(_renderedOutfit.AliasLower);
+
+    //            _isLoadingMembers = false;
+
+    //            message = success ? $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: Players Added"
+    //                              : $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: No Players Added";
+
+    //            //LogMessage(message);
+    //            //InvokeAsyncStateHasChanged();
+    //        }
+    //        catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+    //        {
+    //            _isLoadingMembers = false;
+
+    //            message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The Census API Outfit service may be broken:</span> {ex.ToString()}</span>";
+
+    //            //LogMessage(message);
+    //            //InvokeAsyncStateHasChanged();
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _isLoadingMembers = false;
+
+    //            message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The outfit may no longer exist:</span> {ex.ToString()}</span>";
+
+    //            //LogMessage(message);
+    //            //InvokeAsyncStateHasChanged();
+    //        }
+
+    //        LogMessage(message);
+
+    //        InvokeAsyncStateHasChanged();
+    //    }
+    //}
+
+    private void RemoveConstructedTeam()
     {
         if (!_isLoadingMembers)
         {
-            _isLoadingMembers = true;
-
-            var alias = _renderedOutfit.Alias;
-
-            string message;
-
-            try
-            {
-                var success = await TeamsManager.RefreshOutfitPlayers(_renderedOutfit.AliasLower);
-
-                _isLoadingMembers = false;
-
-                message = success ? $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: Players Added"
-                                  : $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: No Players Added";
-
-                //LogMessage(message);
-                //InvokeAsyncStateHasChanged();
-            }
-            catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
-            {
-                _isLoadingMembers = false;
-
-                message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The Census API Outfit service may be broken:</span> {ex.ToString()}</span>";
-
-                //LogMessage(message);
-                //InvokeAsyncStateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                _isLoadingMembers = false;
-
-                message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The outfit may no longer exist:</span> {ex.ToString()}</span>";
-
-                //LogMessage(message);
-                //InvokeAsyncStateHasChanged();
-            }
-
-            LogMessage(message);
-
-            InvokeAsyncStateHasChanged();
-        }
-    }
-
-    private async void RemoveOutfit()
-    {
-        if (!_isLoadingMembers)
-        {
-            await TeamsManager.RemoveOutfitFromTeamAndDb(_renderedOutfit.AliasLower);
+            TeamsManager.RemoveConstructedTeamFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id);
         }
     }
     #endregion Form Submission & Validation
@@ -346,24 +358,26 @@ else
         ProcessPlayerChangesQueue();
     }
 
-    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
     {
-        var outfit = e.Message.Outfit;
+        var constructedTeam = e.Message.ConstructedTeam;
         var changeType = e.Message.ChangeType;
 
-        if (outfit.Id != _renderedOutfit.Id)
+        if (constructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id)
         {
             return;
         }
 
-        if (changeType == TeamChangeType.OutfitMembersLoadStarted)
+        if (changeType == TeamChangeType.ConstructedTeamMembersLoadStarted)
         {
             _isLoadingMembers = true;
             InvokeAsyncStateHasChanged();
         }
-        else if (changeType == TeamChangeType.OutfitMembersLoadCompleted)
+        else if (changeType == TeamChangeType.ConstructedTeamMembersLoadCompleted)
         {
             _isLoadingMembers = false;
+
+            _renderedConstructedTeamMatchInfo.MembersFactionCount = (int)e.Message.PlayersFound;
 
             if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
             {
@@ -393,14 +407,14 @@ else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
-        else if (player.IsOnline)
+        else //if (player.IsOnline)
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
         }
-        else
-        {
-            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        }
+        //else
+        //{
+        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        //}
 
         _playerChangesQueue.Enqueue(changeMessage);
 
@@ -471,7 +485,7 @@ else
 
                     if (changeType == TeamPlayerChangeType.Add)
                     {
-                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player)) // && (player.IsParticipating || player.IsOnline))
                         {
                             _renderedPlayers.Add(player);
                             changes += 1;
@@ -497,11 +511,16 @@ else
                     }
                 }
 
-                _renderedOutfit.MembersOnlineCount = _renderedPlayers.Where(p => p.IsOnline).Count();
+                _renderedConstructedTeamMatchInfo.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
                 _renderedPlayersCount = _renderedPlayers.Count();
 
                 if (changes > 0)
                 {
+                    _renderedPlayers = _renderedPlayers
+                                            .OrderByDescending(p => p.IsOnline)
+                                            .ThenByDescending(p => p.NameAlias)
+                                            .ToList();
+
                     StateHasChanged();
                 }
             }
@@ -510,7 +529,7 @@ else
 
     private bool ShouldProcessPlayer(Player player)
     {
-        if (player.TeamOrdinal != i_teamOrdinal || player.OutfitId != _renderedOutfit.Id || player.IsOutfitless || player.IsFromConstructedTeam)
+        if (player.TeamOrdinal != i_teamOrdinal || player.ConstructedTeamId != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id || !player.IsFromConstructedTeam)
         {
             return false;
         }

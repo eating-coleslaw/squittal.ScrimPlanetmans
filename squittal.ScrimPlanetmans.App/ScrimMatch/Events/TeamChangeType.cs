@@ -5,6 +5,9 @@
         Add = 1,
         Remove = 2,
         OutfitMembersLoadStarted,
-        OutfitMembersLoadCompleted
+        OutfitMembersLoadCompleted,
+        ConstructedTeamMembersLoadStarted,
+        ConstructedTeamMembersLoadCompleted,
+
     }
 }
