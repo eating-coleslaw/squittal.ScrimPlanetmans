@@ -323,9 +323,6 @@
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
 
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
-
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
 
@@ -346,9 +343,6 @@
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
-
-        //MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
@@ -378,7 +372,7 @@
             return;
         }
 
-        _displayAlias.Alias = TeamsManager.GetTeamAliasDisplay(i_teamOrdinal); // _team.Alias;
+        _displayAlias.Alias = TeamsManager.GetTeamAliasDisplay(i_teamOrdinal);
 
         _teamOutfits = new List<Outfit>();
         _teamOutfits.AddRange(_team.Outfits);
@@ -727,25 +721,6 @@
 
         InvokeAsyncStateHasChanged();
     }
-
-    //private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
-    //{
-    //    var player = e.Message.Player;
-
-    //    if (player.TeamOrdinal != i_teamOrdinal)
-    //    {
-    //        return;
-    //    }
-
-    //    InvokeAsyncStateHasChanged();
-    //}
-
-    //private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
-    //{
-    //    var player = e.Message.Player;
-
-    //    InvokeAsyncStateHasChanged();
-    //}
 
     private void ReceiveTeamAliasChangeEvent(object sender, TeamAliasChangeEventArgs e)
     {
