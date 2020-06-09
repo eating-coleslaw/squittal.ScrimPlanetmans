@@ -1,9 +1,6 @@
-﻿@using Newtonsoft.Json.Linq;
-@using squittal.ScrimPlanetmans.App.Pages.Shared;
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.CensusStream;
-@using squittal.ScrimPlanetmans.Data.Models;
 @using squittal.ScrimPlanetmans.Models;
-@using squittal.ScrimPlanetmans.Models.Forms;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
@@ -29,7 +26,6 @@
     <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)">
 
         <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
-            @*margin-top: 0.5rem;*@
             <b><span class="mono-font">[@_renderedConstructedTeamMatchInfo.ConstructedTeam.Alias]</span> @_renderedConstructedTeamMatchInfo.ConstructedTeam.Name</b> (@_renderedConstructedTeamMatchInfo.MembersFactionCount| @_renderedConstructedTeamMatchInfo.MembersOnlineCount) <span> @FactionService.GetFactionAbbrevFromId((int)_renderedConstructedTeamMatchInfo.ActiveFactionId)</span>
         </h5>
 
@@ -39,9 +35,7 @@
                 @if (_renderedPlayersCount > 0)
                 {
                     <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
-                    @*<span>|</span>*@
                 }
-                @*<button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RefreshOutfitPlayers">Refresh</button>*@
                 @if (_renderedShowRemovals)
                 {
                     <span>|</span><button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveConstructedTeam">Remove</button>
@@ -51,8 +45,7 @@
 
         <div class="sq-content" style="padding-top: 0;">
 
-            @*if (_teamOutfitsLoadingMembers.Contains(_renderedOutfit.AliasLower))&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == _renderedOutfit.Id)))*@
-            @if (_isLoadingMembers)@*&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == _renderedOutfit.Id)))*@
+            @if (_isLoadingMembers)
             {
                 <SpinnerEllipsis />
             }
@@ -65,13 +58,13 @@
                         <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="margin-bottom: 0.5rem;">
                             <thead>
                                 <tr>
-                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
                                     <th></th>
                                     <th>K</th>
                                     <th>D</th>
                                     <th>P</th>
                                     <th>N</th>
-                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
                                     @if (_renderedShowRemovals)
                                     {
                                         <th style="width: 15px; padding-right: 5px;"></th>
@@ -107,7 +100,7 @@
                                         <td colspan="6" style="font-weight: 400;">Benched Players</td>
                                     }
 
-                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
 
                                     @if (_renderedShowRemovals)
                                     {
@@ -146,16 +139,11 @@ else
     public ConstructedTeamMatchInfo i_constructedTeamMatchInfo { get; set; } = new ConstructedTeamMatchInfo();
     private ConstructedTeamMatchInfo _renderedConstructedTeamMatchInfo { get; set; } = new ConstructedTeamMatchInfo();
 
-    //[Parameter]
-    //public ConstructedTeam i_constructedTeam { get; set; } = new ConstructedTeam();
-    //private ConstructedTeam _renderedConstructedTeam { get; set; } = new ConstructedTeam();
-
     [Parameter]
     public bool i_showRemovals { get; set; } = false;
     private bool _renderedShowRemovals { get; set; } = false;
 
     private bool _isLoadingMembers { get; set; } = false;
-    private bool _isLoadingOutfit { get; set; } = false;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
     private int _renderedPlayersCount { get; set; } = 0;
@@ -164,7 +152,6 @@ else
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
-
     private int _defaultMaxPlayersToExtend = 12;
     #endregion
 
@@ -177,7 +164,6 @@ else
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
 
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
@@ -191,7 +177,6 @@ else
     public void Dispose()
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
-        //MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
@@ -272,54 +257,6 @@ else
     #endregion Initialization Methods
 
     #region  Form Submission & Validation
-    // TODO: support this for Constructed Teams
-    //private async void RefreshOutfitPlayers()
-    //{
-    //    if (!_isLoadingMembers)
-    //    {
-    //        _isLoadingMembers = true;
-
-    //        var alias = Constructed Team data: [{_renderedConstructedTeam.Alias}] {_renderedConstructedTeam.Name}.Alias;
-
-    //        string message;
-
-    //        try
-    //        {
-    //            var success = await TeamsManager.RefreshOutfitPlayers(_renderedOutfit.AliasLower);
-
-    //            _isLoadingMembers = false;
-
-    //            message = success ? $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: Players Added"
-    //                              : $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: No Players Added";
-
-    //            //LogMessage(message);
-    //            //InvokeAsyncStateHasChanged();
-    //        }
-    //        catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
-    //        {
-    //            _isLoadingMembers = false;
-
-    //            message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The Census API Outfit service may be broken:</span> {ex.ToString()}</span>";
-
-    //            //LogMessage(message);
-    //            //InvokeAsyncStateHasChanged();
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _isLoadingMembers = false;
-
-    //            message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The outfit may no longer exist:</span> {ex.ToString()}</span>";
-
-    //            //LogMessage(message);
-    //            //InvokeAsyncStateHasChanged();
-    //        }
-
-    //        LogMessage(message);
-
-    //        InvokeAsyncStateHasChanged();
-    //    }
-    //}
-
     private void RemoveConstructedTeam()
     {
         if (!_isLoadingMembers)

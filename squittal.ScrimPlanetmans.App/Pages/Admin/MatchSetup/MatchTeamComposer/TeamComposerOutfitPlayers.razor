@@ -1,9 +1,6 @@
-﻿@using Newtonsoft.Json.Linq;
-@using squittal.ScrimPlanetmans.App.Pages.Shared;
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.CensusStream;
-@using squittal.ScrimPlanetmans.Data.Models;
 @using squittal.ScrimPlanetmans.Models;
-@using squittal.ScrimPlanetmans.Models.Forms;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
@@ -29,7 +26,6 @@
     <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)">
 
         <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
-            @*margin-top: 0.5rem;*@
             <b><span class="mono-font">[@_renderedOutfit.Alias]</span> @_renderedOutfit.Name</b> (@_renderedOutfit.MemberCount | @_renderedOutfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == _renderedOutfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)_renderedOutfit.FactionId)</span>
         </h5>
 
@@ -51,8 +47,7 @@
 
         <div class="sq-content" style="padding-top: 0;">
 
-            @*if (_teamOutfitsLoadingMembers.Contains(_renderedOutfit.AliasLower))&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == _renderedOutfit.Id)))*@
-            @if (_isLoadingMembers)@*&& (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == _renderedOutfit.Id)))*@
+            @if (_isLoadingMembers)
             {
                 <SpinnerEllipsis />
             }
@@ -65,13 +60,13 @@
                         <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedOutfit.FactionId)" style="margin-bottom: 0.5rem;">
                             <thead>
                                 <tr>
-                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
                                     <th></th>
                                     <th>K</th>
                                     <th>D</th>
                                     <th>P</th>
                                     <th>N</th>
-                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
                                     @if (_renderedShowRemovals)
                                     {
                                         <th style="width: 15px; padding-right: 5px;"></th>
@@ -107,7 +102,7 @@
                                         <td colspan="6" style="font-weight: 400;">Benched Players</td>
                                     }
 
-                                    <th style="padding-right: 5px;width: 15px;"></th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
 
                                     @if (_renderedShowRemovals)
                                     {
@@ -279,27 +274,18 @@ else
 
                 message = success ? $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: Players Added"
                                   : $"Team {_renderedTeamOrdinal} [{alias}] Players REFRESH: No Players Added";
-
-                //LogMessage(message);
-                //InvokeAsyncStateHasChanged();
             }
             catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
             {
                 _isLoadingMembers = false;
 
                 message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The Census API Outfit service may be broken:</span> {ex.ToString()}</span>";
-
-                //LogMessage(message);
-                //InvokeAsyncStateHasChanged();
             }
             catch (Exception ex)
             {
                 _isLoadingMembers = false;
 
                 message = $"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to refresh outfit [{alias}]. The outfit may no longer exist:</span> {ex.ToString()}</span>";
-
-                //LogMessage(message);
-                //InvokeAsyncStateHasChanged();
             }
 
             LogMessage(message);
