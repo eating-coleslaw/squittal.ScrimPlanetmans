@@ -488,7 +488,8 @@ No-Link Brand Header
     /*color: var(--sq-ps2-primary);*/
     margin-bottom: 0px;
 /*    padding: 5px 10px;*/
-    padding: 8px 8px;
+/*    padding: 8px 8px;*/
+    padding: 8px 16px;
     border: 2px solid var(--sq-light-blue-gray-alpha);
     border-top: 2px solid var(--sq-ps2-primary);
     border-radius: 0.2rem;
@@ -523,6 +524,12 @@ No-Link Brand Header
         .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1) {
             background-color: var(--sq-light-blue-gray-alpha);
         }
+
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).vs,
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).nc,
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).tr {
+                background-color: var(--sq-ps2-primary-light-alpha-40);
+            }
 
             .header-card-container.default .table-striped-light tbody tr .btn {
                 margin-top: 0.2rem;
