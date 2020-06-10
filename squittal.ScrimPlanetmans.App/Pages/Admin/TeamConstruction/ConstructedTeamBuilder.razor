@@ -74,6 +74,10 @@
                         <td>_renderedTeamId</td>
                         <td style="padding-left: 8px;">@_renderedTeamId</td>
                     </tr>
+                    <tr>
+                        <td>_uriTeamId</td>
+                        <td style="padding-left: 8px;">@_uriTeamId</td>
+                    </tr>
                 </tbody>
             </table>
             
@@ -118,8 +122,7 @@
         {
             <SpinnerEllipsis />
         }
-        //else if (!string.IsNullOrWhiteSpace(_inputTeamStringId) && _inputTeamStringId != _noTeamSelectedStringId)
-        else if (/*!string.IsNullOrWhiteSpace(_renderedTeamStringId) && */_renderedTeamId.ToString() != _noTeamSelectedStringId)
+        else if (_renderedTeamId.ToString() != _noTeamSelectedStringId)
         {
             <div class="col-lg-9">
                 <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
@@ -134,15 +137,15 @@
 
 @code {
     [Parameter]
-    public string i_teamStringId { get; set; }
-    private string _renderedTeamStringId { get; set; }
+    public string i_teamStringId { get; set; } = "-1";
+    private string _renderedTeamStringId { get; set; } = "-1";
 
     [Parameter]
     public int? _uriTeamId { get; set; }
 
-    private string _inputTeamStringId { get; set; } = string.Empty;
+    private string _inputTeamStringId { get; set; } = "-1"; // string.Empty;
 
-    private int _renderedTeamId { get; set; }
+    private int _renderedTeamId { get; set; } = -1;
 
     private string _noTeamSelectedStringId { get; set; } = "-1";
     private int _noTeamSelectedId { get; set; } = -1;
@@ -316,8 +319,6 @@
         _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
         _inputTeamStringId = _renderedTeamStringId;
 
-        //HandleOnSelectTeamChange(_renderedTeamStringId);
-
         InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
@@ -331,6 +332,7 @@
         {
             if (int.TryParse(qTeamId, out var teamId))
             {
+                // TODO: should this be _uriTeamId != null ?
                 if (_uriTeamId == null || teamId != (int)_uriTeamId)
                 {
                     _uriTeamId = teamId;
