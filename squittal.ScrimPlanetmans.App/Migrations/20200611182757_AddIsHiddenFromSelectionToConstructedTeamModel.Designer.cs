@@ -10,8 +10,8 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20200611174904_AddHideFromSelectionToConstructedTeamModel")]
-    partial class AddHideFromSelectionToConstructedTeamModel
+    [Migration("20200611182757_AddIsHiddenFromSelectionToConstructedTeamModel")]
+    partial class AddIsHiddenFromSelectionToConstructedTeamModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -31,7 +31,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("Alias")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HideFromSelection")
+                    b.Property<bool>("IsHiddenFromSelection")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);

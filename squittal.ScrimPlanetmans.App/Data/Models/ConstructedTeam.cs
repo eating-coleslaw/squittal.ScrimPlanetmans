@@ -14,7 +14,7 @@ namespace squittal.ScrimPlanetmans .Data.Models
         public string Alias { get; set; }
 
         // TODO: Add migration for this
-        public bool HideFromSelection { get; set; }
+        public bool IsHiddenFromSelection { get; set; }
 
         //public int FirstPreferredFactionId { get; set; }
         //public int SecondPreferredFactionId { get; set; }

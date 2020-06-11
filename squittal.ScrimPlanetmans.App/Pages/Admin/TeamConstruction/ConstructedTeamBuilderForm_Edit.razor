@@ -37,8 +37,12 @@
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
-                <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_editFormTeam.Alias maxlength="4" pattern="[A-Za-z0-9]{1,4}" style="display: inline-block; width: 48px;" /></p>
+                <p style="margin-bottom: 8px;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
+                <p style="margin-bottom: 8px;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_editFormTeam.Alias maxlength="4" pattern="[A-Za-z0-9]{1,4}" style="display: inline-block; width: 48px;" /></p>
+
+                <p style="margin-bottom: 8px;">
+                    Hide From Selection: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_editFormTeam.IsHiddenFromSelection" style="position: relative; top: 1px;" />
+                </p>
 
                 <button type="submit" class="btn btn-primary">
                     <span class="oi oi-check"></span>Save
@@ -381,6 +385,7 @@
             _editFormTeam = new ConstructedTeam();
             _editFormTeam.Name = _renderedTeam.Name;
             _editFormTeam.Alias = _renderedTeam.Alias;
+            _editFormTeam.IsHiddenFromSelection = _renderedTeam.IsHiddenFromSelection;
 
             _showEditForm = false;
 

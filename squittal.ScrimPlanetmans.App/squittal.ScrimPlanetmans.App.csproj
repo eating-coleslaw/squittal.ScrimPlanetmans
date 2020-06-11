@@ -35,6 +35,8 @@
     <Compile Remove="Migrations\20200602170937_AddConstructedTeamModels.Designer.cs" />
     <Compile Remove="Migrations\20200605152100_AddFactionIdToConstructedTeamMembershipModel.cs" />
     <Compile Remove="Migrations\20200605152100_AddFactionIdToConstructedTeamMembershipModel.Designer.cs" />
+    <Compile Remove="Migrations\20200611174904_AddHideFromSelectionToConstructedTeamModel.cs" />
+    <Compile Remove="Migrations\20200611174904_AddHideFromSelectionToConstructedTeamModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

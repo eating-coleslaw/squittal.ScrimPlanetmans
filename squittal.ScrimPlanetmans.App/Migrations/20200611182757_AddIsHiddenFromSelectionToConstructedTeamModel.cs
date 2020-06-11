@@ -2,12 +2,12 @@
 
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
-    public partial class AddHideFromSelectionToConstructedTeamModel : Migration
+    public partial class AddIsHiddenFromSelectionToConstructedTeamModel : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "HideFromSelection",
+                name: "IsHiddenFromSelection",
                 table: "ConstructedTeam",
                 nullable: false,
                 defaultValue: false);
@@ -16,7 +16,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "HideFromSelection",
+                name: "IsHiddenFromSelection",
                 table: "ConstructedTeam");
         }
     }

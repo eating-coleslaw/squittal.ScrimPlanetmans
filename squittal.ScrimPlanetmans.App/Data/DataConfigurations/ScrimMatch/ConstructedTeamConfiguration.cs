@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.HasKey(e => e.Id);
 
-            builder.Property(e => e.HideFromSelection).HasDefaultValue(false);
+            builder.Property(e => e.IsHiddenFromSelection).HasDefaultValue(false);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("Alias")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HideFromSelection")
+                    b.Property<bool>("IsHiddenFromSelection")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);

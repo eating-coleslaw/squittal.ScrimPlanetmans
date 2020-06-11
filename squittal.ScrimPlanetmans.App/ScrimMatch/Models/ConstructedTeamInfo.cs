@@ -10,6 +10,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string Name { get; set; }
         public string Alias { get; set; }
 
+        public bool IsHiddenFromSelection { get; set; } = false;
+
         public IEnumerable<ConstructedTeamFactionPreference> FactionPreferences { get; set; }
         //public IEnumerable<Player> Players { get; set; } // For Scrim Match Display
         //public IEnumerable<Character> Characters { get; set; } // For Constructor Form Display

@@ -281,7 +281,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             {
                 Id = constructedTeam.Id,
                 Name = constructedTeam.Name,
-                Alias = constructedTeam.Alias
+                Alias = constructedTeam.Alias,
+                IsHiddenFromSelection = constructedTeam.IsHiddenFromSelection
             };
         }
 
@@ -290,7 +291,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             return new ConstructedTeam
             {
                 Name = formInfo.Name,
-                Alias = formInfo.Alias
+                Alias = formInfo.Alias,
+                IsHiddenFromSelection = formInfo.IsHiddenFromSelection
             };
         }
 
