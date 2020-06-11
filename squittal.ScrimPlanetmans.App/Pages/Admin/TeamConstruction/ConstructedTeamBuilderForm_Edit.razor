@@ -21,7 +21,21 @@
     {
         <h3 style="font-size: 1.25rem; margin-bottom: 0;">
             <span><b>@($"{(!string.IsNullOrWhiteSpace(_renderedTeam.Alias) ? $"[{_renderedTeam.Alias}]" : string.Empty)}")</b></span>
-            <span style="font-family: 'Helvetica Neue',Arial,'Noto Sans',sans-serif;"><b>@_renderedTeam.Name</b> (@_renderedTeam.Id)</span>
+            <span style="font-family: 'Helvetica Neue',Arial,'Noto Sans',sans-serif;"><b>@_renderedTeam.Name</b> <span class="temp" style="font-size: smaller; padding-left: 16px; color: var(--bs-gray); font-weight: 400;">@_renderedTeam.Id</span></span>
+        
+            @if (_renderedTeam.IsHiddenFromSelection)
+            {
+                <span style="position: absolute; right: 32px; top: 10px;" title="Team is hidden from match selection">
+                    <span class="oi oi-lock-locked"></span>
+                </span>
+            }
+            else
+            {
+                <span style="position: absolute; right: 32px; top: 10px;" title="Team is visible for match selection">
+                    <span class="oi oi-eye"></span>
+                </span>
+            }
+
         </h3>
 
         <p style="margin: 0 0 0.1rem 0;">
@@ -41,7 +55,8 @@
                 <p style="margin-bottom: 8px;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_editFormTeam.Alias maxlength="4" pattern="[A-Za-z0-9]{1,4}" style="display: inline-block; width: 48px;" /></p>
 
                 <p style="margin-bottom: 8px;">
-                    Hide From Selection: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_editFormTeam.IsHiddenFromSelection" style="position: relative; top: 1px;" />
+                    @*Hide From Match Selection <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_editFormTeam.IsHiddenFromSelection" style="position: relative; top: 1px;" />*@
+                    <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_editFormTeam.IsHiddenFromSelection" style="position: relative; top: 1px;" /> Hide From Match Selection
                 </p>
 
                 <button type="submit" class="btn btn-primary">
@@ -85,7 +100,8 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        Use Faction Suffixes: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" />
+                        @*Use Faction Suffixes: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" />*@
+                        <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" /> Use Faction Suffixes
                     </EditForm>
                 </div>
 
@@ -247,6 +263,7 @@
             _editFormTeam = new ConstructedTeam();
             _editFormTeam.Name = _renderedTeam.Name;
             _editFormTeam.Alias = _renderedTeam.Alias;
+            _editFormTeam.IsHiddenFromSelection = _renderedTeam.IsHiddenFromSelection;
 
             _processingInputs = new List<string>();
 
@@ -295,9 +312,11 @@
 
         _renderedTeam.Name = team.Name;
         _renderedTeam.Alias = team.Alias;
+        _renderedTeam.IsHiddenFromSelection = team.IsHiddenFromSelection;
 
         _editFormTeam.Name = team.Name;
         _editFormTeam.Alias = team.Alias;
+        _editFormTeam.IsHiddenFromSelection = team.IsHiddenFromSelection;
 
         InvokeAsyncStateHasChanged();
     }
@@ -398,6 +417,7 @@
         _editFormTeam = new ConstructedTeam();
         _editFormTeam.Name = _renderedTeam.Name;
         _editFormTeam.Alias = _renderedTeam.Alias;
+        _editFormTeam.IsHiddenFromSelection = _renderedTeam.IsHiddenFromSelection;
 
         _showEditForm = false;
     }

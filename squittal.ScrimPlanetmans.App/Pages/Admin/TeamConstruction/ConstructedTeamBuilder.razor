@@ -180,7 +180,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
     }
 
     protected override void OnParametersSet()

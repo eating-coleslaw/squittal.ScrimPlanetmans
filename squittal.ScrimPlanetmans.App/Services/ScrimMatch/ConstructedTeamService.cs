@@ -296,14 +296,16 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             };
         }
 
-        public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false)
+        public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false, bool includeHiddenTeams = false)
         {
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var teams = await dbContext.ConstructedTeams.ToListAsync();
+                var teams = includeHiddenTeams
+                                ? await dbContext.ConstructedTeams.ToListAsync()
+                                : await dbContext.ConstructedTeams.Where(t => !t.IsHiddenFromSelection).ToListAsync();
 
 
                 if (ignoreCollections || !teams.Any())
@@ -336,6 +338,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             var updateId = teamUpdate.Id;
             var updateName = teamUpdate.Name;
             var updateAlias = teamUpdate.Alias;
+            var updateIsHidden = teamUpdate.IsHiddenFromSelection;
 
             if (!IsValidConstructedTeamName(updateName))
             {
@@ -363,15 +366,17 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                 var oldName = storeEntity.Name;
                 var oldAlias = storeEntity.Alias;
+                var oldIsHidden = storeEntity.IsHiddenFromSelection;
 
                 storeEntity.Name = updateName;
                 storeEntity.Alias = updateAlias;
+                storeEntity.IsHiddenFromSelection = updateIsHidden;
 
                 dbContext.ConstructedTeams.Update(storeEntity);
 
                 await dbContext.SaveChangesAsync();
 
-                var message = new ConstructedTeamInfoChangeMessage(storeEntity, oldName, oldAlias);
+                var message = new ConstructedTeamInfoChangeMessage(storeEntity, oldName, oldAlias, oldIsHidden);
                 _messageService.BroadcastConstructedTeamInfoChangeMessage(message);
 
                 return true;

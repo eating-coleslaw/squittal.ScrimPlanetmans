@@ -8,7 +8,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
     public interface IConstructedTeamService
     {
-        Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false);
+        Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false, bool includeHiddenTeams = false);
 
         Task<ConstructedTeam> GetConstructedTeam(int teamId, bool ignoreCollections = false);
 
