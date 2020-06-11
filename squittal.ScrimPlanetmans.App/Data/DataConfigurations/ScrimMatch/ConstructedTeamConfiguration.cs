@@ -11,6 +11,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.ToTable("ConstructedTeam");
 
             builder.HasKey(e => e.Id);
+
+            builder.Property(e => e.HideFromSelection).HasDefaultValue(false);
         }
     }
 }
