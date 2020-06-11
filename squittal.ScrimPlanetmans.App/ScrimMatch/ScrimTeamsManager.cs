@@ -122,6 +122,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return null;
             }
         }
+        
+        public Team GetTeamFromConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            if (!IsConstructedTeamFactionAvailable(constructedTeamId, factionId, out Team owningTeam))
+            {
+                return owningTeam;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         public int? GetFirstTeamWithFactionId(int factionId)
         {
@@ -494,7 +506,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 ActiveFactionId = factionId
             };
 
-            if (!owningTeam.TryAddConstructedTeamMatchInfo(matchInfo))
+            //if (!owningTeam.TryAddConstructedTeamMatchInfo(matchInfo))
+            //{
+            //    return false;
+            //}
+
+            if (!owningTeam.TryAddConstructedTeamFaction(matchInfo))
             {
                 return false;
             }
@@ -992,20 +1009,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        public bool RemoveConstructedTeamFromTeam(int constructedTeamId)
+        public bool RemoveConstructedTeamFactionFromTeam(int constructedTeamId, int factionId)
         {
-            var team = GetTeamFromConstructedTeamId(constructedTeamId);
+            //var team = GetTeamFromConstructedTeamId(constructedTeamId);
+            var team = GetTeamFromConstructedTeamFaction(constructedTeamId, factionId);
 
             if (team == null)
             {
                 return false;
             }
 
-            var constructedTeamMatchInfo = team.ConstructedTeamsMatchInfo.Where(t => t.ConstructedTeam.Id == constructedTeamId).FirstOrDefault();
+            var constructedTeamMatchInfo = team.ConstructedTeamsMatchInfo
+                                                .Where(t => t.ConstructedTeam.Id == constructedTeamId && t.ActiveFactionId == factionId)
+                                                .FirstOrDefault();
 
-            team.TryRemoveConstructedTeam(constructedTeamId);
+            team.TryRemoveConstructedTeamFaction(constructedTeamId, factionId);
 
-            var players = team.GetConstructedTeamPlayers(constructedTeamId).ToList();
+            var players = team.GetConstructedTeamFactionPlayers(constructedTeamId, factionId).ToList();
 
             var anyPlayersRemoved = false;
             
@@ -1418,6 +1438,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
+            var constructedTeamsMatchInfo = team.ConstructedTeamsMatchInfo.ToList();
+
+            foreach(var matchInfo in constructedTeamsMatchInfo)
+            {
+                RemoveConstructedTeamFactionFromTeam(matchInfo.ConstructedTeam.Id, matchInfo.ActiveFactionId);
+            }
+
             var allAliases = team.Outfits.Select(o => o.AliasLower).ToList();
 
             foreach (var alias in allAliases)
@@ -1602,6 +1629,47 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             owningTeam = null;
             return true;
+        }
+
+        public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeamFaction(constructedTeamId, factionId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId, out Team owningTeam)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeamFaction(constructedTeamId, factionId))
+                {
+                    owningTeam = team;
+                    return false;
+                }
+            }
+
+            owningTeam = null;
+            return true;
+        }
+
+        public bool IsConstructedTeamAnyFactionAvailable(int constructedTeamId)
+        {
+            for (var factionId = 1; factionId <=3; factionId++)
+            {
+                if (IsConstructedTeamFactionAvailable(constructedTeamId, factionId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool IsPlayerTracked(string characterId)

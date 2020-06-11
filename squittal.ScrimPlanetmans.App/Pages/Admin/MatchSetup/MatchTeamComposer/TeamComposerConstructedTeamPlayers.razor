@@ -199,7 +199,9 @@ else
             paramsChanged = true;
         }
 
-        if (i_teamOrdinal != _renderedTeamOrdinal || i_constructedTeamMatchInfo.ConstructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id)
+        if (i_teamOrdinal != _renderedTeamOrdinal
+                || i_constructedTeamMatchInfo.ConstructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id
+                || i_constructedTeamMatchInfo.ActiveFactionId != _renderedConstructedTeamMatchInfo.ActiveFactionId)
         {
             _renderedTeamOrdinal = i_teamOrdinal;
             _renderedConstructedTeamMatchInfo = i_constructedTeamMatchInfo;
@@ -219,12 +221,17 @@ else
     {
         var constructedTeam = _renderedConstructedTeamMatchInfo.ConstructedTeam;
 
-        var message = $"Started loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name}...";
+        var message = $"Started loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name} - Faction {_renderedConstructedTeamMatchInfo.ActiveFactionId}...";
         LogMessage(message);
 
         var constructedTeamPlayers = TeamsManager.GetTeamConstructedTeamFactionPlayers(_renderedTeamOrdinal, constructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
 
         _renderedConstructedTeamMatchInfo.MembersFactionCount = constructedTeamPlayers.Count();
+
+        lock (_renderedPlayers)
+        {
+            _renderedPlayers.RemoveAll(p => !ShouldProcessPlayer(p));
+        }
 
         foreach (var player in constructedTeamPlayers)
         {
@@ -255,7 +262,7 @@ else
             _extendPlayers = true;
         }
 
-        message = $"Finished loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name}";
+        message = $"Finished loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name} - Faction {_renderedConstructedTeamMatchInfo.ActiveFactionId}";
         LogMessage(message);
     }
     #endregion Initialization Methods
@@ -265,7 +272,7 @@ else
     {
         if (!_isLoadingMembers)
         {
-            TeamsManager.RemoveConstructedTeamFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id);
+            TeamsManager.RemoveConstructedTeamFactionFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
         }
     }
     #endregion Form Submission & Validation
@@ -302,9 +309,10 @@ else
     private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
     {
         var constructedTeam = e.Message.ConstructedTeam;
+        var factionId = e.Message.FactionId;
         var changeType = e.Message.ChangeType;
 
-        if (constructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id)
+        if (constructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id || factionId != _renderedConstructedTeamMatchInfo.ActiveFactionId)
         {
             return;
         }
@@ -470,7 +478,10 @@ else
 
     private bool ShouldProcessPlayer(Player player)
     {
-        if (player.TeamOrdinal != i_teamOrdinal || player.ConstructedTeamId != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id || !player.IsFromConstructedTeam)
+        if (player.TeamOrdinal != i_teamOrdinal
+                || player.ConstructedTeamId != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id
+                || player.FactionId != _renderedConstructedTeamMatchInfo.ActiveFactionId
+                || !player.IsFromConstructedTeam)
         {
             return false;
         }

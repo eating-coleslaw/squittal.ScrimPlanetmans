@@ -77,6 +77,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower);
         IEnumerable<Player> GetTeamNonOutfitPlayers(int teamOrdinal);
         IEnumerable<Player> GetTeamConstructedTeamFactionPlayers(int teamOrdinal, int constructedTeamId, int factionId);
-        bool RemoveConstructedTeamFromTeam(int constructedTeamId);
+        bool RemoveConstructedTeamFactionFromTeam(int constructedTeamId, int factionId);
+        bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId, out Team owningTeam);
+        bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId);
+        Team GetTeamFromConstructedTeamFaction(int constructedTeamId, int factionId);
+        bool IsConstructedTeamAnyFactionAvailable(int constructedTeamId);
     }
 }

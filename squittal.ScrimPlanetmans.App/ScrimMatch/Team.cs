@@ -89,6 +89,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return ConstructedTeams.Any(ct => ct.Id == constructedTeamId);
         }
 
+        public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            return ConstructedTeamsMatchInfo.Any(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
+        }
+
         public bool TryAddPlayer(Player player)
         {
             if (ContainsPlayer(player.Id))
@@ -185,6 +190,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //return true;
         }
 
+        public bool TryAddConstructedTeamFaction(ConstructedTeamMatchInfo matchInfo)
+        {
+            var constructedTeam = matchInfo.ConstructedTeam;
+            var factionId = matchInfo.ActiveFactionId;
+            
+            if (ContainsConstructedTeamFaction(constructedTeam.Id, factionId))
+            {
+                return false;
+            }
+
+            ConstructedTeamsMatchInfo.Add(matchInfo);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            if (!ContainsConstructedTeamFaction(constructedTeamId, factionId))
+            {
+                return false;
+            }
+
+            ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
+            return true;
+        }
+
         public bool TryAddConstructedTeamMatchInfo(ConstructedTeamMatchInfo matchInfo)
         {
             if (ContainsConstructedTeam(matchInfo.ConstructedTeam.Id))
@@ -229,7 +259,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             lock (Players)
             {
-                return Players.Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId && p.FactionId == factionId).ToList();
+                return Players
+                        .Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId && p.FactionId == factionId)
+                        .ToList();
             }
         }
 
