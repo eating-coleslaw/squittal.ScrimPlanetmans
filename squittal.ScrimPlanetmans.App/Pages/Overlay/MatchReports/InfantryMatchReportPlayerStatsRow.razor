@@ -25,7 +25,7 @@
         <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
         @if (_showHsr)
         {
-            <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@_renderedEventAggregate.HeadshotRatio<span style="font-size: small;">%</span></div>
+            <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@Math.Round(_renderedEventAggregate.HeadshotRatio, 0)<span style="font-size: small;">%</span></div>
         }
         <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
         @*<div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>*@
