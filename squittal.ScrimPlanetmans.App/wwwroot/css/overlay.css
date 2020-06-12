@@ -93,7 +93,9 @@ body {
         display: grid;
         /*grid-template-rows: 24px 4px;*/
         /*grid-template-rows: 32px 4px;*/
-        grid-template-rows: 30px 4px;
+/*        grid-template-rows: 30px 4px;*/
+        grid-template-rows: 29px 5px;
+        /**/
         /*background-color: #1F233090;*/
         background-color: var(--sq-ov-bg-dark-gray-alpha-55);
         /*border: 1px solid #0F1320;*/
@@ -309,7 +311,8 @@ body {
 
     .overlay .players .playerStatusContainer .eventMask {
         grid-area: event;
-        height: 5px;
+/*        height: 4px;*/
+        height: 6px;
         position: relative;
         overflow: hidden;
         /*margin-top: -2px;*/
