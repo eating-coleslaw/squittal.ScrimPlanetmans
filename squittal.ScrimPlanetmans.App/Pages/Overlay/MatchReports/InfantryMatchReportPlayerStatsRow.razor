@@ -13,20 +13,15 @@
 @if (_player != null)
 {
     <div id="@($"{_player.NameDisplay}-stats")" class="stats-row player">
-        @*<div id="@($"{_player.NameDisplay}-label")" class="label @SqCssHelper.GetFactionClassFromId(_player.FactionId) primary-light">*@
         <div id="@($"{_player.NameDisplay}-label")" class="label primary-light">
-            @*<span class="playerLoadoutIcon ps2-icon heavy" style="display: inline-block; vertical-align: middle; margin-right: 8px;"></span>*@
             <TeamPlayerStatusRowLoadout i_player=@_player/><span>@_player.NameDisplay</span>
         </div>
-        @*<div id="@($"{_player.NameDisplay}-label")" class="label">@_player.NameDisplay</div>*@
         <div id="@($"{_player.NameDisplay}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_renderedEventAggregate.Points</div>
         <div id="@($"{_player.NameDisplay}-graph")" class="graph">
             <div id="@($"{_player.NameDisplay}-graph-bar")" class="graph-bar" style="width: @($"{_pointGraphWidth}%")"></div>
         </div>
-        @*<div id="@($"{_player.NameDisplay}-net")" class="net stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.NetScore);">*@
         <div id="@($"{_player.NameDisplay}-net")" class="net stats-value">
             <span class="value">@_renderedEventAggregate.NetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
-            @*@_renderedEventAggregate.NetScore*@
         </div>
         <div id="@($"{_player.NameDisplay}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
         <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
