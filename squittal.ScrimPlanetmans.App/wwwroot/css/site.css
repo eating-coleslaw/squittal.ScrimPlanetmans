@@ -1601,6 +1601,30 @@ dl.labeled-stats-grid {
     margin-top: 0.15rem;
 }
 
+.vs .flavor .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(89%) sepia(31%) saturate(304%) hue-rotate(112deg) brightness(96%) contrast(99%);
+}
+
+.nc .flavor .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(87%) sepia(25%) saturate(574%) hue-rotate(342deg) brightness(110%) contrast(103%);
+}
+
+.tr .flavor .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(97%) sepia(3%) saturate(627%) hue-rotate(175deg) brightness(96%) contrast(87%);
+}
+
+.vs .primary-light .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(78%) sepia(7%) saturate(3557%) hue-rotate(203deg) brightness(101%) contrast(104%);
+}
+
+.nc .primary-light .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(79%) sepia(13%) saturate(853%) hue-rotate(177deg) brightness(105%) contrast(98%);
+}
+
+.tr .primary-light .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(84%) sepia(7%) saturate(946%) hue-rotate(309deg) brightness(101%) contrast(101%);
+}
+
     .ps2-icon.medic {
         background-image: url('../images/Icon_white_combatMedic_32.png') !important;
     }

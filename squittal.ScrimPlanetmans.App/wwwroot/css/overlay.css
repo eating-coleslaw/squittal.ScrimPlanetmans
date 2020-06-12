@@ -1221,8 +1221,10 @@ body {
     /*position: fixed;*/
     top: 88px;
     left: 25%;
-    width: 50%;
-    margin-left: auto;
+/*    width: 50%;*/
+/*    margin-left: auto;*/
+    width: 55%;
+    margin-left: -2%;
     margin-right: auto;
     height: auto;
     box-sizing: border-box;
@@ -1383,6 +1385,7 @@ body {
         padding-right: 8px;
     }
 
+
     .overlay .match-report .stats-row .label {
         grid-area: label;
         text-align: left;
@@ -1391,6 +1394,24 @@ body {
         text-overflow: ellipsis;
         /*color: var(--sq-ov-ps2-primary-lightest);*/
         padding-left: 8px;
+        white-space: nowrap;
+    }
+
+        .overlay .match-report .stats-row .label .text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+    .overlay .match-report .stats-row.player .ps2-icon {
+        display: inline-block;
+/*        vertical-align: middle;*/
+        margin-right: 8px;
+        margin-top: 0px;
+        height: 20px;
+        width: 20px;
+        position: relative;
+        top: 4px;
+        opacity: 0.9;
     }
 
     .overlay .match-report .stats-row.player .label {

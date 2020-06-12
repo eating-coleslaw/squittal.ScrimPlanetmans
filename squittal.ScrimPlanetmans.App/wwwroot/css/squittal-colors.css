@@ -103,7 +103,7 @@
     --sq-ov-ps2-primary-dark-alpha-70: rgba(7, 37, 61, 0.7);
     --sq-ov-ps2-primary-light: rgb(182, 221, 253);
     --sq-ov-ps2-primary-lightest: rgb(224,241,255);
-    --sq-ov-ps2-flavor: rgb(255, 247, 175);
+    --sq-ov-ps2-flavor: #fff7af; /* rgb(255, 247, 175); */
     --sq-ov-ps2-flavor-alpha-50: rgba(255, 247, 175, 0.5);
 }
 
