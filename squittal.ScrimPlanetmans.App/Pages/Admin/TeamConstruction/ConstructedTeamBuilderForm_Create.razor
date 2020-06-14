@@ -1,0 +1,13 @@
+﻿<h3>ConstructedTeamBuilderForm_Create</h3>
+
+@code {
+
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

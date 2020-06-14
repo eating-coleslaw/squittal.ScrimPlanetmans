@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
+using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -28,6 +29,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public List<Outfit> Outfits { get => _outfits; }
         public List<Player> NonOutfitCharacters { get; } = new List<Player>();
+
+        public List<ConstructedTeam> ConstructedTeams { get; set; } = new List<ConstructedTeam>();
+        public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
@@ -80,6 +84,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _seedOutfitAliases.Contains(alias);
         }
 
+        public bool ContainsConstructedTeam(int constructedTeamId)
+        {
+            return ConstructedTeams.Any(ct => ct.Id == constructedTeamId);
+        }
+
+        public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            return ConstructedTeamsMatchInfo.Any(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
+        }
+
         public bool TryAddPlayer(Player player)
         {
             if (ContainsPlayer(player.Id))
@@ -113,6 +127,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+
         public bool TryAddOutfit(Outfit outfit)
         {
             if (ContainsOutfit(outfit.AliasLower))
@@ -141,6 +156,121 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _seedOutfitIds.RemoveAll(id => id == outfit.Id);
 
             return true;
+        }
+
+        
+        public bool TryAddConstructedTeam(ConstructedTeam constructedTeam)
+        {
+            if (ContainsConstructedTeam(constructedTeam.Id))
+            {
+                return false;
+            }
+
+            ConstructedTeams.Add(constructedTeam);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeam(int constructedTeamId)
+        {
+            if (!ContainsConstructedTeam(constructedTeamId))
+            {
+                return false;
+            }
+
+            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
+            return true;
+
+            //if (!ContainsConstructedTeam(constructedTeamId))
+            //{
+            //    return false;
+            //}
+
+            //ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            //return true;
+        }
+
+        public bool TryAddConstructedTeamFaction(ConstructedTeamMatchInfo matchInfo)
+        {
+            var constructedTeam = matchInfo.ConstructedTeam;
+            var factionId = matchInfo.ActiveFactionId;
+            
+            if (ContainsConstructedTeamFaction(constructedTeam.Id, factionId))
+            {
+                return false;
+            }
+
+            ConstructedTeamsMatchInfo.Add(matchInfo);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            if (!ContainsConstructedTeamFaction(constructedTeamId, factionId))
+            {
+                return false;
+            }
+
+            ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
+            return true;
+        }
+
+        public bool TryAddConstructedTeamMatchInfo(ConstructedTeamMatchInfo matchInfo)
+        {
+            if (ContainsConstructedTeam(matchInfo.ConstructedTeam.Id))
+            {
+                return false;
+            }
+
+            ConstructedTeams.Add(matchInfo.ConstructedTeam);
+            ConstructedTeamsMatchInfo.Add(matchInfo);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeamMatchInfo(int constructedTeamId)
+        {
+            if (!ContainsConstructedTeam(constructedTeamId))
+            {
+                return false;
+            }
+
+            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
+            return true;
+        }
+
+        public IEnumerable<Player> GetOutfitPlayers(string aliasLower)
+        {
+            lock(Players)
+            {
+                return Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetNonOutfitPlayers()
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetConstructedTeamFactionPlayers(int constructedTeamId, int factionId)
+        {
+            lock (Players)
+            {
+                return Players
+                        .Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId && p.FactionId == factionId)
+                        .ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetConstructedTeamPlayers(int constructedTeamId)
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId).ToList();
+            }
         }
 
         public void AddStatsUpdate(ScrimEventAggregate update)

@@ -20,6 +20,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimPlayersService _scrimPlayers;
         private readonly IOutfitService _outfitService;
         private readonly IFactionService _factionService;
+        private readonly IConstructedTeamService _constructedTeamService;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMatchDataService _matchDataService;
@@ -42,13 +43,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
 
         public ScrimTeamsManager(IScrimPlayersService scrimPlayers, IOutfitService outfitService, IFactionService factionService,
-            IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
+            IScrimMessageBroadcastService messageService, IScrimMatchDataService matchDataService,
+            IConstructedTeamService constructedTeamService, IDbContextHelper dbContextHelper, ILogger<ScrimTeamsManager> logger)
         {
             _scrimPlayers = scrimPlayers;
             _outfitService = outfitService;
             _factionService = factionService;
             _messageService = messageService;
             _matchDataService = matchDataService;
+            _constructedTeamService = constructedTeamService;
             _dbContextHelper = dbContextHelper;
             _logger = logger;
 
@@ -108,6 +111,30 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public Team GetTeamFromConstructedTeamId(int constructedTeamId)
+        {
+            if (!IsConstructedTeamAvailable(constructedTeamId, out Team owningTeam))
+            {
+                return owningTeam;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        
+        public Team GetTeamFromConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            if (!IsConstructedTeamFactionAvailable(constructedTeamId, factionId, out Team owningTeam))
+            {
+                return owningTeam;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public int? GetFirstTeamWithFactionId(int factionId)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
@@ -130,6 +157,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public IEnumerable<Player> GetParticipatingPlayers()
         {
             return _participatingPlayers;
+        }
+
+        public IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower)
+        {
+            return GetTeam(teamOrdinal).GetOutfitPlayers(outfitAliasLower);
+        }
+        
+        public IEnumerable<Player> GetTeamNonOutfitPlayers(int teamOrdinal)
+        {
+            return GetTeam(teamOrdinal).GetNonOutfitPlayers();
+        }
+        
+        public IEnumerable<Player> GetTeamConstructedTeamFactionPlayers(int teamOrdinal, int constructedTeamId, int factionId)
+        {
+            return GetTeam(teamOrdinal).GetConstructedTeamFactionPlayers(constructedTeamId, factionId);
         }
 
         public int? GetNextWorldId(int previousWorldId)
@@ -237,7 +279,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return false;
         }
-
 
         public async Task<bool> TryAddCharacterIdToTeam(int teamOrdinal, string characterId)
         {
@@ -380,7 +421,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             // If not yet set, set team alias to alias of the first outfit added to it
-            if (TeamOutfitCount(teamOrdinal) == 1 && team.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
+            if (TeamOutfitCount(teamOrdinal) == 1 && TeamConstructedTeamCount(teamOrdinal) == 0 && team.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
             {
                 UpdateTeamAlias(teamOrdinal, outfit.Alias);
             }
@@ -392,11 +433,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             SendTeamOutfitAddedMessage(outfit);
 
+
             /* Add Outfit Players to Team */
+            var loadStartedMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadStarted);
+            _messageService.BroadcastTeamOutfitChangeMessage(loadStartedMessage);
+
+            var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+
             var players = await _scrimPlayers.GetPlayersFromOutfitAlias(aliasLower);
 
             if (players == null || !players.Any())
             {
+                _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
                 return false;
             }
 
@@ -424,6 +472,114 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersAdded = true;
                 }
             }
+            
+            _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
+
+            return anyPlayersAdded;
+        }
+
+        public async Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId)
+        {
+            if (!IsConstructedTeamAvailable(constructedTeamId))
+            {
+                return false;
+            }
+
+            var owningTeam = GetTeam(teamOrdinal);
+
+            if (owningTeam == null)
+            {
+                return false;
+            }
+
+            var constructedTeam = await _constructedTeamService.GetConstructedTeam(constructedTeamId, true);
+
+            if (constructedTeam == null)
+            {
+                return false;
+            }
+
+            var matchInfo = new ConstructedTeamMatchInfo
+            {
+                ConstructedTeam = constructedTeam,
+                TeamOrdinal = teamOrdinal,
+                ActiveFactionId = factionId
+            };
+
+            //if (!owningTeam.TryAddConstructedTeamMatchInfo(matchInfo))
+            //{
+            //    return false;
+            //}
+
+            if (!owningTeam.TryAddConstructedTeamFaction(matchInfo))
+            {
+                return false;
+            }
+
+            // If not yet set, set team alias to alias of the first constructed team added to it
+            if (TeamOutfitCount(teamOrdinal) == 0 && TeamConstructedTeamCount(teamOrdinal) == 1 && owningTeam.Alias == $"{ _defaultAliasPreText}{teamOrdinal}")
+            {
+                UpdateTeamAlias(teamOrdinal, constructedTeam.Alias);
+            }
+
+            if (owningTeam.FactionId == null)
+            {
+                UpdateTeamFaction(teamOrdinal, factionId);
+            }
+
+            var message = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.Add);
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(message);
+
+
+            var loadStartedMessage = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.ConstructedTeamMembersLoadStarted);
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(loadStartedMessage);
+
+            var loadCompletedMessage = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.ConstructedTeamMembersLoadCompleted);
+
+            var players = await _constructedTeamService.GetConstructedTeamFactionPlayers(constructedTeamId, factionId);
+
+            if (players == null || !players.Any())
+            {
+                _messageService.BroadcastTeamConstructedTeamChangeMessage(loadCompletedMessage);
+                return false;
+            }
+
+            var anyPlayersAdded = false;
+            var playersAddedCount = 0;
+
+            var lastPlayer = players.LastOrDefault();
+
+            //TODO: track which players were added and which weren't
+
+            foreach (var player in players)
+            {
+                if (!IsCharacterAvailable(player.Id))
+                {
+                    continue;
+                }
+                
+                player.TeamOrdinal = teamOrdinal;
+                player.ConstructedTeamId = constructedTeamId;
+
+                player.IsOutfitless = true; // IsPlayerOutfitless(player);
+
+                if (owningTeam.TryAddPlayer(player))
+                {
+                    _allCharacterIds.Add(player.Id);
+                    _allPlayers.Add(player);
+
+                    var isLastPlayer = (player == lastPlayer);
+
+                    SendTeamPlayerAddedMessage(player, isLastPlayer);
+
+                    anyPlayersAdded = true;
+                    playersAddedCount += 1;
+                }
+            }
+
+            loadCompletedMessage = new TeamConstructedTeamChangeMessage(teamOrdinal, constructedTeam, factionId, TeamChangeType.ConstructedTeamMembersLoadCompleted, playersAddedCount);
+
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(loadCompletedMessage);
 
             return anyPlayersAdded;
         }
@@ -500,6 +656,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             outfit.MemberCount = newMemberCount;
 
+            var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+            _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
+
             return anyPlayersAdded;
         }
 
@@ -552,8 +711,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             //TODO: handle updating Match Configuration's Server ID setting here
-
-            if (team.Outfits.Any())
+            if (team.ConstructedTeamsMatchInfo.Any())
+            {
+                var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextTeam.ConstructedTeam.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+            }
+            else if (team.Outfits.Any())
             {
                 var nextOutfit = team.Outfits.FirstOrDefault();
                 UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
@@ -845,6 +1009,68 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public bool RemoveConstructedTeamFactionFromTeam(int constructedTeamId, int factionId)
+        {
+            //var team = GetTeamFromConstructedTeamId(constructedTeamId);
+            var team = GetTeamFromConstructedTeamFaction(constructedTeamId, factionId);
+
+            if (team == null)
+            {
+                return false;
+            }
+
+            var constructedTeamMatchInfo = team.ConstructedTeamsMatchInfo
+                                                .Where(t => t.ConstructedTeam.Id == constructedTeamId && t.ActiveFactionId == factionId)
+                                                .FirstOrDefault();
+
+            team.TryRemoveConstructedTeamFaction(constructedTeamId, factionId);
+
+            var players = team.GetConstructedTeamFactionPlayers(constructedTeamId, factionId).ToList();
+
+            var anyPlayersRemoved = false;
+            
+            if (players != null && players.Any())
+            {
+                //return false;
+                foreach (var player in players)
+                {
+                    if (RemovePlayerFromTeam(player))
+                    {
+                        anyPlayersRemoved = true;
+                    }
+                }
+            }
+
+            //TODO: handle updating Match Configuration's Server ID setting here
+            if (team.ConstructedTeamsMatchInfo.Any())
+            {
+                var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextTeam.ConstructedTeam.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+            }
+            else if (team.Outfits.Any())
+            {
+                var nextOutfit = team.Outfits.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, nextOutfit.Alias);
+                UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
+            }
+            else if (team.Players.Any())
+            {
+                var nextPlayer = team.Players.FirstOrDefault();
+                UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
+                UpdateTeamFaction(team.TeamOrdinal, nextPlayer.FactionId);
+            }
+            else
+            {
+                UpdateTeamAlias(team.TeamOrdinal, $"{_defaultAliasPreText}{team.TeamOrdinal}");
+                UpdateTeamFaction(team.TeamOrdinal, null);
+            }
+
+            SendTeamConstructedTeamRemovedMessage(team.TeamOrdinal, constructedTeamMatchInfo);
+
+            return anyPlayersRemoved;
+        }
+
         public async Task<bool> RemoveCharacterFromTeamAndDb(string characterId)
         {
             var teamOrdinal = GetTeamOrdinalFromPlayerId(characterId);
@@ -1128,12 +1354,34 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return false;
             }
-            
+
+            var team = GetTeam(player.TeamOrdinal);
+
             if ( RemovePlayerFromTeam(player))
             {
                 if (characterId == MaxPlayerPointsTracker.GetOwningCharacterId())
                 {
                     // TODO: Update Match Max Player Points
+                }
+
+                if (team.ConstructedTeamsMatchInfo.Any())
+                {
+                    var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
+                    UpdateTeamFaction(team.TeamOrdinal, nextTeam.ActiveFactionId);
+                }
+                else if (team.Outfits.Any())
+                {
+                    var nextOutfit = team.Outfits.FirstOrDefault();
+                    UpdateTeamFaction(team.TeamOrdinal, nextOutfit.FactionId);
+                }
+                else if (team.Players.Any())
+                {
+                    var nextPlayer = team.Players.FirstOrDefault();
+                    UpdateTeamFaction(team.TeamOrdinal, nextPlayer.FactionId);
+                }
+                else
+                {
+                    UpdateTeamFaction(team.TeamOrdinal, null);
                 }
 
                 return true;
@@ -1188,6 +1436,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             if (team == null)
             {
                 return;
+            }
+
+            var constructedTeamsMatchInfo = team.ConstructedTeamsMatchInfo.ToList();
+
+            foreach(var matchInfo in constructedTeamsMatchInfo)
+            {
+                RemoveConstructedTeamFactionFromTeam(matchInfo.ConstructedTeam.Id, matchInfo.ActiveFactionId);
             }
 
             var allAliases = team.Outfits.Select(o => o.AliasLower).ToList();
@@ -1348,6 +1603,75 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        public bool IsConstructedTeamAvailable(int constructedTeamId)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeam(constructedTeamId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeam(constructedTeamId))
+                {
+                    owningTeam = team;
+                    return false;
+                }
+            }
+
+            owningTeam = null;
+            return true;
+        }
+
+        public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeamFaction(constructedTeamId, factionId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId, out Team owningTeam)
+        {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsConstructedTeamFaction(constructedTeamId, factionId))
+                {
+                    owningTeam = team;
+                    return false;
+                }
+            }
+
+            owningTeam = null;
+            return true;
+        }
+
+        public bool IsConstructedTeamAnyFactionAvailable(int constructedTeamId)
+        {
+            for (var factionId = 1; factionId <=3; factionId++)
+            {
+                if (IsConstructedTeamFactionAvailable(constructedTeamId, factionId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public bool IsPlayerTracked(string characterId)
         {
             return _allCharacterIds.Contains(characterId);
@@ -1403,6 +1727,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
         
+        private int TeamConstructedTeamCount(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team != null)
+            {
+                return team.ConstructedTeams.Count();
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
         public void UpdatePlayerStats(string characterId, ScrimEventAggregate updates)
         {
             var player = GetPlayerFromId(characterId);
@@ -1701,6 +2039,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var payload = new TeamOutfitChangeMessage(outfit, TeamChangeType.Remove);
             _messageService.BroadcastTeamOutfitChangeMessage(payload);
+        }
+
+        private void SendTeamConstructedTeamAddedMessage(int teamOrdinal, ConstructedTeamMatchInfo teamMatchInfo)
+        {
+            var payload = new TeamConstructedTeamChangeMessage(teamOrdinal, teamMatchInfo.ConstructedTeam, teamMatchInfo.ActiveFactionId, TeamChangeType.Add);
+
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(payload);
+        }
+
+        private void SendTeamConstructedTeamRemovedMessage(int teamOrdinal, ConstructedTeamMatchInfo teamMatchInfo)
+        {
+            var payload = new TeamConstructedTeamChangeMessage(teamOrdinal, teamMatchInfo.ConstructedTeam, teamMatchInfo.ActiveFactionId, TeamChangeType.Remove);
+
+            _messageService.BroadcastTeamConstructedTeamChangeMessage(payload);
         }
 
         private void SendPlayerStatUpdateMessage(Player player)

@@ -53,6 +53,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return worlds.FirstOrDefault(e => e.Id == worldId);
         }
 
+        public World GetWorld(int worldId)
+        {
+            return _worlds.FirstOrDefault(e => e.Id == worldId);
+        }
+
         public async Task SetupWorldsList()
         {
             using var factory = _dbContextHelper.GetFactory();

@@ -4,6 +4,7 @@
 
 @using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup.MatchTeamComposer;
 @using squittal.ScrimPlanetmans.CensusStream;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.Models.ScrimEngine
@@ -35,11 +36,13 @@
     <div class="row">
 
         <div class="col-lg-4">
-            <TeamBuilder i_teamOrdinal=1 />
+            @*<TeamBuilder i_teamOrdinal=1 />*@
+            <TeamComposer i_teamOrdinal=1 />
         </div>
 
         <div class="col-lg-4">
-            <TeamBuilder i_teamOrdinal=2 />
+            @*<TeamBuilder i_teamOrdinal=2 />*@
+            <TeamComposer i_teamOrdinal=2 />
         </div>
 
         <div class="col-lg-4">

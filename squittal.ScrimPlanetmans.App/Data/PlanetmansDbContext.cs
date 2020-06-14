@@ -50,6 +50,9 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<ScrimDeath> ScrimDeaths { get; set; }
         public DbSet<ScrimVehicleDestruction> ScrimVehicleDestructions { get; set; }
 
+        public DbSet<ConstructedTeam> ConstructedTeams { get; set; }
+        public DbSet<ConstructedTeamPlayerMembership> ConstructedTeamPlayerMemberships { get; set; }
+        //public DbSet<ConstructedTeamFactionPreference> ConstructedTeamFactionPreferences { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -92,6 +95,10 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new ScrimMatchTeamPointAdjustmentConfiguration());
             builder.ApplyConfiguration(new ScrimDeathConfiguration());
             builder.ApplyConfiguration(new ScrimVehicleDestructionConfiguration());
+
+            builder.ApplyConfiguration(new ConstructedTeamConfiguration());
+            builder.ApplyConfiguration(new ConstructedTeamPlayerMembershipConfiguration());
+            //builder.ApplyConfiguration(new ConstructedTeamFactionPreferenceConfiguration());
             #endregion
         }
     }

@@ -22,6 +22,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         
         public event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
         public delegate void TeamOutfitChangeEventHandler(object sender, TeamOutfitChangeEventArgs e);
+        
+        public event EventHandler<TeamConstructedTeamChangeEventArgs> RaiseTeamConstructedTeamChangeEvent;
+        public delegate void TeamConstructedTeamChangeEventHandler(object sender, TeamConstructedTeamChangeEventArgs e);
 
         public event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
         public delegate void TeamAliasChangeEventHandler(object sender, TeamAliasChangeEventArgs e);
@@ -74,6 +77,12 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
         public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
+        
+        public event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
+        public delegate void ConstructedTeamMemberChangeEventHandler(object sender, ConstructedTeamMemberChangeEventArgs e);
+        
+        public event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
+        public delegate void ConstructedTeamInfoChangeEventHandler(object sender, ConstructedTeamInfoChangeEventArgs e);
 
         #endregion Handler Events & Delegates
 
@@ -285,7 +294,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #endregion Simple (string) Message
 
 
-        #region Team Player Change
+        #region Team Player/Outfit/Constructed Team Changes
         public void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
         {
             OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(message));
@@ -307,7 +316,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseTeamOutfitChangeEvent?.Invoke(this, e);
         }
-        #endregion Team Player Change
+        
+        public void BroadcastTeamConstructedTeamChangeMessage(TeamConstructedTeamChangeMessage message)
+        {
+            OnRaiseTeamConstructedTeamChangeEvent(new TeamConstructedTeamChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseTeamConstructedTeamChangeEvent(TeamConstructedTeamChangeEventArgs e)
+        {
+            RaiseTeamConstructedTeamChangeEvent?.Invoke(this, e);
+        }
+        #endregion Team Player/Outfit/Constructed Team Changes
 
         public void BroadcastTeamAliasChangeMessage(TeamAliasChangeMessage message)
         {
@@ -341,5 +361,30 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseTeamFactionChangeEvent?.Invoke(this, e);
         }
+
+        #region Constructed Team Messages
+        public void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message)
+        {
+            OnRaiseConstructedTeamMemberChangeEvent(new ConstructedTeamMemberChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseConstructedTeamMemberChangeEvent(ConstructedTeamMemberChangeEventArgs e)
+        {
+            RaiseConstructedTeamMemberChangeEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastConstructedTeamInfoChangeMessage(ConstructedTeamInfoChangeMessage message)
+        {
+            OnRaiseConstructedTeamInfoChangeEvent(new ConstructedTeamInfoChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseConstructedTeamInfoChangeEvent(ConstructedTeamInfoChangeEventArgs e)
+        {
+            RaiseConstructedTeamInfoChangeEvent?.Invoke(this, e);
+        }
+
+        #endregion Constructed Team Messages
     }
 }

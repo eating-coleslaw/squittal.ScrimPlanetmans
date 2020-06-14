@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using squittal.ScrimPlanetmans.Data;
 
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    partial class PlanetmansDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200609164520_AddConstructedTeamModels")]
+    partial class AddConstructedTeamModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,11 +30,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.Property<string>("Alias")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsHiddenFromSelection")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()

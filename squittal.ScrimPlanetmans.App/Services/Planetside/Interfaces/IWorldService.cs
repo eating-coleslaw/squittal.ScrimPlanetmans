@@ -9,6 +9,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         Task<IEnumerable<World>> GetAllWorldsAsync();
         IEnumerable<World> GetAllWorlds();
         Task<World> GetWorldAsync(int worldId);
+        World GetWorld(int worldId);
         Task SetupWorldsList();
     }
 }
