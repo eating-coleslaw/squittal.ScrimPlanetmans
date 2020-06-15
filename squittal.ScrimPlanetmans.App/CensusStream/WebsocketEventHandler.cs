@@ -183,7 +183,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_deathFilter.TryFilterNewPayload(payload))
             {
-                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Death payload detected, excluded</span>");
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Death payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Death payload detected, excluded");
                 return null;
             }
 
@@ -436,7 +437,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_vehicleDestroyFilter.TryFilterNewPayload(payload))
             {
-                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Vehicle Destroy payload detected, excluded</span>");
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Vehicle Destroy payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Vehicle Destroy payload detected, excluded");
                 return null;
             }
 
@@ -804,7 +806,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_loginFilter.TryFilterNewPayload(payload))
             {
-                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Login payload detected, excluded</span>");
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Login payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Player Login payload detected, excluded");
                 return null;
             }
 
@@ -833,7 +836,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_logoutFilter.TryFilterNewPayload(payload))
             {
-                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Logout payload detected, excluded</span>");
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Logout payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Player Logout payload detected, excluded");
                 return null;
             }
 
@@ -865,7 +869,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_experienceFilter.TryFilterNewPayload(payload))
             {
-                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Gain Experience payload detected, excluded</span>");
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Gain Experience payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Gain Experience payload detected, excluded");
                 return;
             }
 
@@ -1111,7 +1116,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_facilityControlFilter.TryFilterNewPayload(payload))
             {
-                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Facility Control payload detected, excluded</span>");
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Facility Control payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Facility Control payload detected, excluded");
                 return;
             }
 
