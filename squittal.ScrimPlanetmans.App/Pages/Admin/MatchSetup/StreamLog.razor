@@ -60,7 +60,8 @@
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
-        ReceiveMessage(e.Message);
+        LogMessage(e.Message);
+        //ReceiveMessage(e.Message);
     }
 
     private void ReceiveDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)

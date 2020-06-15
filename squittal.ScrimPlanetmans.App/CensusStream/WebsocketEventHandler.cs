@@ -40,6 +40,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private bool _isScoringEnabled = false;
         private bool _isEventStoringEnabled = false;
 
+        private PayloadUniquenessFilter<DeathPayload> _deathFilter = new PayloadUniquenessFilter<DeathPayload>();
+        private PayloadUniquenessFilter<VehicleDestroyPayload> _vehicleDestroyFilter = new PayloadUniquenessFilter<VehicleDestroyPayload>();
+        private PayloadUniquenessFilter<GainExperiencePayload> _experienceFilter = new PayloadUniquenessFilter<GainExperiencePayload>();
+        private PayloadUniquenessFilter<PlayerLoginPayload> _loginFilter = new PayloadUniquenessFilter<PlayerLoginPayload>();
+        private PayloadUniquenessFilter<PlayerLogoutPayload> _logoutFilter = new PayloadUniquenessFilter<PlayerLogoutPayload>();
+        private PayloadUniquenessFilter<FacilityControlPayload> _facilityControlFilter = new PayloadUniquenessFilter<FacilityControlPayload>();
+
 
         // Credit to Voidwell @Lampjaw
         private readonly JsonSerializer _payloadDeserializer = JsonSerializer.Create(new JsonSerializerSettings
@@ -174,6 +181,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<ScrimDeathActionEvent> Process(DeathPayload payload)
         {
+            if (!_deathFilter.TryFilterNewPayload(payload))
+            {
+                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Death payload detected, excluded</span>");
+                return null;
+            }
+
             string attackerId = payload.AttackerCharacterId;
             string victimId = payload.CharacterId;
 
@@ -421,6 +434,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("VehicleDestroy", typeof(VehicleDestroyPayload))]
         private async Task<ScrimVehicleDestructionActionEvent> Process(VehicleDestroyPayload payload)
         {
+            if (!_vehicleDestroyFilter.TryFilterNewPayload(payload))
+            {
+                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Vehicle Destroy payload detected, excluded</span>");
+                return null;
+            }
+
             string attackerId = payload.AttackerCharacterId;
             string victimId = payload.CharacterId;
 
@@ -783,6 +802,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
         private PlayerLogin Process(PlayerLoginPayload payload)
         {
+            if (!_loginFilter.TryFilterNewPayload(payload))
+            {
+                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Login payload detected, excluded</span>");
+                return null;
+            }
+
             var characterId = payload.CharacterId;
 
             var player = _teamsManager.GetPlayerFromId(characterId);
@@ -806,6 +831,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
         private PlayerLogout Process(PlayerLogoutPayload payload)
         {
+            if (!_logoutFilter.TryFilterNewPayload(payload))
+            {
+                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Logout payload detected, excluded</span>");
+                return null;
+            }
+
             var characterId = payload.CharacterId;
 
             var player = _teamsManager.GetPlayerFromId(characterId);
@@ -832,6 +863,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
         private void Process(GainExperiencePayload payload)
         {
+            if (!_experienceFilter.TryFilterNewPayload(payload))
+            {
+                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Gain Experience payload detected, excluded</span>");
+                return;
+            }
+
             var experienceId = payload.ExperienceId;
             var experienceType = ExperienceEventsBuilder.GetExperienceTypeFromId(experienceId);
 
@@ -1072,6 +1109,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private void Process(FacilityControlPayload payload)
         {
+            if (!_facilityControlFilter.TryFilterNewPayload(payload))
+            {
+                _messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Facility Control payload detected, excluded</span>");
+                return;
+            }
+
             var oldFactionId = payload.OldFactionId;
             var newFactionId = payload.NewFactionId;
 

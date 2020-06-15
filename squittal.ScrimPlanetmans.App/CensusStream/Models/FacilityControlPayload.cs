@@ -2,7 +2,7 @@
 
 namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class FacilityControlPayload : PayloadBase, IEquitable<FacilityControlPayload>
+    public class FacilityControlPayload : PayloadBase, IEquitablePayload<FacilityControlPayload> //IEquitable<FacilityControlPayload>
     {
         public int FacilityId { get; set; }
         public int NewFactionId { get; set; }

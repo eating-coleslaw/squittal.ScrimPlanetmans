@@ -3,7 +3,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class DeathPayload : PayloadBase, IEquitable<DeathPayload>
+    public class DeathPayload : PayloadBase, IEquitablePayload<DeathPayload> //IEquitable<DeathPayload>
     {
         public string AttackerCharacterId { get; set; }
         public int? AttackerFireModeId { get; set; }

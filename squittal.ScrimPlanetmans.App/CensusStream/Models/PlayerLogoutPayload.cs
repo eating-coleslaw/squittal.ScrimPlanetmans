@@ -2,7 +2,7 @@
 
 namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class PlayerLogoutPayload : PayloadBase, IEquitable<PlayerLogoutPayload>
+    public class PlayerLogoutPayload : PayloadBase, IEquitablePayload<PlayerLogoutPayload> //IEquitable<PlayerLogoutPayload>
     {
         public string CharacterId { get; set; }
 

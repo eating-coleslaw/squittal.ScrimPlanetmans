@@ -30,6 +30,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public int? SubscribedFacilityId;
         public int? SubscribedWorldId;
 
+        private readonly Random rnd = new Random();
 
 
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
@@ -289,10 +290,25 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (PayloadContainsSubscribedCharacter(jMsg) || PayloadContainsSubscribedFacility(jMsg))
             {
+                // ***** DUPLICATE PAYLOAD FILTER TESTING *****
+                
+                var rndBoolean = Convert.ToBoolean(rnd.Next(1, 2));
+
+                //_logger.LogInformation($"Random Boolean: {rndBoolean}");
+
                 #pragma warning disable CS4014
                 Task.Run(() =>
                 {
                     _handler.Process(jMsg);
+
+                    // ***** DUPLICATE PAYLOAD FILTER TESTING *****
+                    // 50% chance to send the same message again
+                    if (rndBoolean)
+                    {
+                        _messageService.BroadcastSimpleMessage($"Duplicate payload message sent to event handler");
+                        _handler.Process(jMsg);
+                    }
+
                 }).ConfigureAwait(false);
                 #pragma warning restore CS4014
             }

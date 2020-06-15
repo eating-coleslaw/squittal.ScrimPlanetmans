@@ -3,7 +3,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class GainExperiencePayload : PayloadBase, IEquitable<GainExperiencePayload>
+    public class GainExperiencePayload : PayloadBase, IEquitablePayload<GainExperiencePayload> //IEquitable<GainExperiencePayload>
     {
         public string CharacterId { get; set; }
         public int ExperienceId { get; set; }
