@@ -31,7 +31,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public int? SubscribedWorldId;
 
 
-
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
             _client = censusStreamClient;
@@ -293,6 +292,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 Task.Run(() =>
                 {
                     _handler.Process(jMsg);
+
                 }).ConfigureAwait(false);
                 #pragma warning restore CS4014
             }

@@ -60,6 +60,7 @@
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
+        //LogMessage(e.Message);
         ReceiveMessage(e.Message);
     }
 
