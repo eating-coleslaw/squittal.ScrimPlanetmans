@@ -1,9 +1,6 @@
-﻿using squittal.ScrimPlanetmans.Models.Planetside;
-using squittal.ScrimPlanetmans.ScrimMatch.Models;
-
-namespace squittal.ScrimPlanetmans.CensusStream.Models
+﻿namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class DeathPayload : PayloadBase, IEquitablePayload<DeathPayload> //IEquitable<DeathPayload>
+    public class DeathPayload : PayloadBase, IEquitablePayload<DeathPayload>
     {
         public string AttackerCharacterId { get; set; }
         public int? AttackerFireModeId { get; set; }

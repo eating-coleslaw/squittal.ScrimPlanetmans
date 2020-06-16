@@ -1,8 +1,6 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-
-namespace squittal.ScrimPlanetmans.CensusStream.Models
+﻿namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class VehicleDestroyPayload : PayloadBase, IEquitablePayload<VehicleDestroyPayload> //IEquitable<VehicleDestroyPayload>
+    public class VehicleDestroyPayload : PayloadBase, IEquitablePayload<VehicleDestroyPayload>
     {
         public string AttackerCharacterId { get; set; }
         public int? AttackerLoadoutId { get; set; }

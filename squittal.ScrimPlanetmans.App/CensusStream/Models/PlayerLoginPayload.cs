@@ -1,8 +1,6 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-
-namespace squittal.ScrimPlanetmans.CensusStream.Models
+﻿namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class PlayerLoginPayload : PayloadBase, IEquitablePayload<PlayerLoginPayload> //IEquitable<PlayerLoginPayload>
+    public class PlayerLoginPayload : PayloadBase, IEquitablePayload<PlayerLoginPayload>
     {
         public string CharacterId { get; set; }
 

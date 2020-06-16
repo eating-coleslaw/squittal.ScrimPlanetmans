@@ -1,8 +1,6 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-
-namespace squittal.ScrimPlanetmans.CensusStream.Models
+﻿namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class FacilityControlPayload : PayloadBase, IEquitablePayload<FacilityControlPayload> //IEquitable<FacilityControlPayload>
+    public class FacilityControlPayload : PayloadBase, IEquitablePayload<FacilityControlPayload>
     {
         public int FacilityId { get; set; }
         public int NewFactionId { get; set; }

@@ -1,9 +1,6 @@
-﻿using squittal.ScrimPlanetmans.Models.Planetside;
-using squittal.ScrimPlanetmans.ScrimMatch.Models;
-
-namespace squittal.ScrimPlanetmans.CensusStream.Models
+﻿namespace squittal.ScrimPlanetmans.CensusStream.Models
 {
-    public class GainExperiencePayload : PayloadBase, IEquitablePayload<GainExperiencePayload> //IEquitable<GainExperiencePayload>
+    public class GainExperiencePayload : PayloadBase, IEquitablePayload<GainExperiencePayload>
     {
         public string CharacterId { get; set; }
         public int ExperienceId { get; set; }
