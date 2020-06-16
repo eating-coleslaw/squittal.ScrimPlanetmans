@@ -1475,12 +1475,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task RollBackAllTeamStats(int currentRound)
         {
+            var TaskList = new List<Task>();
+            
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
             {
                 RollBackTeamStats(teamOrdinal, currentRound);
 
-                await SaveTeamMatchResultsToDb(teamOrdinal);
+                //await SaveTeamMatchResultsToDb(teamOrdinal);
+                var teamTask = SaveTeamMatchResultsToDb(teamOrdinal);
+                TaskList.Add(teamTask);
             }
+
+            var eventsDbTask = RemoveAllMatchRoundEventsFromDb(currentRound);
+            TaskList.Add(eventsDbTask);
+
+            await Task.WhenAll(TaskList);
         }
 
         public void RollBackTeamStats(int teamOrdinal, int currentRound)
@@ -1517,6 +1526,69 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team, overlayMessageData);
         }
 
+        private async Task RemoveAllMatchRoundEventsFromDb(int roundToRemove)
+        {
+            var TaskList = new List<Task>();
+
+            var deathsTask = RemoveAllMatchRoundhDeathsFromDb(roundToRemove);
+            TaskList.Add(deathsTask);
+
+            var destructionsTask = RemoveAllMatchRoundhVehicleDestructionsFromDb(roundToRemove);
+            TaskList.Add(destructionsTask);
+
+            await Task.WhenAll(TaskList);
+        }
+
+        private async Task RemoveAllMatchRoundhDeathsFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var allDeathEvents = dbContext.ScrimDeaths
+                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                    && e.ScrimMatchRound == roundToRemove)
+                                        .AsEnumerable();
+
+                dbContext.ScrimDeaths.RemoveRange(allDeathEvents);
+
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return;
+            }
+        }
+
+        private async Task RemoveAllMatchRoundhVehicleDestructionsFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var destructionsToRemove = dbContext.ScrimVehicleDestructions
+                                                .Where(e => e.ScrimMatchId == currentMatchId
+                                                            && e.ScrimMatchRound == roundToRemove)
+                                                .AsEnumerable();
+
+                dbContext.ScrimVehicleDestructions.RemoveRange(destructionsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
         private bool TryUpdateMaxPlayerPointsTrackerFromTeam(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);
@@ -1525,6 +1597,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return MaxPlayerPointsTracker.TryUpdateMaxPoints(maxTeamPointsPlayer.EventAggregate.Points, maxTeamPointsPlayer.Id);
         }
 
+        #region Match Entity Availability Methods
         public bool IsCharacterAvailable(string characterId)
         {
             var team1 = _ordinalTeamMap[1];
@@ -1676,6 +1749,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return _allCharacterIds.Contains(characterId);
         }
+
+        #endregion Match Entity Availability Methods
 
         public Player GetPlayerFromId(string characterId)
         {
