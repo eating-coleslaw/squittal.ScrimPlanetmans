@@ -1535,6 +1535,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var destructionsTask = RemoveAllMatchRoundhVehicleDestructionsFromDb(roundToRemove);
             TaskList.Add(destructionsTask);
+            
+            var controlsTask = RemoveAllMatchRoundhFacilityControlsFromDb(roundToRemove);
+            TaskList.Add(controlsTask);
 
             await Task.WhenAll(TaskList);
         }
@@ -1589,6 +1592,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        private async Task RemoveAllMatchRoundhFacilityControlsFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var allControlEvents = dbContext.ScrimFacilityControls
+                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                    && e.ScrimMatchRound == roundToRemove)
+                                        .AsEnumerable();
+
+                dbContext.ScrimFacilityControls.RemoveRange(allControlEvents);
+
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return;
+            }
+        }
         private bool TryUpdateMaxPlayerPointsTrackerFromTeam(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);

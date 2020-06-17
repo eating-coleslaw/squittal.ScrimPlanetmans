@@ -22,6 +22,7 @@ namespace squittal.ScrimPlanetmans.Data.Models
         [Required]
         public int ScrimMatchRound { get; set; }
 
+        public ScrimActionType ActionType { get; set; }
         public FacilityControlType ControlType { get; set; }
 
         //public string FacilityName { get; set; }

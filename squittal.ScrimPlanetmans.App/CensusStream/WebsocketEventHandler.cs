@@ -157,10 +157,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     case "FacilityControl":
                         var controlParam = jPayload.ToObject<FacilityControlPayload>(_payloadDeserializer);
-                        await Task.Run(() =>
-                        {
-                            Process(controlParam);
-                        });
+                        await Process(controlParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(controlParam);
+                        //});
                         break;
 
                     case "VehicleDestroy":
@@ -1112,7 +1113,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region FacilityControl Payloads
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
-        private void Process(FacilityControlPayload payload)
+        private async Task Process(FacilityControlPayload payload)
         {
             if (!_facilityControlFilter.TryFilterNewPayload(payload))
             {
@@ -1167,6 +1168,34 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 var points = _scorer.ScoreFacilityControlEvent(controlEvent);
                 controlEvent.Points = points;
+
+                var currentMatchId = _scrimMatchService.CurrentMatchId;
+                var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                var controllingFaction = _teamsManager.GetTeam(controlEvent.ControllingTeamOrdinal)?.FactionId;
+
+                if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                {
+                    var dataModel = new ScrimFacilityControl
+                    {
+                        ScrimMatchId = currentMatchId,
+                        Timestamp = controlEvent.Timestamp,
+                        ScrimMatchRound = currentRound,
+                        ControllingTeamOrdinal = controlEvent.ControllingTeamOrdinal,
+                        ActionType = controlEvent.ActionType,
+                        ControlType = controlEvent.ControlType,
+                        ControllingFactionId = (int)controllingFaction,
+                        ZoneId = controlEvent.ZoneId,
+                        WorldId = payload.WorldId,
+                        Points = controlEvent.Points,
+                    };
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    dbContext.ScrimFacilityControls.Add(dataModel);
+                    await dbContext.SaveChangesAsync();
+                }
             }
 
             // TODO: broadcast Facility Control message
