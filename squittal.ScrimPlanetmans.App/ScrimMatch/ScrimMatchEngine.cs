@@ -65,7 +65,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await InitializeNewMatch();
             }
 
-            InitializeNewRound();
+            await InitializeNewRound();
 
             StartRound();
         }
@@ -174,7 +174,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return matchId;
         }
 
-        public void InitializeNewRound()
+        public async Task InitializeNewRound()
         {
             _currentRound += 1;
 
@@ -183,6 +183,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _roundSecondsRemaining = _roundSecondsMax;
 
             _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
+
+            await _matchDataService.SaveCurrentMatchRoundConfiguration(MatchConfiguration);
         }
 
         public void StartRound()
@@ -220,6 +222,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.DisableScoring();
 
             await _teamsManager.RollBackAllTeamStats(_currentRound);
+
+            await _matchDataService.RemoveMatchRoundConfiguration(_currentRound);
 
             _currentRound -= 1;
 

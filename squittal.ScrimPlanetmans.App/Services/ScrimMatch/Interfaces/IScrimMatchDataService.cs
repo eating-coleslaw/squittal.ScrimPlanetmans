@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using squittal.ScrimPlanetmans.Models.ScrimEngine;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatch
@@ -9,6 +10,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         int CurrentMatchRound { get; set; }
 
         Task SaveToCurrentMatch(Data.Models.ScrimMatch scrimMatch);
+
+        Task SaveCurrentMatchRoundConfiguration(MatchConfiguration matchConfiguration);
+        Task RemoveMatchRoundConfiguration(int roundToDelete);
+
 
         Task<Data.Models.ScrimMatch> GetCurrentMatch();
 
