@@ -45,10 +45,19 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<VehicleClass> VehicleClasses { get; set; }
 
         public DbSet<Models.ScrimMatch> ScrimMatches { get; set; }
+        public DbSet<ScrimMatchRoundConfiguration> ScrimMatchRoundConfigurations { get; set; }
+        public DbSet<ScrimMatchParticipatingPlayer> ScrimMatchParticipatingPlayers { get; set; }
+
         public DbSet<ScrimMatchTeamResult> ScrimMatchTeamResults { get; set; }
         public DbSet<ScrimMatchTeamPointAdjustment> ScrimMatchTeamPointAdjustments { get; set; }
+
         public DbSet<ScrimDeath> ScrimDeaths { get; set; }
         public DbSet<ScrimVehicleDestruction> ScrimVehicleDestructions { get; set; }
+        public DbSet<ScrimDamageAssist> ScrimDamageAssists { get; set; }
+        public DbSet<ScrimGrenadeAssist> ScrimGrenadeAssists { get; set; }
+        public DbSet<ScrimSpotAssist> ScrimSpotAssist { get; set; }
+        public DbSet<ScrimRevive> ScrimRevives { get; set; }
+        public DbSet<ScrimFacilityControl> ScrimFacilityControls { get; set; }
 
         public DbSet<ConstructedTeam> ConstructedTeams { get; set; }
         public DbSet<ConstructedTeamPlayerMembership> ConstructedTeamPlayerMemberships { get; set; }
@@ -91,10 +100,20 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new VehicleClassConfiguration());
             
             builder.ApplyConfiguration(new ScrimMatchConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchRoundConfigurationConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchParticipatingPlayerConfiguration());
+
             builder.ApplyConfiguration(new ScrimMatchTeamResultConfiguration());
             builder.ApplyConfiguration(new ScrimMatchTeamPointAdjustmentConfiguration());
+
             builder.ApplyConfiguration(new ScrimDeathConfiguration());
             builder.ApplyConfiguration(new ScrimVehicleDestructionConfiguration());
+            
+            builder.ApplyConfiguration(new ScrimDamageAssistConfiguration());
+            builder.ApplyConfiguration(new ScrimGrenadeAssistConfiguration());
+            builder.ApplyConfiguration(new ScrimSpotAssistConfiguration());
+            builder.ApplyConfiguration(new ScrimReviveConfiguration());
+            builder.ApplyConfiguration(new ScrimFacilityControlConfiguration());
 
             builder.ApplyConfiguration(new ConstructedTeamConfiguration());
             builder.ApplyConfiguration(new ConstructedTeamPlayerMembershipConfiguration());

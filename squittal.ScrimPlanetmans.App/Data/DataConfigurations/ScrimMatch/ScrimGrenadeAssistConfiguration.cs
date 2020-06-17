@@ -4,11 +4,11 @@ using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 {
-    public class ScrimDeathConfiguration : IEntityTypeConfiguration<ScrimDeath>
+    public class ScrimGrenadeAssistConfiguration : IEntityTypeConfiguration<ScrimGrenadeAssist>
     {
-        public void Configure(EntityTypeBuilder<ScrimDeath> builder)
+        public void Configure(EntityTypeBuilder<ScrimGrenadeAssist> builder)
         {
-            builder.ToTable("ScrimDeath");
+            builder.ToTable("ScrimGrenadeAssist");
 
             builder.HasKey(e => new
             {
@@ -18,16 +18,14 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
                 e.VictimCharacterId
             });
 
-            builder.Property(e => e.ScrimMatchRound).HasDefaultValue(-1);
+            builder.Property(e => e.ExperienceGainAmount).HasDefaultValue(0);
+            builder.Property(e => e.Points).HasDefaultValue(0);
 
             builder.Ignore(e => e.ScrimMatch);
             builder.Ignore(e => e.AttackerParticipatingPlayer);
             builder.Ignore(e => e.VictimParticipatingPlayer);
-            builder.Ignore(e => e.AttackerFaction);
-            builder.Ignore(e => e.VictimFaction);
-            builder.Ignore(e => e.Weapon);
-            builder.Ignore(e => e.WeaponItemCategory);
-            builder.Ignore(e => e.AttackerVehicle);
+            //builder.Ignore(e => e.AttackerFaction);
+            //builder.Ignore(e => e.VictimFaction);
             builder.Ignore(e => e.World);
             builder.Ignore(e => e.Zone);
         }
