@@ -149,10 +149,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     case "GainExperience":
                         var experienceParam = jPayload.ToObject<GainExperiencePayload>(_payloadDeserializer);
-                        await Task.Run(() =>
-                        {
-                            Process(experienceParam);
-                        });
+                        await Process(experienceParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(experienceParam);
+                        //});
                         break;
 
                     case "FacilityControl":
@@ -866,7 +867,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         #region GainExperience Payloads
         //private Task<GainExperience> Process(GainExperiencePayload payload)
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
-        private void Process(GainExperiencePayload payload)
+        private async Task Process(GainExperiencePayload payload)
         {
             if (!_experienceFilter.TryFilterNewPayload(payload))
             {
@@ -892,46 +893,53 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 LoadoutId = payload.LoadoutId
             };
 
-            switch (experienceType)
+            try
             {
-                case ExperienceType.Revive:
-                    ProcessRevivePayload(baseEvent, payload);
-                    return;
+                switch (experienceType)
+                {
+                    case ExperienceType.Revive:
+                        await ProcessRevivePayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.DamageAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.DamageAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.UtilityAssist:
-                    //ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.UtilityAssist:
+                        //ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.PointControl:
-                    ProcessPointControlPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.PointControl:
+                        ProcessPointControlPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.GrenadeAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.GrenadeAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.HealSupportAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.HealSupportAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.ProtectAlliesAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.ProtectAlliesAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.SpotAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.SpotAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                default:
-                    return;
+                    default:
+                        return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
             }
         }
 
-        private void ProcessRevivePayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        private async Task ProcessRevivePayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
             var reviveEvent = new ScrimReviveActionEvent(baseEvent);
 
@@ -970,6 +978,37 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     var points = _scorer.ScoreReviveEvent(reviveEvent);
                     reviveEvent.Points = points;
+
+                    var currentMatchId = _scrimMatchService.CurrentMatchId;
+                    var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                    if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                    {
+                        var dataModel = new ScrimRevive
+                        {
+                            ScrimMatchId = currentMatchId,
+                            Timestamp = reviveEvent.Timestamp,
+                            MedicCharacterId = reviveEvent.MedicPlayer.Id,
+                            RevivedCharacterId = reviveEvent.RevivedPlayer.Id,
+                            ScrimMatchRound = currentRound,
+                            ActionType = reviveEvent.ActionType,
+                            MedicTeamOrdinal = reviveEvent.MedicPlayer.TeamOrdinal,
+                            RevivedTeamOrdinal = reviveEvent.RevivedPlayer.TeamOrdinal,
+                            MedicLoadoutId = reviveEvent.MedicPlayer?.LoadoutId != null ? reviveEvent.MedicPlayer.LoadoutId : null,
+                            RevivedLoadoutId = reviveEvent.RevivedPlayer?.LoadoutId != null ? reviveEvent.RevivedPlayer.LoadoutId : null,
+                            ExperienceGainId = reviveEvent.ExperienceGainInfo.Id,
+                            ExperienceGainAmount = reviveEvent.ExperienceGainInfo.Amount,
+                            ZoneId = (int)reviveEvent.ZoneId,
+                            WorldId = payload.WorldId,
+                            Points = reviveEvent.Points,
+                        };
+
+                        using var factory = _dbContextHelper.GetFactory();
+                        var dbContext = factory.GetDbContext();
+
+                        dbContext.ScrimRevives.Add(dataModel);
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
             }
 
@@ -992,7 +1031,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         : ScrimActionType.ReviveInfantry;
         }
 
-        private void ProcessAssistPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        private async Task ProcessAssistPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
             var assistEvent = new ScrimAssistActionEvent(baseEvent);
 
@@ -1031,6 +1070,27 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     var points = _scorer.ScoreAssistEvent(assistEvent);
                     assistEvent.Points = points;
+
+                    var currentMatchId = _scrimMatchService.CurrentMatchId;
+                    var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                    if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                    {
+                        switch (assistEvent.ActionType)
+                        {
+                            case ScrimActionType.DamageAssist:
+                                await SaveScrimDamageAssistToDb(assistEvent, currentMatchId, currentRound, payload.WorldId);
+                                break;
+
+                            case ScrimActionType.GrenadeAssist:
+                                await SaveScrimGrenadeAssistToDb(assistEvent, currentMatchId, currentRound, payload.WorldId);
+                                break;
+
+                            case ScrimActionType.SpotAssist:
+                                await SaveScrimSpotAssistToDb(assistEvent, currentMatchId, currentRound, payload.WorldId);
+                                break;
+                        };
+                    }
                 }
             }
 
@@ -1059,6 +1119,90 @@ namespace squittal.ScrimPlanetmans.CensusStream
             //return assistEvent.ExperienceType == ExperienceType.DamageAssist
             //            ? ScrimActionType.DamageAssist
             //            : ScrimActionType.UtilityAssist;
+        }
+
+        private async Task SaveScrimDamageAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
+        {
+            var dataModel = new ScrimDamageAssist
+            {
+                ScrimMatchId = matchId,
+                Timestamp = assistEvent.Timestamp,
+                AttackerCharacterId = assistEvent.AttackerPlayer.Id,
+                VictimCharacterId = assistEvent.VictimPlayer.Id,
+                ScrimMatchRound = matchRound,
+                ActionType = assistEvent.ActionType,
+                AttackerTeamOrdinal = assistEvent.AttackerPlayer.TeamOrdinal,
+                VictimTeamOrdinal = assistEvent.VictimPlayer.TeamOrdinal,
+                AttackerLoadoutId = assistEvent.AttackerPlayer?.LoadoutId != null ? assistEvent.AttackerPlayer.LoadoutId : null,
+                VictimLoadoutId = assistEvent.VictimPlayer?.LoadoutId != null ? assistEvent.VictimPlayer.LoadoutId : null,
+                ExperienceGainId = assistEvent.ExperienceGainInfo.Id,
+                ExperienceGainAmount = assistEvent.ExperienceGainInfo.Amount,
+                ZoneId = assistEvent.ZoneId != null ? assistEvent.ZoneId : null,
+                WorldId = worldId,
+                Points = assistEvent.Points,
+            };
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimDamageAssists.Add(dataModel);
+            await dbContext.SaveChangesAsync();
+        }
+
+        private async Task SaveScrimGrenadeAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
+        {
+            var dataModel = new ScrimGrenadeAssist
+            {
+                ScrimMatchId = matchId,
+                Timestamp = assistEvent.Timestamp,
+                AttackerCharacterId = assistEvent.AttackerPlayer.Id,
+                VictimCharacterId = assistEvent.VictimPlayer.Id,
+                ScrimMatchRound = matchRound,
+                ActionType = assistEvent.ActionType,
+                AttackerTeamOrdinal = assistEvent.AttackerPlayer.TeamOrdinal,
+                VictimTeamOrdinal = assistEvent.VictimPlayer.TeamOrdinal,
+                AttackerLoadoutId = assistEvent.AttackerPlayer?.LoadoutId != null ? assistEvent.AttackerPlayer.LoadoutId : null,
+                VictimLoadoutId = assistEvent.VictimPlayer?.LoadoutId != null ? assistEvent.VictimPlayer.LoadoutId : null,
+                ExperienceGainId = assistEvent.ExperienceGainInfo.Id,
+                ExperienceGainAmount = assistEvent.ExperienceGainInfo.Amount,
+                ZoneId = assistEvent.ZoneId != null ? assistEvent.ZoneId : null,
+                WorldId = worldId,
+                Points = assistEvent.Points,
+            };
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimGrenadeAssists.Add(dataModel);
+            await dbContext.SaveChangesAsync();
+        }
+
+        private async Task SaveScrimSpotAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
+        {
+            var dataModel = new ScrimSpotAssist
+            {
+                ScrimMatchId = matchId,
+                Timestamp = assistEvent.Timestamp,
+                SpotterCharacterId = assistEvent.AttackerPlayer.Id,
+                VictimCharacterId = assistEvent.VictimPlayer.Id,
+                ScrimMatchRound = matchRound,
+                ActionType = assistEvent.ActionType,
+                SpotterTeamOrdinal = assistEvent.AttackerPlayer.TeamOrdinal,
+                VictimTeamOrdinal = assistEvent.VictimPlayer.TeamOrdinal,
+                SpotterLoadoutId = assistEvent.AttackerPlayer?.LoadoutId != null ? assistEvent.AttackerPlayer.LoadoutId : null,
+                VictimLoadoutId = assistEvent.VictimPlayer?.LoadoutId != null ? assistEvent.VictimPlayer.LoadoutId : null,
+                ExperienceGainId = assistEvent.ExperienceGainInfo.Id,
+                ExperienceGainAmount = assistEvent.ExperienceGainInfo.Amount,
+                ZoneId = assistEvent.ZoneId != null ? assistEvent.ZoneId : null,
+                WorldId = worldId,
+                Points = assistEvent.Points,
+            };
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimSpotAssist.Add(dataModel);
+            await dbContext.SaveChangesAsync();
         }
 
         private void ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
@@ -1185,7 +1329,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         ActionType = controlEvent.ActionType,
                         ControlType = controlEvent.ControlType,
                         ControllingFactionId = (int)controllingFaction,
-                        ZoneId = controlEvent.ZoneId,
+                        ZoneId = controlEvent.ZoneId != null ? controlEvent.ZoneId : (int?)null,
                         WorldId = payload.WorldId,
                         Points = controlEvent.Points,
                     };
