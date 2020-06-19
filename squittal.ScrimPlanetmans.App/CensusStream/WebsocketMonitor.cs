@@ -256,6 +256,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             return Task.FromResult((object)_lastHeartbeat);
         }
 
+        #pragma warning disable CS1998
         private async Task OnMessage(string message)
         {
             if (message == null)
@@ -297,6 +298,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 #pragma warning restore CS4014
             }
         }
+        #pragma warning restore CS1998
 
         private Task OnDisconnect(string error)
         {
