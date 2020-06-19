@@ -224,14 +224,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        public bool UdatePlayerTemporaryAlias(string playerId, string newAlias)
+        #pragma warning disable CS1998
+        public async Task<bool> UdatePlayerTemporaryAlias(string playerId, string newAlias)
         {
             var player = GetPlayerFromId(playerId);
             var oldAlias = (player.NameDisplay != player.NameFull) ? player.NameDisplay : string.Empty;
 
             if (player.TrySetNameAlias(newAlias))
             {
+                // Send message before updating database so UI/Overlay get updates faster
                 _messageService.BroadcastPlayerNameDisplayChangeMessage(new PlayerNameDisplayChangeMessage(player, newAlias, oldAlias));
+
+                if (player.IsParticipating)
+                {
+                    //await _matchDataService.SaveMatchParticipatingPlayer(player);
+
+                    #pragma warning disable CS4014
+                    Task.Run(() =>
+                    {
+                        _matchDataService.SaveMatchParticipatingPlayer(player);
+                    }).ConfigureAwait(false);
+                    #pragma warning restore CS4014
+                }
+                
                 return true;
             }
             else
@@ -240,8 +255,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
         }
+        #pragma warning restore CS1998
 
-        public void ClearPlayerDisplayName(string playerId)
+        #pragma warning disable CS1998
+        public async Task ClearPlayerDisplayName(string playerId)
         {
             var player = GetPlayerFromId(playerId);
 
@@ -253,8 +270,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var oldAlias = (player.NameDisplay != player.NameFull) ? player.NameDisplay : string.Empty;
 
             player.ClearAllDisplayNameSources();
+
+            // Send message before updating database so UI/Overlay get updates faster
             _messageService.BroadcastPlayerNameDisplayChangeMessage(new PlayerNameDisplayChangeMessage(player, string.Empty, oldAlias));
+
+            if (player.IsParticipating)
+            {
+                //await _matchDataService.SaveMatchParticipatingPlayer(player);
+
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    _matchDataService.SaveMatchParticipatingPlayer(player);
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
+            }    
         }
+        #pragma warning restore CS1998
 
         public async Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString)
         {
@@ -357,6 +389,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
+        #region Add Entities To Teams
         // Returns whether specified character was added to the specified team
         public async Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId)
         {
@@ -583,6 +616,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return anyPlayersAdded;
         }
+        #endregion Add Entities To Teams
 
         public async Task<bool> RefreshOutfitPlayers(string aliasLower)
         {
@@ -662,6 +696,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersAdded;
         }
 
+        #region Remove Entities From Teams
         public async Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower)
         {
             var outfit = GetTeamFromOutfitAlias(aliasLower).Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
@@ -742,22 +777,57 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task RemoveOutfitMatchDataFromDb(string outfitId, int teamOrdinal)
         {
-            var TaskList = new List<Task>();
+            var currentMatchId = _matchDataService.CurrentMatchId;
 
-            var deathsTask = RemoveOutfitMatchDeathsFromDb(outfitId, teamOrdinal);
-            TaskList.Add(deathsTask);
-
-            var destructionsTask = RemoveOutfitMatchVehicleDestructionsFromDb(outfitId);
-            TaskList.Add(destructionsTask);
-
-            await Task.WhenAll(TaskList);
-
-            var currentMatchRound = _matchDataService.CurrentMatchRound;
-
-            if (currentMatchRound > 0)
+            if (string.IsNullOrWhiteSpace(currentMatchId))
             {
-                await SaveTeamMatchResultsToDb(teamOrdinal);
+                return;
             }
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var participatingPlayers = await dbContext.ScrimMatchParticipatingPlayers
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && e.TeamOrdinal == teamOrdinal
+                                                                    && e.IsFromOutfit
+                                                                    && e.OutfitId == outfitId)
+                                                        .ToListAsync();
+
+                List<Task> TaskList = new List<Task>();
+
+                foreach (var player in participatingPlayers)
+                {
+                    var removePlayerTask = RemoveCharacterMatchDataFromDb(player.CharacterId, teamOrdinal);
+                    TaskList.Add(removePlayerTask);
+                }
+
+                await Task.WhenAll(TaskList);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+
+            //var TaskList = new List<Task>();
+
+            //var deathsTask = RemoveOutfitMatchDeathsFromDb(outfitId, teamOrdinal);
+            //TaskList.Add(deathsTask);
+
+            //var destructionsTask = RemoveOutfitMatchVehicleDestructionsFromDb(outfitId);
+            //TaskList.Add(destructionsTask);
+
+            //await Task.WhenAll(TaskList);
+
+            //var currentMatchRound = _matchDataService.CurrentMatchRound;
+
+            //if (currentMatchRound > 0)
+            //{
+            //    await SaveTeamMatchResultsToDb(teamOrdinal);
+            //}
         }
 
         private async Task RemoveOutfitMatchDeathsFromDb(string outfitId, int teamOrdinal)
@@ -1009,6 +1079,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public async Task<bool> RemoveConstructedTeamFactionFromTeamAndDb(int constructedTeamId, int factionId)
+        {
+            var success = RemoveConstructedTeamFactionFromTeam(constructedTeamId, factionId);
+
+            if (!success)
+            {
+                return false;
+            }
+
+            await RemoveConstructedTeamFactionMatchDataFromDb(constructedTeamId, factionId);
+
+            return true;
+        }
+
         public bool RemoveConstructedTeamFactionFromTeam(int constructedTeamId, int factionId)
         {
             //var team = GetTeamFromConstructedTeamId(constructedTeamId);
@@ -1071,6 +1155,53 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return anyPlayersRemoved;
         }
 
+        private async Task RemoveConstructedTeamFactionMatchDataFromDb(int constructedTeamId, int factionId)
+        {
+            var team = GetTeamFromConstructedTeamFaction(constructedTeamId, factionId);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            var teamOrdinal = team.TeamOrdinal;
+
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            if (string.IsNullOrWhiteSpace(currentMatchId))
+            {
+                return;
+            }
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var participatingPlayers = await dbContext.ScrimMatchParticipatingPlayers
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && e.IsFromConstructedTeam
+                                                                    && e.ConstructedTeamId == constructedTeamId
+                                                                    && e.FactionId == factionId)
+                                                        .ToListAsync();
+
+                List<Task> TaskList = new List<Task>();
+
+                foreach (var player in participatingPlayers)
+                {
+                    var removePlayerTask = RemoveCharacterMatchDataFromDb(player.CharacterId, teamOrdinal);
+                    TaskList.Add(removePlayerTask);
+                }
+
+                await Task.WhenAll(TaskList);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
         public async Task<bool> RemoveCharacterFromTeamAndDb(string characterId)
         {
             var teamOrdinal = GetTeamOrdinalFromPlayerId(characterId);
@@ -1110,6 +1241,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TaskList.Add(spotAssistsTask);
 
             await Task.WhenAll(TaskList);
+
+            await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId); // TODO: add this to TaskList?
 
             var currentMatchRound = _matchDataService.CurrentMatchRound;
 
@@ -2062,7 +2195,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return false;
         }
+        #endregion Remove Entities From Teams
 
+
+        #region Clear Teams
         public void ClearAllTeams()
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
@@ -2115,8 +2251,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.ClearEventAggregateHistory();
             // TODO: broadcast "Finished Clearing Team" message
         }
+        #endregion Clear Teams
 
-
+        #region Roll Back Round
         public async Task RollBackAllTeamStats(int currentRound)
         {
             var TaskList = new List<Task>();
@@ -2174,19 +2311,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var TaskList = new List<Task>();
 
-            var deathsTask = RemoveAllMatchRoundhDeathsFromDb(roundToRemove);
+            var deathsTask = RemoveAllMatchRoundDeathsFromDb(roundToRemove);
             TaskList.Add(deathsTask);
 
-            var destructionsTask = RemoveAllMatchRoundhVehicleDestructionsFromDb(roundToRemove);
+            var destructionsTask = RemoveAllMatchRoundVehicleDestructionsFromDb(roundToRemove);
             TaskList.Add(destructionsTask);
             
-            var controlsTask = RemoveAllMatchRoundhFacilityControlsFromDb(roundToRemove);
+            var revivesTask = RemoveAllMatchRoundRevivesFromDb(roundToRemove);
+            TaskList.Add(revivesTask);
+            
+            var damageAssistsTask = RemoveAllMatchRoundDamageAssistsFromDb(roundToRemove);
+            TaskList.Add(damageAssistsTask);
+            
+            var grenadeAssistsTask = RemoveAllMatchRoundGrenadeAssistsFromDb(roundToRemove);
+            TaskList.Add(grenadeAssistsTask);
+            
+            var spotAssistsTask = RemoveAllMatchRoundSpotAssistsFromDb(roundToRemove);
+            TaskList.Add(spotAssistsTask);
+            
+            var controlsTask = RemoveAllMatchRoundFacilityControlsFromDb(roundToRemove);
             TaskList.Add(controlsTask);
 
             await Task.WhenAll(TaskList);
         }
 
-        private async Task RemoveAllMatchRoundhDeathsFromDb(int roundToRemove)
+        private async Task RemoveAllMatchRoundDeathsFromDb(int roundToRemove)
         {
             var currentMatchId = _matchDataService.CurrentMatchId;
 
@@ -2212,7 +2361,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private async Task RemoveAllMatchRoundhVehicleDestructionsFromDb(int roundToRemove)
+        private async Task RemoveAllMatchRoundVehicleDestructionsFromDb(int roundToRemove)
         {
             var currentMatchId = _matchDataService.CurrentMatchId;
 
@@ -2236,7 +2385,103 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private async Task RemoveAllMatchRoundhFacilityControlsFromDb(int roundToRemove)
+        private async Task RemoveAllMatchRoundRevivesFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var revivesToRemove = dbContext.ScrimRevives
+                                                .Where(e => e.ScrimMatchId == currentMatchId
+                                                            && e.ScrimMatchRound == roundToRemove)
+                                                .AsEnumerable();
+
+                dbContext.ScrimRevives.RemoveRange(revivesToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private async Task RemoveAllMatchRoundDamageAssistsFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var damageAssistsToRemove = dbContext.ScrimDamageAssists
+                                                .Where(e => e.ScrimMatchId == currentMatchId
+                                                            && e.ScrimMatchRound == roundToRemove)
+                                                .AsEnumerable();
+
+                dbContext.ScrimDamageAssists.RemoveRange(damageAssistsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private async Task RemoveAllMatchRoundGrenadeAssistsFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var grenadeAssistsToRemove = dbContext.ScrimGrenadeAssists
+                                                .Where(e => e.ScrimMatchId == currentMatchId
+                                                            && e.ScrimMatchRound == roundToRemove)
+                                                .AsEnumerable();
+
+                dbContext.ScrimGrenadeAssists.RemoveRange(grenadeAssistsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private async Task RemoveAllMatchRoundSpotAssistsFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var spotAssistsToRemove = dbContext.ScrimSpotAssists
+                                                .Where(e => e.ScrimMatchId == currentMatchId
+                                                            && e.ScrimMatchRound == roundToRemove)
+                                                .AsEnumerable();
+
+                dbContext.ScrimSpotAssists.RemoveRange(spotAssistsToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private async Task RemoveAllMatchRoundFacilityControlsFromDb(int roundToRemove)
         {
             var currentMatchId = _matchDataService.CurrentMatchId;
 
@@ -2261,6 +2506,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
         }
+        #endregion Roll Back Round
+
         private bool TryUpdateMaxPlayerPointsTrackerFromTeam(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);

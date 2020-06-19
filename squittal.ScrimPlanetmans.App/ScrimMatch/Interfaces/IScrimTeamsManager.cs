@@ -72,13 +72,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam);
         Team GetTeamFromConstructedTeamId(int constructedTeamId);
 
-        bool UdatePlayerTemporaryAlias(string playerId, string newAlias);
-        void ClearPlayerDisplayName(string playerId);
+        //bool UdatePlayerTemporaryAlias(string playerId, string newAlias);
+        Task<bool> UdatePlayerTemporaryAlias(string playerId, string newAlias);
+        //void ClearPlayerDisplayName(string playerId);
+        Task ClearPlayerDisplayName(string playerId);
         bool IsConstructedTeamAvailable(int constructedTeamId);
         Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId);
         IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower);
         IEnumerable<Player> GetTeamNonOutfitPlayers(int teamOrdinal);
         IEnumerable<Player> GetTeamConstructedTeamFactionPlayers(int teamOrdinal, int constructedTeamId, int factionId);
+        Task<bool> RemoveConstructedTeamFactionFromTeamAndDb(int constructedTeamId, int factionId);
         bool RemoveConstructedTeamFactionFromTeam(int constructedTeamId, int factionId);
         bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId, out Team owningTeam);
         bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId);
