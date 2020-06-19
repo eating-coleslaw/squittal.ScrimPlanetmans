@@ -47,10 +47,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool IsOutfitAvailable(string alias);
         Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString);
 
-        void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
+        //void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
+        Task UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
         void SetPlayerOnlineStatus(string characterId, bool isOnline);
         void SetPlayerLoadoutId(string characterId, int? loadoutId);
-        void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
+        //void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
+        Task SetPlayerParticipatingStatus(string characterId, bool isParticipating);
         void SetPlayerBenchedStatus(string characterId, bool isBenched);
 
         Task SaveRoundEndScores(int round);

@@ -55,7 +55,7 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<ScrimVehicleDestruction> ScrimVehicleDestructions { get; set; }
         public DbSet<ScrimDamageAssist> ScrimDamageAssists { get; set; }
         public DbSet<ScrimGrenadeAssist> ScrimGrenadeAssists { get; set; }
-        public DbSet<ScrimSpotAssist> ScrimSpotAssist { get; set; }
+        public DbSet<ScrimSpotAssist> ScrimSpotAssists { get; set; }
         public DbSet<ScrimRevive> ScrimRevives { get; set; }
         public DbSet<ScrimFacilityControl> ScrimFacilityControls { get; set; }
 

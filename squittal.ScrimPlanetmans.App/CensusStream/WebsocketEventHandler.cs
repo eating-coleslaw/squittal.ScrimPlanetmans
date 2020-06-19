@@ -272,7 +272,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled)
                     {
-                        var points = _scorer.ScoreDeathEvent(deathEvent);
+                        var points = await _scorer.ScoreDeathEvent(deathEvent);
                         deathEvent.Points = points;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
@@ -538,7 +538,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled)
                     {
-                        var points = _scorer.ScoreVehicleDestructionEvent(destructionEvent);
+                        var points = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
                         destructionEvent.Points = points;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
@@ -910,7 +910,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         return;
 
                     case ExperienceType.PointControl:
-                        ProcessPointControlPayload(baseEvent, payload);
+                        await ProcessPointControlPayload(baseEvent, payload);
                         return;
 
                     case ExperienceType.GrenadeAssist:
@@ -976,7 +976,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreReviveEvent(reviveEvent);
+                    var points = await _scorer.ScoreReviveEvent(reviveEvent);
                     reviveEvent.Points = points;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
@@ -1068,7 +1068,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreAssistEvent(assistEvent);
+                    var points = await _scorer.ScoreAssistEvent(assistEvent);
                     assistEvent.Points = points;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
@@ -1201,11 +1201,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            dbContext.ScrimSpotAssist.Add(dataModel);
+            dbContext.ScrimSpotAssists.Add(dataModel);
             await dbContext.SaveChangesAsync();
         }
 
-        private void ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        private async Task ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
             var controlEvent = new ScrimObjectiveTickActionEvent(baseEvent);
 
@@ -1231,7 +1231,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreObjectiveTickEvent(controlEvent);
+                    var points = await _scorer.ScoreObjectiveTickEvent(controlEvent);
                     controlEvent.Points = points;
                 }
             }

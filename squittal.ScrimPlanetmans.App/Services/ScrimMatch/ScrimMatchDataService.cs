@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Data.Models;
 using squittal.ScrimPlanetmans.Models.ScrimEngine;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -169,6 +170,91 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 IsManualWorldId = matchConfiguration.IsManualWorldId,
                 FacilityId = matchConfiguration.FacilityId > 0 ? matchConfiguration.FacilityId : (int?)null,
                 IsRoundEndedOnFacilityCapture = matchConfiguration.EndRoundOnFacilityCapture
+            };
+        }
+
+        public async Task SaveMatchParticipatingPlayer(Player player)
+        {
+            var matchId = CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeEntity = await dbContext.ScrimMatchParticipatingPlayers
+                                            .Where(p => p.CharacterId == player.Id && p.ScrimMatchId == matchId)
+                                            .FirstOrDefaultAsync();
+
+                if (storeEntity == null)
+                {
+                    dbContext.ScrimMatchParticipatingPlayers.Add(ConvertToDbModel(player, matchId));
+                }
+                else
+                {
+                    storeEntity = ConvertToDbModel(player, matchId);
+                    dbContext.ScrimMatchParticipatingPlayers.Update(storeEntity);
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        public async Task<bool> TryRemoveMatchParticipatingPlayer(string characterId)
+        {
+            var matchId = CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeEntity = await dbContext.ScrimMatchParticipatingPlayers
+                                            .Where(p => p.CharacterId == characterId && p.ScrimMatchId == matchId)
+                                            .FirstOrDefaultAsync();
+
+                if (storeEntity == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    dbContext.ScrimMatchParticipatingPlayers.Remove(storeEntity);
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return false;
+            }
+        }
+
+        private ScrimMatchParticipatingPlayer ConvertToDbModel(Player player, string matchId)
+        {
+            return new ScrimMatchParticipatingPlayer
+            {
+                ScrimMatchId = matchId,
+                CharacterId = player.Id,
+                TeamOrdinal = player.TeamOrdinal,
+                NameFull = player.NameFull,
+                NameDisplay = player.NameDisplay,
+                FactionId = player.FactionId,
+                WorldId = player.WorldId,
+                PrestigeLevel = player.PrestigeLevel,
+                IsFromOutfit = !player.IsOutfitless,
+                OutfitId = player.IsOutfitless ? null : player.OutfitId,
+                OutfitAlias = player.IsOutfitless ? null : player.OutfitAlias,
+                IsFromConstructedTeam = player.IsFromConstructedTeam,
+                ConstructedTeamId = player.IsFromConstructedTeam ? player.ConstructedTeamId : null
             };
         }
     }
