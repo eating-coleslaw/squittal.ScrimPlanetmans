@@ -50,7 +50,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return GrenadeAssists + SpotAssists + HealSupportAssists + ProtectAlliesAssists;
+                return GrenadeAssists + SpotAssists; // + HealSupportAssists + ProtectAlliesAssists;
             }
         }
         public int Assists
@@ -72,7 +72,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return GrenadeAssistedDeaths + SpotAssistedDeaths + ProtectAlliesAssistedDeaths;
+                return GrenadeAssistedDeaths + SpotAssistedDeaths; // + ProtectAlliesAssistedDeaths;
             }
         }
 
@@ -137,7 +137,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return (Kills + Deaths + RevivesGiven + RevivesTaken + Assists + ObjectiveTicks);
+                return (Kills + Deaths + RevivesGiven + RevivesTaken + Assists + ObjectiveTicks + VehiclesDestroyed + VehiclesLost);
             }
         }
 
