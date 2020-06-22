@@ -712,6 +712,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await RemoveOutfitMatchDataFromDb(outfitId, teamOrdinal);
 
+            await UpdateMatchParticipatingPlayers();
+
             return true;
         }
 
@@ -1090,6 +1092,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await RemoveConstructedTeamFactionMatchDataFromDb(constructedTeamId, factionId);
 
+            await UpdateMatchParticipatingPlayers();
+
             return true;
         }
 
@@ -1214,6 +1218,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             await RemoveCharacterMatchDataFromDb(characterId, (int)teamOrdinal);
+
+            await UpdateMatchParticipatingPlayers();
 
             return true;
         }
@@ -1449,6 +1455,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var character in distinctCharacterIds)
                 {
                     var player = GetPlayerFromId(character);
+
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
                     player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
 
                     SendPlayerStatUpdateMessage(player);
@@ -1632,6 +1644,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var character in distinctCharacterIds)
                 {
                     var player = GetPlayerFromId(character);
+
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
                     player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
 
                     SendPlayerStatUpdateMessage(player);
@@ -1790,6 +1808,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var character in distinctCharacterIds)
                 {
                     var player = GetPlayerFromId(character);
+
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
                     player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
 
                     SendPlayerStatUpdateMessage(player);
@@ -1948,6 +1972,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var character in distinctCharacterIds)
                 {
                     var player = GetPlayerFromId(character);
+
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
                     player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
 
                     SendPlayerStatUpdateMessage(player);
@@ -2106,6 +2136,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var character in distinctCharacterIds)
                 {
                     var player = GetPlayerFromId(character);
+
+                    if (player == null)
+                    {
+                        continue;
+                    }
+
                     player.EventAggregateTracker.SubtractFromHistory(playerUpdates[character]);
 
                     SendPlayerStatUpdateMessage(player);
@@ -2195,6 +2231,46 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return false;
         }
+
+        private async Task UpdateMatchParticipatingPlayers()
+        {
+            var matchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var allMatchParticipatingPlayerIds = await dbContext.ScrimMatchParticipatingPlayers
+                                                            .Where(e => e.ScrimMatchId == matchId)
+                                                            .Select(e => e.CharacterId)
+                                                            .ToListAsync();
+
+                if (!allMatchParticipatingPlayerIds.Any())
+                {
+                    return;
+                }
+
+                var TaskList = new List<Task>();
+
+                foreach (var playerId in allMatchParticipatingPlayerIds)
+                {
+                    var player = GetPlayerFromId(playerId);
+
+                    if (!player.EventAggregateTracker.RoundHistory.Any() || player.EventAggregate.Events == 0)
+                    {
+                        var playerTask = SetPlayerParticipatingStatus(playerId, false);
+                        TaskList.Add(playerTask);
+                    }
+                }
+
+                await Task.WhenAll(TaskList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+            }
+        }
         #endregion Remove Entities From Teams
 
 
@@ -2269,6 +2345,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var eventsDbTask = RemoveAllMatchRoundEventsFromDb(currentRound);
             TaskList.Add(eventsDbTask);
+
+            var participatingPlayersTask = UpdateMatchParticipatingPlayers();
+            TaskList.Add(participatingPlayersTask);
 
             await Task.WhenAll(TaskList);
         }
