@@ -41,6 +41,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     FacilityId = table.Column<int>(nullable: false),
                     ControllingTeamOrdinal = table.Column<int>(nullable: false),
                     ScrimMatchRound = table.Column<int>(nullable: false),
+                    ActionType = table.Column<int>(nullable: false),
                     ControlType = table.Column<int>(nullable: false),
                     ControllingFactionId = table.Column<int>(nullable: false),
                     ZoneId = table.Column<int>(nullable: true),

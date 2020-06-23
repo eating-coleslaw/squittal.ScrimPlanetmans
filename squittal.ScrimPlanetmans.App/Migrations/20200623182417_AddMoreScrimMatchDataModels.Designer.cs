@@ -10,8 +10,8 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20200619184306_AddActionTypeToScrimFacilityControl")]
-    partial class AddActionTypeToScrimFacilityControl
+    [Migration("20200623182417_AddMoreScrimMatchDataModels")]
+    partial class AddMoreScrimMatchDataModels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
