@@ -10,16 +10,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
         {
             builder.ToTable("ScrimVehicleDestruction");
 
-            //builder.HasKey(e => new
-            //{
-            //    e.ScrimMatchId,
-            //    e.Timestamp,
-            //    e.AttackerCharacterId,
-            //    e.VictimCharacterId,
-            //    e.AttackerVehicleId,
-            //    e.VictimVehicleId
-            //});
-
             builder.HasKey(e => new
             {
                 e.ScrimMatchId,

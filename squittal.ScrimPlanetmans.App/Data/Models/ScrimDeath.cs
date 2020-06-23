@@ -19,6 +19,7 @@ namespace squittal.ScrimPlanetmans.Data.Models
         [Required]
         public string VictimCharacterId { get; set; }
 
+        [Required]
         public int ScrimMatchRound { get; set; }
 
         public ScrimActionType ActionType { get; set; }
@@ -48,8 +49,8 @@ namespace squittal.ScrimPlanetmans.Data.Models
         public bool? IsVehicleWeapon { get; set; }
         public int? AttackerVehicleId { get; set; }
 
-        public int WorldId { get; set; }
         public int ZoneId { get; set; }
+        public int WorldId { get; set; }
 
         public int Points { get; set; }
         public int? AttackerResultingPoints { get; set; }
@@ -59,6 +60,8 @@ namespace squittal.ScrimPlanetmans.Data.Models
 
         #region Navigation Properties
         public ScrimMatch ScrimMatch { get; set; }
+        public ScrimMatchParticipatingPlayer AttackerParticipatingPlayer { get; set; }
+        public ScrimMatchParticipatingPlayer VictimParticipatingPlayer { get; set; }
         public Faction AttackerFaction { get; set; }
         public Faction VictimFaction { get; set; }
         public Item Weapon { get; set; }

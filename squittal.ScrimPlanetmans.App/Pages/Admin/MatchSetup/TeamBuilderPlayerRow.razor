@@ -228,7 +228,7 @@
         }
     }
 
-    private void HandleTemporaryAliasSubmit()
+    private async void HandleTemporaryAliasSubmit()
     {
         var newAlias = _inputTemporaryAlias;
 
@@ -237,7 +237,7 @@
             return;
         }
 
-        if (ScrimTeamsManager.UdatePlayerTemporaryAlias(Player.Id, newAlias))
+        if (await ScrimTeamsManager.UdatePlayerTemporaryAlias(Player.Id, newAlias))
         {
             _inputTemporaryAlias = Player.NameDisplay;
             _showTemporaryAliasEditForm = false;
@@ -251,9 +251,9 @@
         _inputTemporaryAlias = Player.NameDisplay;
     }
 
-    private void HandleClearDisplayName()
+    private async void HandleClearDisplayName()
     {
-        ScrimTeamsManager.ClearPlayerDisplayName(Player.Id);
+        await ScrimTeamsManager.ClearPlayerDisplayName(Player.Id);
         _inputTemporaryAlias = Player.NameDisplay;
         _showTemporaryAliasEditForm = false;
     }

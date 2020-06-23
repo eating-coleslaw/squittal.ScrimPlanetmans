@@ -268,11 +268,12 @@ else
     #endregion Initialization Methods
 
     #region  Form Submission & Validation
-    private void RemoveConstructedTeam()
+    private async void RemoveConstructedTeam()
     {
         if (!_isLoadingMembers)
         {
-            TeamsManager.RemoveConstructedTeamFactionFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
+            //TeamsManager.RemoveConstructedTeamFactionFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
+            await TeamsManager.RemoveConstructedTeamFactionFromTeamAndDb(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
         }
     }
     #endregion Form Submission & Validation

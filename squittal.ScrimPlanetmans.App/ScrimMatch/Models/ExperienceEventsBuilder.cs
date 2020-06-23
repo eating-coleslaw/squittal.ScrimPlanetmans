@@ -37,17 +37,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public static int[] UtilityAssistIds =
         {
+            /*
             5,      // Heal Assis (5xp)
             438,    // Shield Repair (10xp)
             439,    // Squad Shield Repair (15xp)
+            1393,   // Hardlight Cover - Blocking Exp (placeholder until code is done) (50xp)
+            1394,   // Draw Fire Award (25xp)
+            */
             550,    // Concussion Grenade Assist (50xp)
             551,    // Concussion Grenade Squad Assist (75xp)
             552,    // EMP Grenade Assist (50xp)
             553,    // EMP Grenade Squad Assist (75xp)
             554,    // Flashbang Assist (50xp)
             555,    // Flashbang Squad Assist (75xp)
-            1393,   // Hardlight Cover - Blocking Exp (placeholder until code is done) (50xp)
-            1394,   // Draw Fire Award (25xp)
             36,     // Spot Kill (20xp)
             54      // Squad Spot Kill (30xp)
         };

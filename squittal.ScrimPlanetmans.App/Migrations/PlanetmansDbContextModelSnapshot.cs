@@ -59,6 +59,62 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("ConstructedTeamPlayerMembership");
                 });
 
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimDamageAssist", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AttackerCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("VictimCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AttackerLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AttackerTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExperienceGainAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ExperienceGainId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VictimLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VictimTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp", "AttackerCharacterId", "VictimCharacterId");
+
+                    b.ToTable("ScrimDamageAssist");
+                });
+
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimDeath", b =>
                 {
                     b.Property<string>("ScrimMatchId")
@@ -167,6 +223,104 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("ScrimDeath");
                 });
 
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimFacilityControl", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FacilityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ControllingTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ControlType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ControllingFactionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp", "FacilityId", "ControllingTeamOrdinal");
+
+                    b.ToTable("ScrimFacilityControl");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimGrenadeAssist", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AttackerCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("VictimCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AttackerLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AttackerTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExperienceGainAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ExperienceGainId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VictimLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VictimTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp", "AttackerCharacterId", "VictimCharacterId");
+
+                    b.ToTable("ScrimGrenadeAssist");
+                });
+
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatch", b =>
                 {
                     b.Property<string>("Id")
@@ -181,6 +335,91 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ScrimMatch");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatchParticipatingPlayer", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ConstructedTeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FactionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsFromConstructedTeam")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsFromOutfit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("NameDisplay")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameFull")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OutfitAlias")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OutfitId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PrestigeLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "CharacterId");
+
+                    b.ToTable("ScrimMatchParticipatingPlayer");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatchRoundConfiguration", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FacilityId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsManualWorldId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsRoundEndedOnFacilityCapture")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("RoundSecondsTotal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "ScrimMatchRound");
+
+                    b.ToTable("ScrimMatchRoundConfiguration");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatchTeamPointAdjustment", b =>
@@ -316,6 +555,118 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.HasKey("ScrimMatchId", "TeamOrdinal");
 
                     b.ToTable("ScrimMatchTeamResult");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimRevive", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MedicCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RevivedCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExperienceGainAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ExperienceGainId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MedicLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MedicTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int?>("RevivedLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RevivedTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp", "MedicCharacterId", "RevivedCharacterId");
+
+                    b.ToTable("ScrimRevive");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimSpotAssist", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SpotterCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("VictimCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExperienceGainAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ExperienceGainId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SpotterLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpotterTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VictimLoadoutId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VictimTeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorldId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp", "SpotterCharacterId", "VictimCharacterId");
+
+                    b.ToTable("ScrimSpotAssist");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimVehicleDestruction", b =>

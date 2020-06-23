@@ -14,7 +14,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task InitializeNewMatch();
         //void InitializeNewMatch();
         void ConfigureMatch(MatchConfiguration configuration);
-        void InitializeNewRound();
+        Task InitializeNewRound();
         void StartRound();
         void PauseRound();
         void ResumeRound();
