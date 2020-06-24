@@ -2,10 +2,12 @@
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
+@inject IWorldService WorldService
 
 @implements IDisposable
 
@@ -50,7 +52,8 @@
         }
         else
         {
-        <td title="@Player.NameFull [@(Player.Id)]">
+        @*<td title="@Player.NameFull [@(Player.Id)]">*@
+        <td title="@GetPlayerNameElementTitle()">
             <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@Player.NameDisplay</span>
             @if (Player.PrestigeLevel != 0)
             {
@@ -259,6 +262,13 @@
     }
 
     #endregion
+
+    private string GetPlayerNameElementTitle()
+    {
+        return !Player.IsOutfitless
+                    ? $"{Player.NameDisplay} [{Player.Id}]\nIs Participating: {Player.IsParticipating.ToString()}"
+                    : $"{Player.NameDisplay} [{Player.Id}\nServer: {WorldService.GetWorld(Player.WorldId)?.Name}\nIs Participating: {Player.IsParticipating.ToString()}";
+    }
 
     private double GetStatOpacity(int value)
     {
