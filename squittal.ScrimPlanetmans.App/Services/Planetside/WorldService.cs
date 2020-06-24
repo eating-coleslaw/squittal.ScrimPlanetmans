@@ -173,5 +173,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
         }
+
+        public static bool IsJaegerWorldId(int worldId)
+        {
+            return worldId == 19;
+        }
     }
 }
