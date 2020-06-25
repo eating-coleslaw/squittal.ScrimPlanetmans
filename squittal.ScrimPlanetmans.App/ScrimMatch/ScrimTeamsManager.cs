@@ -3,6 +3,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,7 +36,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly List<Player> _allPlayers = new List<Player>();
 
-        private readonly List<Player> _participatingPlayers = new List<Player>();
+        private ConcurrentDictionary<string, int> PlayerTeamOrdinalsMap = new ConcurrentDictionary<string, int>();
+
+        //private readonly List<Player> _participatingPlayers = new List<Player>();
 
         private string _defaultAliasPreText = "tm";
 
@@ -144,7 +147,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public IEnumerable<Player> GetParticipatingPlayers()
         {
-            return _participatingPlayers;
+            //return _participatingPlayers;
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower)
@@ -343,6 +347,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _allCharacterIds.Add(player.Id);
                 _allPlayers.Add(player);
 
+                PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
+
                 if (team.FactionId == null)
                 {
                     UpdateTeamFaction(teamOrdinal, player.FactionId);
@@ -397,6 +403,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 _allCharacterIds.Add(characterId);
                 _allPlayers.Add(player);
+
+                PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
 
                 if (team.FactionId == null)
                 {
@@ -481,6 +489,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 {
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
+
+                    PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
 
                     var isLastPlayer = (player == lastPlayer);
 
@@ -585,6 +595,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
+                    PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
+
                     var isLastPlayer = (player == lastPlayer);
 
                     SendTeamPlayerAddedMessage(player, isLastPlayer);
@@ -663,6 +675,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 {
                     _allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
+
+                    PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
 
                     SendTeamPlayerAddedMessage(player, isLastPlayer);
 
@@ -2198,10 +2212,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _allCharacterIds.RemoveAll(id => id == player.Id);
                 _allPlayers.RemoveAll(p => p.Id == player.Id);
 
-                if (_participatingPlayers.Any(p => p.Id == player.Id))
-                {
-                    _participatingPlayers.RemoveAll(p => p.Id == player.Id);
-                }
+                PlayerTeamOrdinalsMap.TryRemove(player.Id, out var ordinalOut);
+
+                //if (_participatingPlayers.Any(p => p.Id == player.Id))
+                //{
+                //    _participatingPlayers.RemoveAll(p => p.Id == player.Id);
+                //}
 
                 if (!team.Players.Any())
                 {
@@ -2354,7 +2370,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 player.EventAggregateTracker.RollBackRound(currentRound);
 
                 team.ParticipatingPlayers.RemoveAll(p => p.Id == player.Id);
-                _participatingPlayers.RemoveAll(p => p.Id == player.Id);
+
+                //_participatingPlayers.RemoveAll(p => p.Id == player.Id);
 
                 SendPlayerStatUpdateMessage(player);
             }
@@ -2596,23 +2613,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return true;
-
-            /*
-            var team1 = _ordinalTeamMap[1];
-
-            if (team1.ContainsPlayer(characterId))
-            {
-                return false;
-            }
-
-            var team2 = _ordinalTeamMap[2];
-            if (team2.ContainsPlayer(characterId))
-            {
-                return false;
-            }
-
-            return true;
-            */
         }
 
         public bool IsCharacterAvailable(string characterId, out Team owningTeam)
@@ -2628,26 +2628,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             owningTeam = null;
             return true;
-
-            /*
-            var team1 = _ordinalTeamMap[1];
-
-            if (team1.ContainsPlayer(characterId))
-            {
-                owningTeam = team1;
-                return false;
-            }
-
-            var team2 = _ordinalTeamMap[2];
-            if (team2.ContainsPlayer(characterId))
-            {
-                owningTeam = team2;
-                return false;
-            }
-
-            owningTeam = null;
-            return true;
-            */
         }
 
         public bool IsOutfitAvailable(string alias)
@@ -2661,23 +2641,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return true;
-
-            /*
-            var team1 = _ordinalTeamMap[1];
-
-            if (team1.ContainsOutfit(alias))
-            {
-                return false;
-            }
-
-            var team2 = _ordinalTeamMap[2];
-            if (team2.ContainsOutfit(alias))
-            {
-                return false;
-            }
-
-            return true;
-            */
         }
 
         public bool IsOutfitAvailable(string alias, out Team owningTeam)
@@ -2693,26 +2656,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             owningTeam = null;
             return true;
-
-            /*
-            var team1 = _ordinalTeamMap[1];
-
-            if (team1.ContainsOutfit(alias))
-            {
-                owningTeam = team1;
-                return false;
-            }
-
-            var team2 = _ordinalTeamMap[2];
-            if (team2.ContainsOutfit(alias))
-            {
-                owningTeam = team2;
-                return false;
-            }
-
-            owningTeam = null;
-            return true;
-            */
         }
 
         public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId)
@@ -2760,17 +2703,42 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public Player GetPlayerFromId(string characterId)
         {
-            return _allPlayers.FirstOrDefault(p => p.Id == characterId);
+            //return _allPlayers.FirstOrDefault(p => p.Id == characterId);
+
+            var teamOrdinal = GetTeamOrdinalFromPlayerId(characterId);
+            if (teamOrdinal == null)
+            {
+                return null;
+            }
+
+            var team = GetTeam((int)teamOrdinal);
+            if (team == null)
+            {
+                return null;
+            }
+
+            team.TryGetPlayerFromId(characterId, out var player);
+
+            return player;
         }
 
         public int? GetTeamOrdinalFromPlayerId(string characterId)
         {
-            var player = _allPlayers.FirstOrDefault(p => p.Id == characterId);
-            if (player == null)
+            //var player = _allPlayers.FirstOrDefault(p => p.Id == characterId);
+            //if (player == null)
+            //{
+            //    return null;
+            //}
+            //return player.TeamOrdinal;
+
+            if (PlayerTeamOrdinalsMap.TryGetValue(characterId, out var teamOrdinal))
+            {
+                return teamOrdinal;
+            }
+            else
             {
                 return null;
             }
-            return player.TeamOrdinal;
         }
 
         public bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer)
@@ -2836,10 +2804,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //player.IsParticipating = true;
             await SetPlayerParticipatingStatus(characterId, true);
 
-            if (!_participatingPlayers.Any(p => p.Id == player.Id))
-            {
-                _participatingPlayers.Add(player);
-            }
+            //if (!_participatingPlayers.Any(p => p.Id == player.Id))
+            //{
+            //    _participatingPlayers.Add(player);
+            //}
 
             var team = GetTeam((int)GetTeamOrdinalFromPlayerId(characterId));
 
