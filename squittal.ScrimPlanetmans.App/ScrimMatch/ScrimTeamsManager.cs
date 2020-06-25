@@ -2592,6 +2592,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = GetTeam(teamOrdinal);
             var maxTeamPointsPlayer = team.Players.Where(p => p.EventAggregate.Points == team.Players.Select(ip => ip.EventAggregate.Points).Max()).FirstOrDefault();
 
+            if (maxTeamPointsPlayer == null)
+            {
+                return false;
+            }
+
             return MaxPlayerPointsTracker.TryUpdateMaxPoints(maxTeamPointsPlayer.EventAggregate.Points, maxTeamPointsPlayer.Id);
         }
 
