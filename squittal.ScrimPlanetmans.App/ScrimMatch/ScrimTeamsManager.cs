@@ -2587,6 +2587,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #region Match Entity Availability Methods
         public bool IsCharacterAvailable(string characterId)
         {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsPlayer(characterId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            /*
             var team1 = _ordinalTeamMap[1];
 
             if (team1.ContainsPlayer(characterId))
@@ -2601,10 +2612,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return true;
+            */
         }
 
         public bool IsCharacterAvailable(string characterId, out Team owningTeam)
         {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsPlayer(characterId))
+                {
+                    owningTeam = team;
+                    return false;
+                }
+            }
+
+            owningTeam = null;
+            return true;
+
+            /*
             var team1 = _ordinalTeamMap[1];
 
             if (team1.ContainsPlayer(characterId))
@@ -2622,10 +2647,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             owningTeam = null;
             return true;
+            */
         }
 
         public bool IsOutfitAvailable(string alias)
         {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsOutfit(alias))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            /*
             var team1 = _ordinalTeamMap[1];
 
             if (team1.ContainsOutfit(alias))
@@ -2640,10 +2677,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return true;
+            */
         }
 
         public bool IsOutfitAvailable(string alias, out Team owningTeam)
         {
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                if (team.ContainsOutfit(alias))
+                {
+                    owningTeam = team;
+                    return false;
+                }
+            }
+
+            owningTeam = null;
+            return true;
+
+            /*
             var team1 = _ordinalTeamMap[1];
 
             if (team1.ContainsOutfit(alias))
@@ -2661,6 +2712,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             owningTeam = null;
             return true;
+            */
         }
 
         public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId)
