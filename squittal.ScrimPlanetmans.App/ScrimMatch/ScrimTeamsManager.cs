@@ -110,18 +110,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return null;
             }
         }
-
-        public Team GetTeamFromConstructedTeamId(int constructedTeamId)
-        {
-            if (!IsConstructedTeamAvailable(constructedTeamId, out Team owningTeam))
-            {
-                return owningTeam;
-            }
-            else
-            {
-                return null;
-            }
-        }
         
         public Team GetTeamFromConstructedTeamFaction(int constructedTeamId, int factionId)
         {
@@ -237,8 +225,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (player.IsParticipating)
                 {
-                    //await _matchDataService.SaveMatchParticipatingPlayer(player);
-
                     #pragma warning disable CS4014
                     Task.Run(() =>
                     {
@@ -276,8 +262,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (player.IsParticipating)
             {
-                //await _matchDataService.SaveMatchParticipatingPlayer(player);
-
                 #pragma warning disable CS4014
                 Task.Run(() =>
                 {
@@ -288,7 +272,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
         #pragma warning restore CS1998
 
-        public async Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString)
+        public async Task<bool> TryAddFreeTextInputCharacterToTeam(int teamOrdinal, string inputString)
         {
             Regex idRegex = new Regex("[0-9]{19}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             bool isId = idRegex.Match(inputString).Success;
@@ -513,7 +497,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId)
         {
-            if (!IsConstructedTeamAvailable(constructedTeamId))
+            if (!IsConstructedTeamFactionAvailable(constructedTeamId, factionId))
             {
                 return false;
             }
@@ -2679,34 +2663,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
-        public bool IsConstructedTeamAvailable(int constructedTeamId)
-        {
-            foreach (var team in _ordinalTeamMap.Values)
-            {
-                if (team.ContainsConstructedTeam(constructedTeamId))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam)
-        {
-            foreach (var team in _ordinalTeamMap.Values)
-            {
-                if (team.ContainsConstructedTeam(constructedTeamId))
-                {
-                    owningTeam = team;
-                    return false;
-                }
-            }
-
-            owningTeam = null;
-            return true;
-        }
-
         public bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId)
         {
             foreach (var team in _ordinalTeamMap.Values)
@@ -2746,11 +2702,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return false;
-        }
-
-        public bool IsPlayerTracked(string characterId)
-        {
-            return _allCharacterIds.Contains(characterId);
         }
 
         #endregion Match Entity Availability Methods
@@ -2811,7 +2762,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (team != null)
             {
-                return team.ConstructedTeams.Count();
+                return team.ConstructedTeamsMatchInfo.Count();
             }
             else
             {

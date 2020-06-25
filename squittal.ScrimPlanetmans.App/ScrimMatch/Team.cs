@@ -24,21 +24,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
         public List<Player> Players { get; } = new List<Player>();
-        public List<Player> ActivePlayers { get; } = new List<Player>();
         public List<Player> ParticipatingPlayers { get; set; } = new List<Player>();
 
         public List<Outfit> Outfits { get => _outfits; }
-        public List<Player> NonOutfitCharacters { get; } = new List<Player>();
 
-        public List<ConstructedTeam> ConstructedTeams { get; set; } = new List<ConstructedTeam>();
         public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
 
         public List<string> PlayerIds { get => _playerIds; }
-        public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
-
-        public List<Character> Characters { get => _playerIdMap.Values.ToList(); }
-
-        public Dictionary<string, Outfit> CharacterIdOutfitMap { get => _playerOutfitMap; }
 
         private List<string> _seedOutfitAliases = new List<string>();
         private List<string> _seedOutfitIds = new List<string>();
@@ -46,11 +38,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public bool HasCustomAlias { get; private set; } = false;
 
         private List<string> _playerIds = new List<string>();
-        private List<string> _playerIdsOnline = new List<string>();
-        private Dictionary<string, Character> _playerIdMap = new Dictionary<string, Character>();
 
         private List<Outfit> _outfits = new List<Outfit>();
-        private Dictionary<string, Outfit> _playerOutfitMap = new Dictionary<string, Outfit>(); // <characterId, alias>
 
         public Team(string alias, string nameInternal, int teamOrdinal)
         {
@@ -82,11 +71,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public bool ContainsOutfit(string alias)
         {
             return _seedOutfitAliases.Contains(alias);
-        }
-
-        public bool ContainsConstructedTeam(int constructedTeamId)
-        {
-            return ConstructedTeams.Any(ct => ct.Id == constructedTeamId);
         }
 
         public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
@@ -158,38 +142,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
-        
-        public bool TryAddConstructedTeam(ConstructedTeam constructedTeam)
-        {
-            if (ContainsConstructedTeam(constructedTeam.Id))
-            {
-                return false;
-            }
-
-            ConstructedTeams.Add(constructedTeam);
-            return true;
-        }
-
-        public bool TryRemoveConstructedTeam(int constructedTeamId)
-        {
-            if (!ContainsConstructedTeam(constructedTeamId))
-            {
-                return false;
-            }
-
-            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
-            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
-            return true;
-
-            //if (!ContainsConstructedTeam(constructedTeamId))
-            //{
-            //    return false;
-            //}
-
-            //ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
-            //return true;
-        }
-
         public bool TryAddConstructedTeamFaction(ConstructedTeamMatchInfo matchInfo)
         {
             var constructedTeam = matchInfo.ConstructedTeam;
@@ -212,30 +164,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
-            return true;
-        }
-
-        public bool TryAddConstructedTeamMatchInfo(ConstructedTeamMatchInfo matchInfo)
-        {
-            if (ContainsConstructedTeam(matchInfo.ConstructedTeam.Id))
-            {
-                return false;
-            }
-
-            ConstructedTeams.Add(matchInfo.ConstructedTeam);
-            ConstructedTeamsMatchInfo.Add(matchInfo);
-            return true;
-        }
-
-        public bool TryRemoveConstructedTeamMatchInfo(int constructedTeamId)
-        {
-            if (!ContainsConstructedTeam(constructedTeamId))
-            {
-                return false;
-            }
-
-            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
-            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
             return true;
         }
 
