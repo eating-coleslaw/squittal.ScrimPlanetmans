@@ -107,16 +107,8 @@
     public CensusStoreDataComparisonRow i_comparison { get; set; }
     private CensusStoreDataComparisonRow _renderedComparison { get; set; }
 
-    //private List<CensusStoreDataComparisonRow> _comparisons = new List<CensusStoreDataComparisonRow>();
-
-    //protected override void OnInitialized()
-    //{
-    //    _comparisons = DbMaintenance.Comparisons;
-    //}
-
     protected override async Task OnInitializedAsync()
     {
-        //await DbMaintenance.InitializeCounts();
         if (_renderedComparison != null)
         {
             await _renderedComparison.SetCounts();
@@ -153,26 +145,18 @@
         }
     }
 
-    private async Task RefreshCensusCount() //CensusStoreDataComparisonRow comparison)
+    private async Task RefreshCensusCount()
     {
-        //var censusCountTask = comparison.SetCensusCount();
-        //await censusCountTask;
         await _renderedComparison.SetCensusCount();
     }
 
-    private async Task RefreshStoreCount() //CensusStoreDataComparisonRow comparison)
+    private async Task RefreshStoreCount()
     {
-        //var storeCountTask = comparison.SetStoreCount();
-        //await storeCountTask;
-
         await _renderedComparison.SetStoreCount();
     }
 
-    private async Task UpdateDatabaseFromCensus() //CensusStoreDataComparisonRow comparison)
+    private async Task UpdateDatabaseFromCensus()
     {
-        //var updateStoreTask = comparison.RefreshStoreFromCensus();
-        //await updateStoreTask;
-
         if (_renderedComparison.CensusCount == -1)
         {
             return;
@@ -181,10 +165,9 @@
         await _renderedComparison.RefreshStoreFromCensus();
     }
 
-    private async Task UpdateDatabaseFromBackup() //CensusStoreDataComparisonRow comparison)
+    private async Task UpdateDatabaseFromBackup()
     {
         await Task.Run(() =>
-            //comparison.RefreshStoreFromBackup()
             _renderedComparison.RefreshStoreFromBackup()
         );
     }
