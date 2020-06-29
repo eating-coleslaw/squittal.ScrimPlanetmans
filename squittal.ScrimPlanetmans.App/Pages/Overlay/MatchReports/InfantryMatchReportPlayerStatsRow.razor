@@ -1,0 +1,284 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.App.Pages.Overlay.TeamPlayers;
+@using squittal.ScrimPlanetmans.Models; 
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+@if (_player != null)
+{
+    <div id="@($"{_player.NameDisplay}-stats")" class="stats-row player">
+        <div id="@($"{_player.NameDisplay}-label")" class="label primary-light">
+            <TeamPlayerStatusRowLoadout i_player=@_player/><span>@_player.NameDisplay</span>
+        </div>
+        <div id="@($"{_player.NameDisplay}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_renderedEventAggregate.Points</div>
+        <div id="@($"{_player.NameDisplay}-graph")" class="graph">
+            <div id="@($"{_player.NameDisplay}-graph-bar")" class="graph-bar" style="width: @($"{_pointGraphWidth}%")"></div>
+        </div>
+        <div id="@($"{_player.NameDisplay}-net")" class="net stats-value">
+            <span class="value">@_renderedEventAggregate.NetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
+        </div>
+        <div id="@($"{_player.NameDisplay}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
+        <div id="@($"{_player.NameDisplay}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
+        @if (_showHsr)
+        {
+            <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@Math.Round(_renderedEventAggregate.HeadshotRatio, 0)<span style="font-size: small;">%</span></div>
+        }
+        <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
+        @*<div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>*@
+        <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.GrenadeAssists);">@_renderedEventAggregate.GrenadeAssists</div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Player i_Player { get; set; }
+    private Player _player { get; set; }
+
+    [Parameter]
+    public string i_CharacterId { get; set; }
+    private string _renderedCharacterId { get; set; }
+
+    [Parameter]
+    public bool i_showHsr { get; set; } = true;
+    private bool _showHsr { get; set; } = true;
+
+    private ScrimEventAggregate _renderedEventAggregate { get; set; } = new ScrimEventAggregate();
+
+    private string _renderedDisplayName { get; set; } = string.Empty;
+
+    private decimal _pointGraphWidth { get; set; } = 4;
+    private int _currentMaxPoints { get; set; } = 0;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
+
+        if (_player == null)
+        {
+            _player = i_Player;
+            _renderedEventAggregate = new ScrimEventAggregate();
+            _renderedEventAggregate.Add(_player.EventAggregate);
+            _renderedDisplayName = _player.NameDisplay;
+        }
+        else
+        {
+            _renderedEventAggregate = new ScrimEventAggregate();
+            _renderedEventAggregate.Add(_player.EventAggregate);
+            _renderedDisplayName = _player.NameDisplay;
+        }
+
+        _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
+
+        UpdatePointGraphWidth();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var legacyUiChanged = false;
+
+        if (i_showHsr != _showHsr)
+        {
+            _showHsr = i_showHsr;
+            legacyUiChanged = true;
+        }
+
+        if (_player != i_Player || legacyUiChanged)
+        {
+            _renderedCharacterId = i_CharacterId;
+            _player = i_Player;
+
+            _renderedEventAggregate = new ScrimEventAggregate();
+            _renderedEventAggregate.Add(_player.EventAggregate);
+
+            _renderedDisplayName = _player.NameDisplay;
+
+            InvokeAsync(() =>
+            {
+                _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
+
+                UpdatePointGraphWidth();
+
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var player = e.Message.Player;
+        var overlayData = e.Message.OverlayMessageData;
+
+        if (overlayData.RedrawPointGraph)
+        {
+            if (player == _player)
+            {
+                _renderedEventAggregate = new ScrimEventAggregate();
+                _renderedEventAggregate.Add(_player.EventAggregate);
+            }
+
+            _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+
+            UpdatePointGraphWidth();
+
+            InvokeAsyncStateHasChanged();
+
+            return;
+        }
+
+        if (player == _player)
+        {
+            if (RenderedStatsHaveChanged(player.EventAggregate, out var redrawGraph))
+            {
+                _renderedEventAggregate = new ScrimEventAggregate();
+                _renderedEventAggregate.Add(_player.EventAggregate);
+
+                _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+
+                if (redrawGraph)
+                {
+                    UpdatePointGraphWidth();
+                }
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+
+    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    {
+        var overlayData = e.Message.OverlayMessageData;
+
+        if (overlayData.RedrawPointGraph)
+        {
+            _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+
+            UpdatePointGraphWidth();
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player != _player)
+        {
+            return;
+        }
+
+        var newDisplayName = e.Message.NewNameDisplay;
+
+        if (newDisplayName != _renderedDisplayName)
+        {
+            _renderedDisplayName = newDisplayName;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    private bool RenderedStatsHaveChanged(ScrimEventAggregate newAggregate, out bool redrawGraph)
+    {
+        redrawGraph = false;
+
+        if (_renderedEventAggregate.Points != newAggregate.Points)
+        {
+            redrawGraph = true;
+            return true;
+        }
+        else if (_renderedEventAggregate.NetScore != newAggregate.NetScore)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.Kills != newAggregate.Kills)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.HeadshotRatio != newAggregate.HeadshotRatio)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.DamageAssists != newAggregate.DamageAssists)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.GrenadeAssists != newAggregate.GrenadeAssists)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void UpdatePointGraphWidth()
+    {
+        var maxPoints = _currentMaxPoints;
+
+        var playerPoints = _renderedEventAggregate.Points;
+
+        _pointGraphWidth = (playerPoints > 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
+    }
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private string GetNetScoreLabelCssClass()
+    {
+        if (_renderedEventAggregate.NetScore == 0)
+        {
+            return "neutral";
+        }
+        else if (_renderedEventAggregate.NetScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText()
+    {
+        if (_renderedEventAggregate.NetScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IFacilityService _facilityService;
         private readonly IFacilityTypeService _facilityTypeService;
         private readonly IVehicleService _vehicleService;
+        private readonly IVehicleTypeService _vehicleTypeService;
+        private readonly IDeathEventTypeService _deathTypeService;
 
         public DbSeeder(
             IWorldService worldService,
@@ -31,7 +34,9 @@ namespace squittal.ScrimPlanetmans.Data
             IScrimRulesetManager rulesetManager,
             IFacilityService facilityService,
             IFacilityTypeService facilityTypeService,
-            IVehicleService vehicleService
+            IVehicleService vehicleService,
+            IVehicleTypeService vehicleTypeService,
+            IDeathEventTypeService deathTypeService
         )
         {
             _worldService = worldService;
@@ -45,6 +50,8 @@ namespace squittal.ScrimPlanetmans.Data
             _facilityService = facilityService;
             _facilityTypeService = facilityTypeService;
             _vehicleService = vehicleService;
+            _vehicleTypeService = vehicleTypeService;
+            _deathTypeService = deathTypeService;
         }
 
         public async Task OnApplicationStartup(CancellationToken cancellationToken)
@@ -83,6 +90,12 @@ namespace squittal.ScrimPlanetmans.Data
 
             Task vehicleTask = _vehicleService.RefreshStore(true, false);
             TaskList.Add(vehicleTask);
+
+            Task vehicleTypeTask = _vehicleTypeService.SeedVehicleClasses();
+            TaskList.Add(vehicleTypeTask);
+
+            Task deathTypeTask = _deathTypeService.SeedDeathTypes();
+            TaskList.Add(deathTypeTask);
 
             await Task.WhenAll(TaskList);
 

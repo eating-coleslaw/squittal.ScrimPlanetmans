@@ -1,0 +1,420 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+
+@inject IScrimTeamsManager TeamsManager
+@inject IConstructedTeamService ConstructedTeamsService
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+@if (_renderedPlayersCount > 0)
+{
+    <div class="sq-mini-card-12 default">
+
+        <h5 style="color: var(--sq-pink); margin-bottom: 0.1rem;  padding: 8px 0 0 16px;">
+            <b>Other Players 2</b> (@_renderedPlayersCount | @_renderedPlayersOnlineCount)
+        </h5>
+
+        <p style="margin: 0 0 0.1rem 0; padding-left: 16px;">
+            @if (_renderedPlayersCount > 0)
+            {
+                <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
+            }
+        </p>
+
+        <div class="sq-content" style="padding-top: 0;">
+
+            @if (_isLoadingMembers2)
+            {
+                <SpinnerEllipsis />
+            }
+            else if (_renderedPlayersCount > 0 && _extendPlayers)
+            {
+                @lock (_renderedPlayers)
+                {
+                    @if (_renderedPlayers.Any(p => !p.IsBenched))
+                    {
+                        <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
+                            <thead>
+                                <tr>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
+                                    <th></th>
+                                    <th>K</th>
+                                    <th>D</th>
+                                    <th>P</th>
+                                    <th>N</th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
+                                    @if (_renderedShowRemovals)
+                                    {
+                                        <th style="width: 15px; padding-right: 5px;"></th>
+                                    }
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var member in _renderedPlayers.Where(p => !p.IsBenched).ToList())
+                                {
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                    @if (_renderedPlayers.Any(p => p.IsBenched))
+                    {
+                        <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
+                            <thead>
+
+                                <tr style="border-bottom: 1px solid var(--sq-pink-lighter-alpha-50)">
+                                    @if (!_renderedPlayers.Any(p => !p.IsBenched))
+                                    {
+                                        <th colspan="2" style="font-weight: 400;">Benched Players</th>
+                                        <th>K</th>
+                                        <th>D</th>
+                                        <th>P</th>
+                                        <th>N</th>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="6" style="font-weight: 400;">Benched Players</td>
+                                    }
+
+                                    <th style="padding-right: 5px; width: 15px;"></th>
+
+                                    @if (_renderedShowRemovals)
+                                    {
+                                        <th style="width: 15px; padding-right: 5px;"></th>
+                                    }
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+                                @foreach (var member in _renderedPlayers.Where(p => p.IsBenched).ToList())
+                                {
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                }
+                            </tbody>
+                        </table>
+                    }
+                }
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
+
+    [Parameter]
+    public bool i_showRemovals { get; set; } = false;
+    private bool _renderedShowRemovals { get; set; } = false;
+
+    private bool _isLoadingMembers { get; set; } = false;
+    private bool _isLoadingMembers2 => (_renderedPlayersCount == 0);
+    private bool _isLoadingOutfit { get; set; } = false;
+
+    private List<Player> _renderedPlayers { get; set; } = new List<Player>();
+    private int _renderedPlayersCount { get; set; } = 0;
+    private int _renderedPlayersOnlineCount { get; set; } = 0;
+    private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
+
+    #region UI & Layout Variables
+    private bool _extendPlayers = true;
+
+    private int _defaultMaxPlayersToExtend = 8;
+    #endregion
+
+    #region Helpers
+    private IEnumerable<World> _worlds;
+    #endregion
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+
+        _worlds = WorldService.GetAllWorlds();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        if (i_showRemovals != _renderedShowRemovals)
+        {
+            _renderedShowRemovals = i_showRemovals;
+            paramsChanged = true;
+        }
+
+        if (i_teamOrdinal != _renderedTeamOrdinal)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+
+            InitializePlayersData();
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void InitializePlayersData()
+    {
+        var message = $"Started loading Team {_renderedTeamOrdinal} Non-Outfit Players data...";
+        LogMessage(message);
+
+        var outfitPlayers = TeamsManager.GetTeamNonOutfitPlayers(_renderedTeamOrdinal);
+
+        foreach (var player in outfitPlayers)
+        {
+            TeamPlayerChangeMessage changeMessage;
+
+            if (player.IsParticipating)
+            {
+                changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+
+                _playerChangesQueue.Enqueue(changeMessage);
+            }
+            else // if (player.IsOnline) - Always show all non-outfit players
+            {
+                changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+                _playerChangesQueue.Enqueue(changeMessage);
+            }
+        }
+
+        ProcessPlayerChangesQueue();
+
+        if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+        {
+            _extendPlayers = false;
+        }
+        else
+        {
+            _extendPlayers = true;
+        }
+
+        message = $"Finished loading Team {_renderedTeamOrdinal} Non-Outfit Players data";
+        LogMessage(message);
+    }
+    #endregion Initialization Methods
+
+    #region UI & Layout Controls
+    private void TogglePlayersVisibility()
+    {
+        _extendPlayers = !_extendPlayers;
+    }
+    #endregion UI & Layout Controls
+
+    #region Event Handling
+    private void LogMessage(string message)
+    {
+        MessageService.BroadcastSimpleMessage(message);
+    }
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        _playerChangesQueue.Enqueue(message);
+
+        ProcessPlayerChangesQueue();
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        TeamPlayerChangeMessage changeMessage;
+
+        if (player.IsParticipating)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else //if (player.IsOnline)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+        }
+        //else
+        //{
+        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        //}
+
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        TeamPlayerChangeMessage changeMessage;
+
+        if (player.IsParticipating)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+        }
+
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        return;
+
+        //if (!ShouldProcessPlayer(player))
+        //{
+        //    return;
+        //}
+
+        //// Participating players stay visible even when online
+        //if (player.IsParticipating)
+        //{
+        //    return;
+        //}
+
+        //var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        //_playerChangesQueue.Enqueue(changeMessage);
+
+        //ProcessPlayerChangesQueue();
+    }
+    #endregion Event Handling
+
+    private void ProcessPlayerChangesQueue()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedPlayers)
+            {
+                var changes = 0;
+
+                while (_playerChangesQueue.TryDequeue(out TeamPlayerChangeMessage changeMessage))
+                {
+                    var player = changeMessage.Player;
+                    var changeType = changeMessage.ChangeType;
+
+                    if (changeType == TeamPlayerChangeType.Add)
+                    {
+                        if (!_renderedPlayers.Contains(player))// && (player.IsParticipating || player.IsOnline))
+                        {
+                            _renderedPlayers.Add(player);
+                            changes += 1;
+                        }
+                    }
+                    else if (changeType == TeamPlayerChangeType.Remove)
+                    {
+                        _renderedPlayers.Remove(player);
+                        changes += 1;
+                    }
+                    else if (changeType == TeamPlayerChangeType.SetActive)
+                    {
+                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        {
+                            _renderedPlayers.Add(player);
+                            changes += 1;
+                        }
+                    }
+                    else if (changeType == TeamPlayerChangeType.SetInactive)
+                    {
+                        //_renderedPlayers.Remove(player);
+                        //changes += 1;
+                    }
+                }
+
+                _renderedPlayersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
+                _renderedPlayersCount = _renderedPlayers.Count();
+
+                if (changes > 0)
+                {
+                    StateHasChanged();
+                }
+            }
+        });
+    }
+
+    private bool ShouldProcessPlayer(Player player)
+    {
+        if (player.TeamOrdinal != i_teamOrdinal || !player.IsOutfitless || player.IsFromConstructedTeam)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private string GetWorldName(int worldId)
+    {
+        return _worlds.Where(w => w.Id == worldId).Select(w => w.Name).FirstOrDefault();
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

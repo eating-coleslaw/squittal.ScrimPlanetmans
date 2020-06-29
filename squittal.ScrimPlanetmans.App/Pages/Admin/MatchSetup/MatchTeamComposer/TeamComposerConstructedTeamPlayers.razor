@@ -1,0 +1,500 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+
+@inject IScrimTeamsManager TeamsManager
+@inject IConstructedTeamService ConstructedTeamsService
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+
+@if (_renderedConstructedTeamMatchInfo != null)
+{
+    <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)">
+
+        <h5 class="@SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem; padding: 8px 0 0 15px;">
+            <b><span class="mono-font">[@_renderedConstructedTeamMatchInfo.ConstructedTeam.Alias]</span> @_renderedConstructedTeamMatchInfo.ConstructedTeam.Name</b> (@((int)_renderedConstructedTeamMatchInfo.MembersFactionCount) | @((int)_renderedConstructedTeamMatchInfo.MembersOnlineCount)) <span> @FactionService.GetFactionAbbrevFromId((int)_renderedConstructedTeamMatchInfo.ActiveFactionId)</span>
+        </h5>
+
+    <p style="margin: 0 0 0.1rem 0;  padding-left: 16px;">
+        @if (!_isLoadingMembers || _renderedConstructedTeamMatchInfo.MembersFactionCount != null)
+        {
+            @if (_renderedPlayersCount > 0)
+            {
+                <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
+                @if (_renderedShowRemovals)
+                {
+                    <span>|</span>
+                }
+            }
+            @if (_renderedShowRemovals)
+            {
+                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveConstructedTeam">Remove</button>
+            }
+        }
+    </p>
+
+        <div class="sq-content" style="padding-top: 0;">
+
+            @if (_isLoadingMembers || _renderedConstructedTeamMatchInfo.MembersFactionCount == null)
+            {
+                <SpinnerEllipsis />
+            }
+            else if (_renderedPlayersCount > 0 && _extendPlayers)
+            {
+                @lock (_renderedPlayers)
+                {
+                    @if (_renderedPlayers.Any(p => !p.IsBenched))
+                    {
+                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="margin-bottom: 0.5rem;">
+                            <thead>
+                                <tr>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
+                                    <th></th>
+                                    <th>K</th>
+                                    <th>D</th>
+                                    <th>P</th>
+                                    <th>N</th>
+                                    <th style="padding-right: 5px; width: 15px;"></th>
+                                    @if (_renderedShowRemovals)
+                                    {
+                                        <th style="width: 15px; padding-right: 5px;"></th>
+                                    }
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var member in _renderedPlayers.Where(p => !p.IsBenched).ToList())
+                                {
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                    @if (_renderedPlayers.Any(p => p.IsBenched))
+                    {
+                        <table class="table-responsive-sm table-striped-light mono-font smaller @SqCssHelper.GetFactionClassFromId(_renderedConstructedTeamMatchInfo.ActiveFactionId)" style="margin-bottom: 0.5rem;">
+                            <thead>
+
+                                <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
+                                    @if (!_renderedPlayers.Any(p => !p.IsBenched))
+                                    {
+                                        <th colspan="2" style="font-weight: 400;">Benched Players</th>
+                                        <th>K</th>
+                                        <th>D</th>
+                                        <th>P</th>
+                                        <th>N</th>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="6" style="font-weight: 400;">Benched Players</td>
+                                    }
+
+                                    <th style="padding-right: 5px; width: 15px;"></th>
+
+                                    @if (_renderedShowRemovals)
+                                    {
+                                        <th style="width: 15px; padding-right: 5px;"></th>
+                                    }
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+                                @foreach (var member in _renderedPlayers.Where(p => p.IsBenched).ToList())
+                                {
+                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                }
+                            </tbody>
+                        </table>
+                    }
+                }
+            }
+        </div>
+    </div>
+}
+else
+{
+    <SpinnerEllipsis />
+}
+
+
+
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
+
+    [Parameter]
+    public ConstructedTeamMatchInfo i_constructedTeamMatchInfo { get; set; } = new ConstructedTeamMatchInfo();
+    private ConstructedTeamMatchInfo _renderedConstructedTeamMatchInfo { get; set; } = new ConstructedTeamMatchInfo();
+
+    [Parameter]
+    public bool i_showRemovals { get; set; } = false;
+    private bool _renderedShowRemovals { get; set; } = false;
+
+    private bool _isLoadingMembers { get; set; } = false;
+
+    private List<Player> _renderedPlayers { get; set; } = new List<Player>();
+    private int _renderedPlayersCount { get; set; } = 0;
+    private int _renderedPlayersOnlineCount { get; set; } = 0;
+    private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
+
+    #region UI & Layout Variables
+    private bool _extendPlayers = true;
+    private int _defaultMaxPlayersToExtend = 12;
+    #endregion
+
+    #region Helpers
+    private IEnumerable<World> _worlds;
+    #endregion
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+
+        _worlds = WorldService.GetAllWorlds();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        if (i_showRemovals != _renderedShowRemovals)
+        {
+            _renderedShowRemovals = i_showRemovals;
+            paramsChanged = true;
+        }
+
+        if (i_teamOrdinal != _renderedTeamOrdinal
+                || i_constructedTeamMatchInfo.ConstructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id
+                || i_constructedTeamMatchInfo.ActiveFactionId != _renderedConstructedTeamMatchInfo.ActiveFactionId)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+            _renderedConstructedTeamMatchInfo = i_constructedTeamMatchInfo;
+
+            InitializePlayersData();
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void InitializePlayersData()
+    {
+        var constructedTeam = _renderedConstructedTeamMatchInfo.ConstructedTeam;
+
+        var message = $"Started loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name} - Faction {_renderedConstructedTeamMatchInfo.ActiveFactionId}...";
+        LogMessage(message);
+
+        var constructedTeamPlayers = TeamsManager.GetTeamConstructedTeamFactionPlayers(_renderedTeamOrdinal, constructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
+
+        _renderedConstructedTeamMatchInfo.MembersFactionCount = constructedTeamPlayers.Count();
+
+        lock (_renderedPlayers)
+        {
+            _renderedPlayers.RemoveAll(p => !ShouldProcessPlayer(p));
+        }
+
+        foreach (var player in constructedTeamPlayers)
+        {
+            TeamPlayerChangeMessage changeMessage;
+
+            if (player.IsParticipating)
+            {
+                changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+
+                _playerChangesQueue.Enqueue(changeMessage);
+            }
+            else //if (player.IsOnline)
+            {
+                changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+                _playerChangesQueue.Enqueue(changeMessage);
+            }
+        }
+
+        ProcessPlayerChangesQueue();
+
+        if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+        {
+            _extendPlayers = false;
+        }
+        else
+        {
+            _extendPlayers = true;
+        }
+
+        message = $"Finished loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name} - Faction {_renderedConstructedTeamMatchInfo.ActiveFactionId}";
+        LogMessage(message);
+    }
+    #endregion Initialization Methods
+
+    #region  Form Submission & Validation
+    private async void RemoveConstructedTeam()
+    {
+        if (!_isLoadingMembers)
+        {
+            //TeamsManager.RemoveConstructedTeamFactionFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
+            await TeamsManager.RemoveConstructedTeamFactionFromTeamAndDb(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
+        }
+    }
+    #endregion Form Submission & Validation
+
+    #region UI & Layout Controls
+    private void TogglePlayersVisibility()
+    {
+        _extendPlayers = !_extendPlayers;
+    }
+    #endregion UI & Layout Controls
+
+    #region Event Handling
+    private void LogMessage(string message)
+    {
+        MessageService.BroadcastSimpleMessage(message);
+    }
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        _playerChangesQueue.Enqueue(message);
+
+        ProcessPlayerChangesQueue();
+    }
+
+    private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
+    {
+        var constructedTeam = e.Message.ConstructedTeam;
+        var factionId = e.Message.FactionId;
+        var changeType = e.Message.ChangeType;
+
+        if (constructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id || factionId != _renderedConstructedTeamMatchInfo.ActiveFactionId)
+        {
+            return;
+        }
+
+        if (changeType == TeamChangeType.ConstructedTeamMembersLoadStarted)
+        {
+            _isLoadingMembers = true;
+            InvokeAsyncStateHasChanged();
+        }
+        else if (changeType == TeamChangeType.ConstructedTeamMembersLoadCompleted)
+        {
+            _isLoadingMembers = false;
+
+            _renderedConstructedTeamMatchInfo.MembersFactionCount = e.Message.PlayersFound == null ? 0 : e.Message.PlayersFound;
+
+            if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+            {
+                _extendPlayers = false;
+            }
+            else
+            {
+                _extendPlayers = true;
+            }
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        TeamPlayerChangeMessage changeMessage;
+
+        if (player.IsParticipating)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else //if (player.IsOnline)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+        }
+        //else
+        //{
+        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        //}
+
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        TeamPlayerChangeMessage changeMessage;
+
+        if (player.IsParticipating)
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
+
+        }
+
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (!ShouldProcessPlayer(player))
+        {
+            return;
+        }
+
+        // Participating players stay visible even when online
+        if (player.IsParticipating)
+        {
+            return;
+        }
+
+        var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
+        _playerChangesQueue.Enqueue(changeMessage);
+
+        ProcessPlayerChangesQueue();
+    }
+    #endregion Event Handling
+
+    private void ProcessPlayerChangesQueue()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedPlayers)
+            {
+                var changes = 0;
+
+                while (_playerChangesQueue.TryDequeue(out TeamPlayerChangeMessage changeMessage))
+                {
+                    var player = changeMessage.Player;
+                    var changeType = changeMessage.ChangeType;
+
+                    if (changeType == TeamPlayerChangeType.Add)
+                    {
+                        if (!_renderedPlayers.Contains(player)) // && (player.IsParticipating || player.IsOnline))
+                        {
+                            _renderedPlayers.Add(player);
+                            changes += 1;
+                        }
+                    }
+                    else if (changeType == TeamPlayerChangeType.Remove)
+                    {
+                        _renderedPlayers.Remove(player);
+                        changes += 1;
+                    }
+                    else if (changeType == TeamPlayerChangeType.SetActive)
+                    {
+                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating || player.IsOnline))
+                        {
+                            _renderedPlayers.Add(player);
+                            changes += 1;
+                        }
+                    }
+                    else if (changeType == TeamPlayerChangeType.SetInactive)
+                    {
+                        //_renderedPlayers.Remove(player);
+                        //changes += 1;
+                    }
+                }
+
+                _renderedConstructedTeamMatchInfo.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
+                _renderedPlayersCount = _renderedPlayers.Count();
+
+                if (changes > 0)
+                {
+                    _renderedPlayers = _renderedPlayers
+                                            .OrderByDescending(p => p.IsOnline)
+                                            .ThenByDescending(p => p.NameAlias)
+                                            .ToList();
+
+                    StateHasChanged();
+                }
+            }
+        });
+    }
+
+    private bool ShouldProcessPlayer(Player player)
+    {
+        if (player.TeamOrdinal != i_teamOrdinal
+                || player.ConstructedTeamId != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id
+                || player.FactionId != _renderedConstructedTeamMatchInfo.ActiveFactionId
+                || !player.IsFromConstructedTeam)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

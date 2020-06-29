@@ -53,6 +53,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return worlds.FirstOrDefault(e => e.Id == worldId);
         }
 
+        public World GetWorld(int worldId)
+        {
+            return _worlds.FirstOrDefault(e => e.Id == worldId);
+        }
+
         public async Task SetupWorldsList()
         {
             using var factory = _dbContextHelper.GetFactory();
@@ -167,6 +172,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         public void RefreshStoreFromBackup()
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
+        }
+
+        public static bool IsJaegerWorldId(int worldId)
+        {
+            return worldId == 19;
         }
     }
 }

@@ -1,0 +1,485 @@
+﻿@using squittal.ScrimPlanetmans.Data.Models;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+
+@inject IConstructedTeamService ConstructedTeamsService
+@inject IScrimMessageBroadcastService MessageService
+@inject IFactionService FactionService
+@inject IWorldService WorldService
+
+@implements IDisposable
+
+<div class="header-card-container default">
+
+    @if (_renderedTeam != null && !_isChangingTeam)
+    {
+        <h3 style="font-size: 1.25rem; margin-bottom: 0;">
+            <span><b>@($"{(!string.IsNullOrWhiteSpace(_renderedTeam.Alias) ? $"[{_renderedTeam.Alias}]" : string.Empty)}")</b></span>
+            <span style="font-family: 'Helvetica Neue',Arial,'Noto Sans',sans-serif;"><b>@_renderedTeam.Name</b> <span class="temp" style="font-size: smaller; padding-left: 16px; color: var(--bs-gray); font-weight: 400;">@_renderedTeam.Id</span></span>
+        
+            @if (_renderedTeam.IsHiddenFromSelection)
+            {
+                <span style="position: absolute; right: 32px; top: 10px;" title="Team is hidden from match selection">
+                    <span class="oi oi-lock-locked"></span>
+                </span>
+            }
+            else
+            {
+                <span style="position: absolute; right: 32px; top: 10px;" title="Team is visible for match selection">
+                    <span class="oi oi-eye"></span>
+                </span>
+            }
+
+        </h3>
+
+        <p style="margin: 0 0 0.1rem 0;">
+            @if (!_showEditForm)
+            {
+                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditTeamFormVisibility">Edit Team Info</button>
+            }
+        </p>
+
+        @if (_showEditForm)
+        {
+            <EditForm Model="@_editFormTeam" style="margin-top: 16px; margin-left: 4px;" OnValidSubmit="HandleEditTeamSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <p style="margin-bottom: 8px;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_editFormTeam.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
+                <p style="margin-bottom: 8px;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_editFormTeam.Alias maxlength="4" pattern="[A-Za-z0-9]{1,4}" style="display: inline-block; width: 48px;" /></p>
+
+                <p style="margin-bottom: 8px;">
+                    @*Hide From Match Selection <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_editFormTeam.IsHiddenFromSelection" style="position: relative; top: 1px;" />*@
+                    <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_editFormTeam.IsHiddenFromSelection" style="position: relative; top: 1px;" /> Hide From Match Selection
+                </p>
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-check"></span>Save
+                </button>
+
+                <button @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                    <span class="oi oi-x" style="top: 0;"></span>Cancel
+                </button>
+
+            </EditForm>
+        }
+
+
+        <div class="" style="margin-top: 16px; color: var(--sq-black);">
+
+            <h6> Team Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h6>
+
+            <div style="display: block; margin: 0.2rem 0;">
+                <EditForm Model="@_inputCharacter" OnValidSubmit="HandleAddCharacterSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    Add Character: <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" />
+
+                    <button type="submit" class="btn btn-primary" title="Add character to team">
+                        <span class="oi oi-plus"></span>Add
+                    </button>
+
+                    @if (_processingInputs.Any())
+                    {
+                        <span class="inline">
+                            <SpinnerEllipsis />
+                        </span>
+                    }
+
+                </EditForm>
+
+                <div style="margin: 0.2rem 0;" title="Check to add players using a faction-specific suffix pattern">
+                    <EditForm Model="@_useFactionSuffixes">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        @*Use Faction Suffixes: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" />*@
+                        <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" /> Use Faction Suffixes
+                    </EditForm>
+                </div>
+
+                @if (_useFactionSuffixes)
+                {@*1px solid #7e7e7e*@
+                    <div style="display: block; overflow: hidden;">
+                        <EditForm Model="@_inputSuffixVs" style="display: inline-block; margin-left: -24px;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            @*VS: <InputText id="PlayerSuffixVs" @bind-Value="@_inputSuffixVs" title="Enter suffix for this account's VS character"  maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />*@
+
+                            @*<div style="display: inline-block;border: 1px solid #7e7e7e;background-color: #fff;">
+                                <div class="vs" style="display: inline-block;background-color: white;height: 23px;position: relative;right: 0px;/*! top: 2px; */padding: 2px 4px 0px 4px;vertical-align: top;color: var(--sq-ps2-primary);font-weight: 700;margin-right: 8px;border-right: 1px solid var(--sq-ps2-ns-primary-light);/*! margin: 2px 4px 2px 4px; */">
+                                    VS
+                                </div>
+
+                                <InputText id="PlayerSuffixVs" @bind-Value="@_inputSuffixVs" title="Enter suffix for this account's VS character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" class="valid" style="border: none;" />
+                            </div>*@
+
+                            @*<div class="vs" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light);/*! margin: 2px 4px 2px 4px; */">
+                                VS
+                            </div>*@
+
+                            <div class="vs" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; /*top: 2px;*/ padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light); /*border-top: 2px solid transparent; border-bottom: 2px solid transparent;*//*! margin: 2px 4px 2px 4px; */">
+                                VS
+                            </div><InputText style="padding-left: 32px;" id="PlayerSuffixVs" @bind-Value="@_inputSuffixVs" title="Enter suffix for this account's VS character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />
+
+                        </EditForm>
+
+                        
+
+                        <EditForm Model="@_inputSuffixNc" style="display: inline-block; position: relative; left: -16px;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            @*<InputText id="PlayerSuffixNc" @bind-Value="@_inputSuffixNc" title="Enter suffix for this account's NC character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />*@
+
+                            <div class="nc" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; /*top: 2px;*/ padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light); /*border-top: 2px solid transparent; border-bottom: 2px solid transparent;*//*! margin: 2px 4px 2px 4px; */">
+                                NC
+                            </div><InputText style="padding-left: 32px;" id="PlayerSuffixNc" @bind-Value="@_inputSuffixNc" title="Enter suffix for this account's NC character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />
+
+
+                        </EditForm>
+
+                        <EditForm Model="@_inputSuffixTr" style="display: inline-block; position: relative; left: -32px;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            @*<InputText id="PlayerSuffixTr" @bind-Value="@_inputSuffixTr" title="Enter suffix for this account's TR character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />*@
+
+                            <div class="tr" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; /*top: 2px;*/ padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light); /*border-top: 2px solid transparent; border-bottom: 2px solid transparent;*//*! margin: 2px 4px 2px 4px; */">
+                                TR
+                            </div><InputText style="padding-left: 32px;" id="PlayerSuffixTr" @bind-Value="@_inputSuffixTr" title="Enter suffix for this account's TR character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />
+
+
+                        </EditForm>
+
+                    </div>
+                }
+
+            </div>
+
+
+            <div style="display: flex; flex-wrap: wrap;">
+
+                @* VS Members *@
+                <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=1 i_teamId=@_renderedTeamId />
+
+                @* NC MEMBERS*@
+                <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=2 i_teamId=@_renderedTeamId />
+
+                @* TR Members *@
+                <ConstructedTeamBuilderForm_EditFactionMembers i_factionId=3 i_teamId=@_renderedTeamId />
+
+            </div>
+        </div>
+
+    }
+    else
+    {
+        <SpinnerEllipsis />
+    }
+
+</div>
+
+@code {
+    [Parameter]
+    public int i_teamId { get; set; }
+    private int _renderedTeamId { get; set; }
+
+    [Parameter]
+    public bool i_viewOnly { get; set; } = true;
+    private bool _renderedViewOnly { get; set; } = true;
+
+    private bool _showEditForm { get; set; } = false;
+    private ConstructedTeam _editFormTeam { get; set; } = new ConstructedTeam();
+
+    private bool _isChangingTeam { get; set; } = false;
+
+    private int _noTeamSelectedId { get; set; } = -1;
+
+    private ConstructedTeamFormInfo _renderedTeam { get; set; }
+    private List<Character> _renderedCharacters { get; set; } = new List<Character>();
+    private int _renderedCharactersCount { get; set; } = 0;
+
+    private string _inputCharacter { get; set; } = string.Empty;
+    private bool _isSavingCharacter { get; set; } = false;
+
+    private bool _useFactionSuffixes { get; set; } = false;
+    private string _inputSuffixVs { get; set; } = "VS";
+    private string _inputSuffixNc { get; set; } = "NC";
+    private string _inputSuffixTr { get; set; } = "TR";
+
+    private List<string> _processingInputs { get; set; } = new List<string>();
+
+    private ConcurrentQueue<ConstructedTeamCharacterChange> _characterEditQueue { get; set; } = new ConcurrentQueue<ConstructedTeamCharacterChange>();
+
+    private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
+
+    private IEnumerable<World> _worlds;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
+
+        _worlds = WorldService.GetAllWorlds();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
+        MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var viewOnlyChanged = false;
+
+        if (i_viewOnly != _renderedViewOnly)
+        {
+            _renderedViewOnly = i_viewOnly;
+
+            viewOnlyChanged = true;
+        }
+
+        if (i_teamId != _renderedTeamId || viewOnlyChanged)
+        {
+            _isChangingTeam = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedTeamId = i_teamId;
+
+            _renderedTeam = await ConstructedTeamsService.GetConstructedTeamFormInfo(_renderedTeamId, true);
+
+            _editFormTeam = new ConstructedTeam();
+            _editFormTeam.Name = _renderedTeam.Name;
+            _editFormTeam.Alias = _renderedTeam.Alias;
+            _editFormTeam.IsHiddenFromSelection = _renderedTeam.IsHiddenFromSelection;
+
+            _processingInputs = new List<string>();
+
+            await InvokeAsync(async () =>
+            {
+                _renderedCharactersCount = await ConstructedTeamsService.GetConstructedTeamMemberCount(_renderedTeamId);
+
+                _isChangingTeam = false;
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private async void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamId = message.TeamId;
+        if (message.TeamId != _renderedTeamId)
+        {
+            return;
+        }
+
+        var changeType = message.ChangeType;
+        if (changeType != ConstructedTeamMemberChangeType.Add && changeType != ConstructedTeamMemberChangeType.Remove)
+        {
+            return;
+        }
+
+        _renderedCharactersCount = await ConstructedTeamsService.GetConstructedTeamMemberCount(_renderedTeamId);
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    {
+        var message = e.Message;
+        var team = message.ConstructedTeam;
+
+        if (team.Id != _renderedTeamId)
+        {
+            return;
+        }
+
+        _renderedTeam.Name = team.Name;
+        _renderedTeam.Alias = team.Alias;
+        _renderedTeam.IsHiddenFromSelection = team.IsHiddenFromSelection;
+
+        _editFormTeam.Name = team.Name;
+        _editFormTeam.Alias = team.Alias;
+        _editFormTeam.IsHiddenFromSelection = team.IsHiddenFromSelection;
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    #region Form Input Handling
+    private async void HandleAddCharacterSubmit()
+    {
+        //var input = _inputCharacter;
+        var characterInput = _inputCharacter;
+
+        if (string.IsNullOrWhiteSpace(characterInput))
+        {
+            return;
+        }
+
+        if (_useFactionSuffixes)
+        {
+            var inputVs = $"{characterInput}{_inputSuffixVs}";
+            if (!_processingInputs.Contains(inputVs))
+            {
+                _processingInputs.Add(inputVs);
+            }
+
+            var inputNc = $"{characterInput}{_inputSuffixNc}";
+            if (!_processingInputs.Contains(inputNc))
+            {
+                _processingInputs.Add(inputNc);
+            }
+
+            var inputTr = $"{characterInput}{_inputSuffixTr}";
+            if (!_processingInputs.Contains(inputTr))
+            {
+                _processingInputs.Add(inputTr);
+            }
+
+            //if (!string.IsNullOrWhiteSpace(_inputSuffixVs))
+            //{
+            //    _processingInputs.Add($"{characterInput}{_inputSuffixVs}");
+            //}
+
+            //if (!string.IsNullOrWhiteSpace(_inputSuffixNc))
+            //{
+            //    _processingInputs.Add($"{characterInput}{_inputSuffixNc}");
+            //}
+
+            //if (!string.IsNullOrWhiteSpace(_inputSuffixTr))
+            //{
+            //    _processingInputs.Add($"{characterInput}{_inputSuffixTr}");
+            //}
+        }
+        else
+        {
+            _processingInputs.Add(characterInput);
+        }
+
+        InvokeAsyncStateHasChanged();
+
+        while (_processingInputs.Count > 0)
+        {
+            var input = _processingInputs.FirstOrDefault();
+
+            var character = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, input);
+
+            // Don't clear input field if failed to find this character,
+            // but clear input field if we found any character
+            if (character != null)
+            {
+                _inputCharacter = string.Empty;
+            }
+
+            _processingInputs.Remove(input);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async void HandleEditTeamSubmit()
+    {
+        var updateTeam = _editFormTeam;
+        updateTeam.Id = _renderedTeamId;
+
+        if (await ConstructedTeamsService.UpdateConstructedTeamInfo(updateTeam))
+        {
+            _editFormTeam = new ConstructedTeam();
+            _editFormTeam.Name = _renderedTeam.Name;
+            _editFormTeam.Alias = _renderedTeam.Alias;
+            _editFormTeam.IsHiddenFromSelection = _renderedTeam.IsHiddenFromSelection;
+
+            _showEditForm = false;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void HandleEditTeamCancel()
+    {
+        _editFormTeam = new ConstructedTeam();
+        _editFormTeam.Name = _renderedTeam.Name;
+        _editFormTeam.Alias = _renderedTeam.Alias;
+        _editFormTeam.IsHiddenFromSelection = _renderedTeam.IsHiddenFromSelection;
+
+        _showEditForm = false;
+    }
+
+
+    private void ToggleEditTeamFormVisibility()
+    {
+        _showEditForm = !_showEditForm;
+    }
+    #endregion Form Input Handling
+
+    #region Character Processing
+    private void UpdateRenderedMembers()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedCharacters)
+            {
+                while (_changeMessagesQueue.TryDequeue(out ConstructedTeamMemberChangeMessage changeMessage))
+                {
+                    var changeType = changeMessage.ChangeType;
+                    var characterId = changeMessage.CharacterId;
+
+                    if (changeType == ConstructedTeamMemberChangeType.Remove)
+                    {
+                        _renderedCharacters.RemoveAll(c => c.Id == characterId);
+                    }
+                    else if (changeType == ConstructedTeamMemberChangeType.Add)
+                    {
+                        var character = changeMessage.Character;
+
+                        if (!_renderedCharacters.Any(c => c.Id == characterId))
+                        {
+                            _renderedCharacters.Add(character);
+                        }
+                    }
+                }
+
+                _renderedCharacters = _renderedCharacters
+                                        .OrderBy(c => c.FactionId)
+                                        .ThenBy(c => c.Name)
+                                        .ToList();
+
+                _renderedCharactersCount = _renderedCharacters.Count();
+
+                StateHasChanged();
+            }
+        });
+    }
+    #endregion CharacterProcessing
+
+    private string GetFactionAbbreviationFromId(int factionId)
+    {
+        return FactionService.GetFactionAbbrevFromId(factionId);
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+}

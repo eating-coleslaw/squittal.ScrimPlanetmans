@@ -10,25 +10,19 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using squittal.LivePlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.CensusStream.Models;
-using squittal.ScrimPlanetmans.Models.Planetside;
+using squittal.ScrimPlanetmans.Data;
+using squittal.ScrimPlanetmans.Data.Models;
 using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
-//using squittal.ScrimPlanetmans.Shared.Models;
-//using squittal.ScrimPlanetmans.Shared.Models.Planetside;
-//using squittal.ScrimPlanetmans.Shared.Models.Planetside.Events;
-
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
     public class WebsocketEventHandler : IWebsocketEventHandler
     {
-        //private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemService _itemService;
         private readonly ICharacterService _characterService;
         private readonly IFacilityService _facilityService;
@@ -36,10 +30,23 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly IScrimTeamsManager _teamsManager;
         private readonly IScrimMatchScorer _scorer;
         private readonly IScrimMessageBroadcastService _messageService;
+        private readonly IDbContextHelper _dbContextHelper;
+        private readonly IScrimMatchDataService _scrimMatchService;
         private readonly ILogger<WebsocketEventHandler> _logger;
+
+
         private readonly Dictionary<string, MethodInfo> _processMethods;
 
         private bool _isScoringEnabled = false;
+        private bool _isEventStoringEnabled = false;
+
+        private PayloadUniquenessFilter<DeathPayload> _deathFilter = new PayloadUniquenessFilter<DeathPayload>();
+        private PayloadUniquenessFilter<VehicleDestroyPayload> _vehicleDestroyFilter = new PayloadUniquenessFilter<VehicleDestroyPayload>();
+        private PayloadUniquenessFilter<GainExperiencePayload> _experienceFilter = new PayloadUniquenessFilter<GainExperiencePayload>();
+        private PayloadUniquenessFilter<PlayerLoginPayload> _loginFilter = new PayloadUniquenessFilter<PlayerLoginPayload>();
+        private PayloadUniquenessFilter<PlayerLogoutPayload> _logoutFilter = new PayloadUniquenessFilter<PlayerLogoutPayload>();
+        private PayloadUniquenessFilter<FacilityControlPayload> _facilityControlFilter = new PayloadUniquenessFilter<FacilityControlPayload>();
+
 
         // Credit to Voidwell @Lampjaw
         private readonly JsonSerializer _payloadDeserializer = JsonSerializer.Create(new JsonSerializerSettings
@@ -53,18 +60,20 @@ namespace squittal.ScrimPlanetmans.CensusStream
         });
 
         public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer,
-            IItemService itemService, IFacilityService facilityService, IVehicleService vehicleService, 
-            IScrimMessageBroadcastService messageService, ILogger<WebsocketEventHandler> logger)
+            IItemService itemService, IFacilityService facilityService, IVehicleService vehicleService, IScrimMessageBroadcastService messageService,
+            IScrimMatchDataService scrimMatchService, IDbContextHelper dbContextHelper, ILogger<WebsocketEventHandler> logger)
         {
             _teamsManager = teamsManager;
             _itemService = itemService;
             _messageService = messageService;
-            //_dbContextHelper = dbContextHelper;
             _characterService = characterService;
             _facilityService = facilityService;
             _vehicleService = vehicleService;
             _scorer = scorer;
+            _dbContextHelper = dbContextHelper;
+            _scrimMatchService = scrimMatchService;
             _logger = logger;
+
 
             // Credit to Voidwell @ Lampjaw
             _processMethods = GetType()
@@ -73,15 +82,14 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 .ToDictionary(m => m.GetCustomAttribute<CensusEventHandlerAttribute>().EventName);
         }
 
-        public void EnabledScoring()
-        {
-            _isScoringEnabled = true;
-        }
+        public void EnabledScoring() => _isScoringEnabled = true;
 
-        public void DisableScoring()
-        {
-            _isScoringEnabled = false;
-        }
+        public void DisableScoring() => _isScoringEnabled = false;
+
+        public void EnabledEventStoring() => _isEventStoringEnabled = true;
+
+        public void DisableEventStoring() => _isEventStoringEnabled = false;
+
 
         public async Task Process(JToken message)
         {
@@ -141,18 +149,20 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     case "GainExperience":
                         var experienceParam = jPayload.ToObject<GainExperiencePayload>(_payloadDeserializer);
-                        await Task.Run(() =>
-                        {
-                            Process(experienceParam);
-                        });
+                        await Process(experienceParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(experienceParam);
+                        //});
                         break;
 
                     case "FacilityControl":
                         var controlParam = jPayload.ToObject<FacilityControlPayload>(_payloadDeserializer);
-                        await Task.Run(() =>
-                        {
-                            Process(controlParam);
-                        });
+                        await Process(controlParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(controlParam);
+                        //});
                         break;
 
                     case "VehicleDestroy":
@@ -173,6 +183,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<ScrimDeathActionEvent> Process(DeathPayload payload)
         {
+            if (!_deathFilter.TryFilterNewPayload(payload))
+            {
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Death payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Death payload detected, excluded");
+                return null;
+            }
+
             string attackerId = payload.AttackerCharacterId;
             string victimId = payload.CharacterId;
 
@@ -195,9 +212,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 deathEvent.Weapon = new ScrimActionWeaponInfo()
                 {
                     Id = weaponItem.Id,
-                    ItemCategoryId = (int)weaponItem.ItemCategoryId,
+                    ItemCategoryId = weaponItem.ItemCategoryId,
                     Name = weaponItem.Name,
                     IsVehicleWeapon = weaponItem.IsVehicleWeapon
+                };
+            }
+            else if (payload.AttackerWeaponId != null)
+            {
+                deathEvent.Weapon = new ScrimActionWeaponInfo()
+                {
+                    Id = (int)payload.AttackerWeaponId
                 };
             }
             
@@ -248,52 +272,68 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled)
                     {
-                        //_scorer.ScoreDeathEvent(dataModel);
-                        var points = _scorer.ScoreDeathEvent(deathEvent);
+                        var points = await _scorer.ScoreDeathEvent(deathEvent);
                         deathEvent.Points = points;
+
+                        var currentMatchId = _scrimMatchService.CurrentMatchId;
+                        var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                        if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                        {
+                            var dataModel = new ScrimDeath
+                            {
+                                ScrimMatchId = currentMatchId,
+                                Timestamp = deathEvent.Timestamp,
+                                AttackerCharacterId = deathEvent.AttackerPlayer.Id,
+                                VictimCharacterId = deathEvent.VictimPlayer.Id,
+                                ScrimMatchRound = currentRound,
+                                ActionType = deathEvent.ActionType,
+                                DeathType = deathEvent.DeathType,
+                                ZoneId = (int)deathEvent.ZoneId,
+                                WorldId = payload.WorldId,
+                                AttackerTeamOrdinal = deathEvent.AttackerPlayer.TeamOrdinal,
+                                AttackerFactionId = deathEvent.AttackerPlayer.FactionId,
+                                AttackerNameFull = deathEvent.AttackerPlayer.NameFull,
+                                AttackerLoadoutId = deathEvent.AttackerPlayer.LoadoutId,
+                                AttackerOutfitId = deathEvent.AttackerPlayer.IsOutfitless ? null : deathEvent.AttackerPlayer.OutfitId,
+                                AttackerOutfitAlias = deathEvent.AttackerPlayer.IsOutfitless ? null : deathEvent.AttackerPlayer.OutfitAlias,
+                                AttackerIsOutfitless = deathEvent.AttackerPlayer.IsOutfitless,
+                                VictimTeamOrdinal = deathEvent.VictimPlayer.TeamOrdinal,
+                                VictimFactionId = deathEvent.VictimPlayer.FactionId,
+                                VictimNameFull = deathEvent.VictimPlayer.NameFull,
+                                VictimLoadoutId = deathEvent.VictimPlayer.LoadoutId,
+                                VictimOutfitId = deathEvent.VictimPlayer.IsOutfitless ? null : deathEvent.VictimPlayer.OutfitId,
+                                VictimOutfitAlias = deathEvent.VictimPlayer.IsOutfitless ? null : deathEvent.VictimPlayer.OutfitAlias,
+                                VictimIsOutfitless = deathEvent.VictimPlayer.IsOutfitless,
+                                WeaponId = deathEvent.Weapon?.Id,
+                                WeaponItemCategoryId = deathEvent.Weapon?.ItemCategoryId,
+                                IsVehicleWeapon = deathEvent.Weapon?.IsVehicleWeapon,
+                                AttackerVehicleId = deathEvent.AttackerVehicleId,
+                                IsHeadshot = deathEvent.IsHeadshot,
+                                Points = deathEvent.Points,
+                                //AttackerResultingPoints = deathEvent.AttackerPlayer.EventAggregate.Points,
+                                //AttackerResultingNetScore = deathEvent.AttackerPlayer.EventAggregate.NetScore,
+                                //VictimResultingPoints = deathEvent.VictimPlayer.EventAggregate.Points,
+                                //VictimResultingNetScore = deathEvent.VictimPlayer.EventAggregate.NetScore
+                            };
+
+                            using var factory = _dbContextHelper.GetFactory();
+                            var dbContext = factory.GetDbContext();
+
+                            dbContext.ScrimDeaths.Add(dataModel);
+                            await dbContext.SaveChangesAsync();
+                        }
                     }
                 }
-
-                //var dataModel = new Death
-                //{
-                //    AttackerCharacterId = attackerId,
-                //    AttackerFireModeId = payload.AttackerFireModeId,
-                //    AttackerLoadoutId = payload.AttackerLoadoutId,
-                //    AttackerVehicleId = payload.AttackerVehicleId,
-                //    AttackerWeaponId = payload.AttackerWeaponId,
-                //    //AttackerOutfitId = attackerOutfitTask?.Result?.OutfitId,
-                //    //AttackerTeamOrdinal = attackerTeamOrdinal,
-                //    AttackerFactionId = attackerFactionId,
-                //    CharacterId = victimId,
-                //    CharacterLoadoutId = payload.CharacterLoadoutId,
-                //    //CharacterOutfitId = victimOutfitTask?.Result?.OutfitId,
-                //    //CharacterTeamOrdinal = victimTeamOrdinal,
-                //    CharacterFactionId = victimFactionId,
-                //    IsHeadshot = payload.IsHeadshot,
-                //    DeathEventType = deathEventType,
-                //    Timestamp = payload.Timestamp,
-                //    WorldId = payload.WorldId,
-                //    ZoneId = payload.ZoneId.Value
-                //};
-
-                //if (_isScoringEnabled)
-                //{
-                //    //_scorer.ScoreDeathEvent(dataModel);
-                //    var points = _scorer.ScoreDeathEvent(deathEvent);
-                //    deathEvent.Points = points;
-                //}
 
                 _messageService.BroadcastScrimDeathActionEventMessage(new ScrimDeathActionEventMessage(deathEvent));
 
                 //return dataModel;
                 return deathEvent;
-
-                //dbContext.Deaths.Add(dataModel);
-                //await dbContext.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //Ignore
+                _logger.LogError(ex.ToString());
                 return null;
             }
         }
@@ -307,7 +347,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
-            var attackerIsVehicle = death.Weapon.IsVehicleWeapon;
+            var attackerIsVehicle = (death.Weapon != null && death.Weapon.IsVehicleWeapon);
 
             var attackerIsMax = death.AttackerLoadoutId == null
                                     ? false
@@ -397,6 +437,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("VehicleDestroy", typeof(VehicleDestroyPayload))]
         private async Task<ScrimVehicleDestructionActionEvent> Process(VehicleDestroyPayload payload)
         {
+            if (!_vehicleDestroyFilter.TryFilterNewPayload(payload))
+            {
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Vehicle Destroy payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Vehicle Destroy payload detected, excluded");
+                return null;
+            }
+
             string attackerId = payload.AttackerCharacterId;
             string victimId = payload.CharacterId;
 
@@ -405,6 +452,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             Player attackerPlayer;
             Player victimPlayer;
+
+            // Don't bother tracking players destroying unclaimed vehicles
+            if (!isValidVictimId)
+            {
+                return null;
+            }
 
             ScrimVehicleDestructionActionEvent destructionEvent = new ScrimVehicleDestructionActionEvent
             {
@@ -418,9 +471,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 destructionEvent.Weapon = new ScrimActionWeaponInfo
                 {
                     Id = weaponItem.Id,
-                    ItemCategoryId = (int)weaponItem.ItemCategoryId,
+                    ItemCategoryId = weaponItem.ItemCategoryId,
                     Name = weaponItem.Name,
                     IsVehicleWeapon = weaponItem.IsVehicleWeapon
+                };
+            }
+            else if (payload.AttackerWeaponId != null)
+            {
+                destructionEvent.Weapon = new ScrimActionWeaponInfo()
+                {
+                    Id = (int)payload.AttackerWeaponId
                 };
             }
 
@@ -473,12 +533,64 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         destructionEvent.AttackerPlayer = destructionEvent.VictimPlayer;
                         destructionEvent.AttackerCharacterId = destructionEvent.VictimCharacterId;
+                        destructionEvent.AttackerVehicle = destructionEvent.VictimVehicle;
                     }
 
                     if (_isScoringEnabled)
                     {
-                        var points = _scorer.ScoreVehicleDestructionEvent(destructionEvent);
+                        var points = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
                         destructionEvent.Points = points;
+
+                        var currentMatchId = _scrimMatchService.CurrentMatchId;
+                        var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                        if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                        {
+                            var dataModel = new ScrimVehicleDestruction
+                            {
+                                ScrimMatchId = currentMatchId,
+                                Timestamp = destructionEvent.Timestamp,
+                                AttackerCharacterId = destructionEvent.AttackerPlayer.Id,
+                                VictimCharacterId = destructionEvent.VictimPlayer.Id,
+                                VictimVehicleId = destructionEvent.VictimVehicle != null ? destructionEvent.VictimVehicle.Id : payload.VehicleId,
+                                AttackerVehicleId = destructionEvent.AttackerVehicle?.Id,
+                                ScrimMatchRound = currentRound,
+                                ActionType = destructionEvent.ActionType,
+                                DeathType = destructionEvent.DeathType,
+                                AttackerVehicleClass = destructionEvent.AttackerVehicle?.Type,
+                                VictimVehicleClass = destructionEvent.VictimVehicle?.Type,
+                                AttackerTeamOrdinal = destructionEvent.AttackerPlayer.TeamOrdinal,
+                                VictimTeamOrdinal = destructionEvent.VictimPlayer.TeamOrdinal,
+                                AttackerFactionId = destructionEvent.AttackerPlayer.FactionId,
+                                AttackerNameFull = destructionEvent.AttackerPlayer.NameFull,
+                                AttackerLoadoutId = destructionEvent.AttackerPlayer?.LoadoutId,
+                                AttackerOutfitId = destructionEvent.AttackerPlayer.IsOutfitless ? null : destructionEvent.AttackerPlayer.OutfitId,
+                                AttackerOutfitAlias = destructionEvent.AttackerPlayer.IsOutfitless ? null : destructionEvent.AttackerPlayer.OutfitAlias,
+                                AttackerIsOutfitless = destructionEvent.AttackerPlayer.IsOutfitless,
+                                VictimFactionId = destructionEvent.VictimPlayer.FactionId,
+                                VictimNameFull = destructionEvent.VictimPlayer.NameFull,
+                                VictimLoadoutId = destructionEvent.VictimPlayer?.LoadoutId,
+                                VictimOutfitId = destructionEvent.VictimPlayer.IsOutfitless ? null : destructionEvent.VictimPlayer.OutfitId,
+                                VictimOutfitAlias = destructionEvent.VictimPlayer.IsOutfitless ? null : destructionEvent.VictimPlayer.OutfitAlias,
+                                VictimIsOutfitless = destructionEvent.VictimPlayer.IsOutfitless,
+                                WeaponId = destructionEvent.Weapon?.Id,
+                                WeaponItemCategoryId = destructionEvent.Weapon?.ItemCategoryId,
+                                IsVehicleWeapon = destructionEvent.Weapon?.IsVehicleWeapon,
+                                ZoneId = (int)destructionEvent.ZoneId,
+                                WorldId = payload.WorldId,
+                                Points = destructionEvent.Points,
+                                //AttackerResultingPoints = destructionEvent.AttackerPlayer.EventAggregate.Points,
+                                //AttackerResultingNetScore = destructionEvent.AttackerPlayer.EventAggregate.NetScore,
+                                //VictimResultingPoints = destructionEvent.VictimPlayer.EventAggregate.Points,
+                                //VictimResultingNetScore = destructionEvent.VictimPlayer.EventAggregate.NetScore
+                            };
+
+                            using var factory = _dbContextHelper.GetFactory();
+                            var dbContext = factory.GetDbContext();
+
+                            dbContext.ScrimVehicleDestructions.Add(dataModel);
+                            await dbContext.SaveChangesAsync();
+                        }
                     }
                 }
 
@@ -486,9 +598,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 return destructionEvent;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //Ignore
+                _logger.LogError(ex.ToString());
                 return null;
             }
         }
@@ -523,7 +635,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
-            var attackerIsVehicle = (destruction.Weapon.IsVehicleWeapon || (destruction.AttackerVehicle != null && destruction.AttackerVehicle.Type != VehicleType.Unknown));
+            var attackerIsVehicle = ((destruction.Weapon != null && destruction.Weapon.IsVehicleWeapon) || (destruction.AttackerVehicle != null && destruction.AttackerVehicle.Type != VehicleType.Unknown));
 
             var attackerIsMax = destruction.AttackerLoadoutId == null
                                                 ? false
@@ -692,9 +804,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
-        //private Task<PlayerLogin> Process(PlayerLoginPayload payload)
         private PlayerLogin Process(PlayerLoginPayload payload)
         {
+            if (!_loginFilter.TryFilterNewPayload(payload))
+            {
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Login payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Player Login payload detected, excluded");
+                return null;
+            }
+
             var characterId = payload.CharacterId;
 
             var player = _teamsManager.GetPlayerFromId(characterId);
@@ -716,9 +834,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
-        //private Task<PlayerLogout> Process(PlayerLogoutPayload payload)
         private PlayerLogout Process(PlayerLogoutPayload payload)
         {
+            if (!_logoutFilter.TryFilterNewPayload(payload))
+            {
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Logout payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Player Logout payload detected, excluded");
+                return null;
+            }
+
             var characterId = payload.CharacterId;
 
             var player = _teamsManager.GetPlayerFromId(characterId);
@@ -743,8 +867,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
         #region GainExperience Payloads
         //private Task<GainExperience> Process(GainExperiencePayload payload)
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
-        private void Process(GainExperiencePayload payload)
+        private async Task Process(GainExperiencePayload payload)
         {
+            if (!_experienceFilter.TryFilterNewPayload(payload))
+            {
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Gain Experience payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Gain Experience payload detected, excluded");
+                return;
+            }
+
             var experienceId = payload.ExperienceId;
             var experienceType = ExperienceEventsBuilder.GetExperienceTypeFromId(experienceId);
 
@@ -762,51 +893,53 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 LoadoutId = payload.LoadoutId
             };
 
-            switch (experienceType)
+            try
             {
-                case ExperienceType.Revive:
-                    ProcessRevivePayload(baseEvent, payload);
-                    return;
+                switch (experienceType)
+                {
+                    case ExperienceType.Revive:
+                        await ProcessRevivePayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.DamageAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.DamageAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.UtilityAssist:
-                    ProcessAssistPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.UtilityAssist:
+                        //ProcessAssistPayload(baseEvent, payload);
+                        return;
 
-                case ExperienceType.PointControl:
-                    ProcessPointControlPayload(baseEvent, payload);
-                    return;
+                    case ExperienceType.PointControl:
+                        await ProcessPointControlPayload(baseEvent, payload);
+                        return;
 
-                default:
-                    return;
+                    case ExperienceType.GrenadeAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
+
+                    case ExperienceType.HealSupportAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
+
+                    case ExperienceType.ProtectAlliesAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
+
+                    case ExperienceType.SpotAssist:
+                        await ProcessAssistPayload(baseEvent, payload);
+                        return;
+
+                    default:
+                        return;
+                }
             }
-
-            //var characterId = payload.CharacterId;
-
-            //var player = _teamsManager.GetPlayerFromId(characterId);
-
-
-            //var dataModel = new GainExperience
-            //{
-            //    Id = Guid.NewGuid(),
-            //    ExperienceId = payload.ExperienceId,
-            //    CharacterId = payload.CharacterId,
-            //    Amount = payload.Amount,
-            //    LoadoutId = payload.LoadoutId,
-            //    OtherId = payload.OtherId,
-            //    Timestamp = payload.Timestamp,
-            //    WorldId = payload.WorldId,
-            //    ZoneId = payload.ZoneId.Value
-            //};
-
-            //return Task.FromResult(dataModel);
-            //return dataModel;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+            }
         }
 
-        private void ProcessRevivePayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        private async Task ProcessRevivePayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
             var reviveEvent = new ScrimReviveActionEvent(baseEvent);
 
@@ -843,8 +976,39 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreReviveEvent(reviveEvent);
+                    var points = await _scorer.ScoreReviveEvent(reviveEvent);
                     reviveEvent.Points = points;
+
+                    var currentMatchId = _scrimMatchService.CurrentMatchId;
+                    var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                    if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                    {
+                        var dataModel = new ScrimRevive
+                        {
+                            ScrimMatchId = currentMatchId,
+                            Timestamp = reviveEvent.Timestamp,
+                            MedicCharacterId = reviveEvent.MedicPlayer.Id,
+                            RevivedCharacterId = reviveEvent.RevivedPlayer.Id,
+                            ScrimMatchRound = currentRound,
+                            ActionType = reviveEvent.ActionType,
+                            MedicTeamOrdinal = reviveEvent.MedicPlayer.TeamOrdinal,
+                            RevivedTeamOrdinal = reviveEvent.RevivedPlayer.TeamOrdinal,
+                            MedicLoadoutId = reviveEvent.MedicPlayer?.LoadoutId != null ? reviveEvent.MedicPlayer.LoadoutId : null,
+                            RevivedLoadoutId = reviveEvent.RevivedPlayer?.LoadoutId != null ? reviveEvent.RevivedPlayer.LoadoutId : null,
+                            ExperienceGainId = reviveEvent.ExperienceGainInfo.Id,
+                            ExperienceGainAmount = reviveEvent.ExperienceGainInfo.Amount,
+                            ZoneId = (int)reviveEvent.ZoneId,
+                            WorldId = payload.WorldId,
+                            Points = reviveEvent.Points,
+                        };
+
+                        using var factory = _dbContextHelper.GetFactory();
+                        var dbContext = factory.GetDbContext();
+
+                        dbContext.ScrimRevives.Add(dataModel);
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
             }
 
@@ -867,7 +1031,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         : ScrimActionType.ReviveInfantry;
         }
 
-        private void ProcessAssistPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        private async Task ProcessAssistPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
             var assistEvent = new ScrimAssistActionEvent(baseEvent);
 
@@ -904,8 +1068,29 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreAssistEvent(assistEvent);
+                    var points = await _scorer.ScoreAssistEvent(assistEvent);
                     assistEvent.Points = points;
+
+                    var currentMatchId = _scrimMatchService.CurrentMatchId;
+                    var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                    if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                    {
+                        switch (assistEvent.ActionType)
+                        {
+                            case ScrimActionType.DamageAssist:
+                                await SaveScrimDamageAssistToDb(assistEvent, currentMatchId, currentRound, payload.WorldId);
+                                break;
+
+                            case ScrimActionType.GrenadeAssist:
+                                await SaveScrimGrenadeAssistToDb(assistEvent, currentMatchId, currentRound, payload.WorldId);
+                                break;
+
+                            case ScrimActionType.SpotAssist:
+                                await SaveScrimSpotAssistToDb(assistEvent, currentMatchId, currentRound, payload.WorldId);
+                                break;
+                        };
+                    }
                 }
             }
 
@@ -921,12 +1106,106 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
-            return assistEvent.ExperienceType == ExperienceType.DamageAssist
-                        ? ScrimActionType.DamageAssist
-                        : ScrimActionType.UtilityAssist;
+            return assistEvent.ExperienceType switch
+            {
+                ExperienceType.DamageAssist => ScrimActionType.DamageAssist,
+                ExperienceType.GrenadeAssist => ScrimActionType.GrenadeAssist,
+                ExperienceType.HealSupportAssist => ScrimActionType.HealSupportAssist,
+                ExperienceType.ProtectAlliesAssist => ScrimActionType.ProtectAlliesAssist,
+                ExperienceType.SpotAssist => ScrimActionType.SpotAssist,
+                _ => ScrimActionType.UtilityAssist
+            };
+
+            //return assistEvent.ExperienceType == ExperienceType.DamageAssist
+            //            ? ScrimActionType.DamageAssist
+            //            : ScrimActionType.UtilityAssist;
         }
 
-        private void ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
+        private async Task SaveScrimDamageAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
+        {
+            var dataModel = new ScrimDamageAssist
+            {
+                ScrimMatchId = matchId,
+                Timestamp = assistEvent.Timestamp,
+                AttackerCharacterId = assistEvent.AttackerPlayer.Id,
+                VictimCharacterId = assistEvent.VictimPlayer.Id,
+                ScrimMatchRound = matchRound,
+                ActionType = assistEvent.ActionType,
+                AttackerTeamOrdinal = assistEvent.AttackerPlayer.TeamOrdinal,
+                VictimTeamOrdinal = assistEvent.VictimPlayer.TeamOrdinal,
+                AttackerLoadoutId = assistEvent.AttackerPlayer?.LoadoutId != null ? assistEvent.AttackerPlayer.LoadoutId : null,
+                VictimLoadoutId = assistEvent.VictimPlayer?.LoadoutId != null ? assistEvent.VictimPlayer.LoadoutId : null,
+                ExperienceGainId = assistEvent.ExperienceGainInfo.Id,
+                ExperienceGainAmount = assistEvent.ExperienceGainInfo.Amount,
+                ZoneId = assistEvent.ZoneId != null ? assistEvent.ZoneId : null,
+                WorldId = worldId,
+                Points = assistEvent.Points,
+            };
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimDamageAssists.Add(dataModel);
+            await dbContext.SaveChangesAsync();
+        }
+
+        private async Task SaveScrimGrenadeAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
+        {
+            var dataModel = new ScrimGrenadeAssist
+            {
+                ScrimMatchId = matchId,
+                Timestamp = assistEvent.Timestamp,
+                AttackerCharacterId = assistEvent.AttackerPlayer.Id,
+                VictimCharacterId = assistEvent.VictimPlayer.Id,
+                ScrimMatchRound = matchRound,
+                ActionType = assistEvent.ActionType,
+                AttackerTeamOrdinal = assistEvent.AttackerPlayer.TeamOrdinal,
+                VictimTeamOrdinal = assistEvent.VictimPlayer.TeamOrdinal,
+                AttackerLoadoutId = assistEvent.AttackerPlayer?.LoadoutId != null ? assistEvent.AttackerPlayer.LoadoutId : null,
+                VictimLoadoutId = assistEvent.VictimPlayer?.LoadoutId != null ? assistEvent.VictimPlayer.LoadoutId : null,
+                ExperienceGainId = assistEvent.ExperienceGainInfo.Id,
+                ExperienceGainAmount = assistEvent.ExperienceGainInfo.Amount,
+                ZoneId = assistEvent.ZoneId != null ? assistEvent.ZoneId : null,
+                WorldId = worldId,
+                Points = assistEvent.Points,
+            };
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimGrenadeAssists.Add(dataModel);
+            await dbContext.SaveChangesAsync();
+        }
+
+        private async Task SaveScrimSpotAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
+        {
+            var dataModel = new ScrimSpotAssist
+            {
+                ScrimMatchId = matchId,
+                Timestamp = assistEvent.Timestamp,
+                SpotterCharacterId = assistEvent.AttackerPlayer.Id,
+                VictimCharacterId = assistEvent.VictimPlayer.Id,
+                ScrimMatchRound = matchRound,
+                ActionType = assistEvent.ActionType,
+                SpotterTeamOrdinal = assistEvent.AttackerPlayer.TeamOrdinal,
+                VictimTeamOrdinal = assistEvent.VictimPlayer.TeamOrdinal,
+                SpotterLoadoutId = assistEvent.AttackerPlayer?.LoadoutId != null ? assistEvent.AttackerPlayer.LoadoutId : null,
+                VictimLoadoutId = assistEvent.VictimPlayer?.LoadoutId != null ? assistEvent.VictimPlayer.LoadoutId : null,
+                ExperienceGainId = assistEvent.ExperienceGainInfo.Id,
+                ExperienceGainAmount = assistEvent.ExperienceGainInfo.Amount,
+                ZoneId = assistEvent.ZoneId != null ? assistEvent.ZoneId : null,
+                WorldId = worldId,
+                Points = assistEvent.Points,
+            };
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimSpotAssists.Add(dataModel);
+            await dbContext.SaveChangesAsync();
+        }
+
+        private async Task ProcessPointControlPayload(ScrimExperienceGainActionEvent baseEvent, GainExperiencePayload payload)
         {
             var controlEvent = new ScrimObjectiveTickActionEvent(baseEvent);
 
@@ -952,7 +1231,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled)
                 {
-                    var points = _scorer.ScoreObjectiveTickEvent(controlEvent);
+                    var points = await _scorer.ScoreObjectiveTickEvent(controlEvent);
                     controlEvent.Points = points;
                 }
             }
@@ -978,8 +1257,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region FacilityControl Payloads
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
-        private void Process(FacilityControlPayload payload)
+        private async Task Process(FacilityControlPayload payload)
         {
+            if (!_facilityControlFilter.TryFilterNewPayload(payload))
+            {
+                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Facility Control payload detected, excluded</span>");
+                _logger.LogWarning("Duplicate Facility Control payload detected, excluded");
+                return;
+            }
+
             var oldFactionId = payload.OldFactionId;
             var newFactionId = payload.NewFactionId;
 
@@ -1006,7 +1292,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var mapRegion = _facilityService.GetScrimmableMapRegionFromFacilityId(payload.FacilityId);
 
-            //var controlModel = new FacilityControl
             var controlEvent = new ScrimFacilityControlActionEvent
             {
                 FacilityId = payload.FacilityId,
@@ -1023,18 +1308,42 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ActionType = actionType
             };
 
-            //_scorer.ScoreFacilityControlEvent(controlModel, out bool controlCounts);
-
             if (_isScoringEnabled)
             {
                 var points = _scorer.ScoreFacilityControlEvent(controlEvent);
                 controlEvent.Points = points;
+
+                var currentMatchId = _scrimMatchService.CurrentMatchId;
+                var currentRound = _scrimMatchService.CurrentMatchRound;
+
+                var controllingFaction = _teamsManager.GetTeam(controlEvent.ControllingTeamOrdinal)?.FactionId;
+
+                if (_isEventStoringEnabled && !string.IsNullOrWhiteSpace(currentMatchId))
+                {
+                    var dataModel = new ScrimFacilityControl
+                    {
+                        ScrimMatchId = currentMatchId,
+                        Timestamp = controlEvent.Timestamp,
+                        ScrimMatchRound = currentRound,
+                        ControllingTeamOrdinal = controlEvent.ControllingTeamOrdinal,
+                        ActionType = controlEvent.ActionType,
+                        ControlType = controlEvent.ControlType,
+                        ControllingFactionId = (int)controllingFaction,
+                        ZoneId = controlEvent.ZoneId != null ? controlEvent.ZoneId : (int?)null,
+                        WorldId = payload.WorldId,
+                        Points = controlEvent.Points,
+                    };
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    dbContext.ScrimFacilityControls.Add(dataModel);
+                    await dbContext.SaveChangesAsync();
+                }
             }
 
             // TODO: broadcast Facility Control message
             _messageService.BroadcastScrimFacilityControlActionEventMessage(new ScrimFacilityControlActionEventMessage(controlEvent));
-
-            //return Task.FromResult(dataModel);
         }
 
         private FacilityControlType GetFacilityControlType(int? oldFactionId, int? newFactionId)
@@ -1068,18 +1377,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
 
-            //if (roundControlVictories == 0)
-            //{
-            //    return true;
-            //}
-
-            var previousScoredControlType = team.EventAggregateTracker.RoundStats.PreviousScoredBaseControlType;
-
-            //if (type != previousScoredControlType && roundControlVictories != 0)
-            //{
-            //    return ScrimActionType.None;
-            //}
-            
             // Only the first defense in a round should ever count. After that, base always trades hands via captures
             if (type == FacilityControlType.Defense && roundControlVictories != 0)
             {

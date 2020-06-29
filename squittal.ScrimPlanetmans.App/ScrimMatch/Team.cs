@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
+using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -12,7 +13,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
 
-        //public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
         public ScrimEventAggregate EventAggregate
         {
             get
@@ -20,11 +20,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return EventAggregateTracker.TotalStats;
             }
         }
-
-        //public ScrimEventAggregate EventAggregateRound { get; set; }
-
-        // Each aggregate is only the points scored during the round number of the enytry's key
-        //public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory { get; set; } = new Dictionary<int, ScrimEventAggregate>();
 
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
@@ -34,6 +29,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public List<Outfit> Outfits { get => _outfits; }
         public List<Player> NonOutfitCharacters { get; } = new List<Player>();
+
+        public List<ConstructedTeam> ConstructedTeams { get; set; } = new List<ConstructedTeam>();
+        public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
 
         public List<string> PlayerIds { get => _playerIds; }
         public List<string> PlayersIdsOnline { get => _playerIdsOnline; }
@@ -51,21 +49,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private List<string> _playerIdsOnline = new List<string>();
         private Dictionary<string, Character> _playerIdMap = new Dictionary<string, Character>();
 
-        private List<string> _loadingAliases = new List<string>();
-        private List<string> _loadingPlayerIds = new List<string>();
-
         private List<Outfit> _outfits = new List<Outfit>();
         private Dictionary<string, Outfit> _playerOutfitMap = new Dictionary<string, Outfit>(); // <characterId, alias>
 
         public Team(string alias, string nameInternal, int teamOrdinal)
         {
-            //Alias = alias;
             TrySetAlias(alias, false);
             NameInternal = nameInternal;
             TeamOrdinal = teamOrdinal;
-
-            //EventAggregate = new ScrimEventAggregate();
-            //EventAggregateRound = new ScrimEventAggregate();
         }
 
         public bool TrySetAlias(string alias, bool isCustomAlias = false)
@@ -91,6 +82,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public bool ContainsOutfit(string alias)
         {
             return _seedOutfitAliases.Contains(alias);
+        }
+
+        public bool ContainsConstructedTeam(int constructedTeamId)
+        {
+            return ConstructedTeams.Any(ct => ct.Id == constructedTeamId);
+        }
+
+        public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            return ConstructedTeamsMatchInfo.Any(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
         }
 
         public bool TryAddPlayer(Player player)
@@ -121,12 +122,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ParticipatingPlayers.RemoveAll(p => p.Id == characterId);
 
-            EventAggregate.Subtract(player.EventAggregate);
-
             EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
 
             return true;
         }
+
 
         public bool TryAddOutfit(Outfit outfit)
         {
@@ -158,15 +158,128 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        
+        public bool TryAddConstructedTeam(ConstructedTeam constructedTeam)
+        {
+            if (ContainsConstructedTeam(constructedTeam.Id))
+            {
+                return false;
+            }
+
+            ConstructedTeams.Add(constructedTeam);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeam(int constructedTeamId)
+        {
+            if (!ContainsConstructedTeam(constructedTeamId))
+            {
+                return false;
+            }
+
+            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
+            return true;
+
+            //if (!ContainsConstructedTeam(constructedTeamId))
+            //{
+            //    return false;
+            //}
+
+            //ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            //return true;
+        }
+
+        public bool TryAddConstructedTeamFaction(ConstructedTeamMatchInfo matchInfo)
+        {
+            var constructedTeam = matchInfo.ConstructedTeam;
+            var factionId = matchInfo.ActiveFactionId;
+            
+            if (ContainsConstructedTeamFaction(constructedTeam.Id, factionId))
+            {
+                return false;
+            }
+
+            ConstructedTeamsMatchInfo.Add(matchInfo);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            if (!ContainsConstructedTeamFaction(constructedTeamId, factionId))
+            {
+                return false;
+            }
+
+            ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
+            return true;
+        }
+
+        public bool TryAddConstructedTeamMatchInfo(ConstructedTeamMatchInfo matchInfo)
+        {
+            if (ContainsConstructedTeam(matchInfo.ConstructedTeam.Id))
+            {
+                return false;
+            }
+
+            ConstructedTeams.Add(matchInfo.ConstructedTeam);
+            ConstructedTeamsMatchInfo.Add(matchInfo);
+            return true;
+        }
+
+        public bool TryRemoveConstructedTeamMatchInfo(int constructedTeamId)
+        {
+            if (!ContainsConstructedTeam(constructedTeamId))
+            {
+                return false;
+            }
+
+            ConstructedTeams.RemoveAll(ct => ct.Id == constructedTeamId);
+            ConstructedTeamsMatchInfo.RemoveAll(ct => ct.ConstructedTeam.Id == constructedTeamId);
+            return true;
+        }
+
+        public IEnumerable<Player> GetOutfitPlayers(string aliasLower)
+        {
+            lock(Players)
+            {
+                return Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetNonOutfitPlayers()
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetConstructedTeamFactionPlayers(int constructedTeamId, int factionId)
+        {
+            lock (Players)
+            {
+                return Players
+                        .Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId && p.FactionId == factionId)
+                        .ToList();
+            }
+        }
+
+        public IEnumerable<Player> GetConstructedTeamPlayers(int constructedTeamId)
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId).ToList();
+            }
+        }
+
         public void AddStatsUpdate(ScrimEventAggregate update)
         {
-            //EventAggregate.Add(update);
             EventAggregateTracker.AddToCurrent(update);
         }
 
         public void SubtractStatsUpdate(ScrimEventAggregate update)
         {
-            //EventAggregate.Subtract(update);
             EventAggregateTracker.SubtractFromCurrent(update);
         }
 
@@ -177,76 +290,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public void RollBackPlayerRoundStats(string characterId, int currentRound)
         {
-            //var player = Players.FirstOrDefault(p => p.Id == characterId);
-
-            //player.EventAggregateTracker.RollBackRound(currentRound);
             EventAggregateTracker.RollBackRound(currentRound);
         }
-
-        //public void AddEventAggregateUpdate(ScrimEventAggregate update)
-        //{
-        //    EventAggregate.Add(update);
-        //    EventAggregateRound.Add(update);
-        //}
-
-        //public void SubtractEventAggregateUpdate(ScrimEventAggregate update)
-        //{
-        //    EventAggregate.Subtract(update);
-        //    EventAggregateRound.Subtract(update);
-        //}
-
-        /*
-        public void SaveRoundToEventAggregateHistory(int round)
-        {
-            if (round < 1)
-            {
-                return;
-            }
-
-            var maxRound = GetHighestEventAggregateHistoryRound();
-
-            // Only allow updating the current round, or saving a new round
-            if (round != maxRound && round != (maxRound + 1))
-            {
-                return;
-            }
-
-            var roundStats = new ScrimEventAggregate();
-
-            roundStats.Add(EventAggregate);
-
-            for (var r = 1; r == (round - 1); r++)
-            {
-                if (EventAggregateRoundHistory.TryGetValue(r, out ScrimEventAggregate stats))
-                {
-                    roundStats.Subtract(stats);
-                }
-            }
-
-            if (EventAggregateRoundHistory.ContainsKey(round))
-            {
-                EventAggregateRoundHistory[round] = roundStats;
-            }
-            else
-            {
-                EventAggregateRoundHistory.Add(round, roundStats);
-            }
-        }
-        */
-
-        /*
-        private int GetHighestEventAggregateHistoryRound()
-        {
-            var rounds = EventAggregateRoundHistory.Keys.ToArray();
-
-            if (!rounds.Any())
-            {
-                return 0;
-            }
-
-            return rounds.Max();
-        }
-        */
-
     }
 }

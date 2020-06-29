@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.Data.DataConfigurations;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using squittal.ScrimPlanetmans.Data.Models;
 
 namespace squittal.ScrimPlanetmans.Data
 {
@@ -39,6 +40,28 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<Ruleset> Rulesets { get; set; }
         public DbSet<RulesetActionRule> RulesetActionRules { get; set; }
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
+        
+        public DbSet<DeathType> DeathTypes { get; set; }
+        public DbSet<VehicleClass> VehicleClasses { get; set; }
+
+        public DbSet<Models.ScrimMatch> ScrimMatches { get; set; }
+        public DbSet<ScrimMatchRoundConfiguration> ScrimMatchRoundConfigurations { get; set; }
+        public DbSet<ScrimMatchParticipatingPlayer> ScrimMatchParticipatingPlayers { get; set; }
+
+        public DbSet<ScrimMatchTeamResult> ScrimMatchTeamResults { get; set; }
+        public DbSet<ScrimMatchTeamPointAdjustment> ScrimMatchTeamPointAdjustments { get; set; }
+
+        public DbSet<ScrimDeath> ScrimDeaths { get; set; }
+        public DbSet<ScrimVehicleDestruction> ScrimVehicleDestructions { get; set; }
+        public DbSet<ScrimDamageAssist> ScrimDamageAssists { get; set; }
+        public DbSet<ScrimGrenadeAssist> ScrimGrenadeAssists { get; set; }
+        public DbSet<ScrimSpotAssist> ScrimSpotAssists { get; set; }
+        public DbSet<ScrimRevive> ScrimRevives { get; set; }
+        public DbSet<ScrimFacilityControl> ScrimFacilityControls { get; set; }
+
+        public DbSet<ConstructedTeam> ConstructedTeams { get; set; }
+        public DbSet<ConstructedTeamPlayerMembership> ConstructedTeamPlayerMemberships { get; set; }
+        //public DbSet<ConstructedTeamFactionPreference> ConstructedTeamFactionPreferences { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -72,6 +95,29 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new RulesetConfiguration());
             builder.ApplyConfiguration(new RulesetActionRuleConfiguration());
             builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
+            
+            builder.ApplyConfiguration(new DeathTypeConfiguration());
+            builder.ApplyConfiguration(new VehicleClassConfiguration());
+            
+            builder.ApplyConfiguration(new ScrimMatchConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchRoundConfigurationConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchParticipatingPlayerConfiguration());
+
+            builder.ApplyConfiguration(new ScrimMatchTeamResultConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchTeamPointAdjustmentConfiguration());
+
+            builder.ApplyConfiguration(new ScrimDeathConfiguration());
+            builder.ApplyConfiguration(new ScrimVehicleDestructionConfiguration());
+            
+            builder.ApplyConfiguration(new ScrimDamageAssistConfiguration());
+            builder.ApplyConfiguration(new ScrimGrenadeAssistConfiguration());
+            builder.ApplyConfiguration(new ScrimSpotAssistConfiguration());
+            builder.ApplyConfiguration(new ScrimReviveConfiguration());
+            builder.ApplyConfiguration(new ScrimFacilityControlConfiguration());
+
+            builder.ApplyConfiguration(new ConstructedTeamConfiguration());
+            builder.ApplyConfiguration(new ConstructedTeamPlayerMembershipConfiguration());
+            //builder.ApplyConfiguration(new ConstructedTeamFactionPreferenceConfiguration());
             #endregion
         }
     }

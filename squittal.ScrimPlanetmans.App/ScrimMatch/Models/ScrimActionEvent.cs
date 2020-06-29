@@ -49,12 +49,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string MedicCharacterId { get; set; }
         public string RevivedCharacterId { get; set; }
 
-        //public ScrimActionExperienceGainInfo ExperienceGain { get; set; }
-
-        //public int? MedicLoadoutId { get; set; }
-
-        //public int Points { get; set; }
-
         public ScrimReviveActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
         {
             Timestamp = baseExperienceEvent.Timestamp;
@@ -74,11 +68,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string AttackerCharacterId { get; set; }
         public string VictimCharacterId { get; set; }
 
-        //public ScrimActionExperienceGainInfo ExperienceGain { get; set; }
-
-        //public int? AttackerLoadoutId { get; set; }
-
-        //public int Points { get; set; }
         public ScrimAssistActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
         {
             Timestamp = baseExperienceEvent.Timestamp;
@@ -96,11 +85,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public string AttackerCharacterId { get; set; }
         public string VictimCharacterId { get; set; }
-        //public ScrimActionExperienceGainInfo ExperienceGain { get; set; }
 
-        //public int? AttackerLoadoutId { get; set; }
-
-        //public int Points { get; set; }
         public ScrimUtilityAssistActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
         {
             Timestamp = baseExperienceEvent.Timestamp;
@@ -163,7 +148,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string FacilityName { get; set; } = string.Empty;
 
         public FacilityControlType ControlType { get; set; }
-        //public Shared.Models.Planetside.Events.FacilityControlType ControlType { get; set; }
         public int ControllingTeamOrdinal { get; set; }
         
         public int Points { get; set; }
@@ -178,9 +162,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
     public class ScrimActionWeaponInfo
     {
         public int Id { get; set; }
-        public int ItemCategoryId { get; set; }
-        public string Name { get; set; }
-        public bool IsVehicleWeapon { get; set; }
+        public int? ItemCategoryId { get; set; }
+        public string Name { get; set; } = "Unknown weapon";
+        public bool IsVehicleWeapon { get; set; } = false;
     }
 
     public class ScrimActionExperienceGainInfo
@@ -201,9 +185,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public string AttackerCharacterId { get; set; }
         public string VictimCharacterId { get; set; }
-        
-        //public int AttackerVehicleId { get; set; }
-        //public int VictimVehicleId { get; set; }
 
         public int? AttackerLoadoutId { get; set; }
 

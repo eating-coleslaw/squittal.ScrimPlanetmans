@@ -56,7 +56,12 @@ namespace squittal.ScrimPlanetmans.App
             services.AddTransient<IVehicleService, VehicleService>();
             //services.AddTransient<IVehicleFactionService, VehicleFactionService>();
 
+            services.AddTransient<IVehicleTypeService, VehicleTypeService>();
+            services.AddTransient<IDeathEventTypeService, DeathEventTypeService>();
+
             services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
+
+            services.AddSingleton<IScrimMatchDataService, ScrimMatchDataService>();
 
             services.AddSingleton<IWorldService, WorldService>();
             services.AddSingleton<ICharacterService, CharacterService>();
@@ -64,16 +69,14 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IProfileService, ProfileService>();
             services.AddTransient<ILoadoutService, LoadoutService>();
 
-            services.AddSingleton<ScrimTeamsManagerService>();
-            services.AddSingleton<PlanetsideDataService>();
-            services.AddSingleton<WebsocketMonitorService>();
-
             services.AddSingleton<IScrimTeamsManager, ScrimTeamsManager>();
             services.AddSingleton<IScrimPlayersService, ScrimPlayersService>();
 
             services.AddSingleton<IStatefulTimer, StatefulTimer>(); // TODO: should/can this be Transient?
             services.AddSingleton<IScrimMatchEngine, ScrimMatchEngine>();
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
+
+            services.AddTransient<IConstructedTeamService, ConstructedTeamService>();
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 

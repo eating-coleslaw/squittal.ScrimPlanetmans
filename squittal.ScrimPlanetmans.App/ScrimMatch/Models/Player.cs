@@ -1,5 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.Models.Planetside;
-using System;
+using squittal.ScrimPlanetmans.Services.Planetside;
+using System.Text.RegularExpressions;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
@@ -7,11 +8,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
     {
         public string Id { get; }
 
-        //public Team Team { get; set; }
         public int TeamOrdinal { get; set; }
 
-        //public ScrimEventAggregate EventAggregate { get; set; }
-        //public ScrimEventAggregate EventAggregate { get; set; } = new ScrimEventAggregate();
         public ScrimEventAggregate EventAggregate
         {
             get
@@ -20,17 +18,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
-        //public ScrimEventAggregate EventAggregateRound { get; set; }
-
-        // Each aggregate is only the points scored during the round number of the enytry's key
-        //public Dictionary<int, ScrimEventAggregate> EventAggregateRoundHistory = new Dictionary<int, ScrimEventAggregate>();
-
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
         public string NameFull { get; set; }
-        public string NameDisplay { get; set; }
         public string NameTrimmed { get; set; }
         public string NameAlias { get; set; }
+
+        //public string NameDisplay { get; set; }
+        public string NameDisplay
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(NameAlias))
+                {
+                    return NameAlias;
+                }
+                else if (!string.IsNullOrWhiteSpace(NameTrimmed))
+                {
+                    return NameTrimmed;
+                }
+                else
+                {
+                    return NameFull;
+                }
+            }
+        }
 
         public int FactionId { get; set; }
         public int WorldId { get; set; }
@@ -43,6 +55,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public bool IsOutfitless { get; set; } = false;
 
+        public int? ConstructedTeamId { get; set; }
+
+        public bool IsFromConstructedTeam => ConstructedTeamId != null;
+
         // Dynamic Attributes
         public int? LoadoutId { get; set; }
         public PlayerStatus Status { get; set; } = PlayerStatus.Unknown;
@@ -52,13 +68,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsParticipating { get; set; } = false;
         public bool IsBenched { get; set; } = false;
 
+        private static readonly Regex _nameRegex = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        
+        // Format for Planetside Infantry League: Season 2 => Namex##
+        private static readonly Regex _pil2NameRegex = new Regex("^[A-z0-9]{2,}(x[0-9]{2})$", RegexOptions.Compiled);
+
+        // Format for Legacy Jaeger Characters => TAGxName(VS|NC|TR)
+        private static readonly Regex _legacyJaegerNameRegex = new Regex("^([A-z0-9]{0,4}x).{2,}(?<!(x[0-9]{2}))$", RegexOptions.Compiled);
+
+        private static readonly Regex _factionSufficRegex = new Regex("^[A-z0-9]+(VS|NC|TR)$", RegexOptions.Compiled);
 
         public Player(Character character)
         {
             Id = character.Id;
             NameFull = character.Name;
-            NameTrimmed = GetTrimmedPlayerName(NameFull);
-            NameDisplay = NameTrimmed;
+            //NameDisplay = NameTrimmed;
             IsOnline = character.IsOnline;
             PrestigeLevel = character.PrestigeLevel;
             FactionId = character.FactionId;
@@ -67,36 +91,73 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitAlias = character.OutfitAlias;
             OutfitAliasLower = character.OutfitAliasLower;
 
-            //EventAggregate = new ScrimEventAggregate();
-            //EventAggregateRound = new ScrimEventAggregate();
+            // Last because it requires WorldId being set
+            NameTrimmed = GetTrimmedPlayerName(NameFull);
         }
 
-        private static string GetTrimmedPlayerName(string name)
+        public string GetTrimmedPlayerName(string name)
         {
-            var trimmed = name;
+            var isPil2NameFormat = false;
+            var isLegacyJaegerNameFormat = false;
 
-            try
+            if (WorldService.IsJaegerWorldId(WorldId))
+            {
+                if (_pil2NameRegex.Match(name).Success)
+                {
+                    isPil2NameFormat = true;
+                }
+                else if (_legacyJaegerNameRegex.Match(name).Success)
+                {
+                    isLegacyJaegerNameFormat = true;
+                }
+            }
+
+            var trimmed = name;
+            var initLength = name.Length;
+
+            if (isPil2NameFormat)
+            {
+                trimmed = name.Substring(0, initLength - 3);
+            }
+            else if (isLegacyJaegerNameFormat)
             {
                 // Remove outfit tag from beginning of name
                 var idx = name.IndexOf("x");
-                if (idx > 0 && idx < 5 && (idx != name.Length - 1))
+                if (idx >= 0 && idx < 5 && (idx != initLength - 1))
                 {
-                    trimmed = name.Substring(idx + 1, name.Length - idx - 1);
+                    trimmed = name.Substring(idx + 1, initLength - idx - 1);
                 }
+            }
 
+            if (!isPil2NameFormat && _factionSufficRegex.Match(trimmed).Success)
+            {
                 // Remove faction abbreviation from end of name
                 var end = trimmed.Length - 2;
-                if (trimmed.IndexOf("VS") == end || trimmed.IndexOf("NC") == end || trimmed.IndexOf("TR") == end)
-                {
-                    trimmed = trimmed.Substring(0, end);
-                }
-            }
-            catch
-            {
-                return name;
+                trimmed = trimmed.Substring(0, end);
             }
 
-            if (string.IsNullOrWhiteSpace(trimmed))
+            //try
+            //{
+            //    // Remove outfit tag from beginning of name
+            //    var idx = name.IndexOf("x");
+            //    if (idx > 0 && idx < 5 && (idx != name.Length - 1))
+            //    {
+            //        trimmed = name.Substring(idx + 1, name.Length - idx - 1);
+            //    }
+
+            //    // Remove faction abbreviation from end of name
+            //    var end = trimmed.Length - 2;
+            //    if (trimmed.IndexOf("VS") == end || trimmed.IndexOf("NC") == end || trimmed.IndexOf("TR") == end)
+            //    {
+            //        trimmed = trimmed.Substring(0, end);
+            //    }
+            //}
+            //catch
+            //{
+            //    return name;
+            //}
+
+            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.Length <= 1)
             {
                 trimmed = name;
             }
@@ -104,15 +165,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             return trimmed;
         }
 
-        public void SetNameAlias(string alias)
+        public bool TrySetNameAlias(string alias)
         {
-            if (string.IsNullOrWhiteSpace(alias))
+            Match match = _nameRegex.Match(alias);
+            if (!match.Success)
             {
-                throw new ArgumentNullException();
+                return false;
             }
 
             NameAlias = alias;
-            NameDisplay = NameAlias;
+
+            return true;
+        }
+
+        public void ClearAllDisplayNameSources()
+        {
+            NameAlias = string.Empty;
+            NameTrimmed = string.Empty;
         }
 
         public void AddStatsUpdate(ScrimEventAggregate update)

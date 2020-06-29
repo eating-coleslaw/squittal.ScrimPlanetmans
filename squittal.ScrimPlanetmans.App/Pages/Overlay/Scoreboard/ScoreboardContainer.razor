@@ -1,16 +1,293 @@
 ﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IScrimMessageBroadcastService MessageService
+@inject IFactionService FactionService 
+
+@implements IDisposable
 
 <div class="scoreboard">
     <div class="outfitScoresContainer">
-        <div class="outfitScoresRow team1 nc">
-        <div class="outfitAlias">BAX</div><div class="outfitScore">29</div><div class="wedge"></div><div class="factionLabel">N<br/>C</div></div><div class="timerContainer">
+        <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
+            <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>
+        </div><div class="timerContainer">
             <div class="timer-text"><MatchTimer /></div>
-        </div><div class="outfitScoresRow team2 vs">
-            <div class="factionLabel">V<br/>S</div><div class="wedge"></div><div class="outfitScore">16</div><div class="outfitAlias">VKTZ</div>
+        </div><div class="outfitScoresRow team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
+                  <div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><div class="outfitAlias">@_teamAlias2</div>
         </div>
     </div>
+
+    @*@if (_showFeed)
+    {
+        <Killfeed />
+    }*@
+
 </div>
 
 @code {
+    [Parameter]
+    public bool i_showFeed { get; set; } = true;
 
+    private bool _showFeed { get; set; } = true;
+
+    private string _teamAlias1 { get; set; }
+    private int _teamPoints1 { get; set; } = 0;
+    private string _teamPointsDisplay1 { get; set; }
+    private int? _teamFactionId1 { get; set; }
+    private string[] _teamFactionDisplay1 { get; set; } = new string[2] { ".", "." };
+
+    private string _teamAlias2 { get; set; }
+    private int _teamPoints2 { get; set; } = 0;
+    private string _teamPointsDisplay2 { get; set; }
+    private int? _teamFactionId2 { get; set; }
+    private string[] _teamFactionDisplay2 { get; set; } = new string[2] { ".", "." };
+
+    private MatchState _matchState { get; set; }
+    private int _currentRound { get; set; }
+
+    private bool _shouldShowPoints { get; set; } = false;
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamAliasChangeEvent += ReceiveTeamAliasChangeEvent;
+        MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
+        var teamPoints1 = ScrimTeamsManager.GetTeamScoreDisplay(1);
+
+        _teamPoints1 = (teamPoints1 == null) ? 0 : (int)teamPoints1;
+
+        _teamFactionId1 = ScrimTeamsManager.GetTeam(1).FactionId;
+
+        _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
+        var teamPoints2 = ScrimTeamsManager.GetTeamScoreDisplay(2);
+
+        _teamPoints2 = (teamPoints2 == null) ? 0 : (int)teamPoints2;
+
+        _teamFactionId2 = ScrimTeamsManager.GetTeam(2).FactionId;
+
+        _matchState = ScrimMatchEngine.GetMatchState();
+        _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+        UpdateShouldShowPoints();
+
+        UpdatePointsDisplay();
+
+        if (_teamFactionId1 == null)
+        {
+            UpdateTeamFactionDisplay(1, string.Empty);
+        }
+        else
+        {
+            UpdateTeamFactionDisplay(1, FactionService.GetFactionAbbrevFromId((int)_teamFactionId1));
+        }
+
+        if (_teamFactionId2 == null)
+        {
+            UpdateTeamFactionDisplay(2, string.Empty);
+        }
+        else
+        {
+            UpdateTeamFactionDisplay(2, FactionService.GetFactionAbbrevFromId((int)_teamFactionId2));
+        }
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamAliasChangeEvent -= ReceiveTeamAliasChangeEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_showFeed != _showFeed)
+        {
+            _showFeed = i_showFeed;
+        }
+    }
+    #endregion Initialization Methods
+
+
+    private void UpdatePointsDisplay()
+    {
+        if (_shouldShowPoints)
+        {
+            _teamPointsDisplay1 = _teamPoints1.ToString();
+            _teamPointsDisplay2 = _teamPoints2.ToString();
+        }
+        else
+        {
+            _teamPointsDisplay1 = "_";
+            _teamPointsDisplay2 = "_";
+        }
+    }
+
+    private void UpdateShouldShowPoints()
+    {
+        if (_matchState == MatchState.Uninitialized)
+        {
+            _shouldShowPoints = false;
+        }
+        else
+        {
+            _shouldShowPoints = true;
+        }
+    }
+
+    private void UpdateTeamFactionDisplay(int teamOrdinal, string newAbbreviation)
+    {
+        if (string.IsNullOrWhiteSpace(newAbbreviation))
+        {
+            if (teamOrdinal == 1)
+            {
+                _teamFactionDisplay1[0] = ".";
+                _teamFactionDisplay1[1] = ".";
+            }
+            else if (teamOrdinal == 2)
+            {
+                _teamFactionDisplay2[0] = ".";
+                _teamFactionDisplay2[1] = ".";
+            }
+        }
+        else
+        {
+            if (teamOrdinal == 1)
+            {
+                _teamFactionDisplay1[0] = newAbbreviation[0].ToString();
+                _teamFactionDisplay1[1] = newAbbreviation[1].ToString();
+            }
+            else if (teamOrdinal == 2)
+            {
+                _teamFactionDisplay2[0] = newAbbreviation[0].ToString();
+                _teamFactionDisplay2[1] = newAbbreviation[1].ToString();
+            }
+        }
+    }
+
+    #region Event Handling
+    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamOrdinal = message.Team.TeamOrdinal;
+        var newPoints = message.Team.EventAggregate.Points;
+
+        bool pointsChanged = false;
+
+        if (teamOrdinal == 1 && newPoints != _teamPoints1)
+        {
+            _teamPoints1 = newPoints;
+            pointsChanged = true;
+        }
+        else if (teamOrdinal == 2 && newPoints != _teamPoints2)
+        {
+            _teamPoints2 = newPoints;
+            pointsChanged = true;
+        }
+
+        if (pointsChanged)
+        {
+            UpdatePointsDisplay();
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceiveTeamAliasChangeEvent(object sender, TeamAliasChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamOrdinal = message.TeamOrdinal;
+        var newAlias = message.NewAlias;
+
+        bool aliasChanged = false;
+
+        if (teamOrdinal == 1 && newAlias != _teamAlias1)
+        {
+            _teamAlias1 = newAlias;
+            aliasChanged = true;
+        }
+        else if (teamOrdinal == 2 && newAlias != _teamAlias2)
+        {
+            _teamAlias2 = newAlias;
+            aliasChanged = true;
+        }
+
+        if (aliasChanged)
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceiveMatchStateUpdateEvent(object sender, MatchStateUpdateEventArgs e)
+    {
+        var message = e.Message;
+
+        var oldMatchState = _matchState;
+        var newMatchState = message.MatchState;
+
+        if (oldMatchState != newMatchState)
+        {
+            _matchState = newMatchState;
+
+            UpdateShouldShowPoints();
+            UpdatePointsDisplay();
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamOrdinal = message.TeamOrdinal;
+        var newFactionId = message.NewFactionId;
+        var newFactionAbbreviation = message.NewFactionAbbreviation;
+
+        bool factionChanged = false;
+
+        if (teamOrdinal == 1 && newFactionId != _teamFactionId1)
+        {
+            _teamFactionId1 = newFactionId;
+            factionChanged = true;
+        }
+        else if (teamOrdinal == 2 && newFactionId != _teamFactionId2)
+        {
+            _teamFactionId2 = newFactionId;
+            factionChanged = true;
+        }
+
+        if (factionChanged)
+        {
+            UpdateTeamFactionDisplay(teamOrdinal, newFactionAbbreviation);
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion Event Handling
 }

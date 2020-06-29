@@ -4,6 +4,8 @@
 
 @inject IScrimMessageBroadcastService MessageService
 
+@implements IDisposable
+
 <td style="opacity: @GetStatOpacity(EventAggregate.InterceptorsDestroyed);">@(EventAggregate.InterceptorsDestroyed)</td>
 <td style="opacity: @GetStatOpacity(EventAggregate.EsfsDestroyed);">@(EventAggregate.EsfsDestroyed)</td>
 <td style="opacity: @GetStatOpacity(EventAggregate.ValkyriesDestroyed);">@(EventAggregate.ValkyriesDestroyed)</td>
@@ -32,11 +34,16 @@
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
     }
 
+    public void Dispose()
+    {
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+    }
+
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
     }
-    #endregion
+    #endregion Initialization Methods
 
     #region Event Handling
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
@@ -56,7 +63,7 @@
             StateHasChanged();
         });
     }
-    #endregion
+    #endregion Event Handling
 
     private double GetStatOpacity(int value)
     {

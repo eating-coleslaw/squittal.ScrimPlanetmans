@@ -6,6 +6,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimTeamsManager
     {
+        MaxPlayerPointsTracker MaxPlayerPointsTracker { get; }
+
         Team GetTeam(int teamOrdinal);
         string GetTeamAliasDisplay(int teamOrdinal);
 
@@ -17,10 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         IEnumerable<string> GetAllPlayerIds();
         IEnumerable<Player> GetParticipatingPlayers();
 
-        //void UpdateTeamAlias(int teamOrdinal, string alias);
         bool UpdateTeamAlias(int teamOrdinal, string alias, bool isCustom = false);
-
-        //void SubmitPlayersList();
 
         Task<bool> AddCharacterToTeam(int teamOrdinal, string characterId);
         Task<bool> AddOutfitAliasToTeam(int teamOrdinal, string aliasLower, string alias);
@@ -48,17 +47,45 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool IsOutfitAvailable(string alias);
         Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString);
 
-        void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
+        //void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
+        Task UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
         void SetPlayerOnlineStatus(string characterId, bool isOnline);
         void SetPlayerLoadoutId(string characterId, int? loadoutId);
-        void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
+        //void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
+        Task SetPlayerParticipatingStatus(string characterId, bool isParticipating);
         void SetPlayerBenchedStatus(string characterId, bool isBenched);
-        void SaveRoundEndScores(int round);
-        void RollBackAllTeamStats(int currentRound);
+
+        Task SaveRoundEndScores(int round);
+        Task RollBackAllTeamStats(int currentRound);
+        
         int? GetNextWorldId(int previousWorldId);
         int? GetFirstTeamWithFactionId(int factionId);
         void UpdateTeamStats(int teamOrdinal, ScrimEventAggregate updates);
-        void AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
-        void RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment);
+
+        Task AdjustTeamPoints(int teamOrdinal, PointAdjustment adjustment);
+        Task RemoveTeamPointAdjustment(int teamOrdinal, PointAdjustment adjustment);
+
+        Task<bool> RemoveOutfitFromTeamAndDb(string aliasLower);
+        Task<bool> RemoveCharacterFromTeamAndDb(string characterId);
+        int? GetTeamScoreDisplay(int teamOrdinal);
+        
+        bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam);
+        Team GetTeamFromConstructedTeamId(int constructedTeamId);
+
+        //bool UdatePlayerTemporaryAlias(string playerId, string newAlias);
+        Task<bool> UdatePlayerTemporaryAlias(string playerId, string newAlias);
+        //void ClearPlayerDisplayName(string playerId);
+        Task ClearPlayerDisplayName(string playerId);
+        bool IsConstructedTeamAvailable(int constructedTeamId);
+        Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId);
+        IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower);
+        IEnumerable<Player> GetTeamNonOutfitPlayers(int teamOrdinal);
+        IEnumerable<Player> GetTeamConstructedTeamFactionPlayers(int teamOrdinal, int constructedTeamId, int factionId);
+        Task<bool> RemoveConstructedTeamFactionFromTeamAndDb(int constructedTeamId, int factionId);
+        bool RemoveConstructedTeamFactionFromTeam(int constructedTeamId, int factionId);
+        bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId, out Team owningTeam);
+        bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId);
+        Team GetTeamFromConstructedTeamFaction(int constructedTeamId, int factionId);
+        bool IsConstructedTeamAnyFactionAvailable(int constructedTeamId);
     }
 }

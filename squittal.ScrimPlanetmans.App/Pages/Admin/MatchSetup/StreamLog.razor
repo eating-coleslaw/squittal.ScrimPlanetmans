@@ -1,21 +1,24 @@
 ﻿@using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
 
 @inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
 <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_streamLogs.Any())
     {
-        foreach (var log in _streamLogs.Reverse<MarkupString>().Take(200).ToList())
+        foreach (var log in _streamLogs)
         {
             <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
         }
 
-        if (_streamLogs.Count() > 200)
+        if (_streamLogs.Count() > _maxLogCount)
         {
-            <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing 200 / @_streamLogs.Count)</p>
+            <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing @_maxLogCount / @_streamLogs.Count)</p>
         }
     }
 </div>
@@ -24,6 +27,11 @@
 @code {
     private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
 
+    private ConcurrentQueue<MarkupString> _logQueue = new ConcurrentQueue<MarkupString>();
+
+    private int _maxLogCount = 200;
+
+    #region Initilization Methods
     protected override void OnInitialized()
     {
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
@@ -36,9 +44,23 @@
         MessageService.RaiseScrimFacilityControlActionEvent += ReceiveScrimFacilityControlActionEvent;
     }
 
+    public void Dispose()
+    {
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
+        MessageService.RaiseScrimDeathActionEvent -= ReceiveDeathActionEvent;
+        MessageService.RaiseScrimVehicleDestructionActionEvent += ReceiveVehicleDestructionActionEvent;
+
+        MessageService.RaiseScrimReviveActionEvent -= ReceiveReviveActionEvent;
+        MessageService.RaiseScrimAssistActionEvent -= ReceiveAssistActionEvent;
+        MessageService.RaiseScrimObjectiveTickActionEvent -= ReceiveObjectiveTickActionEvent;
+        MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveScrimFacilityControlActionEvent;
+    }
+    #endregion Initilization Methods
+
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
+        //LogMessage(e.Message);
         ReceiveMessage(e.Message);
     }
 
@@ -71,7 +93,7 @@
         var info = e.Message.Info;
         LogMessage(info);
     }
-    
+
     private void ReceiveScrimFacilityControlActionEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
     {
         var info = e.Message.Info;
@@ -79,7 +101,7 @@
     }
 
 
-    #endregion
+    #endregion Event Handling
 
 
     private void ReceiveMessage(string message)
@@ -89,32 +111,6 @@
         {
             return;
         }
-
-        /*
-        var eventName = payload.Value<string>("event_name");
-
-        if (eventName == "Death")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-        }
-
-        else if (eventName == "GainExperience")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-        }
-
-        else if (eventName == "PlayerLogin")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-            HandlePlayerLoginPayload(payload);
-        }
-
-        else if (eventName == "PlayerLogout")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-            HandlePlayerLogoutPayload(payload);
-        }
-        */
     }
 
     private JToken TryParseMessagePayload(string message)
@@ -143,11 +139,30 @@
     {
         var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
 
-        _streamLogs.Add((MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}");
+        var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
 
+        _logQueue.Enqueue(newLogMessage);
+
+        UpdatePage();
+    }
+
+    private void UpdatePage()
+    {
         InvokeAsync(() =>
         {
-            StateHasChanged();
+            lock (_streamLogs)
+            {
+                MarkupString localString;
+
+                while (_logQueue.TryDequeue(out localString))
+                {
+                    _streamLogs.Add(localString);
+                }
+
+                _streamLogs = _streamLogs.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+
+                StateHasChanged();
+            }
         });
     }
 }

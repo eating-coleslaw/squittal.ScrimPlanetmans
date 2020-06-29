@@ -1,11 +1,11 @@
 ﻿@using squittal.ScrimPlanetmans.CensusStream;
-@using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor WebsocketMonitor
@@ -15,106 +15,75 @@
 @inject IFactionService FactionService
 @inject IScrimMessageBroadcastService MessageService
 
-<div class="players @($"players{i_teamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
-    @if (_teamPlayersVisible.Any())
-    {
-        @foreach (var member in _teamPlayersVisible)
+@implements IDisposable
+
+@if (_team != null)
+{
+    <div class="players @($"players{i_TeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+
+        @lock (_renderedPlayers)
         {
-            <TeamPlayerStatusRow i_teamOrdinal=i_teamOrdinal i_player=member />
+            foreach (var player in _renderedPlayers)
+            {
+                <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player />
+            }
         }
+    </div>
+}
 
-        @*<table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>K</th>
-                    <th>D</th>
-                    <th>P</th>
-                    <th>N</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var member in _teamPlayersVisible)
-                {
-                    <tr>
-                        <td title="@member.NameFull [@(member.Id)]">
-                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameFull</span>
-                        </td>
-
-                        <td>@(member.EventAggregate.Kills)</td>
-                        <td>@(member.EventAggregate.Deaths)</td>
-                        <td>@(member.EventAggregate.Points)</td>
-                        <td>@(member.EventAggregate.NetScore)</td>
-                    </tr>
-                }
-            </tbody>
-        </table>*@
-    }
-</div>
 @code {
     [Parameter]
-    public int i_teamOrdinal { get; set; }
+    public int i_TeamOrdinal { get; set; }
 
-    #region Team & Players
+    private int _renderedTeamOrdinal { get; set; }
+
     private Team _team;
 
-    private List<Outfit> _teamOutfits = new List<Outfit>();
-
-    private List<Player> _teamPlayers = new List<Player>();
-
-    private List<Player> _teamPlayersOnline = new List<Player>();
-
-    private List<Player> _teamPlayersParticipating = new List<Player>();
-
-    private List<Player> _teamPlayersVisible = new List<Player>();
-
-    private List<Player> _teamNonOutfitPlayers = new List<Player>();
-    #endregion
-
-    #region Helpers
-    private int _renderedTeamOrdinal;
-    #endregion
+    private List<Player> _renderedPlayers { get; set; } = new List<Player>();
+    private int _renderedPlayersCount { get; set; } = 0;
+    private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayersQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
     #region Initialization Methods
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-
-        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
-
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
     }
 
     protected override void OnParametersSet()
     {
-        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
         {
-            _renderedTeamOrdinal = i_teamOrdinal;
+            _renderedTeamOrdinal = i_TeamOrdinal;
             InitializeTeamData();
         }
     }
 
     private void InitializeTeamData()
     {
-        _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
+        _team = ScrimTeamsManager.GetTeam(i_TeamOrdinal);
 
-        if (_team == null)
+        InvokeAsync(() =>
         {
-            return;
-        }
+            lock (_renderedPlayers)
+            {
+                var visiblePlayers = _team.Players.Where(p => ShouldShowPlayer(p) && !_renderedPlayers.Contains(p));
 
-        foreach (var player in _team.Players)
-        {
-            TryAddPlayerToVisiblePlayers(player);
-        }
+                _renderedPlayers.AddRange(visiblePlayers);
 
-        //_teamPlayersParticipating = _team.ParticipatingPlayers;
+                _renderedPlayersCount = _renderedPlayers.Count();
 
-        //_teamPlayersVisible.AddRange(_team.ParticipatingPlayers.Where(p => !p.IsBenched));
-
-        //_teamPlayersVisible.AddRange(_team.Players.Where(p => !p.IsBenched && (p.IsOnline || p.IsParticipating)));
+                StateHasChanged();
+            }
+        });
     }
     #endregion
 
@@ -124,51 +93,19 @@
         var message = e.Message;
 
         var player = message.Player;
-        if (player.TeamOrdinal != i_teamOrdinal)
+        if (player.TeamOrdinal != i_TeamOrdinal)
         {
             return;
         }
 
-        switch (message.ChangeType)
+        if (message.ChangeType != TeamPlayerChangeType.Remove)
         {
-            case TeamPlayerChangeType.Add:
-                HandleTeamPlayerChangeAdd(message);
-                break;
-
-            case TeamPlayerChangeType.Remove:
-                HandleTeamPlayerChangeRemove(message);
-                break;
+            message.ChangeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
         }
 
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
-    }
+        _teamPlayersQueue.Enqueue(message);
 
-    private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
-    {
-        var player = message.Player;
-
-        if (TryAddPlayerToVisiblePlayers(player))
-        {
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
-        }
-    }
-
-    private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
-    {
-        var player = message.Player;
-
-        _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
-
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        UpdateRenderedPlayers();
     }
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
@@ -176,86 +113,72 @@
         var message = e.Message;
         var player = message.Player;
 
-        if (player.TeamOrdinal != i_teamOrdinal)
+        if (player.TeamOrdinal != i_TeamOrdinal)
         {
             return;
         }
 
-        if (ShouldShowPlayer(player))
-        {
-            TryAddPlayerToVisiblePlayers(player);
-        }
-        else
-        {
-            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
-        }
+        var changeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
 
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        var changeMessage = new TeamPlayerChangeMessage(player, changeType);
+
+        _teamPlayersQueue.Enqueue(changeMessage);
+
+        UpdateRenderedPlayers();
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
     {
-        var player = e.Message.Player;
+        var message = e.Message;
 
-        if (player.TeamOrdinal != i_teamOrdinal)
+        var teamOrdinal = message.TeamOrdinal;
+
+        if (teamOrdinal != i_TeamOrdinal)
         {
             return;
         }
 
-        if (TryAddPlayerToVisiblePlayers(player))
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    private void UpdateRenderedPlayers()
+    {
+        InvokeAsync(() =>
         {
-            InvokeAsync(() =>
+            lock (_renderedPlayers)
             {
+                while (_teamPlayersQueue.TryDequeue(out TeamPlayerChangeMessage changeMessage))
+                {
+                    var player = changeMessage.Player;
+
+                    if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
+                    {
+                        _renderedPlayers.Remove(player);
+                    }
+                    else if (changeMessage.ChangeType == TeamPlayerChangeType.Add && !_renderedPlayers.Contains(player))
+                    {
+                        _renderedPlayers.Add(player);
+                    }
+                }
+
+                _renderedPlayersCount = _renderedPlayers.Count();
+
                 StateHasChanged();
-            });
-        }
-    }
-
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
-    {
-        var player = e.Message.Player;
-
-        if (player.TeamOrdinal != i_teamOrdinal)
-        {
-            return;
-        }
-
-        // TODO: what players should be visible by default?
-
-        // Only remove the player from the visible list if they haven't done anything in the match
-        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
-        {
-            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
-        }
-
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
+            }
         });
-    }
-    #endregion
-
-    private bool TryAddPlayerToVisiblePlayers(Player player)
-    {
-        if (CanAddPlayerToVisiblePlayers(player))
-        {
-            _teamPlayersVisible.Add(player);
-            return true;
-        }
-        return false;
-    }
-
-    private bool CanAddPlayerToVisiblePlayers(Player player)
-    {
-        //return (player.IsParticipating || player.IsOnline) && !player.IsBenched && !_teamPlayersVisible.Any(p => p.Id == player.Id);
-        return ShouldShowPlayer(player) && !_teamPlayersVisible.Any(p => p.Id == player.Id);
     }
 
     private bool ShouldShowPlayer(Player player)
     {
-        return (player.IsParticipating || player.IsOnline) && !player.IsBenched;
+        return (player.IsActive || player.IsOnline) && !player.IsBenched;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 }

@@ -316,8 +316,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
                 }
 
-                storeRuleset.ActionRules = allActionRules; // await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                storeRuleset.ItemCategoryRules = allItemCategoryRules; // await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                storeRuleset.ActionRules = allActionRules;
+                storeRuleset.ItemCategoryRules = allItemCategoryRules;
 
                 if (rulesetExistsInDb)
                 {
@@ -340,7 +340,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var categories = GetDefaultScoredItemCategories();
 
-            return categories.Select(c => BuildRulesetItemCategoryRule(c, 2)).ToArray();
+            //return categories.Select(c => BuildRulesetItemCategoryRule(c, 2)).ToArray(); //2pts for all valid weapons in PIL 1
+            return categories.Select(c => BuildRulesetItemCategoryRule(c, 1)).ToArray();
         }
 
         private IEnumerable<int> GetDefaultScoredItemCategories()
@@ -368,18 +369,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // MaxKillInfantry & MaxKillMax are worth 0 points
             return new RulesetActionRule[]
             {
-                BuildRulesetActionRule(ScrimActionType.FirstBaseCapture, 18),
-                BuildRulesetActionRule(ScrimActionType.SubsequentBaseCapture, 36),
-                BuildRulesetActionRule(ScrimActionType.InfantryKillMax, 12),
-                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillInfantry, -3),
-                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillMax, -15),
-                BuildRulesetActionRule(ScrimActionType.InfantrySuicide, -3),
-                BuildRulesetActionRule(ScrimActionType.MaxTeamkillMax, -15),
-                BuildRulesetActionRule(ScrimActionType.MaxTeamkillInfantry, -3),
-                BuildRulesetActionRule(ScrimActionType.MaxSuicide, -12),
-                BuildRulesetActionRule(ScrimActionType.MaxKillInfantry, 0),
-                BuildRulesetActionRule(ScrimActionType.MaxKillMax, 0),
-                BuildRulesetActionRule(ScrimActionType.InfantryKillInfantry, 0, true)
+                BuildRulesetActionRule(ScrimActionType.FirstBaseCapture, 9), // PIL 1: 18
+                BuildRulesetActionRule(ScrimActionType.SubsequentBaseCapture, 18), // PIL 1: 36 
+                BuildRulesetActionRule(ScrimActionType.InfantryKillMax, 6), // PIL 1: -12
+                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillInfantry, -2), // PIL 1: -3
+                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillMax, -8), // PIL 1: -15
+                BuildRulesetActionRule(ScrimActionType.InfantrySuicide, -2), // PIL 1: -3
+                BuildRulesetActionRule(ScrimActionType.MaxTeamkillMax, -8), // PIL 1: -15
+                BuildRulesetActionRule(ScrimActionType.MaxTeamkillInfantry, -2), // PIL 1: -3
+                BuildRulesetActionRule(ScrimActionType.MaxSuicide, -8), // PIL 1: -12
+                BuildRulesetActionRule(ScrimActionType.MaxKillInfantry, 0), // PIL 1: 0
+                BuildRulesetActionRule(ScrimActionType.MaxKillMax, 0), // PIL 1: 0
+                BuildRulesetActionRule(ScrimActionType.InfantryKillInfantry, 0, true) // PIL 1: 0
             };
         }
 
@@ -465,27 +466,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         dbContext.ScrimActions.Remove(storeEntity);
                     }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        //
+                        _logger.LogError(ex.ToString());
                     }
                 }
-
-                //foreach (var value in enumValues)
-                //{
-                //    var storeEntity = storeEntities.FirstOrDefault(e => e.Action == value);
-                //    if (storeEntity == null)
-                //    {
-                //        createdEntities.Add(ConvertToDbModel(value));
-                //    }
-                //    else
-                //    {
-                //        storeEntity = ConvertToDbModel(value);
-                //        dbContext.ScrimActions.Update(storeEntity);
-                //    }
-                //}
-
-
 
                 if (createdEntities.Any())
                 {
