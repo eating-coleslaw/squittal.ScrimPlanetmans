@@ -25,13 +25,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
-        public List<Player> Players { get; } = new List<Player>();
+        public List<Player> Players { get; private set; } = new List<Player>();
         public List<Player> ParticipatingPlayers { get; set; } = new List<Player>();
+
+        private ConcurrentDictionary<string, bool> ParticipatingPlayersMap { get; set; } = new ConcurrentDictionary<string, bool>();
 
         public List<Outfit> Outfits { get => _outfits; }
 
         public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
-        public ConcurrentDictionary<string, ConstructedTeamMatchInfo> ConstructedTeamsMap { get; set; } = new ConcurrentDictionary<string, ConstructedTeamMatchInfo>();
+        private ConcurrentDictionary<string, ConstructedTeamMatchInfo> ConstructedTeamsMap { get; set; } = new ConcurrentDictionary<string, ConstructedTeamMatchInfo>();
 
         private ConcurrentDictionary<string, Player> PlayersMap { get; set; } = new ConcurrentDictionary<string, Player>();
         //public List<string> PlayerIds { get => _playerIds; }
@@ -85,6 +87,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             //return ConstructedTeamsMatchInfo.Any(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
             return ConstructedTeamsMap.ContainsKey(GetConstructedTeamFactionKey(constructedTeamId, factionId));
+        }
+
+        public IEnumerable<string> GetAllPlayerIds()
+        {
+            return PlayersMap.Keys.ToList();
         }
 
         public bool TryGetPlayerFromId(string characterId, out Player player)
@@ -225,6 +232,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //ConstructedTeamsMap.TryRemove(GetConstructedTeamFactionKey(constructedTeamId, factionId), out var teamOut);
 
             return true;
+        }
+
+        public IEnumerable<Player> GetParticipatingPlayers()
+        {
+            var participatingPlayers = new List<Player>();
+
+            foreach (var playerPair in ParticipatingPlayersMap)
+            {
+                if (playerPair.Value)
+                {
+                    if (PlayersMap.TryGetValue(playerPair.Key, out var player))
+                    {
+                        participatingPlayers.Add(player);
+                    }
+                }
+            }
+
+            return participatingPlayers;
         }
 
         public IEnumerable<Player> GetOutfitPlayers(string aliasLower)

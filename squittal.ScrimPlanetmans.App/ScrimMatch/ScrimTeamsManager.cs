@@ -32,15 +32,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly Dictionary<int, Team> _ordinalTeamMap = new Dictionary<int, Team>();
 
-        private readonly List<string> _allCharacterIds = new List<string>();
+        //private readonly List<string> _allCharacterIds = new List<string>();
 
         private readonly List<Player> _allPlayers = new List<Player>();
 
-        private ConcurrentDictionary<string, int> PlayerTeamOrdinalsMap = new ConcurrentDictionary<string, int>();
+        private ConcurrentDictionary<string, int> PlayerTeamOrdinalsMap { get; set; } = new ConcurrentDictionary<string, int>();
 
         //private readonly List<Player> _participatingPlayers = new List<Player>();
 
-        private string _defaultAliasPreText = "tm";
+        private readonly string _defaultAliasPreText = "tm";
 
         public MaxPlayerPointsTracker MaxPlayerPointsTracker { get; private set; } = new MaxPlayerPointsTracker();
 
@@ -142,7 +142,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public IEnumerable<string> GetAllPlayerIds()
         {
-            return _allCharacterIds;
+            var characterIds = new List<string>();
+            
+            foreach (var team in _ordinalTeamMap.Values)
+            {
+                characterIds.AddRange(team.GetAllPlayerIds());
+            }
+
+            return characterIds;
+
+            //return _allCharacterIds;
         }
 
         public IEnumerable<Player> GetParticipatingPlayers()
@@ -344,7 +353,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (team.TryAddPlayer(player))
             {
-                _allCharacterIds.Add(player.Id);
+                //_allCharacterIds.Add(player.Id);
                 _allPlayers.Add(player);
 
                 PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
@@ -401,7 +410,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (team.TryAddPlayer(player))
             {
-                _allCharacterIds.Add(characterId);
+                //_allCharacterIds.Add(characterId);
                 _allPlayers.Add(player);
 
                 PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
@@ -487,7 +496,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (team.TryAddPlayer(player))
                 {
-                    _allCharacterIds.Add(player.Id);
+                    //_allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
                     PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
@@ -592,7 +601,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (owningTeam.TryAddPlayer(player))
                 {
-                    _allCharacterIds.Add(player.Id);
+                    //_allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
                     PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
@@ -673,7 +682,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (outfitTeam.TryAddPlayer(player))
                 {
-                    _allCharacterIds.Add(player.Id);
+                    //_allCharacterIds.Add(player.Id);
                     _allPlayers.Add(player);
 
                     PlayerTeamOrdinalsMap.TryAdd(player.Id, teamOrdinal);
@@ -2209,7 +2218,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if(team.TryRemovePlayer(player.Id))
             {
-                _allCharacterIds.RemoveAll(id => id == player.Id);
+                //_allCharacterIds.RemoveAll(id => id == player.Id);
                 _allPlayers.RemoveAll(p => p.Id == player.Id);
 
                 PlayerTeamOrdinalsMap.TryRemove(player.Id, out var ordinalOut);
