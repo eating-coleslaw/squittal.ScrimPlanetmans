@@ -24,16 +24,24 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<Character> GetCharacterAsync(string characterId)
         {
-            var character = await _censusCharacter.GetCharacter(characterId);
-            
-            if (character == null)
+            try
             {
+                var character = await _censusCharacter.GetCharacter(characterId);
+            
+                if (character == null)
+                {
+                    return null;
+                }
+            
+                var censusEntity = ConvertToDbModel(character);
+            
+                return censusEntity;
+            }
+            catch
+            {
+                // TODO: add logging to this service
                 return null;
             }
-            
-            var censusEntity = ConvertToDbModel(character);
-            
-            return censusEntity;
 
             /*
 

@@ -68,6 +68,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         Remove = 2,
         SubstitueIn = 3,
         SubstitueOut = 4,
-        SetActive = 5
+        SetActive = 5,
+        SetInactive = 6
     };
 }

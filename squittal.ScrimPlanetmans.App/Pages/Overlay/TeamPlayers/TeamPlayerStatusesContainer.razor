@@ -1,0 +1,184 @@
+﻿@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+@if (_team != null)
+{
+    <div class="players @($"players{i_TeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+
+        @lock (_renderedPlayers)
+        {
+            foreach (var player in _renderedPlayers)
+            {
+                <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player />
+            }
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int i_TeamOrdinal { get; set; }
+
+    private int _renderedTeamOrdinal { get; set; }
+
+    private Team _team;
+
+    private List<Player> _renderedPlayers { get; set; } = new List<Player>();
+    private int _renderedPlayersCount { get; set; } = 0;
+    private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayersQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_TeamOrdinal;
+            InitializeTeamData();
+        }
+    }
+
+    private void InitializeTeamData()
+    {
+        _team = ScrimTeamsManager.GetTeam(i_TeamOrdinal);
+
+        InvokeAsync(() =>
+        {
+            lock (_renderedPlayers)
+            {
+                var visiblePlayers = _team.Players.Where(p => ShouldShowPlayer(p) && !_renderedPlayers.Contains(p));
+
+                _renderedPlayers.AddRange(visiblePlayers);
+
+                _renderedPlayersCount = _renderedPlayers.Count();
+
+                StateHasChanged();
+            }
+        });
+    }
+    #endregion
+
+    #region Event Handling
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+        if (player.TeamOrdinal != i_TeamOrdinal)
+        {
+            return;
+        }
+
+        if (message.ChangeType != TeamPlayerChangeType.Remove)
+        {
+            message.ChangeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+        }
+
+        _teamPlayersQueue.Enqueue(message);
+
+        UpdateRenderedPlayers();
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player.TeamOrdinal != i_TeamOrdinal)
+        {
+            return;
+        }
+
+        var changeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+
+        var changeMessage = new TeamPlayerChangeMessage(player, changeType);
+
+        _teamPlayersQueue.Enqueue(changeMessage);
+
+        UpdateRenderedPlayers();
+    }
+
+    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var teamOrdinal = message.TeamOrdinal;
+
+        if (teamOrdinal != i_TeamOrdinal)
+        {
+            return;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    private void UpdateRenderedPlayers()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_renderedPlayers)
+            {
+                while (_teamPlayersQueue.TryDequeue(out TeamPlayerChangeMessage changeMessage))
+                {
+                    var player = changeMessage.Player;
+
+                    if (changeMessage.ChangeType == TeamPlayerChangeType.Remove)
+                    {
+                        _renderedPlayers.Remove(player);
+                    }
+                    else if (changeMessage.ChangeType == TeamPlayerChangeType.Add && !_renderedPlayers.Contains(player))
+                    {
+                        _renderedPlayers.Add(player);
+                    }
+                }
+
+                _renderedPlayersCount = _renderedPlayers.Count();
+
+                StateHasChanged();
+            }
+        });
+    }
+
+    private bool ShouldShowPlayer(Player player)
+    {
+        return (player.IsActive || player.IsOnline) && !player.IsBenched;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

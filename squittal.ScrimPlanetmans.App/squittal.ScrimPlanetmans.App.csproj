@@ -11,6 +11,36 @@
     <Compile Remove="Migrations\20200216192554_AddActionPointsItemCategoryModels.Designer.cs" />
     <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.cs" />
     <Compile Remove="Migrations\20200219191750_LetEFGenRulesetId.Designer.cs" />
+    <Compile Remove="Migrations\20200501171033_AddScrimMatchScrimDeathModels.cs" />
+    <Compile Remove="Migrations\20200501171033_AddScrimMatchScrimDeathModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504154405_AddWorldToScrimDeathModel.cs" />
+    <Compile Remove="Migrations\20200504154405_AddWorldToScrimDeathModel.Designer.cs" />
+    <Compile Remove="Migrations\20200504161641_AddScrimMatchDeathVehDestructionModels.cs" />
+    <Compile Remove="Migrations\20200504161641_AddScrimMatchDeathVehDestructionModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504190517_AddMatchTeamResultsModels.cs" />
+    <Compile Remove="Migrations\20200504190517_AddMatchTeamResultsModels.Designer.cs" />
+    <Compile Remove="Migrations\20200504192150_AddMatchRoundColumnsToEventTables.cs" />
+    <Compile Remove="Migrations\20200504192150_AddMatchRoundColumnsToEventTables.Designer.cs" />
+    <Compile Remove="Migrations\20200505185504_AdjustScrimVehDestPK.cs" />
+    <Compile Remove="Migrations\20200505185504_AdjustScrimVehDestPK.Designer.cs" />
+    <Compile Remove="Migrations\20200505190235_AdjustScrimVehDustModelTypesAndPK.cs" />
+    <Compile Remove="Migrations\20200505190235_AdjustScrimVehDustModelTypesAndPK.Designer.cs" />
+    <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.cs" />
+    <Compile Remove="Migrations\20200506172728_AddScrimMatchResultsAndEvents.Designer.cs" />
+    <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.cs" />
+    <Compile Remove="Migrations\20200507150855_AddTimestampToTeamPointAdjPK.Designer.cs" />
+    <Compile Remove="Migrations\20200513170822_AddVehicleClassAndDeathTypeModles.cs" />
+    <Compile Remove="Migrations\20200513170822_AddVehicleClassAndDeathTypeModles.Designer.cs" />
+    <Compile Remove="Migrations\20200602170937_AddConstructedTeamModels.cs" />
+    <Compile Remove="Migrations\20200602170937_AddConstructedTeamModels.Designer.cs" />
+    <Compile Remove="Migrations\20200605152100_AddFactionIdToConstructedTeamMembershipModel.cs" />
+    <Compile Remove="Migrations\20200605152100_AddFactionIdToConstructedTeamMembershipModel.Designer.cs" />
+    <Compile Remove="Migrations\20200611174904_AddHideFromSelectionToConstructedTeamModel.cs" />
+    <Compile Remove="Migrations\20200611174904_AddHideFromSelectionToConstructedTeamModel.Designer.cs" />
+    <Compile Remove="Migrations\20200617163549_AddMoreScrimMatchDataModels.cs" />
+    <Compile Remove="Migrations\20200617163549_AddMoreScrimMatchDataModels.Designer.cs" />
+    <Compile Remove="Migrations\20200619184306_AddActionTypeToScrimFacilityControl.cs" />
+    <Compile Remove="Migrations\20200619184306_AddActionTypeToScrimFacilityControl.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +81,9 @@
     <None Update="Data\SQL\dbo.Profile.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\dbo.Vehicle.Table.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\dbo.World.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -58,6 +91,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_ItemCategoryDomainAndIsWeapon.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetActionRuleDeferToItemCategoryRules.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

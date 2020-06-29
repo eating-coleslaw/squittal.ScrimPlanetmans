@@ -1,0 +1,55 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.Models.ScrimEngine;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimMessageBroadcastService MessageService
+@inject IScrimMatchEngine ScrimMatchEngine
+
+@implements IDisposable
+
+<div class="title-container">
+    <h4 class="title-text">@Title</h4>
+</div>
+
+@code {
+
+    private MatchConfiguration _matchConfiguration = new MatchConfiguration();
+
+    private string Title => _matchConfiguration.Title;
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
+
+        //if (ScrimMatchEngine.MatchConfiguration != null)
+        //{
+        //    _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
+        //}
+        //else
+        //{
+        //    _matchConfiguration = new MatchConfiguration();
+        //}
+
+        _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateMessageEvent;
+    }
+    #endregion Initialization Methods
+
+    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, MatchConfigurationUpdateEventArgs e)
+    {
+        var message = e.Message;
+
+        _matchConfiguration = message.MatchConfiguration;
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

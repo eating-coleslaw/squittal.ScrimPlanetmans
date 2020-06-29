@@ -38,7 +38,6 @@
                             {
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
                                     <EditForm Model="@_showInfantry">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -48,7 +47,6 @@
 
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
                                     <EditForm Model="@_showMax">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -58,7 +56,6 @@
 
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
                                     <EditForm Model="@_showGroundVehicle">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -68,7 +65,6 @@
 
                                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
                                     <EditForm Model="@_showAirVehicle">
-                                        @*OnValidSubmit="HandleAddPlayerSubmit"*@
                                         <DataAnnotationsValidator />
                                         <ValidationSummary />
 
@@ -88,7 +84,6 @@
                                     <tbody>
                                         @foreach (var itemCategoryRule in _activeRuleset.ItemCategoryRules.OrderBy(icr => icr.ItemCategory.Domain).ToList())
                                         {
-                                            //if (itemCategoryRule.ItemCategory != null && itemCategoryRule.ItemCategory.Domain != ItemCategoryDomain.Locked)
                                             if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
                                             {
                                                 <tr>
@@ -122,6 +117,7 @@
                                             <th></th>
                                             <th style="text-align: right;">ID</th>
                                             <th style="text-align: right;">Points</th>
+                                            <th>Defer to Item<br/>Category Rules?</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -133,6 +129,7 @@
                                                     <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
                                                     <td style="text-align: right;">@((int)actionRule.ScrimActionType)</td>
                                                     <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points);">@actionRule.Points</td>
+                                                    <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules);">@actionRule.DeferToItemCategoryRules</td>
                                                 </tr>
                                             }
                                         }
@@ -170,7 +167,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _activeRuleset = await RulesetManager.GetActiveRuleset();
+        _activeRuleset = await RulesetManager.GetActiveRuleset(true);
+
+        _showInfantry = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
+        _showMax = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
+        _showGroundVehicle = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
+        _showAirVehicle = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
     }
 
     private string GetActionRuleDescription(ScrimActionType actionType)
@@ -202,6 +204,13 @@
     private double GetValueOpacity(int value)
     {
         return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetDeferValueOpacity(bool value)
+    {
+        return (value == true)
             ? 1.0
             : 0.5;
     }

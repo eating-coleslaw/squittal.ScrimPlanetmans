@@ -1,0 +1,32 @@
+﻿<div id="MatchStats" class="match-report @GetReportCss()">
+    <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_showHsr />
+    <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_showHsr />
+</div>
+
+@code {
+    [Parameter]
+    public bool i_showHsr { get; set; } = true;
+    private bool _showHsr { get; set; } = true;
+
+    #region Initialization Methods
+    protected override void OnParametersSet()
+    {
+        if (_showHsr != i_showHsr)
+        {
+            _showHsr = i_showHsr;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion Initialization Methods
+
+    private string GetReportCss()
+    {
+        return _showHsr
+                    ? string.Empty
+                    : "no-hsr";
+    }
+}

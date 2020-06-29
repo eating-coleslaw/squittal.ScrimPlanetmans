@@ -10,6 +10,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         Task Process(JToken jPayload);
         void DisableScoring();
         void EnabledScoring();
+        void EnabledEventStoring();
+        void DisableEventStoring();
         //void Process(JToken jPayload);
     }
 }

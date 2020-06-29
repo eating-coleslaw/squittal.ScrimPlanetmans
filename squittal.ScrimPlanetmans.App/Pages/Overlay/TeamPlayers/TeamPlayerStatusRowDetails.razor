@@ -1,0 +1,495 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Threading;
+@using System.Collections.Concurrent;
+
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+@if (i_player != null)
+{
+    <div class="playerStatusContainer @GetContainerCssClass()">
+        @if (_legacyUi)
+        {
+            <div class="score">
+                @*<div class="points">@i_player.EventAggregate.NetScore</div>*@
+                <div class="points">@_renderedNetScore</div>
+            </div>
+
+        }
+        else
+        {
+            <div class="score">
+                <div class="points">@_renderedPoints</div>
+                <div class="net">
+                    <span class="value">@_renderedNetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
+                </div>
+            </div>
+        }
+
+        @*<div class="name">@i_player.NameDisplay</div>*@
+        <div class="name">@_renderedName</div>
+        <div class="eventMask">
+            @if (_renderedStatus == PlayerStatus.ContestingObjective)
+            {
+                <PlayerStatusAnimationContestingPoint />
+            }
+            else if (_renderedStatus == PlayerStatus.Respawning)
+            {
+                <PlayerStatusAnimationRespawning />
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Player i_player { get; set; }
+
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    [Parameter]
+    public bool i_legacyUi { get; set; } = false;
+
+    private string _renderedPlayerId;
+    private string _renderedName;
+    private int _renderedNetScore;
+    private int _renderedPoints;
+    private bool _legacyUi;
+
+
+    private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
+    private Timer _timer;
+    private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
+
+    private PlayerStatus _renderedStatus = PlayerStatus.Alive;
+    private DateTime _lastDeathTime { get; set; }
+    private DateTime _lastRevivedTime { get; set; }
+    private DateTime _lastProcessedEventTime { get; set; }
+    private DateTime _lastRenderedDeathTime { get; set; }
+    private DateTime _lastRenderedEventTime { get; set; }
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
+
+        MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
+        MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
+
+        InitializeTimer();
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
+
+        MessageService.RaiseScrimDeathActionEvent -= ReceiveScrimDeathActionEvent;
+        MessageService.RaiseScrimReviveActionEvent -= ReceiveScrimReviveActionEvent;
+        MessageService.RaiseScrimObjectiveTickActionEvent -= ReceiveScrimObjectiveTickActionEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var stateHasChanged = false;
+
+        if (CheckForChanges(i_player))
+        {
+            stateHasChanged = true;
+        }
+
+        if (_legacyUi != i_legacyUi)
+        {
+            _legacyUi = i_legacyUi;
+            stateHasChanged = true;
+        }
+
+        if (stateHasChanged)
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player != i_player)
+        {
+            return;
+        }
+
+        if (CheckForChanges(player))
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        return; // TODO: add special styling/animation for this event?
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        return; // TODO: add special styling/animation for this event?
+    }
+
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    {
+        var deathEvent = e.Message.DeathEvent;
+
+        if (deathEvent.AttackerPlayer != i_player && deathEvent.VictimPlayer != i_player)
+        {
+            return;
+        }
+
+        if (deathEvent.VictimPlayer == i_player)
+        {
+            _lastDeathTime = deathEvent.Timestamp;
+        }
+
+        var killfeedEvent = ConvertToKillfeedEvent(deathEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedStatus();
+    }
+
+    private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    {
+        var reviveEvent = e.Message.ReviveEvent;
+
+        if (reviveEvent.MedicPlayer != i_player && reviveEvent.RevivedPlayer != i_player)
+        {
+            return;
+        }
+
+        if (reviveEvent.RevivedPlayer == i_player)
+        {
+            _lastRevivedTime = reviveEvent.Timestamp;
+        }
+
+        var killfeedEvent = ConvertToKillfeedEvent(reviveEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedStatus();
+    }
+
+    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    {
+        var objectiveTickEvent = e.Message.ObjectiveTickEvent;
+        var actionType = objectiveTickEvent.ActionType;
+
+        if (objectiveTickEvent.Player != i_player || (actionType != ScrimActionType.ObjectiveCapturePulse && actionType != ScrimActionType.ObjectiveDefensePulse))
+        {
+            return;
+        }
+
+        var killfeedEvent = ConvertToKillfeedEvent(objectiveTickEvent);
+
+        _eventsQueue.Enqueue(killfeedEvent);
+
+        UpdateRenderedStatus();
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.Id != _renderedPlayerId)
+        {
+            return;
+        }
+
+        var newDisplayName = e.Message.NewNameDisplay;
+
+        if (newDisplayName != _renderedName)
+        {
+            _renderedName = newDisplayName;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    #endregion
+
+    #region ScrimKillfeedEvent Conversions
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimDeathActionEvent deathEvent)
+    {
+        var weaponName = deathEvent.Weapon?.Name;
+        if (string.IsNullOrWhiteSpace(weaponName))
+        {
+            weaponName = "Unknown Weapon";
+        }
+
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = deathEvent.AttackerPlayer,
+            RecipientPlayer = deathEvent.VictimPlayer,
+            Timestamp = deathEvent.Timestamp,
+            EventType = KillfeedEventType.Kill,
+            WeaponName = weaponName,
+            Points = deathEvent.Points,
+            IsHeadshot = deathEvent.IsHeadshot,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now,
+            EffectiveDurationMilliseconds = 10000
+        };
+    }
+
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimReviveActionEvent reviveEvent)
+    {
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = reviveEvent.MedicPlayer,
+            RecipientPlayer = reviveEvent.RevivedPlayer,
+            Timestamp = reviveEvent.Timestamp,
+            EventType = KillfeedEventType.Revive,
+            WeaponName = "Revive",
+            Points = reviveEvent.Points,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now,
+            EffectiveDurationMilliseconds = 1000
+        };
+    }
+
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimObjectiveTickActionEvent objectiveTickEvent)
+    {
+        return new ScrimKillfeedEvent
+        {
+            ActingPlayer = objectiveTickEvent.Player,
+            Timestamp = objectiveTickEvent.Timestamp,
+            EventType = KillfeedEventType.PointControl,
+            Points = objectiveTickEvent.Points,
+            PreviousRenderTime = DateTime.Now,
+            FirstRenderTime = DateTime.Now,
+            EffectiveDurationMilliseconds = 2950
+        };
+    }
+
+    #endregion ScrimKillfeedEvent Conversions
+
+    private void UpdateRenderedStatus()
+    {
+        _autoEvent.WaitOne();
+
+        InvokeAsync(() =>
+        {
+            if (!_eventsQueue.TryDequeue(out ScrimKillfeedEvent newEvent))
+            {
+                _renderedStatus = PlayerStatus.Alive;
+                _timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                StateHasChanged();
+                _autoEvent.Set();
+
+                return;
+            }
+
+            var eventType = newEvent.EventType;
+            var eventDuration = newEvent.EffectiveDurationMilliseconds;
+            var playerIsActor = (newEvent.ActingPlayer == i_player);
+
+            var newTimestamp = newEvent.Timestamp;
+
+            var secondsSinceLastRenderedDeath = (newTimestamp - _lastRenderedDeathTime).TotalSeconds;
+
+            if (eventType == KillfeedEventType.Kill)
+            {
+                if (playerIsActor)
+                {
+                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 10)
+                    {
+                        _renderedStatus = PlayerStatus.Alive;
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                        StateHasChanged();
+                        _autoEvent.Set();
+                        return;
+                    }
+                }
+                else
+                {
+                    _renderedStatus = PlayerStatus.Respawning;
+                    _timer.Change(eventDuration, Timeout.Infinite);
+
+                    StateHasChanged();
+                    _autoEvent.Set();
+                    return;
+                }
+            }
+            else if (eventType == KillfeedEventType.Revive)
+            {
+                if (playerIsActor)
+                {
+                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 10)
+                    {
+                        _renderedStatus = PlayerStatus.Alive;
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                        StateHasChanged();
+                        _autoEvent.Set();
+                        return;
+                    }
+                }
+                else
+                {
+                    if (_renderedStatus == PlayerStatus.Respawning)
+                    {
+                        _renderedStatus = PlayerStatus.Revived;
+                        _timer.Change(eventDuration, Timeout.Infinite);
+
+                        StateHasChanged();
+                        _autoEvent.Set();
+                        return;
+                    }
+                }
+            }
+            else if (eventType == KillfeedEventType.PointControl)
+            {
+                if (!playerIsActor)
+                {
+                    _autoEvent.Set();
+                    return;
+                }
+
+                if (_renderedStatus == PlayerStatus.ContestingObjective || _renderedStatus == PlayerStatus.Alive || _renderedStatus == PlayerStatus.Revived)
+                {
+                    _renderedStatus = PlayerStatus.ContestingObjective;
+                    _timer.Change(eventDuration, Timeout.Infinite);
+
+                    StateHasChanged();
+                    _autoEvent.Set();
+                    return;
+                }
+            }
+        });
+
+        _autoEvent.Set();
+    }
+
+    #region Timer Handling
+    private void InitializeTimer()
+    {
+        _autoEvent.WaitOne();
+
+        _timer = new Timer(HandleTimerTick, _autoEvent, Timeout.Infinite, Timeout.Infinite);
+
+        _autoEvent.Set();
+    }
+
+    private void HandleTimerTick(object stateInfo)
+    {
+        UpdateRenderedStatus();
+    }
+    #endregion Timer Handling
+
+    private bool CheckForChanges(Player player)
+    {
+        bool stateHasChanged = false;
+
+        if (player.Id != _renderedPlayerId)
+        {
+            _renderedPlayerId = player.Id;
+            stateHasChanged = true;
+        }
+
+        if (player.NameDisplay != _renderedName)
+        {
+            _renderedName = player.NameDisplay;
+            stateHasChanged = true;
+        }
+
+        if (player.EventAggregate.NetScore != _renderedNetScore)
+        {
+            _renderedNetScore = player.EventAggregate.NetScore;
+            stateHasChanged = true;
+        }
+
+        if (!i_legacyUi && player.EventAggregate.Points != _renderedPoints)
+        {
+            _renderedPoints = player.EventAggregate.Points;
+            stateHasChanged = true;
+        }
+
+        return stateHasChanged;
+
+        //if (stateHasChanged)
+        //{
+        //    InvokeAsync(() =>
+        //    {
+        //        StateHasChanged();
+        //    });
+        //}
+    }
+
+    private string GetContainerCssClass()
+    {
+        if (_renderedStatus == PlayerStatus.Respawning)
+        {
+            return "deadTextPlay";
+        }
+        else if (_renderedStatus == PlayerStatus.Revived)
+        {
+            return "revivedFlashPlay";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelCssClass()
+    {
+        if (_renderedNetScore == 0)
+        {
+            return "neutral";
+        }
+        else if (_renderedNetScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText()
+    {
+        if (_renderedNetScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
+        }
+    }
+}

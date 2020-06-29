@@ -16,6 +16,7 @@ namespace squittal.ScrimPlanetmans.Services
         private readonly IZoneService _zoneService;
         private readonly IWorldService _worldService;
         private readonly IFactionService _factionService;
+        private readonly IVehicleService _vehicleService;
 
         private readonly CensusStoreDataComparisonRow _mapRegions;
         private readonly CensusStoreDataComparisonRow _facilityTypes;
@@ -26,6 +27,7 @@ namespace squittal.ScrimPlanetmans.Services
         private readonly CensusStoreDataComparisonRow _zones;
         private readonly CensusStoreDataComparisonRow _worlds;
         private readonly CensusStoreDataComparisonRow _factions;
+        private readonly CensusStoreDataComparisonRow _vehicles;
 
         public List<CensusStoreDataComparisonRow> Comparisons { get; private set; } = new List<CensusStoreDataComparisonRow>();
 
@@ -40,7 +42,8 @@ namespace squittal.ScrimPlanetmans.Services
             ILoadoutService loadoutService,
             IZoneService zoneService,
             IWorldService worldService,
-            IFactionService factionService
+            IFactionService factionService,
+            IVehicleService vehicleService
             )
         {
             _facilityService = facilityService;
@@ -52,16 +55,18 @@ namespace squittal.ScrimPlanetmans.Services
             _zoneService = zoneService;
             _worldService = worldService;
             _factionService = factionService;
+            _vehicleService = vehicleService;
 
-            _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService); //, _facilityService, _facilityService);
-            _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService); //, _facilityTypeService, _facilityTypeService);
-            _items = new CensusStoreDataComparisonRow("Items", _itemService); //, _itemService, _itemService);
-            _itemCategories = new CensusStoreDataComparisonRow("Item Categories", _itemCategoryService); //, _itemCategoryService, _itemCategoryService);
-            _profiles = new CensusStoreDataComparisonRow("Profiles", _profileService); //, _profileService, _profileService);
-            _loadouts = new CensusStoreDataComparisonRow("Loadouts", _loadoutService); //, _loadoutService, _loadoutService);
-            _zones = new CensusStoreDataComparisonRow("Zones", _zoneService); //, _zoneService, _zoneService);
-            _worlds = new CensusStoreDataComparisonRow("Worlds", _worldService); //, _worldService, _worldService);
-            _factions = new CensusStoreDataComparisonRow("Factions", _factionService); //, _factionService, _factionService);
+            _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService);
+            _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService);
+            _items = new CensusStoreDataComparisonRow("Items", _itemService);
+            _itemCategories = new CensusStoreDataComparisonRow("Item Categories", _itemCategoryService);
+            _profiles = new CensusStoreDataComparisonRow("Profiles", _profileService);
+            _loadouts = new CensusStoreDataComparisonRow("Loadouts", _loadoutService);
+            _zones = new CensusStoreDataComparisonRow("Zones", _zoneService);
+            _worlds = new CensusStoreDataComparisonRow("Worlds", _worldService);
+            _factions = new CensusStoreDataComparisonRow("Factions", _factionService);
+            _vehicles = new CensusStoreDataComparisonRow("Vehicles", _vehicleService);
 
             Comparisons.Add(_mapRegions);
             Comparisons.Add(_facilityTypes);
@@ -72,6 +77,7 @@ namespace squittal.ScrimPlanetmans.Services
             Comparisons.Add(_zones);
             Comparisons.Add(_worlds);
             Comparisons.Add(_factions);
+            Comparisons.Add(_vehicles);
         }
 
         public async Task InitializeCounts()

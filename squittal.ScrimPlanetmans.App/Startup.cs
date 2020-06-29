@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using squittal.ScrimPlanetmans.App.Data;
 using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Data;
@@ -49,13 +48,20 @@ namespace squittal.ScrimPlanetmans.App
             //services.AddTransient<IZoneService, ZoneService>();
             services.AddSingleton<IZoneService, ZoneService>();
 
-            // TODO: should ItemService and FacilityService be Singletons, due to their pre-loaded value lists?
+            // TODO: should ItemService, FacilityService, and VehicleService be Singletons, due to their pre-loaded value lists?
             services.AddTransient<IItemService, ItemService>();
             services.AddTransient<IItemCategoryService, ItemCategoryService>();
             services.AddSingleton<IFacilityService, FacilityService>();
             services.AddTransient<IFacilityTypeService, FacilityTypeService>();
+            services.AddTransient<IVehicleService, VehicleService>();
+            //services.AddTransient<IVehicleFactionService, VehicleFactionService>();
+
+            services.AddTransient<IVehicleTypeService, VehicleTypeService>();
+            services.AddTransient<IDeathEventTypeService, DeathEventTypeService>();
 
             services.AddSingleton<IScrimRulesetManager, ScrimRulesetManager>();
+
+            services.AddSingleton<IScrimMatchDataService, ScrimMatchDataService>();
 
             services.AddSingleton<IWorldService, WorldService>();
             services.AddSingleton<ICharacterService, CharacterService>();
@@ -63,16 +69,14 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IProfileService, ProfileService>();
             services.AddTransient<ILoadoutService, LoadoutService>();
 
-            services.AddSingleton<ScrimTeamsManagerService>();
-            services.AddSingleton<PlanetsideDataService>();
-            services.AddSingleton<WebsocketMonitorService>();
-
             services.AddSingleton<IScrimTeamsManager, ScrimTeamsManager>();
             services.AddSingleton<IScrimPlayersService, ScrimPlayersService>();
 
             services.AddSingleton<IStatefulTimer, StatefulTimer>(); // TODO: should/can this be Transient?
             services.AddSingleton<IScrimMatchEngine, ScrimMatchEngine>();
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
+
+            services.AddTransient<IConstructedTeamService, ConstructedTeamService>();
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 
@@ -89,8 +93,6 @@ namespace squittal.ScrimPlanetmans.App
             services.AddTransient<ISqlScriptRunner, SqlScriptRunner>();
 
             services.AddTransient<DatabaseMaintenanceService>();
-
-            services.AddSingleton<WeatherForecastService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

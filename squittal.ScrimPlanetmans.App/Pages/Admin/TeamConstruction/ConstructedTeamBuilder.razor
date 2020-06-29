@@ -1,0 +1,383 @@
+﻿@page "/TeamBuilder"
+
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Data.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Text.RegularExpressions;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IConstructedTeamService ConstructedTeamService
+@inject IScrimMessageBroadcastService MessageService
+
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <div class="col-lg-3">
+
+            <div class="header-card-container default">
+                <h3>Team Builder</h3>
+
+                <EditForm Model="@_inputTeamStringId" style="display: inline-block;">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div style="margin-bottom: 0.2rem;">
+                        <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
+
+                        <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
+                            <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
+
+                            @foreach (var team in _storedTeamsList)
+                            {
+                                <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                </EditForm>
+
+                @if (!_showCreateNewTeamForm)
+                {
+                    <button class="btn btn-outline-primary" @onclick="ToggleCreateNewTeamFormVisibility" style="display: inline-block; margin: 12px 0 16px 0; font-size: small;">
+                        <span class="oi oi-plus"></span>Create New
+                    </button>
+                }
+
+            </div>
+
+            <div class="sq-mini-card-12">
+                <TeamConstructionLog />
+            </div>
+
+            <table style="display: none;">
+                <tbody>
+                    <tr>
+                        <td>_inputTeamStringId</td>
+                        <td style="padding-left: 8px;">@_inputTeamStringId</td>
+                    </tr>
+                    <tr>
+                        <td>i_teamStringId</td>
+                        <td style="padding-left: 8px;">@i_teamStringId</td>
+                    </tr>
+                    <tr>
+                        <td>_renderedTeamStringId</td>
+                        <td style="padding-left: 8px;">@_renderedTeamStringId</td>
+                    </tr>
+                    <tr>
+                        <td>_renderedTeamId</td>
+                        <td style="padding-left: 8px;">@_renderedTeamId</td>
+                    </tr>
+                    <tr>
+                        <td>_uriTeamId</td>
+                        <td style="padding-left: 8px;">@_uriTeamId</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+
+        </div>
+
+
+        @if (_showCreateNewTeamForm)
+        {
+            <div class="col-lg-4">
+
+                <div class="header-card-container default">
+
+                    <h5 class="default" style="margin-bottom: 0.1rem;">
+                        Team Creation Form
+                    </h5>
+
+                    <div class="sq-content">
+                        <EditForm Model="@_newTeamForm" OnValidSubmit="HandleCreateNewTeamSubmit" style="margin-top: 0.5rem;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_newTeamForm.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
+                            <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_newTeamForm.Alias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" /></p>
+
+                            <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
+                                <span class="oi oi-check"></span>Save
+                            </button>
+
+                            <button @onclick="HandleCreateNewTeamCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
+                                <span class="oi oi-x" style="top: 0;"></span>Cancel
+                            </button>
+
+                            <p style="margin: 8px 0; font-size: 0.9rem;">Open Team On Save? <InputCheckbox id="openNewTeamOnSave" @bind-Value="_openNewTeamOnSave" />@($"{(_openNewTeamOnSave ? " Yes" : " No")}")</p>
+
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_isChangingTeam)
+        {
+            <SpinnerEllipsis />
+        }
+        else if (_renderedTeamId.ToString() != _noTeamSelectedStringId)
+        {
+            <div class="col-lg-9">
+                <ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />
+            </div>
+        }
+
+        
+    </div>
+
+</div>
+
+
+@code {
+    [Parameter]
+    public string i_teamStringId { get; set; } = "-1";
+    private string _renderedTeamStringId { get; set; } = "-1";
+
+    [Parameter]
+    public int? _uriTeamId { get; set; }
+
+    private string _inputTeamStringId { get; set; } = "-1"; // string.Empty;
+
+    private int _renderedTeamId { get; set; } = -1;
+
+    private string _noTeamSelectedStringId { get; set; } = "-1";
+    private int _noTeamSelectedId { get; set; } = -1;
+
+    [Parameter]
+    public bool i_viewOnly { get; set; } = true;
+    private bool _renderedViewOnly { get; set; } = true;
+
+    private ConstructedTeamFormInfo _renderedTeam { get; set; } = new ConstructedTeamFormInfo();
+
+    private IEnumerable<ConstructedTeam> _storedTeamsList { get; set; } = new List<ConstructedTeam>();
+
+    private bool _isChangingTeam { get; set; } = false;
+
+    private bool _showCreateNewTeamForm { get; set; } = false;
+    private ConstructedTeam _newTeamForm { get; set; } = new ConstructedTeam();
+    private bool _openNewTeamOnSave { get; set; } = true;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseConstructedTeamInfoChangeEvent += ReceiveConstructedTeamInfoChangeEvent;
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseConstructedTeamInfoChangeEvent -= ReceiveConstructedTeamInfoChangeEvent;
+        NavManager.LocationChanged -= OnLocationChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        UpdateUriParameters();
+
+        if (i_teamStringId != _renderedTeamStringId)
+        {
+            _isChangingTeam = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedTeamStringId = i_teamStringId;
+
+            _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
+
+            paramsChanged = true;
+        }
+
+        if (i_viewOnly != _renderedViewOnly)
+        {
+            _renderedViewOnly = i_viewOnly;
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingTeam = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+    #endregion Initialization Methods
+
+    #region UI & Form Handling
+    private void HandleOnSelectTeamChange(string inputTeamStringId)
+    {
+        _isChangingTeam = true;
+        InvokeAsyncStateHasChanged();
+
+        if (inputTeamStringId == _noTeamSelectedStringId)
+        {
+            i_teamStringId = _noTeamSelectedStringId; // string.Empty;
+            _renderedTeamStringId = i_teamStringId; // TEST
+            _inputTeamStringId = _noTeamSelectedStringId; // string.Empty;
+            _renderedTeamId = GetTeamIdFromStringId(_noTeamSelectedStringId);
+
+            NavManager.NavigateTo($"/TeamBuilder");
+        }
+        else
+        {
+            i_teamStringId = inputTeamStringId;
+            _renderedTeamStringId = i_teamStringId; // TEST
+            _inputTeamStringId = inputTeamStringId;
+            _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
+
+            NavManager.NavigateTo($"/TeamBuilder?teamId={i_teamStringId}");
+        }
+
+        //NavManager.NavigateTo($"/TeamBuilder?teamId={i_teamStringId}");
+
+        _isChangingTeam = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async void HandleCreateNewTeamSubmit()
+    {
+        var newTeam = _newTeamForm;
+
+        Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        if (!nameRegex.Match(newTeam.Name).Success)
+        {
+            return;
+        }
+
+        Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        if (!aliasRegex.Match(newTeam.Alias).Success)
+        {
+            return;
+        }
+        var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
+
+        _newTeamForm = new ConstructedTeam();
+
+        _showCreateNewTeamForm = false;
+
+        if (_openNewTeamOnSave && newTeamEntity != null)
+        {
+            HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
+        }
+
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleCreateNewTeamCancel()
+    {
+        _newTeamForm = new ConstructedTeam();
+
+        _showCreateNewTeamForm = false;
+    }
+
+    private void ToggleCreateNewTeamFormVisibility()
+    {
+        _showCreateNewTeamForm = !_showCreateNewTeamForm;
+    }
+    #endregion UI & Form Handling
+
+
+    #region Event Handling
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            StateHasChanged();
+        }
+    }
+
+    public void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    {
+        var team = e.Message.ConstructedTeam;
+
+        var listedTeam = _storedTeamsList.Where(t => t.Id == team.Id).FirstOrDefault();
+
+        if (listedTeam == null)
+        {
+            return;
+        }
+
+        listedTeam.Name = team.Name;
+        listedTeam.Alias = team.Alias;
+
+        i_teamStringId = _renderedTeamStringId;
+        _renderedTeamId = GetTeamIdFromStringId(_renderedTeamStringId);
+        _inputTeamStringId = _renderedTeamStringId;
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("teamId", out var qTeamId))
+        {
+            if (int.TryParse(qTeamId, out var teamId))
+            {
+                // TODO: should this be _uriTeamId != null ?
+                if (_uriTeamId == null || teamId != (int)_uriTeamId)
+                {
+                    _uriTeamId = teamId;
+
+                    i_teamStringId = _uriTeamId.ToString();
+                    _renderedTeamStringId = i_teamStringId; // TEST
+                    _inputTeamStringId = _uriTeamId.ToString();
+                    _renderedTeamId = GetTeamIdFromStringId(_inputTeamStringId);
+
+                    stateChanged = true;
+                }
+                else
+                {
+                    _uriTeamId = null;
+
+                    i_teamStringId = _noTeamSelectedStringId; // TEST string.Empty;
+                    _renderedTeamStringId = i_teamStringId; // TEST
+                    _inputTeamStringId = _noTeamSelectedStringId; // string.Empty;
+                    _renderedTeamId = GetTeamIdFromStringId(_noTeamSelectedStringId);
+
+                    stateChanged = false;
+                }
+            }
+        }
+
+        return stateChanged;
+    }
+
+    public int GetTeamIdFromStringId(string stringId)
+    {
+        if (int.TryParse(stringId, out int intId))
+        {
+            return intId;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

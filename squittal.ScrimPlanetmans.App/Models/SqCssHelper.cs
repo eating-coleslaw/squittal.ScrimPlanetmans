@@ -10,7 +10,8 @@
                 2 => "nc",
                 3 => "tr",
                 4 => "ns",
-                _ => "ns",
+                //_ => "ns",
+                _ => "default",
             };
             return cssClass;
         }

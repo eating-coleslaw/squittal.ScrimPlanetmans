@@ -1,0 +1,81 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+<td style="opacity: @GetStatOpacity(EventAggregate.FlashesDestroyed);">@(EventAggregate.FlashesDestroyed)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.HarassersDestroyed);">@(EventAggregate.HarassersDestroyed)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.AntsDestroyed);">@(EventAggregate.AntsDestroyed)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.SunderersDestroyed);">@(EventAggregate.SunderersDestroyed)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.LightningsDestroyed);">@(EventAggregate.LightningsDestroyed)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.MbtsDestroyed);">@(EventAggregate.MbtsDestroyed)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.FlashesLost);">@(EventAggregate.FlashesLost)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.HarassersLost);">@(EventAggregate.HarassersLost)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.AntsLost);">@(EventAggregate.AntsLost)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.SunderersLost);">@(EventAggregate.SunderersLost)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.LightningsLost);">@(EventAggregate.LightningsLost)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.MbtsLost);">@(EventAggregate.MbtsLost)</td>
+<td style="opacity: @GetStatOpacity(EventAggregate.Points);">@(EventAggregate.Points)</td>
+<td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(EventAggregate.NetScore);">@(EventAggregate.NetScore)</td>
+
+@code {
+    [Parameter]
+    public ScrimEventAggregate EventAggregate { get; set; }
+
+    [Parameter]
+    public string PlayerId { get; set; }
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        InvokeSateHasChangedIfPlayer(e.Message.Player);
+    }
+
+    private void InvokeSateHasChangedIfPlayer(Player eventPlayer)
+    {
+        if (eventPlayer.Id != PlayerId || PlayerId != "team")
+        {
+            return;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion Event Handling
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetStatOpacity(double value)
+    {
+        return (value != 0.0)
+            ? 1.0
+            : 0.5;
+    }
+}

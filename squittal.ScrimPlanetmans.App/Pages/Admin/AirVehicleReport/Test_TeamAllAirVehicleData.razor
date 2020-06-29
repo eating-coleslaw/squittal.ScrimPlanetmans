@@ -1,0 +1,791 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.CensusStream;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IWebsocketMonitor WebsocketMonitor
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IOutfitService OutfitService
+@inject IWorldService WorldService
+@inject IFactionService FactionService
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+<div class="header-card-container @GetHeaderCardClass()">
+
+    @if (_team == null || !_teamOutfits.Any())
+    {
+        <h4>Team @i_teamOrdinal</h4>
+    }
+    else
+    {
+        <h4 class="@SqCssHelper.GetFactionClassFromId(_team.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0;">
+            Team @($"{i_teamOrdinal}: {_team.Alias}")
+        </h4>
+
+        <table style="width: 100%; font-size: 0.75rem;" class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+            <thead style="vertical-align: bottom;">
+                <tr>
+                    <th></th>
+                    <th class="stacked-label med" title="Interceptors Destroyed">
+                        <span class="small">Interceptors<br></span>
+                        <span>Destroyed</span>
+                    </th>
+                    <th class="stacked-label med" title="ESFs Destroyed">
+                        <span class="small">ESFs<br></span>
+                        <span>Destroyed</span>
+                    </th>
+                    <th class="stacked-label med" title="Valkyries Destroyed">
+                        <span class="small">Valkyries<br></span>
+                        <span>Destroyed</span>
+                    </th>
+                    <th class="stacked-label med" title="Liberators Destroyed">
+                        <span class="small">Liberators<br></span>
+                        <span>Destroyed</span>
+                    </th>
+                    <th class="stacked-label med" title="Galaxies Destroyed">
+                        <span class="small">Galaxies<br></span>
+                        <span>Destroyed</span>
+                    </th>
+                    <th class="stacked-label med" title="Bastions Destroyed">
+                        <span class="small">Bastions<br></span>
+                        <span>Destroyed</span>
+                    </th>
+                    <th class="stacked-label med" title="Interceptors Lost">
+                        <span class="small">Interceptors<br></span>
+                        <span>Lost</span>
+                    </th>
+                    <th class="stacked-label med" title="ESFs Lost">
+                        <span class="small">ESFs<br></span>
+                        <span>Lost</span>
+                    </th>
+                    <th class="stacked-label med" title="Valkyries Lost">
+                        <span class="small">Valkyries<br></span>
+                        <span>Lost</span>
+                    </th>
+                    <th class="stacked-label med" title="Liberators Lost">
+                        <span class="small">Liberators<br></span>
+                        <span>Lost</span>
+                    </th>
+                    <th class="stacked-label med" title="Galaxies Lost">
+                        <span class="small">Galaxies<br></span>
+                        <span>Lost</span>
+                    </th>
+                    <th class="stacked-label med" title="Bastions Lost">
+                        <span class="small">Bastions<br></span>
+                        <span>Lost</span>
+                    </th>
+
+                    <th title="Raw Points">Points</th>
+                    <th class="stacked-label med">
+                        <span class="small">Net<br></span>
+                        <span>Score</span>
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Total</td>
+                    <Test_PlayerAirVehicleStatsRow EventAggregate=@_team.EventAggregate PlayerId="team" />
+                </tr>
+
+                <tr>
+                    <td>Current</td>
+                    <Test_PlayerAirVehicleStatsRow EventAggregate=@_team.EventAggregateTracker.RoundStats PlayerId="team" />
+                </tr>
+
+                @foreach (var round in _team.EventAggregateTracker.RoundHistory.Keys.ToList())
+                {
+                    <tr>
+                        <td>Round @round</td>
+                        <Test_PlayerAirVehicleStatsRow EventAggregate=@_team.EventAggregateTracker.RoundHistory[round] PlayerId="team" />
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+
+</div>
+
+@if (_teamOutfits.Any())
+{
+    foreach (var outfit in _teamOutfits)
+    {
+        <div class="sq-mini-card-12 @SqCssHelper.GetFactionClassFromId(outfit.FactionId)">
+
+            <h5 class="@SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="color: var(--sq-ps2-primary); margin-bottom: 0.1rem;">
+                <b>[@outfit.Alias] @outfit.Name</b> (@outfit.MemberCount | @outfit.MembersOnlineCount) <span>@_worlds?.Where(w => w.Id == outfit.WorldId).Select(w => w.Name).FirstOrDefault()</span><span> @FactionService.GetFactionAbbrevFromId((int)outfit.FactionId)</span>
+            </h5>
+
+            <p style="margin: 0 0 0.1rem 0;">
+                @if (!_teamOutfitsLoadingMembers.Contains(outfit.AliasLower))
+                {
+                    <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="(() => ToggleOutfitPlayersVisibility(outfit.AliasLower))">@(ShowOutfitPlayers(outfit.AliasLower) ? "Hide Players" : "Show Players")</button>
+                }
+            </p>
+
+            <div class="sq-content">
+
+                @if (_teamOutfitsLoadingMembers.Contains(outfit.AliasLower) && (_teamPlayersOnline == null || !_teamPlayersOnline.Any(p => p.OutfitId == outfit.Id)))
+                {
+                    <SpinnerEllipsis />
+                }
+
+                else if (_teamPlayersVisible != null && _teamPlayersVisible.Any(p => p.OutfitId == outfit.Id) && ShowOutfitPlayers(outfit.AliasLower))
+                {
+                    <table class="table-responsive-sm table-striped-light @SqCssHelper.GetFactionClassFromId(outfit.FactionId)" style="margin-bottom: 0.5rem;">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th class="stacked-label med" title="Interceptors Destroyed">
+                                    <span class="small">Interceptors<br></span>
+                                    <span>Destroyed</span>
+                                </th>
+                                <th class="stacked-label med" title="ESFs Destroyed">
+                                    <span class="small">ESFs<br></span>
+                                    <span>Destroyed</span>
+                                </th>
+                                <th class="stacked-label med" title="Valkyries Destroyed">
+                                    <span class="small">Valkyries<br></span>
+                                    <span>Destroyed</span>
+                                </th>
+                                <th class="stacked-label med" title="Liberators Destroyed">
+                                    <span class="small">Liberators<br></span>
+                                    <span>Destroyed</span>
+                                </th>
+                                <th class="stacked-label med" title="Galaxies Destroyed">
+                                    <span class="small">Galaxies<br></span>
+                                    <span>Destroyed</span>
+                                </th>
+                                <th class="stacked-label med" title="Bastions Destroyed">
+                                    <span class="small">Bastions<br></span>
+                                    <span>Destroyed</span>
+                                </th>
+                                <th class="stacked-label med" title="Interceptors Lost">
+                                    <span class="small">Interceptors<br></span>
+                                    <span>Lost</span>
+                                </th>
+                                <th class="stacked-label med" title="ESFs Lost">
+                                    <span class="small">ESFs<br></span>
+                                    <span>Lost</span>
+                                </th>
+                                <th class="stacked-label med" title="Valkyries Lost">
+                                    <span class="small">Valkyries<br></span>
+                                    <span>Lost</span>
+                                </th>
+                                <th class="stacked-label med" title="Liberators Lost">
+                                    <span class="small">Liberators<br></span>
+                                    <span>Lost</span>
+                                </th>
+                                <th class="stacked-label med" title="Galaxies Lost">
+                                    <span class="small">Galaxies<br></span>
+                                    <span>Lost</span>
+                                </th>
+                                <th class="stacked-label med" title="Bastions Lost">
+                                    <span class="small">Bastions<br></span>
+                                    <span>Lost</span>
+                                </th>
+
+                                <th title="Raw Points">Points</th>
+                                <th class="stacked-label med">
+                                    <span class="small">Net<br></span>
+                                    <span>Score</span>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var member in _teamPlayersVisible.Where(p => p.OutfitId == outfit.Id).ToList())
+                            {
+                                <tr>
+                                    <td title="@(member.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(member.IsOnline)</td>
+                                    <td title="@member.NameFull [@(member.Id)]">
+                                        <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@member.NameDisplay</span>
+                                        <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(member.Id)]</span> @*opacity: 0.8;*@
+                                    </td>
+                                    <Test_PlayerAirVehicleStatsRow EventAggregate=@member.EventAggregate PlayerId=@member.Id />
+                                </tr>
+
+                                <tr>
+                                    <td></td>
+                                    <td>CurrentRound</td>
+                                    <Test_PlayerAirVehicleStatsRow EventAggregate=@member.EventAggregateTracker.RoundStats PlayerId=@member.Id />
+                                </tr>
+
+                                @foreach (var round in member.EventAggregateTracker.RoundHistory.Keys.ToList())
+                                {
+                                    <tr>
+                                        <td></td>
+                                        <td>Round @round</td>
+                                        <Test_PlayerAirVehicleStatsRow EventAggregate=@member.EventAggregateTracker.RoundHistory[round] PlayerId=@member.Id />
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+        </div>
+    }
+}
+@if (_teamOutfitsLoading.Any())
+{
+    <SpinnerEllipsis />
+}
+
+@if (_teamNonOutfitPlayers.Any())
+{
+    <div class="sq-mini-card-12 default">
+
+        <h5 style="color: var(--sq-pink); margin-bottom: 0.1rem;">
+            <b>Other Players</b> (@_teamNonOutfitPlayers.Count() | @_teamNonOutfitPlayers.Count(p => p.IsOnline == true))
+        </h5>
+
+        <p style="margin: 0 0 0.1rem 0;">
+            @if (_teamNonOutfitPlayers.Any())
+            {
+                <button class="btn btn-link" style="padding: 0 0 0 1rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglNoneOutfitPlayersVisibility">@(_extendNonOutfitPlayers ? "Hide Players" : "Show Players")</button>
+            }
+        </p>
+
+        <div class="sq-content">
+
+            @if (_extendNonOutfitPlayers)
+            {
+                <table class="table-responsive-sm table-striped-light mono-font smaller" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--sq-pink-lighter-alpha-50);">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th class="stacked-label med" title="Interceptors Destroyed">
+                                <span class="small">Interceptors<br></span>
+                                <span>Destroyed</span>
+                            </th>
+                            <th class="stacked-label med" title="ESFs Destroyed">
+                                <span class="small">ESFs<br></span>
+                                <span>Destroyed</span>
+                            </th>
+                            <th class="stacked-label med" title="Valkyries Destroyed">
+                                <span class="small">Valkyries<br></span>
+                                <span>Destroyed</span>
+                            </th>
+                            <th class="stacked-label med" title="Liberators Destroyed">
+                                <span class="small">Liberators<br></span>
+                                <span>Destroyed</span>
+                            </th>
+                            <th class="stacked-label med" title="Galaxies Destroyed">
+                                <span class="small">Galaxies<br></span>
+                                <span>Destroyed</span>
+                            </th>
+                            <th class="stacked-label med" title="Bastions Destroyed">
+                                <span class="small">Bastions<br></span>
+                                <span>Destroyed</span>
+                            </th>
+                            <th class="stacked-label med" title="Interceptors Lost">
+                                <span class="small">Interceptors<br></span>
+                                <span>Lost</span>
+                            </th>
+                            <th class="stacked-label med" title="ESFs Lost">
+                                <span class="small">ESFs<br></span>
+                                <span>Lost</span>
+                            </th>
+                            <th class="stacked-label med" title="Valkyries Lost">
+                                <span class="small">Valkyries<br></span>
+                                <span>Lost</span>
+                            </th>
+                            <th class="stacked-label med" title="Liberators Lost">
+                                <span class="small">Liberators<br></span>
+                                <span>Lost</span>
+                            </th>
+                            <th class="stacked-label med" title="Galaxies Lost">
+                                <span class="small">Galaxies<br></span>
+                                <span>Lost</span>
+                            </th>
+                            <th class="stacked-label med" title="Bastions Lost">
+                                <span class="small">Bastions<br></span>
+                                <span>Lost</span>
+                            </th>
+
+                            <th title="Raw Points">Points</th>
+                            <th class="stacked-label med">
+                                <span class="small">Net<br></span>
+                                <span>Score</span>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var player in _teamNonOutfitPlayers)
+                        {
+                            <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)">
+                                <td title="@(player.IsOnline ? "Online" : "Offline")">@SqCssHelper.GetOnlineStatusEmoji(player.IsOnline)</td>
+                                <td title="@player.NameFull [@(player.Id)]">
+                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
+                                    <span style="font-size: 0.7rem;  color: var(--sq-black);"> [@(player.Id)]</span>
+                                </td>
+                                <Test_PlayerAirVehicleStatsRow EventAggregate=@player.EventAggregate PlayerId=@player.Id />
+                            </tr>
+
+                            <tr>
+                                <td></td>
+                                <td>CurrentRound</td>
+                                <Test_PlayerAirVehicleStatsRow EventAggregate=@player.EventAggregateTracker.RoundStats PlayerId=@player.Id />
+                            </tr>
+
+                            @foreach (var round in player.EventAggregateTracker.RoundHistory.Keys.ToList())
+                            {
+                                <tr>
+                                    <td></td>
+                                    <td>Round @round</td>
+                                    <Test_PlayerAirVehicleStatsRow EventAggregate=@player.EventAggregateTracker.RoundHistory[round] PlayerId=@player.Id />
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+<p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>
+
+
+@code {
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+
+    #region Form & Input Variables
+    private OutfitAlias _inputAlias = new OutfitAlias();
+
+    private List<string> _teamOutfitsLoadingMembers = new List<string>();
+
+    private List<string> _teamOutfitsLoading = new List<string>();
+
+    private List<string> _validOutfitAliasHistory = new List<string>();
+    #endregion
+
+    #region Team & Players
+    private Team _team;
+
+    private List<Outfit> _teamOutfits = new List<Outfit>();
+
+    private List<Player> _teamPlayers = new List<Player>();
+
+    private List<Player> _teamPlayersOnline = new List<Player>();
+
+    private List<Player> _teamPlayersParticipating = new List<Player>();
+
+    private List<Player> _teamPlayersVisible = new List<Player>();
+
+    private List<Player> _teamNonOutfitPlayers = new List<Player>();
+    #endregion
+
+    #region UI & Layout Variables
+    private Dictionary<string, bool> _outfitPlayersExtendedMap = new Dictionary<string, bool>(); // <outfit alias, is player list expanded?>
+
+    private bool _extendNonOutfitPlayers = true;
+
+    private int _defaultMaxPlayersToExtend = 6;
+    #endregion
+
+    #region Helpers
+    private IEnumerable<World> _worlds;
+    private int _renderedTeamOrdinal;
+    #endregion
+
+    /***********
+       Methods
+     ***********/
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
+
+        MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
+
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+
+        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+            InitializeTeamData();
+        }
+    }
+    #endregion Initialization Methods
+
+    private void InitializeTeamData()
+    {
+        _team = ScrimTeamsManager.GetTeam(i_teamOrdinal);
+
+        if (_team == null)
+        {
+            return;
+        }
+
+        _teamOutfits = _team.Outfits;
+
+        _teamPlayersParticipating = _team.ParticipatingPlayers; // ScrimTeamsManager.GetParticipatingPlayers().ToList();
+
+        _teamPlayersVisible.AddRange(_teamPlayersParticipating);
+
+        _validOutfitAliasHistory = _team.Outfits.Select(o => o.AliasLower).ToList();
+
+        _teamPlayers = _team.Players;
+
+        foreach (var player in _teamPlayers)
+        {
+            if (player.IsOnline && !_teamPlayersOnline.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersOnline.Add(player);
+            }
+
+            if (player.IsOnline && !_teamPlayersVisible.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersVisible.Add(player);
+            }
+
+            if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+            {
+                _teamNonOutfitPlayers.Add(player);
+            }
+        }
+
+        foreach (var outfit in _teamOutfits)
+        {
+
+            if (_teamPlayersOnline.Count(p => p.OutfitAliasLower == outfit.AliasLower) > _defaultMaxPlayersToExtend)
+            {
+                _outfitPlayersExtendedMap.Add(outfit.AliasLower, false);
+            }
+            else
+            {
+                _outfitPlayersExtendedMap.Add(outfit.AliasLower, true);
+            }
+        }
+    }
+
+
+    /*************************
+     *  UI & Layout Controls
+     *************************/
+    private void ToggleOutfitPlayersVisibility(string aliasLower)
+    {
+        if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool oldshowPlayers))
+        {
+            _outfitPlayersExtendedMap[aliasLower] = !oldshowPlayers;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void TogglNoneOutfitPlayersVisibility()
+    {
+        _extendNonOutfitPlayers = !_extendNonOutfitPlayers;
+    }
+
+    private bool ShowOutfitPlayers(string aliasLower)
+    {
+        if (_outfitPlayersExtendedMap.TryGetValue(aliasLower, out bool showPlayers))
+        {
+            return showPlayers;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /*****************
+     *  Event Handling
+     *****************/
+    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var aliasLower = message.Outfit.AliasLower;
+
+        if (message.ChangeType == TeamChangeType.Add)
+        {
+            _teamOutfitsLoading.Remove(aliasLower);
+        }
+        else if (message.ChangeType == TeamChangeType.Remove)
+        {
+            _validOutfitAliasHistory.RemoveAll(alias => alias == aliasLower);
+            _outfitPlayersExtendedMap.Remove(aliasLower);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+
+    }
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    {
+        var message = e.Message;
+
+        var player = message.Player;
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        switch (message.ChangeType)
+        {
+            case TeamPlayerChangeType.Add:
+                HandleTeamPlayerChangeAdd(message);
+                break;
+
+            case TeamPlayerChangeType.Remove:
+                HandleTeamPlayerChangeRemove(message);
+                break;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void HandleTeamPlayerChangeAdd(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        {
+            _teamNonOutfitPlayers.Add(player);
+        }
+        else
+        {
+            _teamOutfitsLoading.Remove(player.OutfitAliasLower);
+        }
+
+        if (player.IsOnline)
+        {
+            _teamPlayersOnline.Add(player);
+
+            if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+            {
+                _teamPlayersVisible.Add(player);
+            }
+        }
+
+        if (message.IsLastOfOutfit)
+        {
+            _teamOutfitsLoadingMembers.Remove(player.OutfitAliasLower);
+        }
+    }
+
+    private void HandleTeamPlayerChangeRemove(TeamPlayerChangeMessage message)
+    {
+        var player = message.Player;
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id) || _teamPlayersParticipating.Any(p => p.Id == player.Id) || _teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.RemoveAll(p => p.Id == player.Id);
+            _teamPlayersParticipating.RemoveAll(p => p.Id == player.Id);
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+
+            if (player.IsOutfitless)
+            {
+                _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
+            }
+        }
+    }
+
+    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersParticipating.Add(player);
+        }
+
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.Add(player);
+        }
+
+        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        {
+            _teamNonOutfitPlayers.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    {
+        var message = e.Message;
+        var team = message.Team;
+
+        if (team.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Add(player);
+        }
+
+        if (!_teamPlayersVisible.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.Add(player);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (_teamPlayersOnline.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersOnline.Remove(player);
+        }
+
+        // Only remove the player from the visible list if they haven't done anything in the match
+        if (!_teamPlayersParticipating.Any(p => p.Id == player.Id))
+        {
+            _teamPlayersVisible.RemoveAll(p => p.Id == player.Id);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    {
+        var player = e.Message.Player;
+
+        if (player.TeamOrdinal != i_teamOrdinal)
+        {
+            return;
+        }
+
+        if (!_teamPlayersVisible.Contains(player))
+        {
+            return;
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
+    {
+        //ReceiveMessage(e.Message);
+    }
+
+    private string GetHeaderCardClass()
+    {
+        return (_team == null || !_teamOutfits.Any())
+            ? "default"
+            : SqCssHelper.GetFactionClassFromId(_team.FactionId);
+    }
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+}

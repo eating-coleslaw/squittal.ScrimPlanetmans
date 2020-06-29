@@ -30,6 +30,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public int? SubscribedFacilityId;
         public int? SubscribedWorldId;
 
+
         public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
             _client = censusStreamClient;
@@ -40,7 +41,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
             _client.Subscribe(CreateSubscription())
                     .OnMessage(OnMessage)
                    .OnDisconnect(OnDisconnect);
-            //.Subscribe(CreateSubscription())
 
             _messageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
             _messageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateEvent;
@@ -57,21 +57,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
 
             await _client?.ConnectAsync();
-            //_client?.Subscribe(CreateSubscription());
-
-            //var state = await GetStateAsync(cancellationToken);
-
-            //if (!state.IsEnabled)
-            //{
-            //    await _client.ConnectAsync();
-            //    state = await GetStateAsync(cancellationToken);
-            //}
-
-            //if (state.IsEnabled)
-            //{
-            //    _logger.LogInformation("Starting census stream subscription");
-            //    _client.Subscribe(CreateSubscription());
-            //}
         }
 
         private CensusStreamSubscription CreateSubscription()
@@ -81,7 +66,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 "Death",
                 "PlayerLogin",
                 "PlayerLogout",
-                "FacilityControl"
+                "FacilityControl",
+                "VehicleDestroy"
             };
 
             eventNames.AddRange(ExperienceEventsBuilder.GetExperienceEvents());
@@ -90,7 +76,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 Characters = new[] { "all" },
                 Worlds = new[] { "all" },
-                //EventNames = new[] { "Death", "PlayerLogin", "PlayerLogout" }
                 EventNames = eventNames
             };
 
@@ -154,16 +139,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
             SubscribedWorldId = worldId;
         }
 
-        public void EnableScoring()
-        {
-            _handler.EnabledScoring();
-        }
+        public void EnableScoring() => _handler.EnabledScoring();
 
-        public void DisableScoring()
-        {
-            _handler.DisableScoring();
-        }
+        public void DisableScoring() => _handler.DisableScoring();
 
+        public void EnableEventStoring() => _handler.EnabledEventStoring();
+
+        public void DisableEventStoring() => _handler.DisableEventStoring();
 
         private bool PayloadContainsSubscribedCharacter(JToken message)
         {
@@ -274,6 +256,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             return Task.FromResult((object)_lastHeartbeat);
         }
 
+        #pragma warning disable CS1998
         private async Task OnMessage(string message)
         {
             if (message == null)
@@ -304,37 +287,18 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
-            //{
-            //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLoginMessage", message);
-            //}
-
-            //else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
-            //{
-            //    await _hubContext.Clients.All.SendAsync("ReceivePlayerLogoutMessage", message);
-            //}
-
             if (PayloadContainsSubscribedCharacter(jMsg) || PayloadContainsSubscribedFacility(jMsg))
             {
-                //await _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
-                //if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogin")
-                //{
-                //    _logger.LogInformation($"Payload received for event PlayerLogin: {jMsg.ToString()}");
-                //}
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    _handler.Process(jMsg);
 
-                //else if (jMsg.SelectToken("payload").Value<string>("event_name") == "PlayerLogout")
-                //{
-                //    _logger.LogInformation($"Payload received for event PlayerLogout: {jMsg.ToString()}");
-                //}
-
-
-                await _handler.Process(jMsg);
-
-                SendSimpleMessage(message);
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
             }
-
-            //await _handler.Process(jMsg);
         }
+        #pragma warning restore CS1998
 
         private Task OnDisconnect(string error)
         {
@@ -384,6 +348,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             SubscribedFacilityId = matchConfiguration.FacilityId;
             SubscribedWorldId = matchConfiguration.WorldId;
+
+            if (matchConfiguration.SaveEventsToDatabase)
+            {
+                EnableEventStoring();
+            }
+            else
+            {
+                DisableEventStoring();
+            }
         }
 
         public void Dispose()

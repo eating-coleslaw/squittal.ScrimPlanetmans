@@ -41,13 +41,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         }
 
-        public async Task<Ruleset> GetActiveRuleset()
+        public async Task<Ruleset> GetActiveRuleset(bool forceRefresh = false)
         {
             if (ActiveRuleset == null)
             {
                 return await GetDefaultRuleset();
             }
-            else if (!ActiveRuleset.ActionRules.Any() || !ActiveRuleset.ItemCategoryRules.Any())
+            else if (forceRefresh || !ActiveRuleset.ActionRules.Any() || !ActiveRuleset.ItemCategoryRules.Any())
             {
                 await SetupActiveRuleset();
                 return ActiveRuleset;
@@ -207,16 +207,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 }
 
 
-
                 // Action Rules
                 var defaultActionRules = GetDefaultActionRules();
                 var createdActionRules = new List<RulesetActionRule>();
                 var allActionRules = new List<RulesetActionRule>();
 
-                foreach (var actionType in GetScrimActionTypes())
+                var allActionEnumValues = GetScrimActionTypes();
+
+                var allActionValues = new List<ScrimActionType>();
+                allActionValues.AddRange(allActionEnumValues);
+                allActionValues.AddRange(storeActionRules.Select(ar => ar.ScrimActionType).Where(a => !allActionValues.Contains(a)).ToList());
+
+                foreach (var actionType in allActionValues)
                 {
                     var storeEntity = storeActionRules?.FirstOrDefault(r => r.ScrimActionType == actionType);
                     var defaultEntity = defaultActionRules.FirstOrDefault(r => r.ScrimActionType == actionType);
+
+                    var isValidAction = (storeEntity != null)
+                                            ? allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType)
+                                            : true;
 
                     if (storeEntity == null)
                     {
@@ -232,11 +241,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                             allActionRules.Add(newEntity);
                         }
                     }
-                    else
+                    else if (isValidAction)
                     {
                         storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
+
+                        if (defaultEntity != null)
+                        {
+                            storeEntity.DeferToItemCategoryRules = defaultEntity.DeferToItemCategoryRules;
+                        }
+
                         dbContext.RulesetActionRules.Update(storeEntity);
                         allActionRules.Add(storeEntity);
+                    }
+                    else
+                    {
+                        dbContext.RulesetActionRules.Remove(storeEntity);
                     }
                 }
 
@@ -297,8 +316,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
                 }
 
-                storeRuleset.ActionRules = allActionRules; // await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                storeRuleset.ItemCategoryRules = allItemCategoryRules; // await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                storeRuleset.ActionRules = allActionRules;
+                storeRuleset.ItemCategoryRules = allItemCategoryRules;
 
                 if (rulesetExistsInDb)
                 {
@@ -321,7 +340,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var categories = GetDefaultScoredItemCategories();
 
-            return categories.Select(c => BuildRulesetItemCategoryRule(c, 2)).ToArray();
+            //return categories.Select(c => BuildRulesetItemCategoryRule(c, 2)).ToArray(); //2pts for all valid weapons in PIL 1
+            return categories.Select(c => BuildRulesetItemCategoryRule(c, 1)).ToArray();
         }
 
         private IEnumerable<int> GetDefaultScoredItemCategories()
@@ -349,34 +369,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // MaxKillInfantry & MaxKillMax are worth 0 points
             return new RulesetActionRule[]
             {
-                BuildRulesetActionRule(ScrimActionType.FirstBaseCapture, 18),
-                BuildRulesetActionRule(ScrimActionType.SubsequentBaseCapture, 36),
-                BuildRulesetActionRule(ScrimActionType.InfantryKillMax, 12),
-                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillInfantry, -3),
-                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillMax, -15),
-                BuildRulesetActionRule(ScrimActionType.InfantrySuicide, -3),
-                BuildRulesetActionRule(ScrimActionType.MaxTeamkillMax, -15),
-                BuildRulesetActionRule(ScrimActionType.MaxTeamkillInfantry, -3),
-                BuildRulesetActionRule(ScrimActionType.MaxSuicide, -12)
+                BuildRulesetActionRule(ScrimActionType.FirstBaseCapture, 9), // PIL 1: 18
+                BuildRulesetActionRule(ScrimActionType.SubsequentBaseCapture, 18), // PIL 1: 36 
+                BuildRulesetActionRule(ScrimActionType.InfantryKillMax, 6), // PIL 1: -12
+                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillInfantry, -2), // PIL 1: -3
+                BuildRulesetActionRule(ScrimActionType.InfantryTeamkillMax, -8), // PIL 1: -15
+                BuildRulesetActionRule(ScrimActionType.InfantrySuicide, -2), // PIL 1: -3
+                BuildRulesetActionRule(ScrimActionType.MaxTeamkillMax, -8), // PIL 1: -15
+                BuildRulesetActionRule(ScrimActionType.MaxTeamkillInfantry, -2), // PIL 1: -3
+                BuildRulesetActionRule(ScrimActionType.MaxSuicide, -8), // PIL 1: -12
+                BuildRulesetActionRule(ScrimActionType.MaxKillInfantry, 0), // PIL 1: 0
+                BuildRulesetActionRule(ScrimActionType.MaxKillMax, 0), // PIL 1: 0
+                BuildRulesetActionRule(ScrimActionType.InfantryKillInfantry, 0, true) // PIL 1: 0
             };
         }
 
-        private RulesetActionRule BuildRulesetActionRule(int rulesetId, ScrimActionType actionType, int points = 0)
+        private RulesetActionRule BuildRulesetActionRule(int rulesetId, ScrimActionType actionType, int points = 0, bool deferToItemCategoryRules = false)
         {
             return new RulesetActionRule
             {
                 RulesetId = rulesetId,
                 ScrimActionType = actionType,
-                Points = points
+                Points = points,
+                DeferToItemCategoryRules = deferToItemCategoryRules
             };
         }
 
-        private RulesetActionRule BuildRulesetActionRule(ScrimActionType actionType, int points = 0)
+        private RulesetActionRule BuildRulesetActionRule(ScrimActionType actionType, int points = 0, bool deferToItemCategoryRules = false)
         {
             return new RulesetActionRule
             {
                 ScrimActionType = actionType,
-                Points = points
+                Points = points,
+                DeferToItemCategoryRules = deferToItemCategoryRules
             };
         }
 
@@ -407,21 +432,43 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 var createdEntities = new List<ScrimAction>();
 
+                var allActionTypeValues = new List<ScrimActionType>();
+
                 var enumValues = (ScrimActionType[])Enum.GetValues(typeof(ScrimActionType));
+
+                allActionTypeValues.AddRange(enumValues);
 
                 var storeEntities = await dbContext.ScrimActions.ToListAsync();
 
-                foreach (var value in enumValues)
+                allActionTypeValues.AddRange(storeEntities.Where(a => !allActionTypeValues.Contains(a.Action)).Select(a => a.Action).ToList());
+
+                allActionTypeValues.Distinct().ToList();
+
+                foreach (var value in allActionTypeValues)
                 {
+                    try
+                    {
+
                     var storeEntity = storeEntities.FirstOrDefault(e => e.Action == value);
+                    var isValidEnum = enumValues.Any(enumValue => enumValue == value);
+
                     if (storeEntity == null)
                     {
                         createdEntities.Add(ConvertToDbModel(value));
                     }
-                    else
+                    else if (isValidEnum)
                     {
                         storeEntity = ConvertToDbModel(value);
                         dbContext.ScrimActions.Update(storeEntity);
+                    }
+                    else
+                    {
+                        dbContext.ScrimActions.Remove(storeEntity);
+                    }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.ToString());
                     }
                 }
 

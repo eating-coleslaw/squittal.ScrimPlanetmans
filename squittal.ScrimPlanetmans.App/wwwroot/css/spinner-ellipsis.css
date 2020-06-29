@@ -3,6 +3,27 @@
 /* Ellipsis Spinner
      - credit to https://loading.io/css/ for starting point
 */
+
+.thin .spinner-ellipsis {
+    margin: 4px auto 8px auto;
+/*    height: 24px !important;*/
+}
+
+.inline .spinner-ellipsis {
+    margin: 0px 16px 0px 16px;
+    display: inline-block;
+/*    height: 24px;*/
+    height: 18px;
+}
+
+.thin .spinner-ellipsis .dot {
+    top: 16px; 
+}
+
+.inline .spinner-ellipsis .dot {
+    top: 8px;
+}
+
 .spinner-ellipsis {
     position: relative;
     width: 64px;

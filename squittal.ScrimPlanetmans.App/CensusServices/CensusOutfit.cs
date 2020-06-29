@@ -45,7 +45,8 @@ namespace squittal.ScrimPlanetmans.CensusServices
 
             query.Where("outfit_id").Equals(outfitId);
 
-            query.AddResolve("member_character_name");
+            //query.AddResolve("member_character_name");
+            query.AddResolve("member_character(name,prestige_level)");
             query.AddResolve("member_online_status");
 
             var result = await query.GetAsync<CensusOutfitResolveMemberCharacterModel>();
@@ -61,7 +62,8 @@ namespace squittal.ScrimPlanetmans.CensusServices
 
             query.Where("alias_lower").Equals(alias.ToLower());
 
-            query.AddResolve("member_character_name");
+            //query.AddResolve("member_character_name");
+            query.AddResolve("member_character(name,prestige_level)");
             query.AddResolve("member_online_status");
 
             var result = await query.GetAsync<CensusOutfitResolveMemberCharacterModel>();
@@ -94,7 +96,8 @@ namespace squittal.ScrimPlanetmans.CensusServices
                 Name = character.Name,
                 OnlineStatus = character.OnlineStatus,
                 OutfitAlias = outfit.Alias,
-                OutfitAliasLower = outfit.AliasLower
+                OutfitAliasLower = outfit.AliasLower,
+                PrestigeLevel = character.PrestigeLevel
             };
         }
     }

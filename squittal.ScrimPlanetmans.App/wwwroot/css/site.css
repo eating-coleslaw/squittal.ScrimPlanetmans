@@ -1,9 +1,11 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 @import url('squittal-colors.css');
 @import url('spinner-ellipsis.css');
+@import url('overlay.css');
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: transparent;
 }
 
 a, .btn-link {
@@ -169,10 +171,20 @@ app {
         top: 0;
     }
 
-    .main > div {
+    /*.main > div {
+        //padding-left: 2rem !important;
+        padding-left: 3rem !important;
+        padding-right: 1.5rem !important;
+    }*/
+    
+    .main .content {
         /*padding-left: 2rem !important;*/
         padding-left: 3rem !important;
         padding-right: 1.5rem !important;
+    }
+
+    .main .overlay {
+        /*background-color: red;*/
     }
 
     .navbar-toggler {
@@ -209,7 +221,8 @@ app {
     background-color: var(--sq-pink-lighter);
     border-color: var(--sq-pink-darker);
     transition: none;
-    font-size: 0.9rem;
+    /*font-size: 0.9rem;*/
+    font-size: small;
     margin-bottom: 0.2rem;
 }
 
@@ -247,7 +260,8 @@ app {
     color: var(--sq-pink);
     border-color: var(--sq-pink);
     transition: none;
-    font-size: 0.9rem;
+    /*font-size: 0.9rem;*/
+    font-size: small;
     margin-bottom: 0.2rem;
 }
 
@@ -273,6 +287,36 @@ app {
     .btn-outline-primary:not(:disabled):not(.disabled):focus:active {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
+
+    .btn-outline-primary.vs, .btn-outline-primary.nc, .btn-outline-primary.tr {
+        background-color: #FFFFFF;
+        color: var(--sq-ps2-primary);
+        border-color: var(--sq-ps2-primary);
+    }
+
+        .btn-outline-primary.vs .oi, .btn-outline-primary.nc .oi, .btn-outline-primary.tr .oi {
+            color: var(--sq-ps2-primary);
+        }
+
+        .btn-outline-primary.vs:not(:disabled):not(.disabled):hover, .btn-outline-primary.nc:not(:disabled):not(.disabled):hover, .btn-outline-primary.tr:not(:disabled):not(.disabled):hover,
+        .btn-outline-primary.vs:not(:disabled):not(.disabled):active, .btn-outline-primary.nc:not(:disabled):not(.disabled):active, .btn-outline-primary.tr:not(:disabled):not(.disabled):active {
+            color: #FFFFFF;
+            background-color: var(--sq-ps2-primary);
+            /*border-color: var(--sq-ov-ps2-primary-dark);*/
+            border-color: var(--sq-ps2-primary);
+            /*border-color: var(--sq-ov-ps2-flavor);*/
+        }
+
+            .btn-outline-primary.vs:not(:disabled):not(.disabled):hover .oi, .btn-outline-primary.nc:not(:disabled):not(.disabled):hover .oi, .btn-outline-primary.tr:not(:disabled):not(.disabled):hover .oi,
+            .btn-outline-primary.vs:not(:disabled):not(.disabled):active .oi, .btn-outline-primary.nc:not(:disabled):not(.disabled):active .oi, .btn-outline-primary.tr:not(:disabled):not(.disabled):active .oi {
+                color: #FFFFFF;
+            }
+
+                .btn-outline-primary.vs:not(:disabled):not(.disabled):focus, .btn-outline-primary.nc:not(:disabled):not(.disabled):focus, .btn-outline-primary.tr:not(:disabled):not(.disabled):focus,
+                .btn-outline-primary.vs:not(:disabled):not(.disabled):focus:active, .btn-outline-primary.nc:not(:disabled):not(.disabled):focus:active, .btn-outline-primary.tr:not(:disabled):not(.disabled):focus:active {
+                    /*box-shadow: 0 0 0 .2rem var(--sq-ps2-primary-ligh-alpha-40);*/
+                    box-shadow: 0 0 0 .2rem var(--sq-ov-ps2-primary-alpha-50);
+                }
 
 .btn-icon-primary {
     line-height: 1;
@@ -443,7 +487,9 @@ No-Link Brand Header
     font-size: small;
     /*color: var(--sq-ps2-primary);*/
     margin-bottom: 0px;
-    padding: 5px 10px;
+/*    padding: 5px 10px;*/
+/*    padding: 8px 8px;*/
+    padding: 8px 16px;
     border: 2px solid var(--sq-light-blue-gray-alpha);
     border-top: 2px solid var(--sq-ps2-primary);
     border-radius: 0.2rem;
@@ -478,6 +524,12 @@ No-Link Brand Header
         .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1) {
             background-color: var(--sq-light-blue-gray-alpha);
         }
+
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).vs,
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).nc,
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).tr {
+                background-color: var(--sq-ps2-primary-light-alpha-40);
+            }
 
             .header-card-container.default .table-striped-light tbody tr .btn {
                 margin-top: 0.2rem;
@@ -1180,6 +1232,7 @@ button.refresh {
 .sq-mini-card-12.default,
 .sq-mini-card-9.default,
 .sq-mini-card-6.default,
+.sq-mini-card-4.default,
 .sq-mini-card-3.default {
     background-color: var(--sq-bg-white-lit);
     border: 1px solid var(--sq-pink-lighter-alpha-25);
@@ -1189,6 +1242,7 @@ button.refresh {
 .sq-mini-card-12,
 .sq-mini-card-9,
 .sq-mini-card-6,
+.sq-mini-card-4,
 .sq-mini-card-3 {
     line-height: 1rem;
     /*margin: 0.3125rem 0;*/
@@ -1205,10 +1259,12 @@ button.refresh {
     .sq-mini-card-12 h5,
     .sq-mini-card-9 h5,
     .sq-mini-card-6 h5,
+    .sq-mini-card-4 h5,
     .sq-mini-card-3 h5 {
         font-size: 1rem;
-        margin-bottom: 0.25rem;
-        padding: 0.5rem 0 0 0.5rem;
+/*        margin-bottom: 0.25rem;*/
+        margin-bottom: 8px;
+/*        padding: 0.5rem 0 0 0.5rem;*/
         width: 100%;
         font-weight: 400;
     }
@@ -1216,10 +1272,12 @@ button.refresh {
     .sq-mini-card-12 .sq-content,
     .sq-mini-card-9 .sq-content,
     .sq-mini-card-6 .sq-content,
+    .sq-mini-card-4 .sq-content,
     .sq-mini-card-3 .sq-content {
         /*max-height: calc(360px - 1.5rem);*/
         overflow: auto;
-        padding: 0 0 0 0.5rem;
+        /*        padding: 0 0 0 0.5rem;*/
+        padding: 8px 0 0 16px;
         margin-bottom: 0.5rem;
     }
 
@@ -1235,6 +1293,7 @@ button.refresh {
         .sq-mini-card-12 .sq-content table,
         .sq-mini-card-9 .sq-content table
         .sq-mini-card-6 .sq-content table,
+        .sq-mini-card-4 .sq-content table,
         .sq-mini-card-3 .sq-content table {
             max-width: calc(100% - 0.75rem);
             font-size: 0.8rem !important;
@@ -1245,6 +1304,7 @@ button.refresh {
             .sq-mini-card-12 .sq-content table.sq-table-fit-content,
             .sq-mini-card-9 .sq-content table.sq-table-fit-content,
             .sq-mini-card-6 .sq-content table.sq-table-fit-content,
+            .sq-mini-card-4 .sq-content table.sq-table-fit-content,
             .sq-mini-card-3 .sq-content table.sq-table-fit-content {
                 width: auto;
                 width: min-content;
@@ -1253,6 +1313,7 @@ button.refresh {
     .sq-mini-card-12.default .sq-content table,
     .sq-mini-card-9.default .sq-content table
     .sq-mini-card-6.default .sq-content table,
+    .sq-mini-card-4.default .sq-content table,
     .sq-mini-card-3.default .sq-content table {
         /*max-width: calc(100% - 0.75rem);
         font-size: 0.8rem !important;*/
@@ -1263,6 +1324,7 @@ button.refresh {
         .sq-mini-card-12 .sq-content thead,
         .sq-mini-card-9 .sq-content thead,
         .sq-mini-card-6 .sq-content thead,
+        .sq-mini-card-4 .sq-content thead,
         .sq-mini-card-3 .sq-content thead {
             vertical-align: bottom;
         }
@@ -1270,6 +1332,7 @@ button.refresh {
             .sq-mini-card-12 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-9 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-6 .sq-content thead.fit-stacked-labels,
+            .sq-mini-card-4 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-3 .sq-content thead.fit-stacked-labels {
                 line-height: 0.5rem;
             }
@@ -1277,6 +1340,7 @@ button.refresh {
     .sq-mini-card-12 .table-responsive-sm.table-striped-light,
     .sq-mini-card-9 .table-responsive-sm.table-striped-light,
     .sq-mini-card-6 .table-responsive-sm.table-striped-light,
+    .sq-mini-card-4 .table-responsive-sm.table-striped-light,
     .sq-mini-card-3 .table-responsive-sm.table-striped-light {
         width: calc(100% - 0.75rem);
         font-size: 0.8rem !important;
@@ -1286,6 +1350,7 @@ button.refresh {
         .sq-mini-card-12 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-9 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-6 .table-responsive-sm.table-striped-light th,
+        .sq-mini-card-4 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-3 .table-responsive-sm.table-striped-light th {
             font-weight: 400;
         }
@@ -1293,6 +1358,7 @@ button.refresh {
     .sq-mini-card-12.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-9.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-6.default .table-responsive-sm.table-striped-light,
+    .sq-mini-card-4.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-3.default .table-responsive-sm.table-striped-light {
         /*width: calc(100% - 0.75rem);
         font-size: 0.8rem !important;*/
@@ -1321,6 +1387,20 @@ button.refresh {
     .sq-mini-card-6:first-of-type {
         margin-right: 1rem;
     }
+
+.sq-mini-card-4 {
+    flex: 0 0 calc(33% - 0.5rem);
+    max-width: 33%;
+}
+
+    .sq-mini-card-4:first-of-type {
+        margin-right: 16px;
+    }
+    
+    .sq-mini-card-4:nth-of-type(2) {
+        margin-right: 16px;
+    }
+
 
 .sq-mini-card-3 {
     flex: 0 0 calc(30% - 0.5rem) !important;
@@ -1585,6 +1665,30 @@ dl.labeled-stats-grid {
     height: 1rem;
     width: 1rem;
     margin-top: 0.15rem;
+}
+
+.vs .flavor .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(89%) sepia(31%) saturate(304%) hue-rotate(112deg) brightness(96%) contrast(99%);
+}
+
+.nc .flavor .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(87%) sepia(25%) saturate(574%) hue-rotate(342deg) brightness(110%) contrast(103%);
+}
+
+.tr .flavor .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(97%) sepia(3%) saturate(627%) hue-rotate(175deg) brightness(96%) contrast(87%);
+}
+
+.vs .primary-light .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(78%) sepia(7%) saturate(3557%) hue-rotate(203deg) brightness(101%) contrast(104%);
+}
+
+.nc .primary-light .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(79%) sepia(13%) saturate(853%) hue-rotate(177deg) brightness(105%) contrast(98%);
+}
+
+.tr .primary-light .ps2-icon {
+    filter: brightness(0) saturate(100%) invert(84%) sepia(7%) saturate(946%) hue-rotate(309deg) brightness(101%) contrast(101%);
 }
 
     .ps2-icon.medic {

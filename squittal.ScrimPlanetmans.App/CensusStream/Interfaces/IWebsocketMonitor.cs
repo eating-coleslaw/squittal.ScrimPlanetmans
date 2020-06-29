@@ -24,5 +24,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         void AddCharacterSubscription(string characterId);
         void SetFacilitySubscription(int facilityId);
         void SetWorldSubscription(int worldId);
+        void EnableEventStoring();
+        void DisableEventStoring();
     }
 }

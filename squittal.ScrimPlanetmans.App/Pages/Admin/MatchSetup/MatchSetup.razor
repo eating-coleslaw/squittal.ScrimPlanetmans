@@ -4,6 +4,7 @@
 
 @using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup.MatchTeamComposer;
 @using squittal.ScrimPlanetmans.CensusStream;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.Models.ScrimEngine
@@ -23,15 +24,25 @@
 @inject IZoneService ZoneService
 @inject IWorldService WorldService
 
+@implements IDisposable
+
 <div class="container-fluid">
+
+    @if (!string.IsNullOrWhiteSpace(_errorBannerMessage))
+    {
+        <ErrorMessageBanner i_ErrorMessage="@_errorBannerMessage" />
+    }
+
     <div class="row">
 
         <div class="col-lg-4">
-            <TeamBuilder i_teamOrdinal=1 />
+            @*<TeamBuilder i_teamOrdinal=1 />*@
+            <TeamComposer i_teamOrdinal=1 />
         </div>
 
         <div class="col-lg-4">
-            <TeamBuilder i_teamOrdinal=2 />
+            @*<TeamBuilder i_teamOrdinal=2 />*@
+            <TeamComposer i_teamOrdinal=2 />
         </div>
 
         <div class="col-lg-4">
@@ -44,7 +55,6 @@
                     </div>
                 </div>
 
-
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
                 @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
                 {
@@ -52,8 +62,8 @@
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                     <button class="btn btn-outline-primary" @onclick="ClearMatch">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
@@ -64,8 +74,8 @@
                         <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                     <button class="btn btn-outline-primary" @onclick="ResetRound">
                         <span class="oi oi-media-step-backward"></span>Reset Round
                     </button>
@@ -79,8 +89,8 @@
                         <span class="oi oi-media-play"></span>Resume
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                 }
                 else if (_matchState == MatchState.Running)
                 {
@@ -88,54 +98,65 @@
                         <span class="oi oi-media-pause"></span>Pause Round
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>*@
                     <button class="btn btn-outline-primary" @onclick="EndRound">
                         <span class="oi oi-media-stop"></span> End Round
                     </button>
                 }
 
                 @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
-                {
-                    <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>
-                }*@
+                    {
+                        <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                            <span class="oi oi-media-record"></span>Subscribe
+                        </button>
+                    }*@
 
                 @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
                 {
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
-                        <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>
+                        @*<p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>*@
+                        <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" /></p>
                         <p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
                         <div style="margin-bottom: 0.2rem;">
                             <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
-                            
-                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">  @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"--> 
-                            @foreach (var world in _worlds)
-                            {
-                                <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
-                            }
-                            </InputSelect>
-                            
-                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;"  @bind-Value=@_matchConfiguration.FacilityIdString> <!--class="btn-sm"--> 
-                            <option value=@_noFacilitIdValue>No Base</option>
 
-                            @foreach (var zone in _mapZones)
-                            {
-                                <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
-
-                                @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
+                                @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"-->
+                                @foreach (var world in _worlds)
                                 {
-                                    <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                    <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
                                 }
-                            }
+                            </InputSelect>
+
+                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
+                                <!--class="btn-sm"-->
+                                <option value=@_noFacilitIdValue>No Base</option>
+
+                                @foreach (var zone in _mapZones)
+                                    {
+                                    <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                                    @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                        {
+                                        <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                        }
+                                    /**/
+                                    /**/
+                                    }
+                                /**/
                             </InputSelect>
                         </div>
 
-                        <p>End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture"/>@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
+                        <p style="margin-bottom: 0.2rem;">End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture" />@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
                     </EditForm>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_matchId))
+                {
+                    <p style="color: var(--sq-gray); margin-bottom: 0.2rem; margin-top: 0.5rem;">Match Id: @_matchId</p>
                 }
 
             </div>
@@ -172,16 +193,20 @@
 
     private bool _isStreamServiceEnabled { get; set; } = false;
 
+    private string _errorBannerMessage { get; set; }
+
     private string _debug { get; set; } = "init";
 
     private bool _isRunning = false;
     private int _currentRound = 0;
     private MatchState _matchState = MatchState.Uninitialized;
 
+    private string _matchId = string.Empty;
 
+    #region Initialization Methods
     protected override async Task OnInitializedAsync()
     {
-        await GetCensusStreamStatus();
+        await GetCensusStreamStatus(true);
     }
 
     protected override void OnInitialized()
@@ -207,6 +232,7 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
+        _matchId = ScrimMatchEngine.GetMatchId();
 
         _zones = ZoneService.GetAllZones().ToList();
 
@@ -216,13 +242,33 @@
         _worlds = WorldService.GetAllWorlds().OrderBy(w => w.Name).ToList();
     }
 
+    public void Dispose()
+    {
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
+        MessageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateMessageEvent;
+    }
+    #endregion Initialization Methods
 
     #region  Match & Subscription State Buttons
-    private async Task GetCensusStreamStatus()
+    private async Task GetCensusStreamStatus(bool isFirstStatusCheck)
     {
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
-        //_debug = "GetCensusStreamStatus";
+
+        if (!_isStreamServiceEnabled)
+        {
+            SetWebsocketConnectionErrorMessage(isFirstStatusCheck);
+
+            if (isFirstStatusCheck)
+            {
+                await WebsocketMonitor.StartAsync(System.Threading.CancellationToken.None);
+                await GetCensusStreamStatus(false);
+            }
+        }
+        else
+        {
+            ClearErrorMessage();
+        }
     }
 
     private void SubscribeToCensus()
@@ -241,34 +287,34 @@
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
 
-    private void StartMatch()
+    private async void StartMatch()
     {
         SubscribeToCensus();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
-        ScrimMatchEngine.Start();
+        await ScrimMatchEngine.Start();
 
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
 
-        InvokeAsync(() =>
+        await InvokeAsync(() =>
         {
             StateHasChanged();
         });
     }
 
-    private void EndRound()
+    private async void EndRound()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Running)
         {
-            ScrimMatchEngine.EndRound();
+            await ScrimMatchEngine.EndRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            InvokeAsync(() =>
+            await InvokeAsync(() =>
             {
                 StateHasChanged();
             });
@@ -309,11 +355,11 @@
         }
     }
 
-    private void ClearMatch()
+    private async void ClearMatch()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized)
         {
-            ScrimMatchEngine.ClearMatch();
+            await ScrimMatchEngine.ClearMatch();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -321,30 +367,40 @@
 
             _matchConfiguration = new MatchConfiguration();
 
-            InvokeAsync(() =>
+            await InvokeAsync(() =>
             {
                 StateHasChanged();
             });
         }
     }
 
-    private void ResetRound()
+    private async void ResetRound()
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0)
         {
-            ScrimMatchEngine.ResetRound();
+            await ScrimMatchEngine.ResetRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            InvokeAsync(() =>
+            await InvokeAsync(() =>
             {
                 StateHasChanged();
             });
         }
     }
-    #endregion
+
+    private void OnChangeMatchTitle(string newTitle)
+    {
+        var oldTitle = _matchConfiguration.Title;
+        if (newTitle != oldTitle)
+        {
+            _matchConfiguration.Title = newTitle;
+            MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+        }
+    }
+    #endregion Match & Subscription State Buttons
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
@@ -359,6 +415,8 @@
         _isRunning = message.MatchState == MatchState.Running;
         _currentRound = message.CurrentRound;
         _matchState = message.MatchState;
+
+        _matchId = message.MatchId;
 
         _matchConfiguration.Title = message.MatchTitle;
 
@@ -517,4 +575,24 @@
             StateHasChanged();
         });
     }
+
+    #region Error Messages
+    private void ClearErrorMessage()
+    {
+        _errorBannerMessage = string.Empty;
+    }
+
+    private void SetWebsocketConnectionErrorMessage(bool isFirstReconnectAttempt)
+    {
+        if (isFirstReconnectAttempt)
+        {
+            _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket! Re-attempting to establish connection...";
+
+        }
+        else
+        {
+            _errorBannerMessage = "Second attempt failed to connect to the Planetside 2 Websocket! Reload the page to try again.";
+        }
+    }
+    #endregion Error Messages
 }

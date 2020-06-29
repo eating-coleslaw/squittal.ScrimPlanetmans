@@ -1,37 +1,60 @@
 ﻿@using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
 
 @inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
 <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_adminLogs.Any())
     {
-        foreach (var log in _adminLogs.Reverse<MarkupString>().Take(200).ToList())
+        foreach (var log in _adminLogs)
         {
             <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
         }
 
-        if (_adminLogs.Count() > 200)
+        if (_adminLogs.Count() > _maxLogCount)
         {
-            <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing 200 / @_adminLogs.Count)</p>
+            <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing @_maxLogCount / @_adminLogs.Count)</p>
         }
     }
 </div>
 @code {
     private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
 
+    private ConcurrentQueue<MarkupString> _logQueue = new ConcurrentQueue<MarkupString>();
+
+    private int _maxLogCount = 200;
+
+    #region Initialization Methods
     protected override void OnInitialized()
     {
-        // TODO: use Interface for Info property of messages 
+        // TODO: use Interface for Info property of messages
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+        MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
     }
+
+    public void Dispose()
+    {
+        MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+        MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+        MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+        MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
+        MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
+    }
+    #endregion Initialization Methods
 
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
@@ -64,6 +87,18 @@
     }
 
     private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+    private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
+    {
+        var info = e.Message.Info;
+        LogMessage(info);
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
     {
         var info = e.Message.Info;
         LogMessage(info);
@@ -109,11 +144,30 @@
     {
         var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
 
-        _adminLogs.Add((MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}");
+        var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
 
+        _logQueue.Enqueue(newLogMessage);
+
+        UpdatePage();
+    }
+
+    private void UpdatePage()
+    {
         InvokeAsync(() =>
         {
-            StateHasChanged();
+            lock (_adminLogs)
+            {
+                MarkupString localString;
+
+                while (_logQueue.TryDequeue(out localString))
+                {
+                    _adminLogs.Add(localString);
+                }
+
+                _adminLogs = _adminLogs.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+
+                StateHasChanged();
+            }
         });
     }
 }

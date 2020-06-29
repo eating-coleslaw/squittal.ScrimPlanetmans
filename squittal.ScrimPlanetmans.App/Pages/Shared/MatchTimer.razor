@@ -2,9 +2,12 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
 @inject IStatefulTimer  Timer
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
 
 @if (Debug)
 {
@@ -38,7 +41,7 @@ else
     bool _playedSound = false;
     bool _canPlaySound = false;
 
-
+    #region Initialization Methods
     protected override void OnInitialized()
     {
         _canPlaySound = false;
@@ -64,6 +67,12 @@ else
             _canPlaySound = true;
         }
     }
+
+    public void Dispose()
+    {
+        MessageService.RaiseMatchTimerTickEvent -= ReceiveMatchTimerTickEvent;
+    }
+    #endregion Initialization Methods
 
     private void ReceiveMatchTimerTickEvent(object sender, MatchTimerTickEventArgs e)
     {
