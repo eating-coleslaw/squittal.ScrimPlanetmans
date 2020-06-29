@@ -30,7 +30,8 @@
                     <tbody>
                         @foreach (var comparison in _comparisons)
                         {
-                        <tr>
+                            <DatabaseMaintenanceComparisonRow i_comparison="@comparison" />
+                        @*<tr>
                             <td>@comparison.Name</td>
 
                             @if (comparison.IsLoadingStoreCount)
@@ -115,7 +116,7 @@
                                     </button>
                                 </td>
                             }
-                        </tr>
+                        </tr>*@
                         }
                     </tbody>
                 </table>
@@ -135,10 +136,10 @@
         _comparisons = DbMaintenance.Comparisons;
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await DbMaintenance.InitializeCounts();
-    }
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    await DbMaintenance.InitializeCounts();
+    //}
 
     private async Task RefreshCensusCount(CensusStoreDataComparisonRow comparison)
     {

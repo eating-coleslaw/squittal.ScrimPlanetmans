@@ -251,7 +251,9 @@ app {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
 
-.btn-outline-primary {
+.btn-outline-primary,
+.btn-outline-primary:disabled, .btn-outline-primary:disabled:hover, .btn-outline-primary:disabled:active,
+.btn-outline-primary.disabled, .btn-outline-primary.disabled:hover, .btn-outline-primary.disabled:active {
     border-radius: 0.2rem;
     line-height: 1;
     /*background-color: var(--sq-pink-lighter);
