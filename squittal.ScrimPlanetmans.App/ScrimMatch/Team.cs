@@ -31,7 +31,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private ConcurrentDictionary<string, Player> ParticipatingPlayersMap { get; set; } = new ConcurrentDictionary<string, Player>();
 
-        public List<Outfit> Outfits { get => _outfits; }
+        //public List<Outfit> Outfits { get => _outfits; }
+        public List<Outfit> Outfits { get; private set; } = new List<Outfit>();
 
         public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
         private ConcurrentDictionary<string, ConstructedTeamMatchInfo> ConstructedTeamsMap { get; set; } = new ConcurrentDictionary<string, ConstructedTeamMatchInfo>();
@@ -48,7 +49,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         //private List<string> _playerIds = new List<string>();
 
-        private List<Outfit> _outfits = new List<Outfit>();
+        //private List<Outfit> _outfits = new List<Outfit>();
 
         public Team(string alias, string nameInternal, int teamOrdinal)
         {
