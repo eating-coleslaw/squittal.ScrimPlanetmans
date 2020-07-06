@@ -26,9 +26,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 
         public List<Player> Players { get; private set; } = new List<Player>();
+
         public List<Player> ParticipatingPlayers { get; set; } = new List<Player>();
 
-        private ConcurrentDictionary<string, bool> ParticipatingPlayersMap { get; set; } = new ConcurrentDictionary<string, bool>();
+        private ConcurrentDictionary<string, Player> ParticipatingPlayersMap { get; set; } = new ConcurrentDictionary<string, Player>();
 
         public List<Outfit> Outfits { get => _outfits; }
 
@@ -142,6 +143,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //ParticipatingPlayers.RemoveAll(p => p.Id == characterId);
             ParticipatingPlayers.Remove(player);
 
+            ParticipatingPlayersMap.TryRemove(player.Id, out Player removedPlayer);
+
             EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
 
             return true;
@@ -234,22 +237,45 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
+        public bool UpdateParticipatingPlayer(Player player)
+        {
+            var playerId = player.Id;
+
+            if (player.IsParticipating)
+            {
+                return ParticipatingPlayersMap.TryAdd(playerId, player);
+            }
+            else
+            {
+                return ParticipatingPlayersMap.TryRemove(playerId, out Player removedPlayer);
+            }
+        }
+
         public IEnumerable<Player> GetParticipatingPlayers()
         {
+            return ParticipatingPlayersMap.Values.ToList();
+            
+            /*
             var participatingPlayers = new List<Player>();
 
             foreach (var playerPair in ParticipatingPlayersMap)
             {
-                if (playerPair.Value)
-                {
-                    if (PlayersMap.TryGetValue(playerPair.Key, out var player))
-                    {
-                        participatingPlayers.Add(player);
-                    }
-                }
+                    participatingPlayers.Add(playerPair.Value);
             }
 
+            //foreach (var playerPair in ParticipatingPlayersMap)
+            //{
+            //    if (playerPair.Value)
+            //    {
+            //        if (PlayersMap.TryGetValue(playerPair.Key, out var player))
+            //        {
+            //            participatingPlayers.Add(player);
+            //        }
+            //    }
+            //}
+
             return participatingPlayers;
+            */
         }
 
         public IEnumerable<Player> GetOutfitPlayers(string aliasLower)

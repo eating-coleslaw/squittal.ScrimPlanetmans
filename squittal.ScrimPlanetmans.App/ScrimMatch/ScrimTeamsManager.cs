@@ -717,7 +717,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            await RemoveOutfitMatchDataFromDb(outfitId, teamOrdinal);
+            var TaskList = new List<Task>();
+
+            var outfitDbDataTask = RemoveOutfitMatchDataFromDb(outfitId, teamOrdinal);
+            TaskList.Add(outfitDbDataTask);
+
+            //var saveTeamResultsToDbTask = SaveTeamMatchResultsToDb(teamOrdinal);
+            var updateTeamResultsToDbTask = TryUpdateTeamMatchResultsInDb(teamOrdinal);
+            TaskList.Add(updateTeamResultsToDbTask);
+
+            await Task.WhenAll(TaskList);
 
             await UpdateMatchParticipatingPlayers();
 
@@ -1097,7 +1106,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            await RemoveConstructedTeamFactionMatchDataFromDb(constructedTeamId, factionId);
+            //await RemoveConstructedTeamFactionMatchDataFromDb(constructedTeamId, factionId);
+
+            var TaskList = new List<Task>();
+
+            var constructedTeamDbDataTask = RemoveConstructedTeamFactionMatchDataFromDb(constructedTeamId, factionId);
+            TaskList.Add(constructedTeamDbDataTask);
+
+            var teamOrdinal = GetTeamFromConstructedTeamFaction(constructedTeamId, factionId).TeamOrdinal;
+
+            //var saveTeamResultsToDbTask = SaveTeamMatchResultsToDb(teamOrdinal);
+            var updateTeamResultsToDbTask = TryUpdateTeamMatchResultsInDb(teamOrdinal);
+            TaskList.Add(updateTeamResultsToDbTask);
+
+            await Task.WhenAll(TaskList);
 
             await UpdateMatchParticipatingPlayers();
 
@@ -1136,7 +1158,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 }
             }
 
-            //TODO: handle updating Match Configuration's Server ID setting here
+            //TODO: handle updating Match Configuration's Server ID (World ID) setting here
             if (team.ConstructedTeamsMatchInfo.Any())
             {
                 var nextTeam = team.ConstructedTeamsMatchInfo.FirstOrDefault();
@@ -1215,7 +1237,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<bool> RemoveCharacterFromTeamAndDb(string characterId)
         {
-            var teamOrdinal = GetTeamOrdinalFromPlayerId(characterId);
+            var teamOrdinal = (int)GetTeamOrdinalFromPlayerId(characterId);
             
             var success = RemoveCharacterFromTeam(characterId);
 
@@ -1224,7 +1246,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            await RemoveCharacterMatchDataFromDb(characterId, (int)teamOrdinal);
+            //await RemoveCharacterMatchDataFromDb(characterId, (int)teamOrdinal);
+
+            var TaskList = new List<Task>();
+
+            var characterDbDataTask = RemoveCharacterMatchDataFromDb(characterId, teamOrdinal);
+            TaskList.Add(characterDbDataTask);
+
+            //var saveTeamResultsToDbTask = SaveTeamMatchResultsToDb(teamOrdinal);
+            var updateTeamResultsToDbTask = TryUpdateTeamMatchResultsInDb(teamOrdinal);
+            TaskList.Add(updateTeamResultsToDbTask);
+
+            await Task.WhenAll(TaskList);
 
             await UpdateMatchParticipatingPlayers();
 
@@ -1255,16 +1288,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await Task.WhenAll(TaskList);
 
-            await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId); // TODO: add this to TaskList?
+            //await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId); // TODO: add this to TaskList?
 
-            var currentMatchRound = _matchDataService.CurrentMatchRound;
+            //var currentMatchRound = _matchDataService.CurrentMatchRound;
 
-            if (currentMatchRound > 0)
-            { 
-                await SaveTeamMatchResultsToDb(teamOrdinal);
-            }
+            //if (currentMatchRound > 0)
+            //{ 
+            //    await SaveTeamMatchResultsToDb(teamOrdinal);
+            //}
         }
 
+        #region Remove Character Match Events From DB
         private async Task RemoveCharacterMatchDeathsFromDb(string characterId, int teamOrdinal)
         {
             var currentMatchId = _matchDataService.CurrentMatchId;
@@ -2165,6 +2199,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
         }
+        #endregion Remove Character Match Events From DB
 
         public bool RemoveCharacterFromTeam(string characterId)
         {
@@ -2372,13 +2407,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.EventAggregateTracker.RollBackRound(currentRound);
             
-            var players = team.ParticipatingPlayers.ToList();
+            //var players = team.ParticipatingPlayers.ToList();
+            var players = team.GetParticipatingPlayers();
 
             foreach (var player in players)
             {
                 player.EventAggregateTracker.RollBackRound(currentRound);
 
-                team.ParticipatingPlayers.RemoveAll(p => p.Id == player.Id);
+                //team.ParticipatingPlayers.RemoveAll(p => p.Id == player.Id);
 
                 //_participatingPlayers.RemoveAll(p => p.Id == player.Id);
 
@@ -2396,6 +2432,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team, overlayMessageData);
         }
 
+        #region Remove All Match Round Events From DB
         private async Task RemoveAllMatchRoundEventsFromDb(int roundToRemove)
         {
             var TaskList = new List<Task>();
@@ -2595,12 +2632,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
         }
+        #endregion Remove All Match Round Events From DB
+
         #endregion Roll Back Round
 
         private bool TryUpdateMaxPlayerPointsTrackerFromTeam(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);
-            var maxTeamPointsPlayer = team.Players.Where(p => p.EventAggregate.Points == team.Players.Select(ip => ip.EventAggregate.Points).Max()).FirstOrDefault();
+
+            var participatingPlayers = team.GetParticipatingPlayers();
+
+            var maxTeamPointsPlayer = participatingPlayers
+                                        .Where(p => p.EventAggregate.Points == participatingPlayers.Select(ip => ip.EventAggregate.Points).Max())
+                                        .FirstOrDefault();
+
+            //var maxTeamPointsPlayer = team.Players
+            //                            .Where(p => p.EventAggregate.Points == team.Players.Select(ip => ip.EventAggregate.Points).Max())
+            //                            .FirstOrDefault();
 
             if (maxTeamPointsPlayer == null)
             {
@@ -2822,10 +2870,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.AddStatsUpdate(updates);
 
-            if (!team.ParticipatingPlayers.Any(p => p.Id == player.Id))
-            {
-                team.ParticipatingPlayers.Add(player);
-            }
+            //if (!team.ParticipatingPlayers.Any(p => p.Id == player.Id))
+            //{
+            //    team.ParticipatingPlayers.Add(player);
+            //}
 
             var maxPointsChanged = MaxPlayerPointsTracker.TryUpdateMaxPoints(player.EventAggregate.Points, player.Id);
 
@@ -2849,6 +2897,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team);
         }
 
+        #region Match Results/Scores
         public async Task SaveRoundEndScores(int round)
         {
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
@@ -2865,11 +2914,51 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.EventAggregateTracker.SaveRoundToHistory(round);
 
-            var players = team.ParticipatingPlayers.ToList();
+            //var players = team.ParticipatingPlayers.ToList();
+
+            var players = team.GetParticipatingPlayers();
 
             foreach (var player in players)
             {
                 player.EventAggregateTracker.SaveRoundToHistory(round);
+            }
+        }
+
+        // Update the ScrimMatchTeamResults row in the database if it exists, but don't create one if it doesn't.
+        // Returns false if the result entry didn't exist or an error was encountered
+        private async Task<bool> TryUpdateTeamMatchResultsInDb(int teamOrdinal)
+        {
+            var currentMatchRound = _matchDataService.CurrentMatchRound;
+
+            if (currentMatchRound <= 0)
+            {
+                return false;
+            }
+
+            var currentScrimMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeResultEntity = await dbContext.ScrimMatchTeamResults.FirstOrDefaultAsync(result => result.ScrimMatchId == currentScrimMatchId 
+                                                                                                            && result.TeamOrdinal == teamOrdinal);
+
+                if (storeResultEntity == null)
+                {
+                    return false;
+                }
+
+                await SaveTeamMatchResultsToDb(teamOrdinal);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return false;
             }
         }
 
@@ -2909,7 +2998,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                // Scrim Match Team Results
                 var storeResultEntity = await dbContext.ScrimMatchTeamResults.FirstOrDefaultAsync(result => result.ScrimMatchId == currentScrimMatchId && result.TeamOrdinal == teamOrdinal);
 
                 if (storeResultEntity == null)
@@ -2973,7 +3061,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _logger.LogError(ex.ToString());
             }
         }
+        #endregion Match Results/Scores
 
+        #region Point Adjustments
         private PointAdjustment ConvertFromDbModel(ScrimMatchTeamPointAdjustment adjustment)
         {
             return new PointAdjustment
@@ -3032,7 +3122,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             SendTeamStatUpdateMessage(team);
         }
-
+        #endregion Point Adjustments
 
         #region Player Status Updates
         public void SetPlayerOnlineStatus(string characterId, bool isOnline)
@@ -3052,6 +3142,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             player.IsParticipating = isParticipating;
             player.IsActive = (!player.IsBenched && isParticipating);
 
+            GetTeam(player.TeamOrdinal).UpdateParticipatingPlayer(player);
+            
             SendPlayerStatUpdateMessage(player);
 
             if (wasAlreadyParticipating == isParticipating)
