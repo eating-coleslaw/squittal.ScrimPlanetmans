@@ -56,14 +56,20 @@
                 </div>
 
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
-                @if (_matchState == MatchState.Uninitialized && _currentRound == 0)
+                @if (_isResettingRound || _isClearingMatch || _isStartingRound)
+                {
+                    <span class="thin">
+                        <SpinnerEllipsis />
+                    </span>
+                }
+                else if (_matchState == MatchState.Uninitialized && _currentRound == 0)
                 {
                     <button class="btn btn-primary" @onclick="StartMatch">
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                            <span class="oi oi-media-record"></span>Subscribe
-                        </button>*@
+                        <span class="oi oi-media-record"></span>Subscribe
+                    </button>*@
                     <button class="btn btn-outline-primary" @onclick="ClearMatch">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
@@ -73,15 +79,30 @@
                     <button class="btn btn-primary" @onclick="StartMatch">
                         <span class="oi oi-media-play"></span>Start Round @(_currentRound + 1)
                     </button>
-                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                            <span class="oi oi-media-record"></span>Subscribe
-                        </button>*@
-                    <button class="btn btn-outline-primary" @onclick="ResetRound">
-                        <span class="oi oi-media-step-backward"></span>Reset Round
-                    </button>
+                    @if (!_isDeleteDataEnabled)
+                    {
+                        <button disabled class="btn btn-outline-primary">
+                            <span class="oi oi-media-step-backward"></span>Reset Round
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-primary" @onclick="ResetRound">
+                            <span class="oi oi-media-step-backward"></span>Reset Round
+                        </button>
+                    }
                     <button class="btn btn-outline-primary" @onclick="ClearMatch">
-                        <span class="oi oi-eject"></span>Clear Match
+                        <span class="oi oi-eject"></span>New Match
                     </button>
+
+                    <div style="margin: 0.2rem 0;" title="Check to enable the Reset Round button">
+                        <EditForm Model="@_isDeleteDataEnabled">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <InputCheckbox id="isDeleteDataEnabledCheckBox" @bind-Value="@_isDeleteDataEnabled" style="position: relative; top: 1px;" /> Enable Round Resetting
+                        </EditForm>
+                    </div>
                 }
                 else if (_matchState == MatchState.Paused)
                 {
@@ -89,8 +110,8 @@
                         <span class="oi oi-media-play"></span>Resume
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                            <span class="oi oi-media-record"></span>Subscribe
-                        </button>*@
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>*@
                 }
                 else if (_matchState == MatchState.Running)
                 {
@@ -98,21 +119,21 @@
                         <span class="oi oi-media-pause"></span>Pause Round
                     </button>
                     @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                            <span class="oi oi-media-record"></span>Subscribe
-                        </button>*@
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>*@
                     <button class="btn btn-outline-primary" @onclick="EndRound">
                         <span class="oi oi-media-stop"></span> End Round
                     </button>
                 }
 
                 @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
-                    {
-                        <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                            <span class="oi oi-media-record"></span>Subscribe
-                        </button>
-                    }*@
+        {
+            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
+                <span class="oi oi-media-record"></span>Subscribe
+            </button>
+        }*@
 
-                @if (_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped)
+                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isResettingRound || _isClearingMatch || _isStartingRound))
                 {
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
@@ -196,6 +217,11 @@
     private string _errorBannerMessage { get; set; }
 
     private string _debug { get; set; } = "init";
+
+    private bool _isStartingRound { get; set; } = false;
+    private bool _isClearingMatch { get; set; } = false;
+    private bool _isResettingRound { get; set; } = false;
+    private bool _isDeleteDataEnabled { get; set; } = false;
 
     private bool _isRunning = false;
     private int _currentRound = 0;
@@ -289,6 +315,18 @@
 
     private async void StartMatch()
     {
+        if (_isStartingRound)
+        {
+            return;
+        }
+
+        _isStartingRound = true;
+
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+
         SubscribeToCensus();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
@@ -297,6 +335,10 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
+
+        _isDeleteDataEnabled = false;
+
+        _isStartingRound = false;
 
         await InvokeAsync(() =>
         {
@@ -313,6 +355,8 @@
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
+
+            _isDeleteDataEnabled = false;
 
             await InvokeAsync(() =>
             {
@@ -331,6 +375,8 @@
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
+            _isDeleteDataEnabled = false;
+
             InvokeAsync(() =>
             {
                 StateHasChanged();
@@ -348,6 +394,8 @@
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
+            _isDeleteDataEnabled = false;
+
             InvokeAsync(() =>
             {
                 StateHasChanged();
@@ -357,8 +405,16 @@
 
     private async void ClearMatch()
     {
-        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized)
+        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound && !_isClearingMatch)
         {
+            _isClearingMatch = true;
+            _isDeleteDataEnabled = false;
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+
             await ScrimMatchEngine.ClearMatch();
 
             _isRunning = ScrimMatchEngine.IsRunning();
@@ -366,6 +422,8 @@
             _matchState = ScrimMatchEngine.GetMatchState();
 
             _matchConfiguration = new MatchConfiguration();
+
+            _isClearingMatch = false;
 
             await InvokeAsync(() =>
             {
@@ -376,13 +434,23 @@
 
     private async void ResetRound()
     {
-        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0)
+        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isResettingRound && !_isClearingMatch)
         {
+            _isResettingRound = true;
+            _isDeleteDataEnabled = false;
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+
             await ScrimMatchEngine.ResetRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
+
+            _isResettingRound = false;
 
             await InvokeAsync(() =>
             {
