@@ -11,6 +11,7 @@ namespace squittal.ScrimPlanetmans.Data.Models
         [Required]
         public string Name { get; set; }
 
+        [Required]
         public string Alias { get; set; }
 
         // TODO: Add migration for this
