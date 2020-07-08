@@ -218,6 +218,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task ResetRound()
         {
+            if (_currentRound == 0)
+            {
+                return;
+            }
+            
             _timer.Reset();
             _wsMonitor.DisableScoring();
 

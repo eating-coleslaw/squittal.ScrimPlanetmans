@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace squittal.ScrimPlanetmans .Data.Models
+namespace squittal.ScrimPlanetmans.Data.Models
 {
     public class ConstructedTeam
     {

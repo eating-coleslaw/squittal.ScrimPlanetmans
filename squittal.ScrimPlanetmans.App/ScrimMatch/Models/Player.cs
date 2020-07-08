@@ -136,33 +136,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 trimmed = trimmed.Substring(0, end);
             }
 
-            //try
-            //{
-            //    // Remove outfit tag from beginning of name
-            //    var idx = name.IndexOf("x");
-            //    if (idx > 0 && idx < 5 && (idx != name.Length - 1))
-            //    {
-            //        trimmed = name.Substring(idx + 1, name.Length - idx - 1);
-            //    }
-
-            //    // Remove faction abbreviation from end of name
-            //    var end = trimmed.Length - 2;
-            //    if (trimmed.IndexOf("VS") == end || trimmed.IndexOf("NC") == end || trimmed.IndexOf("TR") == end)
-            //    {
-            //        trimmed = trimmed.Substring(0, end);
-            //    }
-            //}
-            //catch
-            //{
-            //    return name;
-            //}
-
             if (string.IsNullOrWhiteSpace(trimmed) || trimmed.Length <= 1)
             {
                 trimmed = name;
             }
 
             return trimmed;
+        }
+
+        public void UpdateNameTrimmed()
+        {
+            NameTrimmed = GetTrimmedPlayerName(NameFull);
         }
 
         public bool TrySetNameAlias(string alias)

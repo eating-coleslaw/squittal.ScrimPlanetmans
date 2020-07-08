@@ -226,6 +226,13 @@ app {
     margin-bottom: 0.2rem;
 }
 
+    .btn-primary:disabled, .btn-primary:disabled:hover, .btn-primary:disabled:active,
+    .btn-primary.disabled, .btn-primary.disabled:hover, .btn-primary.disabled:active {
+        background-color: var(--sq-pink-lighter);
+        /*    border-color: var(--sq-pink-darker);*/
+        border-color: var(--sq-pink);
+    }
+
     .btn-primary .oi {
         font-size: 0.7rem;
         padding-right: 0.5rem;
