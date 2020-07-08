@@ -216,12 +216,13 @@
 
     private async void HandleClearDisplayName()
     {
-        if (await ConstructedTeamsService.TryClearMemberAlias(_renderedTeamId, _renderedCharacter.CharacterId, _renderedCharacter.NameAlias))
+        if (await ConstructedTeamsService.TryUpdateMemberAlias(_renderedTeamId, _renderedCharacter.CharacterId, _renderedCharacter.NameAlias, _renderedCharacter.NameFull))
         {
             _inputAlias = _renderedCharacter.NameDisplay;
-            _isAliasEditFormVisible = false;
         }
 
+        _isAliasEditFormVisible = false;
+        
         InvokeAsyncStateHasChanged();
     }
     #endregion UI & Form Controls
