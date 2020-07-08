@@ -305,17 +305,21 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
             foreach (var member in unprocessedMembers)
             {
+                var name = string.IsNullOrWhiteSpace(member.Alias) ? $"up{member.CharacterId}" : member.Alias;
+
                 var character = new Character
                 {
                     Id = member.CharacterId,
-                    Name = $"up{member.CharacterId}",
-                    IsOnline = false,
+                    Name = name,
+                    IsOnline = true,
                     PrestigeLevel = 0,
                     FactionId = factionId,
                     WorldId = 0
                 };
 
                 var player = new Player(character);
+
+                player.TrySetNameAlias(name);
 
                 processedPlayers.Add(player);
             }
