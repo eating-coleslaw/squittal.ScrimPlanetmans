@@ -2815,7 +2815,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (team != null)
             {
-                return team.ConstructedTeams.Count();
+                return team.ConstructedTeamsMatchInfo.Count();
             }
             else
             {
