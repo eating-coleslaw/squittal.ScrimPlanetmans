@@ -258,7 +258,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 ConstructedTeamId = membership.ConstructedTeamId,
                 FactionId = membership.FactionId,
                 NameFull = character.Name,
-                NameAlias = !string.IsNullOrWhiteSpace(membership.Alias) ? membership.Alias : character.Name,
+                NameAlias = membership.Alias,
                 PrestigeLevel = character.PrestigeLevel,
                 WorldId = character.WorldId
             };
