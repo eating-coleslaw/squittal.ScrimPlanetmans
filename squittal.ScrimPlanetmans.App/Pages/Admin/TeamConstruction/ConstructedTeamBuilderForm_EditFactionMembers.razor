@@ -261,7 +261,6 @@
                     }
                     else if (changeType == ConstructedTeamMemberChangeType.Add)
                     {
-                        //var character = changeMessage.Character;
                         var character = changeMessage.MemberDetails;
 
                         if (!_renderedCharacters.Any(c => c.CharacterId == characterId))
