@@ -8,8 +8,7 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
-@*@inject IConstructedTeamService ConstructedTeamService*@
-@inject IConstructedTeamService TeamService
+@inject IConstructedTeamService ConstructedTeamService
 @inject IScrimMessageBroadcastService MessageService
 
 @inject NavigationManager NavManager
@@ -108,19 +107,6 @@
                                 <span class="oi oi-check"></span>Save
                             </button>
 
-                            @*@if (!string.IsNullOrWhiteSpace(_newTeamForm.Name) && !string.IsNullOrWhiteSpace(_newTeamForm.Alias))
-                            {
-                                <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
-                                    <span class="oi oi-check"></span>Save
-                                </button>
-                            }
-                            else
-                            {
-                                <button disabled class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
-                                    <span class="oi oi-check"></span>Save
-                                </button>
-                            }*@
-
                             <button @onclick="HandleCreateNewTeamCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
                                 <span class="oi oi-x" style="top: 0;"></span>Cancel
                             </button>
@@ -194,8 +180,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
-        _storedTeamsList = await TeamService.GetConstructedTeams(true, true);
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
     }
 
     protected override void OnParametersSet()
@@ -266,11 +251,6 @@
     {
         var newTeam = _newTeamForm;
 
-        if (string.IsNullOrWhiteSpace(newTeam.Name) || string.IsNullOrWhiteSpace(newTeam.Alias))
-        {
-            return;
-        }
-
         Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         if (!nameRegex.Match(newTeam.Name).Success)
         {
@@ -282,8 +262,7 @@
         {
             return;
         }
-        //var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
-        var newTeamEntity = await TeamService.CreateConstructedTeam(newTeam);
+        var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
 
         _newTeamForm = new ConstructedTeam();
 
@@ -294,8 +273,7 @@
             HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
         }
 
-        //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
-        _storedTeamsList = await TeamService.GetConstructedTeams(true);
+        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
 
         InvokeAsyncStateHasChanged();
     }
