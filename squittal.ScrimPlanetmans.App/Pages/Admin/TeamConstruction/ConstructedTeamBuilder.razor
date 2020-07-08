@@ -8,7 +8,8 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
-@inject IConstructedTeamService ConstructedTeamService
+@*@inject IConstructedTeamService ConstructedTeamService*@
+@inject IConstructedTeamService TeamService
 @inject IScrimMessageBroadcastService MessageService
 
 @inject NavigationManager NavManager
@@ -103,9 +104,18 @@
                             <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_newTeamForm.Name maxlength="50" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
                             <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_newTeamForm.Alias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" /></p>
 
-                            <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
-                                <span class="oi oi-check"></span>Save
-                            </button>
+                            @if (!string.IsNullOrWhiteSpace(_newTeamForm.Name) && !string.IsNullOrWhiteSpace(_newTeamForm.Alias))
+                            {
+                                <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
+                                    <span class="oi oi-check"></span>Save
+                                </button>
+                            }
+                            else
+                            {
+                                <button disabled class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
+                                    <span class="oi oi-check"></span>Save
+                                </button>
+                            }
 
                             <button @onclick="HandleCreateNewTeamCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
                                 <span class="oi oi-x" style="top: 0;"></span>Cancel
@@ -180,7 +190,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
+        //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
+        _storedTeamsList = await TeamService.GetConstructedTeams(true, true);
     }
 
     protected override void OnParametersSet()
@@ -262,7 +273,8 @@
         {
             return;
         }
-        var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
+        //var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
+        var newTeamEntity = await TeamService.CreateConstructedTeam(newTeam);
 
         _newTeamForm = new ConstructedTeam();
 
@@ -273,7 +285,8 @@
             HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
         }
 
-        _storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+        //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+        _storedTeamsList = await TeamService.GetConstructedTeams(true);
 
         InvokeAsyncStateHasChanged();
     }
