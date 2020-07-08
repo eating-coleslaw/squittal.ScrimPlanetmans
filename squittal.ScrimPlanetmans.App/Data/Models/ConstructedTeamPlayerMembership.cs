@@ -12,6 +12,8 @@ namespace squittal.ScrimPlanetmans.Data.Models
 
         public int FactionId { get; set; }
 
+        public string Alias { get; set; }
+
         public ConstructedTeam ConstructedTeam { get; set; }
     }
 }

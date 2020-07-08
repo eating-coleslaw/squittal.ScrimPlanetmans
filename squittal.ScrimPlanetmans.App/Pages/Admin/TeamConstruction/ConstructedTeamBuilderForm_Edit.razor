@@ -80,11 +80,25 @@
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    Add Character: <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" />
+                    <p style="margin-bottom: 8px;">
+                        <span style="display: inline-block; width: 80px;">Character:</span>
+                        <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />
+                        <button type="submit" class="btn btn-primary" title="Add character to team" style="display: inline-block;">
+                            <span class="oi oi-plus"></span>Add
+                        </button>
+                    </p>
 
-                    <button type="submit" class="btn btn-primary" title="Add character to team">
+                    <p style="margin-bottom: 8px;">
+                        <span style="display: inline-block; width: 80px;">Alias:</span>
+                        <InputText id="addPlayerAliasInput" @bind-Value="@_inputPlayerAlias" title="Enter the display name for this character" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />
+                    </p>
+                    @*Add Character: <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />*@
+
+                    @*Alias: <InputText id="addPlayerAliasInput" @bind-Value="@_inputPlayerAlias" title="Enter the display name for this character" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />*@
+
+                    @*<button type="submit" class="btn btn-primary" title="Add character to team">
                         <span class="oi oi-plus"></span>Add
-                    </button>
+                    </button>*@
 
                     @if (_processingInputs.Any())
                     {
@@ -210,7 +224,7 @@
 
     private string _inputCharacter { get; set; } = string.Empty;
     private bool _isSavingCharacter { get; set; } = false;
-
+    private string _inputPlayerAlias { get; set; } = string.Empty;
     private bool _useFactionSuffixes { get; set; } = false;
     private string _inputSuffixVs { get; set; } = "VS";
     private string _inputSuffixNc { get; set; } = "NC";
@@ -379,7 +393,7 @@
         {
             var input = _processingInputs.FirstOrDefault();
 
-            var character = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, input);
+            var character = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, input, _inputPlayerAlias);
 
             // Don't clear input field if failed to find this character,
             // but clear input field if we found any character

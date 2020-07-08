@@ -92,15 +92,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitAliasLower = character.OutfitAliasLower;
 
             // Last because it requires WorldId being set
-            NameTrimmed = GetTrimmedPlayerName(NameFull);
+            NameTrimmed = GetTrimmedPlayerName(NameFull, WorldId);
         }
 
-        public string GetTrimmedPlayerName(string name)
+        public static string GetTrimmedPlayerName(string name, int worldId)
         {
             var isPil2NameFormat = false;
             var isLegacyJaegerNameFormat = false;
 
-            if (WorldService.IsJaegerWorldId(WorldId))
+            if (WorldService.IsJaegerWorldId(worldId))
             {
                 if (_pil2NameRegex.Match(name).Success)
                 {
@@ -146,7 +146,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public void UpdateNameTrimmed()
         {
-            NameTrimmed = GetTrimmedPlayerName(NameFull);
+            NameTrimmed = GetTrimmedPlayerName(NameFull, WorldId);
         }
 
         public bool TrySetNameAlias(string alias)
