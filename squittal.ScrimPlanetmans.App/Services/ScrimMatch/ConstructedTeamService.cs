@@ -293,10 +293,33 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                 if (player != null)
                 {
+                    var playerAlias = members.Where(m => m.CharacterId == player.Id).Select(m => m.Alias).FirstOrDefault();
+
+
+                    player.TrySetNameAlias(playerAlias);
+
                     processedPlayers.Add(player);
                     unprocessedMembers.RemoveAll(m => m.CharacterId == player.Id);
                 }
             }
+
+            foreach (var member in unprocessedMembers)
+            {
+                var character = new Character
+                {
+                    Id = member.CharacterId,
+                    Name = $"up{member.CharacterId}",
+                    IsOnline = false,
+                    PrestigeLevel = 0,
+                    FactionId = factionId,
+                    WorldId = 0
+                };
+
+                var player = new Player(character);
+
+                processedPlayers.Add(player);
+            }
+
             return processedPlayers;
         }
 

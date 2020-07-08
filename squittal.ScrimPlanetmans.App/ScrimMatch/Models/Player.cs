@@ -151,6 +151,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public bool TrySetNameAlias(string alias)
         {
+            if (string.IsNullOrWhiteSpace(alias))
+            {
+                return false;
+            }
+            
             Match match = _nameRegex.Match(alias);
             if (!match.Success)
             {

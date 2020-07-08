@@ -17,20 +17,20 @@
         <td>@_renderedIndex</td>
         @if (_isAliasEditFormVisible)
         {
-            <td style="colspan: 3;">
+            <td colspan="3">
                 <p style="margin: 4px 0; color: var(--sq-black);">
                     <span style="width: 112px; display: inline-block; margin-right: 4px;">Full Name:</span><span style="color: var(--sq-ps2-primary);">@_renderedCharacter.NameFull</span>
                 </p>
 
                 <p style="margin: 4px 0; color: var(--sq-black);">
-                    <span style="width: 112px; display: inline-block; margin-right: 4px;">Current Alias:</span><span style="color: var(--sq-ps2-primary);">@_renderedCharacter.NameDisplay</span>
+                    <span style="width: 112px; display: inline-block; margin-right: 4px;">Current Alias:</span><span style="color: var(--sq-ps2-primary);">@_renderedCharacter.NameAlias</span>
                 </p>
 
                 <EditForm Model="@_inputAlias" OnValidSubmit="HandleAliasSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    <span style="width: 112px; display: inline-block; margin-right: 4px; color: var(--sq-black);">New Alias:</span><InputText id="inputAlias" @bind-Value="_inputAlias" style="width: 176px; margin: 0.2rem 0.4rem 0.2rem 0; display: inline-block;" />
+                    <span style="width: 112px; display: inline-block; margin-right: 4px; color: var(--sq-black);">New Alias:</span><InputText id="inputAlias" @bind-Value="_inputAlias" style="width: 156px; margin: 0.2rem 0.4rem 0.2rem 0; display: inline-block;" />
 
                     <div style="display: inline-block; margin-left: auto; margin-right: auto;">
 
@@ -42,7 +42,7 @@
                             <span class="oi oi-x" style="top: 0;"></span>
                         </button>
 
-                        <button @onclick="HandleClearDisplayName" style="color: var(--sq-gray); padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Reset player display name to full name">
+                        <button @onclick="HandleClearDisplayName" style="color: var(--sq-gray); padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Reset player display name to full name">
                             <span class="oi oi-trash"></span>
                         </button>
                     </div>
