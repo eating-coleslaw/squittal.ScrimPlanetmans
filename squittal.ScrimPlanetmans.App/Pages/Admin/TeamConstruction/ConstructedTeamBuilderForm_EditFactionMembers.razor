@@ -92,8 +92,6 @@
 
     private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
 
-    //private List<Character> _renderedCharacters = new List<Character>();
-    //private ConcurrentQueue<Character> _characterDataUpdateQueue { get; set; } = new ConcurrentQueue<Character>();
     private List<ConstructedTeamMemberDetails> _renderedCharacters = new List<ConstructedTeamMemberDetails>();
     private ConcurrentQueue<ConstructedTeamMemberDetails> _characterDataUpdateQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberDetails>();
     private int _renderedCharactersCount { get; set; } = 0;
@@ -185,7 +183,7 @@
                 return;
             }
         }
-        else if (changeType != ConstructedTeamMemberChangeType.Remove || changeType != ConstructedTeamMemberChangeType.UpdateAlias)
+        else if (changeType != ConstructedTeamMemberChangeType.Remove && changeType != ConstructedTeamMemberChangeType.UpdateAlias)
         {
             return;
         }
@@ -274,7 +272,11 @@
                     else if (changeType == ConstructedTeamMemberChangeType.UpdateAlias)
                     {
                         var character = _renderedCharacters.Where(c => c.CharacterId == characterId).FirstOrDefault();
-                        character.NameAlias = changeMessage.MemberAlias;
+
+                        if (character != null)
+                        {
+                            character.NameAlias = string.IsNullOrWhiteSpace(changeMessage.MemberAlias) ? string.Empty : changeMessage.MemberAlias;
+                        }
                     }
                 }
 
