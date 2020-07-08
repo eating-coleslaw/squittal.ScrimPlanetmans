@@ -82,30 +82,25 @@
 
                     <p style="margin-bottom: 8px;">
                         <span style="display: inline-block; width: 80px;">Character:</span>
-                        <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />
-                        <button type="submit" class="btn btn-primary" title="Add character to team" style="display: inline-block;">
-                            <span class="oi oi-plus"></span>Add
-                        </button>
+                        <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px; margin-bottom: 0.2rem; height: 27px;" />
+                        @if (_processingInputs.Any())
+                        {
+                            <span class="inline">
+                                <SpinnerEllipsis />
+                            </span>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-primary" title="Add character to team" style="display: inline-block;">
+                                <span class="oi oi-plus"></span>Add
+                            </button>
+                        }
                     </p>
 
                     <p style="margin-bottom: 8px;">
                         <span style="display: inline-block; width: 80px;">Alias:</span>
-                        <InputText id="addPlayerAliasInput" @bind-Value="@_inputPlayerAlias" title="Enter the display name for this character" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />
+                        <InputText id="addPlayerAliasInput" @bind-Value="@_inputPlayerAlias" title="Enter the display name for this character" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px; margin-bottom: 0.2rem; height: 27px;" />
                     </p>
-                    @*Add Character: <InputText id="addPlayerInput" @bind-Value="@_inputCharacter" title="Enter character's full name or ID" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />*@
-
-                    @*Alias: <InputText id="addPlayerAliasInput" @bind-Value="@_inputPlayerAlias" title="Enter the display name for this character" maxlength="32" pattern="^([A-Za-z0-9]{1,32})$" style="display: inline-block; width: 200px;" />*@
-
-                    @*<button type="submit" class="btn btn-primary" title="Add character to team">
-                        <span class="oi oi-plus"></span>Add
-                    </button>*@
-
-                    @if (_processingInputs.Any())
-                    {
-                        <span class="inline">
-                            <SpinnerEllipsis />
-                        </span>
-                    }
 
                 </EditForm>
 
@@ -114,31 +109,16 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        @*Use Faction Suffixes: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" />*@
                         <InputCheckbox id="showRemovalsCheckBox" @bind-Value="@_useFactionSuffixes" style="position: relative; top: 1px;" /> Use Faction Suffixes
                     </EditForm>
                 </div>
 
                 @if (_useFactionSuffixes)
-                {@*1px solid #7e7e7e*@
+                {
                     <div style="display: block; overflow: hidden;">
                         <EditForm Model="@_inputSuffixVs" style="display: inline-block; margin-left: -24px;">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
-
-                            @*VS: <InputText id="PlayerSuffixVs" @bind-Value="@_inputSuffixVs" title="Enter suffix for this account's VS character"  maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />*@
-
-                            @*<div style="display: inline-block;border: 1px solid #7e7e7e;background-color: #fff;">
-                                <div class="vs" style="display: inline-block;background-color: white;height: 23px;position: relative;right: 0px;/*! top: 2px; */padding: 2px 4px 0px 4px;vertical-align: top;color: var(--sq-ps2-primary);font-weight: 700;margin-right: 8px;border-right: 1px solid var(--sq-ps2-ns-primary-light);/*! margin: 2px 4px 2px 4px; */">
-                                    VS
-                                </div>
-
-                                <InputText id="PlayerSuffixVs" @bind-Value="@_inputSuffixVs" title="Enter suffix for this account's VS character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" class="valid" style="border: none;" />
-                            </div>*@
-
-                            @*<div class="vs" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light);/*! margin: 2px 4px 2px 4px; */">
-                                VS
-                            </div>*@
 
                             <div class="vs" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; /*top: 2px;*/ padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light); /*border-top: 2px solid transparent; border-bottom: 2px solid transparent;*//*! margin: 2px 4px 2px 4px; */">
                                 VS
@@ -152,8 +132,6 @@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-                            @*<InputText id="PlayerSuffixNc" @bind-Value="@_inputSuffixNc" title="Enter suffix for this account's NC character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />*@
-
                             <div class="nc" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; /*top: 2px;*/ padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light); /*border-top: 2px solid transparent; border-bottom: 2px solid transparent;*//*! margin: 2px 4px 2px 4px; */">
                                 NC
                             </div><InputText style="padding-left: 32px;" id="PlayerSuffixNc" @bind-Value="@_inputSuffixNc" title="Enter suffix for this account's NC character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />
@@ -164,8 +142,6 @@
                         <EditForm Model="@_inputSuffixTr" style="display: inline-block; position: relative; left: -32px;">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
-
-                            @*<InputText id="PlayerSuffixTr" @bind-Value="@_inputSuffixTr" title="Enter suffix for this account's TR character" maxlength="31" pattern="^([A-Za-z0-9]{1,31})$" />*@
 
                             <div class="tr" style="display: inline-block; background-color: transparent; height: 23px; position: relative; right: -26px; /*top: 2px;*/ padding: 2px 4px 0px 4px; vertical-align: top; color: var(--sq-ps2-primary); font-weight: 700; margin-right: 0px; border-right: 1px solid var(--sq-ps2-ns-primary-light); /*border-top: 2px solid transparent; border-bottom: 2px solid transparent;*//*! margin: 2px 4px 2px 4px; */">
                                 TR
@@ -366,21 +342,6 @@
             {
                 _processingInputs.Add(inputTr);
             }
-
-            //if (!string.IsNullOrWhiteSpace(_inputSuffixVs))
-            //{
-            //    _processingInputs.Add($"{characterInput}{_inputSuffixVs}");
-            //}
-
-            //if (!string.IsNullOrWhiteSpace(_inputSuffixNc))
-            //{
-            //    _processingInputs.Add($"{characterInput}{_inputSuffixNc}");
-            //}
-
-            //if (!string.IsNullOrWhiteSpace(_inputSuffixTr))
-            //{
-            //    _processingInputs.Add($"{characterInput}{_inputSuffixTr}");
-            //}
         }
         else
         {
@@ -400,6 +361,7 @@
             if (character != null)
             {
                 _inputCharacter = string.Empty;
+                _inputPlayerAlias = string.Empty;
             }
 
             _processingInputs.Remove(input);
