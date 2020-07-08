@@ -1,4 +1,5 @@
-﻿@using squittal.ScrimPlanetmans.Data.Models;
+﻿@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Data.Models;
 @using squittal.ScrimPlanetmans.Models.Forms;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
@@ -55,11 +56,11 @@
                         {
                             <tbody>
                                 @foreach (var indexedCharacter in _renderedCharacters
-                                                                     .OrderBy(c => c.Name)
+                                                                     .OrderBy(c => c.NameDisplay)
                                                                      .AsEnumerable()
-                                                                     .Select((c, Index) => new { Character = c, Index = Index }))
+                                                                     .Select((c, Index) => new { ConstructedTeamMemberDetails = c, Index = Index }))
                                 {
-                                    <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@(indexedCharacter.Character) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) OnCharacterApiDataLoad="MemberCharacterDataLoaded" />
+                                    <ConstructedTeamBuilderForm_EditPlayerRow i_teamId=@_renderedTeamId i_character=@(indexedCharacter.ConstructedTeamMemberDetails) i_factionId=@_renderedFactionId i_index=@(indexedCharacter.Index + 1) OnCharacterApiDataLoad="MemberDetailsDataLoaded" />
                                 }
                             </tbody>
                         }
@@ -91,8 +92,8 @@
 
     private ConcurrentQueue<ConstructedTeamMemberChangeMessage> _changeMessagesQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberChangeMessage>();
 
-    private List<Character> _renderedCharacters = new List<Character>();
-    private ConcurrentQueue<Character> _characterDataUpdateQueue { get; set; } = new ConcurrentQueue<Character>();
+    private List<ConstructedTeamMemberDetails> _renderedCharacters = new List<ConstructedTeamMemberDetails>();
+    private ConcurrentQueue<ConstructedTeamMemberDetails> _characterDataUpdateQueue { get; set; } = new ConcurrentQueue<ConstructedTeamMemberDetails>();
     private int _renderedCharactersCount { get; set; } = 0;
 
     private bool _isLoadingCharacters { get; set; } = false;
@@ -134,20 +135,21 @@
             _isLoadingCharacters = true;
             InvokeAsyncStateHasChanged();
 
-            var characters = await ConstructedTeamsService.GetConstructedTeamFactionCharacters(_renderedTeamId, _renderedFactionId);
+            //var characters = await ConstructedTeamsService.GetConstructedTeamFactionCharacters(_renderedTeamId, _renderedFactionId);
+            var characters = await ConstructedTeamsService.GetConstructedTeamFactionMemberDetails(_renderedTeamId, _renderedFactionId);
 
             await InvokeAsync(() =>
             {
                 lock (_renderedCharacters)
                 {
-                    _renderedCharacters = new List<Character>();
+                    _renderedCharacters = new List<ConstructedTeamMemberDetails>();
 
                     if (characters != null && characters.Any())
                     {
                         _renderedCharacters.AddRange(characters.ToList());
 
                         _renderedCharacters = _renderedCharacters
-                                                 .OrderBy(c => c.Name)
+                                                 .OrderBy(c => c.NameDisplay)
                                                  .ToList();
 
                         _renderedCharactersCount = _renderedCharacters.Count();
@@ -181,7 +183,7 @@
                 return;
             }
         }
-        else if (changeType != ConstructedTeamMemberChangeType.Remove)
+        else if (changeType != ConstructedTeamMemberChangeType.Remove && changeType != ConstructedTeamMemberChangeType.UpdateAlias)
         {
             return;
         }
@@ -191,7 +193,8 @@
         UpdateRenderedMembers();
     }
 
-    public void MemberCharacterDataLoaded(Character character)
+
+    public void MemberDetailsDataLoaded(ConstructedTeamMemberDetails character)
     {
         if (character.FactionId != _renderedFactionId)
         {
@@ -211,12 +214,13 @@
         {
             lock (_renderedCharacters)
             {
-                while (_characterDataUpdateQueue.TryDequeue(out Character updateCharacter))
+                while (_characterDataUpdateQueue.TryDequeue(out ConstructedTeamMemberDetails updateCharacter))
                 {
-                    var updateName = updateCharacter.Name;
-                    var updateId = updateCharacter.Id;
+                    var updateName = updateCharacter.NameFull;
+                    var updateAlias = updateCharacter.NameAlias;
+                    var updateId = updateCharacter.CharacterId;
 
-                    var renderedCharacter = _renderedCharacters.Where(c => c.Id == updateId).FirstOrDefault();
+                    var renderedCharacter = _renderedCharacters.Where(c => c.CharacterId == updateId).FirstOrDefault();
 
                     if (renderedCharacter == null)
                     {
@@ -224,12 +228,13 @@
                     }
                     else
                     {
-                        renderedCharacter.Name = updateName;
+                        //renderedCharacter.NameFull = updateName;
+                        //renderedCharacter.NameAlias = updateAlias;
                     }
                 }
 
                 _renderedCharacters = _renderedCharacters
-                                        .OrderBy(c => c.Name)
+                                        .OrderBy(c => c.NameDisplay)
                                         .ToList();
 
                 _renderedCharactersCount = _renderedCharacters.Count();
@@ -252,21 +257,30 @@
 
                     if (changeType == ConstructedTeamMemberChangeType.Remove)
                     {
-                        _renderedCharacters.RemoveAll(c => c.Id == characterId);
+                        _renderedCharacters.RemoveAll(c => c.CharacterId == characterId);
                     }
                     else if (changeType == ConstructedTeamMemberChangeType.Add)
                     {
-                        var character = changeMessage.Character;
+                        var character = changeMessage.MemberDetails;
 
-                        if (!_renderedCharacters.Any(c => c.Id == characterId))
+                        if (!_renderedCharacters.Any(c => c.CharacterId == characterId))
                         {
                             _renderedCharacters.Add(character);
+                        }
+                    }
+                    else if (changeType == ConstructedTeamMemberChangeType.UpdateAlias)
+                    {
+                        var character = _renderedCharacters.Where(c => c.CharacterId == characterId).FirstOrDefault();
+
+                        if (character != null)
+                        {
+                            character.NameAlias = string.IsNullOrWhiteSpace(changeMessage.MemberAlias) ? string.Empty : changeMessage.MemberAlias;
                         }
                     }
                 }
 
                 _renderedCharacters = _renderedCharacters
-                                        .OrderBy(c => c.Name)
+                                        .OrderBy(c => c.NameDisplay)
                                         .ToList();
 
                 _renderedCharactersCount = _renderedCharacters.Count();

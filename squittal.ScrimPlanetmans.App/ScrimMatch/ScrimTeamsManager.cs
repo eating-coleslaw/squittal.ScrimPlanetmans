@@ -493,6 +493,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 player.FactionId = (int)outfit.FactionId;
                 player.WorldId = (int)outfit.WorldId;
 
+                player.UpdateNameTrimmed();
+
                 if (team.TryAddPlayer(player))
                 {
                     _allCharacterIds.Add(player.Id);
@@ -674,6 +676,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 player.TeamOrdinal = teamOrdinal;
                 player.FactionId = outfitFactionID;
                 player.WorldId = outfitWorldId;
+
+                player.UpdateNameTrimmed();
 
                 if (outfitTeam.TryAddPlayer(player))
                 {
@@ -2811,7 +2815,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (team != null)
             {
-                return team.ConstructedTeams.Count();
+                return team.ConstructedTeamsMatchInfo.Count();
             }
             else
             {
