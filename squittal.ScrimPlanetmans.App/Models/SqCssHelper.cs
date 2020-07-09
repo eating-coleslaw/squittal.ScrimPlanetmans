@@ -28,6 +28,19 @@
             }
         }
 
+        public static string GetParticipatingStatusEmoji(bool isParticipating)
+        {
+            if (isParticipating)
+            {
+                //return "🗦";
+                return "∙";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
         public static string GetZoneDisplayEmojiFromName(string zoneName)
         {
             return zoneName switch
