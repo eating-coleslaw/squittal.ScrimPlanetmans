@@ -201,7 +201,7 @@ else
             paramsChanged = true;
         }
 
-        if (i_teamOrdinal != _renderedTeamOrdinal || i_outfit.AliasLower != _renderedOutfit.AliasLower)
+        if (i_teamOrdinal != _renderedTeamOrdinal || i_outfit.AliasLower != _renderedOutfit.AliasLower || i_outfit.Id != _renderedOutfit.Id)
         {
             _renderedTeamOrdinal = i_teamOrdinal;
             _renderedOutfit = i_outfit;
@@ -223,6 +223,11 @@ else
         LogMessage(message);
 
         var outfitPlayers = TeamsManager.GetTeamOutfitPlayers(_renderedTeamOrdinal, _renderedOutfit.AliasLower);
+
+        lock (_renderedPlayers)
+        {
+            _renderedPlayers.RemoveAll(p => !ShouldProcessPlayer(p));
+        }
 
         foreach (var player in outfitPlayers)
         {
