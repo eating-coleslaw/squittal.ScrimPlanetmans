@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace squittal.ScrimPlanetmans .Data.Models
+namespace squittal.ScrimPlanetmans.Data.Models
 {
     public class ConstructedTeam
     {
@@ -11,6 +11,7 @@ namespace squittal.ScrimPlanetmans .Data.Models
         [Required]
         public string Name { get; set; }
 
+        [Required]
         public string Alias { get; set; }
 
         // TODO: Add migration for this

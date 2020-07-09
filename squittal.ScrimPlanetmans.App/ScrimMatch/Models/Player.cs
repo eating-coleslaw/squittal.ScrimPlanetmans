@@ -92,15 +92,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             OutfitAliasLower = character.OutfitAliasLower;
 
             // Last because it requires WorldId being set
-            NameTrimmed = GetTrimmedPlayerName(NameFull);
+            NameTrimmed = GetTrimmedPlayerName(NameFull, WorldId);
         }
 
-        public string GetTrimmedPlayerName(string name)
+        public static string GetTrimmedPlayerName(string name, int worldId)
         {
             var isPil2NameFormat = false;
             var isLegacyJaegerNameFormat = false;
 
-            if (WorldService.IsJaegerWorldId(WorldId))
+            if (WorldService.IsJaegerWorldId(worldId))
             {
                 if (_pil2NameRegex.Match(name).Success)
                 {
@@ -136,27 +136,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 trimmed = trimmed.Substring(0, end);
             }
 
-            //try
-            //{
-            //    // Remove outfit tag from beginning of name
-            //    var idx = name.IndexOf("x");
-            //    if (idx > 0 && idx < 5 && (idx != name.Length - 1))
-            //    {
-            //        trimmed = name.Substring(idx + 1, name.Length - idx - 1);
-            //    }
-
-            //    // Remove faction abbreviation from end of name
-            //    var end = trimmed.Length - 2;
-            //    if (trimmed.IndexOf("VS") == end || trimmed.IndexOf("NC") == end || trimmed.IndexOf("TR") == end)
-            //    {
-            //        trimmed = trimmed.Substring(0, end);
-            //    }
-            //}
-            //catch
-            //{
-            //    return name;
-            //}
-
             if (string.IsNullOrWhiteSpace(trimmed) || trimmed.Length <= 1)
             {
                 trimmed = name;
@@ -165,8 +144,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             return trimmed;
         }
 
+        public void UpdateNameTrimmed()
+        {
+            NameTrimmed = GetTrimmedPlayerName(NameFull, WorldId);
+        }
+
         public bool TrySetNameAlias(string alias)
         {
+            if (string.IsNullOrWhiteSpace(alias))
+            {
+                return false;
+            }
+            
             Match match = _nameRegex.Match(alias);
             if (!match.Success)
             {
