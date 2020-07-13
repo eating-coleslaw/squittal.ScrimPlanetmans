@@ -1391,6 +1391,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         playerUpdates.Add(character, tracker);
                     }
 
+                    if (!playerUpdates.ContainsKey(characterId))
+                    {
+                        playerUpdates.Add(characterId, new ScrimEventAggregateRoundTracker());
+                    }
 
                     for (var round = 1; round <= currentMatchRound; round++)
                     {
@@ -1426,17 +1430,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                     HeadshotDeaths = isHeadshot
                                 };
 
-                                // Updating team stats for character being removed is already handled elsewhere
-                                if (characterIsVictim)
-                                {
-                                    teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
-                                    playerUpdates[attackerId].AddToCurrent(attackerUpdate);
-                                }
-                                else
-                                {
-                                    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
-                                    playerUpdates[victimId].AddToCurrent(victimUpdate);
-                                }
+                                /* TEST */
+                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                /* END TEST */
+
+                                //// Updating team stats for character being removed is already handled elsewhere
+                                //if (characterIsVictim)
+                                //{
+                                //    teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                //    playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                                //}
+                                //else
+                                //{
+                                //    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                //    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                //}
 
                             }
                             else if (deathType == DeathEventType.Suicide)
@@ -1449,12 +1461,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                     Suicides = 1
                                 };
 
-                                if (!characterIsVictim)
-                                {
-                                    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
-                                    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                /* TEST */
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                /* END TEST */
 
-                                }
+                                // Updating team stats for character being removed is already handled elsewhere
+                                //if (!characterIsVictim)
+                                //{
+                                //    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                //    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                //}
                             }
                             else if (deathType == DeathEventType.Teamkill)
                             {
@@ -1471,16 +1488,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                     TeamkillDeaths = 1
                                 };
 
-                                if (characterIsVictim)
-                                {
-                                    teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
-                                    playerUpdates[attackerId].AddToCurrent(attackerUpdate);
-                                }
-                                else
-                                {
-                                    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
-                                    playerUpdates[victimId].AddToCurrent(victimUpdate);
-                                }
+                                /* TEST */
+                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+
+                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                /* END TEST */
+
+
+                                // Updating team stats for character being removed is already handled elsewhere
+                                //if (characterIsVictim)
+                                //{
+                                //    teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                                //    playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                                //}
+                                //else
+                                //{
+                                //    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                                //    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                                //}
                             }
                             else
                             {
@@ -1644,6 +1671,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         playerUpdates.Add(character, tracker);
                     }
 
+                    if (!playerUpdates.ContainsKey(characterId))
+                    {
+                        playerUpdates.Add(characterId, new ScrimEventAggregateRoundTracker());
+                    }
 
                     for (var round = 1; round <= currentMatchRound; round++)
                     {
@@ -1672,27 +1703,53 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                 RevivesTaken = 1
                             };
 
+                            /* TEST */
+                            teamUpdates[medicTeamOrdinal].AddToCurrent(medicUpdate);
+                            playerUpdates[medicId].AddToCurrent(medicUpdate);
+
+                            teamUpdates[revivedTeamOrdinal].AddToCurrent(revivedUpdate);
+                            playerUpdates[revivedId].AddToCurrent(revivedUpdate);
+                            /* END TEST */
+
                             // Updating team stats for character being removed is already handled elsewhere
-                            if (characterIsRevived)
-                            {
-                                teamUpdates[medicTeamOrdinal].AddToCurrent(medicUpdate);
-                                playerUpdates[medicId].AddToCurrent(medicUpdate);
-                            }
-                            else
-                            {
-                                teamUpdates[revivedTeamOrdinal].AddToCurrent(revivedUpdate);
-                                playerUpdates[revivedId].AddToCurrent(revivedUpdate);
-                            }
+                            //if (characterIsRevived)
+                            //{
+                            //    teamUpdates[medicTeamOrdinal].AddToCurrent(medicUpdate);
+                            //    playerUpdates[medicId].AddToCurrent(medicUpdate);
+                            //}
+                            //else
+                            //{
+                            //    teamUpdates[revivedTeamOrdinal].AddToCurrent(revivedUpdate);
+                            //    playerUpdates[revivedId].AddToCurrent(revivedUpdate);
+                            //}
                         }
 
+                        _logger.LogInformation($"======================TEAM REVIVES - ROUND {round}==========================");
                         foreach (var team in distinctTeams)
                         {
                             teamUpdates[team].SaveRoundToHistory(round);
+
+                            var roundGiven = teamUpdates[team].RoundHistory[round].RevivesGiven;
+                            var roundTaken = teamUpdates[team].RoundHistory[round].RevivesTaken;
+
+                            var totalGiven = teamUpdates[team].TotalStats.RevivesGiven;
+                            var totalTaken = teamUpdates[team].TotalStats.RevivesTaken;
+
+                            _logger.LogInformation($"Team {team} Round 1 Revives: Given: {roundGiven} ({totalGiven}) | Taken: {roundTaken} ({totalTaken})");
                         }
 
+                        _logger.LogInformation($"======================PLAYER REVIVES - ROUND {round}==========================");
                         foreach (var character in distinctCharacterIds)
                         {
                             playerUpdates[character].SaveRoundToHistory(round);
+
+                            var roundGiven = playerUpdates[character].RoundHistory[round].RevivesGiven;
+                            var roundTaken = playerUpdates[character].RoundHistory[round].RevivesTaken;
+
+                            var totalGiven = playerUpdates[character].TotalStats.RevivesGiven;
+                            var totalTaken = playerUpdates[character].TotalStats.RevivesTaken;
+
+                            _logger.LogInformation($"Player {character} Round 1 Revives: Given: {roundGiven} ({totalGiven}) | Taken: {roundTaken} ({totalTaken})");
                         }
                     }
 
@@ -1814,6 +1871,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         playerUpdates.Add(character, tracker);
                     }
 
+                    if (!playerUpdates.ContainsKey(characterId))
+                    {
+                        playerUpdates.Add(characterId, new ScrimEventAggregateRoundTracker());
+                    }
 
                     for (var round = 1; round <= currentMatchRound; round++)
                     {
@@ -1842,17 +1903,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                 DamageAssistedDeaths = 1
                             };
 
-                            // Updating team stats for character being removed is already handled elsewhere
-                            if (characterIsVictim)
-                            {
-                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
-                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
-                            }
-                            else
-                            {
-                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
-                                playerUpdates[victimId].AddToCurrent(victimUpdate);
-                            }
+                            /* TEST */
+                            teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                            playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+
+                            teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                            playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            /* END TEST */
+
+                            //// Updating team stats for character being removed is already handled elsewhere
+                            //if (characterIsVictim)
+                            //{
+                            //    teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                            //    playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                            //}
+                            //else
+                            //{
+                            //    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                            //    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            //}
                         }
 
                         foreach (var team in distinctTeams)
@@ -1982,6 +2051,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         playerUpdates.Add(character, tracker);
                     }
 
+                    if (!playerUpdates.ContainsKey(characterId))
+                    {
+                        playerUpdates.Add(characterId, new ScrimEventAggregateRoundTracker());
+                    }
 
                     for (var round = 1; round <= currentMatchRound; round++)
                     {
@@ -2010,17 +2083,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                 GrenadeAssistedDeaths = 1
                             };
 
-                            // Updating team stats for character being removed is already handled elsewhere
-                            if (characterIsVictim)
-                            {
-                                teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
-                                playerUpdates[attackerId].AddToCurrent(attackerUpdate);
-                            }
-                            else
-                            {
-                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
-                                playerUpdates[victimId].AddToCurrent(victimUpdate);
-                            }
+                            /* TEST */
+                            teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                            playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+
+                            teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                            playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            /* END TEST */
+
+                            //// Updating team stats for character being removed is already handled elsewhere
+                            //if (characterIsVictim)
+                            //{
+                            //    teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
+                            //    playerUpdates[attackerId].AddToCurrent(attackerUpdate);
+                            //}
+                            //else
+                            //{
+                            //    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                            //    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            //}
                         }
 
                         foreach (var team in distinctTeams)
@@ -2152,6 +2233,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         playerUpdates.Add(character, tracker);
                     }
 
+                    if (!playerUpdates.ContainsKey(characterId))
+                    {
+                        playerUpdates.Add(characterId, new ScrimEventAggregateRoundTracker());
+                    }
 
                     for (var round = 1; round <= currentMatchRound; round++)
                     {
@@ -2180,17 +2265,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                 SpotAssistedDeaths = 1
                             };
 
+                            /* TEST */
+                            teamUpdates[spotterTeamOrdinal].AddToCurrent(spotterUpdate);
+                            playerUpdates[spotterId].AddToCurrent(spotterUpdate);
+
+                            teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                            playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            /* END TEST */
+
                             // Updating team stats for character being removed is already handled elsewhere
-                            if (characterIsVictim)
-                            {
-                                teamUpdates[spotterTeamOrdinal].AddToCurrent(spotterUpdate);
-                                playerUpdates[spotterId].AddToCurrent(spotterUpdate);
-                            }
-                            else
-                            {
-                                teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
-                                playerUpdates[victimId].AddToCurrent(victimUpdate);
-                            }
+                            //if (characterIsVictim)
+                            //{
+                            //    teamUpdates[spotterTeamOrdinal].AddToCurrent(spotterUpdate);
+                            //    playerUpdates[spotterId].AddToCurrent(spotterUpdate);
+                            //}
+                            //else
+                            //{
+                            //    teamUpdates[victimTeamOrdinal].AddToCurrent(victimUpdate);
+                            //    playerUpdates[victimId].AddToCurrent(victimUpdate);
+                            //}
                         }
 
                         foreach (var team in distinctTeams)

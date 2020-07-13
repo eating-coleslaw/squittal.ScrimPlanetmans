@@ -146,7 +146,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ParticipatingPlayersMap.TryRemove(player.Id, out Player removedPlayer);
 
-            EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
+            //EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
 
             return true;
         }

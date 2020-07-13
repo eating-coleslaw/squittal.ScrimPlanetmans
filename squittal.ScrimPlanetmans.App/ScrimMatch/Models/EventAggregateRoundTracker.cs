@@ -11,6 +11,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         // Each aggregate is only the points scored during the round number of the enytry's key
         public Dictionary<int, ScrimEventAggregate> RoundHistory = new Dictionary<int, ScrimEventAggregate>();
 
+        public int HighestRound { get => GetHighestHistoryRound(); }
+
         public void AddToCurrent(ScrimEventAggregate update)
         {
             TotalStats.Add(update);
@@ -59,33 +61,53 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public void SubtractFromHistory(ScrimEventAggregateRoundTracker subtrahend)
         {
             TotalStats.Subtract(subtrahend.TotalStats);
+
+            var maxBaseRound = HighestRound;
+            var maxSubtrahendRound = subtrahend.HighestRound;
+
             RoundStats.Subtract(subtrahend.RoundStats);
+            //if (maxBaseRound == maxSubtrahendRound)
+            //{
+            //    RoundStats.Subtract(subtrahend.RoundStats);
+            //}
 
-            var maxBaseRound = GetHighestHistoryRound();
-            var maxAddendRound = subtrahend.GetHighestHistoryRound();
+            //var maxBaseRound = GetHighestHistoryRound();
+            //var maxAddendRound = subtrahend.GetHighestHistoryRound();
 
-            var maxRound = maxBaseRound >= maxAddendRound
+            var maxRound = maxBaseRound >= maxSubtrahendRound
                                 ? maxBaseRound
-                                : maxAddendRound;
+                                : maxSubtrahendRound;
 
-            for (var round = 1; round == maxRound; round++)
+            for (var round = 1; round <= maxRound; round++)
             {
-                var result = new ScrimEventAggregate();
+                //var roundSubtrahend = new ScrimEventAggregate();
 
-                if (subtrahend.RoundHistory.TryGetValue(round, out var addendRound))
+                var roundSubtrahend = new ScrimEventAggregate();
+
+                if (subtrahend.RoundHistory.ContainsKey(round))
                 {
-                    result.Subtract(addendRound);
+                    roundSubtrahend.Add(subtrahend.RoundHistory[round]);
                 }
 
-                if (RoundHistory.TryGetValue(round, out var baseRound))
+                if (RoundHistory.ContainsKey(round))
                 {
-                    result.Add(baseRound);
-                    RoundHistory[round] = result;
+                    RoundHistory[round].Subtract(roundSubtrahend);
                 }
                 else
                 {
-                    RoundHistory.Add(round, result);
+                    RoundHistory.Add(round, roundSubtrahend);
                 }
+
+                //if (!subtrahend.RoundHistory.TryGetValue(round, out var roundSubtrahend))
+                //{
+                //    continue;
+                //}
+
+                //if (RoundHistory.TryGetValue(round, out var baseRound))
+                //{
+                //    baseRound.Subtract(roundSubtrahend);
+                //    RoundHistory[round] = baseRound;
+                //}
             }
         }
 
