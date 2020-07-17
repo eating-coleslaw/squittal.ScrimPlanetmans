@@ -1272,11 +1272,12 @@ button.refresh {
     .sq-mini-card-4 h5,
     .sq-mini-card-3 h5 {
         font-size: 1rem;
-/*        margin-bottom: 0.25rem;*/
+        /*        margin-bottom: 0.25rem;*/
         margin-bottom: 8px;
-/*        padding: 0.5rem 0 0 0.5rem;*/
+        /*        padding: 0.5rem 0 0 0.5rem;*/
         width: 100%;
         font-weight: 400;
+        padding: 8px 0 0 16px;
     }
 
     .sq-mini-card-12 .sq-content,
