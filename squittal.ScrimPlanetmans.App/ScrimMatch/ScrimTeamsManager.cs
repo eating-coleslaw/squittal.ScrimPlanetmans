@@ -1322,7 +1322,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Deaths"))
+            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Deaths"))
+            using (await _characterMatchDataLock.WaitAsync($"Deaths"))
             {
                 try
                 {
@@ -1566,7 +1567,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var currentMatchId = _matchDataService.CurrentMatchId;
 
-            using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Destructions"))
+            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Destructions"))
+            using (await _characterMatchDataLock.WaitAsync($"Destructions"))
             {
                 try
                 {
@@ -1602,7 +1604,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _logger.LogInformation($"Started removing Revives for {characterId}");
 
-            using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Revives"))
+            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Revives"))
+            using (await _characterMatchDataLock.WaitAsync($"Revives"))
             {
                 try
                 {
@@ -1802,7 +1805,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Damages"))
+            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Damages"))
+            using (await _characterMatchDataLock.WaitAsync($"Damages"))
             {
                 try
                 {
@@ -1982,7 +1986,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Grenades"))
+            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Grenades"))
+            using (await _characterMatchDataLock.WaitAsync($"Grenades"))
             {
                 try
                 {
@@ -2164,7 +2169,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
 
-            using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Spots"))
+            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Spots"))
+            using (await _characterMatchDataLock.WaitAsync($"Spots"))
             {
                 try
                 {
