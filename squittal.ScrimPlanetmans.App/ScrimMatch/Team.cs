@@ -147,8 +147,41 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ParticipatingPlayersMap.TryRemove(player.Id, out Player removedPlayer);
 
             //EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
+            RemovePlayerObjectiveTicksFromTeamAggregate(player); // TODO: remove this when Objective Ticks are saved to DB
 
             return true;
+        }
+
+        private void RemovePlayerObjectiveTicksFromTeamAggregate(Player player)
+        {
+            var teamUpdates = new ScrimEventAggregateRoundTracker();
+
+            var playerTracker = player.EventAggregateTracker;
+
+            var playerMaxRound = playerTracker.HighestRound;
+            var teamMaxRound = EventAggregateTracker.HighestRound;
+
+            var maxRound = playerMaxRound >= teamMaxRound ? playerMaxRound : teamMaxRound;
+
+            for (var round = 1; round <= maxRound; round++)
+            {
+                if (playerTracker.TryGetTargetRoundStats(round, out var roundStats))
+                {
+                    var tempStats = new ScrimEventAggregate();
+
+                    tempStats.ObjectiveCaptureTicks += roundStats.ObjectiveCaptureTicks;
+                    tempStats.ObjectiveDefenseTicks += roundStats.ObjectiveDefenseTicks;
+
+                    teamUpdates.AddToCurrent(tempStats);
+
+                    teamUpdates.SaveRoundToHistory(round);
+                }
+            }
+
+            teamUpdates.RoundStats.ObjectiveCaptureTicks += playerTracker.RoundStats.ObjectiveCaptureTicks;
+            teamUpdates.RoundStats.ObjectiveDefenseTicks += playerTracker.RoundStats.ObjectiveDefenseTicks;
+
+            EventAggregateTracker.SubtractFromHistory(teamUpdates);
         }
 
         public bool TryAddOutfit(Outfit outfit)

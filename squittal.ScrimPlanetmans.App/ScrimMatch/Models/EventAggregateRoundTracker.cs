@@ -111,6 +111,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
+        public bool TryGetTargetRoundStats(int targetRound, out ScrimEventAggregate targetRoundStats)
+        {
+            targetRoundStats = new ScrimEventAggregate();
+            
+            if (targetRound < 0)
+            {
+                return false;
+            }
+
+            if (RoundHistory.ContainsKey(targetRound))
+            {
+                targetRoundStats.Add(RoundHistory[targetRound]);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void ResetRoundStats()
         {
             RoundStats = new ScrimEventAggregate();
