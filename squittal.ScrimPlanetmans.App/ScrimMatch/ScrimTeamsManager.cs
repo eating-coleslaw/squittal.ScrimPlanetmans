@@ -1322,7 +1322,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Deaths"))
             using (await _characterMatchDataLock.WaitAsync($"Deaths"))
             {
                 try
@@ -1567,7 +1566,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var currentMatchId = _matchDataService.CurrentMatchId;
 
-            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Destructions"))
             using (await _characterMatchDataLock.WaitAsync($"Destructions"))
             {
                 try
@@ -1604,7 +1602,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _logger.LogInformation($"Started removing Revives for {characterId}");
 
-            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Revives"))
             using (await _characterMatchDataLock.WaitAsync($"Revives"))
             {
                 try
@@ -1805,7 +1802,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Damages"))
             using (await _characterMatchDataLock.WaitAsync($"Damages"))
             {
                 try
@@ -1894,18 +1890,44 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                             var characterIsVictim = (victimId == characterId);
 
-                            var attackerUpdate = new ScrimEventAggregate()
-                            {
-                                Points = points,
-                                NetScore = points,
-                                DamageAssists = 1
-                            };
+                            ScrimEventAggregate attackerUpdate;
+                            ScrimEventAggregate victimUpdate;
 
-                            var victimUpdate = new ScrimEventAggregate()
+                            if (damageAssistEvent.ActionType == ScrimActionType.DamageAssist)
                             {
-                                NetScore = -points,
-                                DamageAssistedDeaths = 1
-                            };
+                                attackerUpdate = new ScrimEventAggregate()
+                                {
+                                    Points = points,
+                                    NetScore = points,
+                                    DamageAssists = 1
+                                };
+
+                                victimUpdate = new ScrimEventAggregate()
+                                {
+                                    NetScore = -points,
+                                    DamageAssistedDeaths = 1
+                                };
+                            }
+                            else if (damageAssistEvent.ActionType == ScrimActionType.DamageTeamAssist)
+                            {
+                                attackerUpdate = new ScrimEventAggregate()
+                                {
+                                    Points = points,
+                                    NetScore = points,
+                                    DamageTeamAssists = 1
+                                };
+
+                                victimUpdate = new ScrimEventAggregate()
+                                {
+                                    NetScore = -points,
+                                    DamageAssistedDeaths = 1,
+                                    DamageTeamAssistedDeaths = 1
+                                };
+                            }
+                            else
+                            {
+                                continue;
+                            }
 
                             /* TEST */
                             teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
@@ -1986,7 +2008,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Grenades"))
             using (await _characterMatchDataLock.WaitAsync($"Grenades"))
             {
                 try
@@ -2075,18 +2096,44 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                             var characterIsVictim = (victimId == characterId);
 
-                            var attackerUpdate = new ScrimEventAggregate()
-                            {
-                                Points = points,
-                                NetScore = points,
-                                GrenadeAssists = 1
-                            };
+                            ScrimEventAggregate attackerUpdate;
+                            ScrimEventAggregate victimUpdate;
 
-                            var victimUpdate = new ScrimEventAggregate()
+                            if (grenadeAssistEvent.ActionType == ScrimActionType.GrenadeAssist)
                             {
-                                NetScore = -points,
-                                GrenadeAssistedDeaths = 1
-                            };
+                                attackerUpdate = new ScrimEventAggregate()
+                                {
+                                    Points = points,
+                                    NetScore = points,
+                                    GrenadeAssists = 1
+                                };
+
+                                victimUpdate = new ScrimEventAggregate()
+                                {
+                                    NetScore = -points,
+                                    GrenadeAssistedDeaths = 1
+                                };
+                            }
+                            else if (grenadeAssistEvent.ActionType == ScrimActionType.GrenadeTeamAssist)
+                            {
+                                attackerUpdate = new ScrimEventAggregate()
+                                {
+                                    Points = points,
+                                    NetScore = points,
+                                    GrenadeTeamAssists = 1
+                                };
+
+                                victimUpdate = new ScrimEventAggregate()
+                                {
+                                    NetScore = -points,
+                                    GrenadeAssistedDeaths = 1,
+                                    GrenadeTeamAssistedDeaths = 1
+                                };
+                            }
+                            else
+                            {
+                                continue;
+                            }
 
                             /* TEST */
                             teamUpdates[attackerTeamOrdinal].AddToCurrent(attackerUpdate);
@@ -2169,7 +2216,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
 
-            //using (await _characterMatchDataLock.WaitAsync($"{teamOrdinal}^Spots"))
             using (await _characterMatchDataLock.WaitAsync($"Spots"))
             {
                 try
