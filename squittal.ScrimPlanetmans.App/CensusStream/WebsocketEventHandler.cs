@@ -1119,10 +1119,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ExperienceType.SpotAssist => ScrimActionType.SpotAssist,
                 _ => ScrimActionType.UtilityAssist
             };
-
-            //return assistEvent.ExperienceType == ExperienceType.DamageAssist
-            //            ? ScrimActionType.DamageAssist
-            //            : ScrimActionType.UtilityAssist;
         }
 
         private async Task SaveScrimDamageAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)
