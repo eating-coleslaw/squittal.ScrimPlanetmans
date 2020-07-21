@@ -424,6 +424,8 @@
         MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
 
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+
+        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()
@@ -442,21 +444,21 @@
         MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+    //    //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
 
-        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+    //    //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    //    //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
 
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+    //    //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+    //    //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+    //    //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
-        _worlds = await WorldService.GetAllWorldsAsync();
-    }
+    //    _worlds = await WorldService.GetAllWorldsAsync();
+    //}
 
     protected override void OnParametersSet()
     {

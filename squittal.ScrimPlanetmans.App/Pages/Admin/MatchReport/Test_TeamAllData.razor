@@ -463,25 +463,27 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
+
+        _worlds = WorldService.GetAllWorlds();
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-        //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
+    //    //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
 
-        //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-        //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+    //    //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    //    //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
 
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+    //    //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+    //    //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
+    //    //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
 
-        //MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
+    //    //MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
 
-        _worlds = await WorldService.GetAllWorldsAsync();
-    }
+    //    _worlds = await WorldService.GetAllWorldsAsync();
+    //}
 
     public void Dispose()
     {
