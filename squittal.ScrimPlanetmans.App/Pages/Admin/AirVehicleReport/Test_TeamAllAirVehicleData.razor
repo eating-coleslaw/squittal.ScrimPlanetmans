@@ -444,22 +444,6 @@
         MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
     }
 
-    //protected override async Task OnInitializedAsync()
-    //{
-    //    //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-    //    //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
-
-    //    //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-    //    //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
-
-    //    //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-    //    //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
-
-    //    //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-
-    //    _worlds = await WorldService.GetAllWorldsAsync();
-    //}
-
     protected override void OnParametersSet()
     {
         if (i_teamOrdinal != _renderedTeamOrdinal && i_teamOrdinal >= 0)

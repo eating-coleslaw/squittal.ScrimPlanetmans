@@ -428,22 +428,6 @@
         _worlds = WorldService.GetAllWorlds();
     }
 
-    //protected override async Task OnInitializedAsync()
-    //{
-    //    //MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
-    //    //MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
-
-    //    //MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-    //    //MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
-
-    //    //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-    //    //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
-
-    //    //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-
-    //    _worlds = await WorldService.GetAllWorldsAsync();
-    //}
-
     public void Dispose()
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
