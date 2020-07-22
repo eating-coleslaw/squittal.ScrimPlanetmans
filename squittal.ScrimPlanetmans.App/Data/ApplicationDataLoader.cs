@@ -9,7 +9,8 @@ namespace squittal.ScrimPlanetmans.Data
 {
     public class ApplicationDataLoader : IApplicationDataLoader
     {
-        private readonly IItemService _itemService;
+        //private readonly IItemService _itemService;
+        private readonly IItemCategoryService _itemCategoryService;
         private readonly IScrimRulesetManager _rulesetManager;
         private readonly IScrimMatchScorer _matchScorer;
         private readonly IFacilityService _facilityService;
@@ -19,7 +20,8 @@ namespace squittal.ScrimPlanetmans.Data
 
 
         public ApplicationDataLoader(
-            IItemService itemService,
+            //IItemService itemService,
+            IItemCategoryService itemCategoryService,
             IScrimRulesetManager rulesetManager,
             IScrimMatchScorer matchScorer,
             IFacilityService facilityService,
@@ -27,7 +29,8 @@ namespace squittal.ScrimPlanetmans.Data
             IZoneService zoneService,
             ILogger<ApplicationDataLoader> logger)
         {
-            _itemService = itemService;
+            //_itemService = itemService;
+            _itemCategoryService = itemCategoryService;
             _rulesetManager = rulesetManager;
             _matchScorer = matchScorer;
             _facilityService = facilityService;
@@ -40,7 +43,8 @@ namespace squittal.ScrimPlanetmans.Data
         {
             List<Task> TaskList = new List<Task>();
 
-            var weaponCategoriesListTask = _itemService.SetUpWeaponCategoriesListAsync();
+            //var weaponCategoriesListTask = _itemService.SetUpWeaponCategoriesListAsync();
+            var weaponCategoriesListTask = _itemCategoryService.SetUpWeaponCategoriesListAsync();
             TaskList.Add(weaponCategoriesListTask);
 
             var activeRulesetTask = _rulesetManager.SetupActiveRuleset();

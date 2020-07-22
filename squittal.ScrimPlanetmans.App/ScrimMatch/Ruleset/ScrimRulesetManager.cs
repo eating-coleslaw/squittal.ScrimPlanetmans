@@ -15,6 +15,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemService _itemService;
+        private readonly IItemCategoryService _itemCategoryService;
         public ILogger<ScrimRulesetManager> _logger;
 
         private Ruleset _workingRuleset;
@@ -23,10 +24,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly int _defaultRulesetId;
 
 
-        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemService itemService, ILogger<ScrimRulesetManager> logger)
+        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemService itemService, IItemCategoryService itemCategoryService, ILogger<ScrimRulesetManager> logger)
         {
             _dbContextHelper = dbContextHelper;
             _itemService = itemService;
+            _itemCategoryService = itemCategoryService;
             _logger = logger;
 
             _defaultRulesetId = 1;
@@ -113,7 +115,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             foreach (var rule in ActiveRuleset.ItemCategoryRules)
             {
-                rule.ItemCategory = _itemService.GetWeaponItemCategory(rule.ItemCategoryId);
+                //rule.ItemCategory = _itemService.GetWeaponItemCategory(rule.ItemCategoryId);
+                rule.ItemCategory = _itemCategoryService.GetWeaponItemCategory(rule.ItemCategoryId);
             }
 
             _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
@@ -267,8 +270,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 // Item Category Rules
                 var defaultItemCategoryRules = GetDefaultItemCategoryRules();
                 var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
-                var allItemCategoryIds = await _itemService.GetItemCategoryIdsAsync();
-                var allWeaponItemCategoryIds = await _itemService.GetWeaponItemCategoryIdsAsync();
+                //var allItemCategoryIds = await _itemService.GetItemCategoryIdsAsync();
+                var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
+                //var allWeaponItemCategoryIds = await _itemService.GetWeaponItemCategoryIdsAsync();
+                var allWeaponItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
 
                 var allItemCategoryRules = new List<RulesetItemCategoryRule>();
 

@@ -39,7 +39,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 return await dbContext.Worlds.ToListAsync();
             }
-
         }
 
         public IEnumerable<World> GetAllWorlds()
@@ -76,6 +75,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyWorlds = await dbContext.Worlds.AnyAsync();
                 if (anyWorlds)
                 {
+                    await SetupWorldsList();
+
                     return;
                 }
             }
@@ -86,6 +87,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 RefreshStoreFromBackup();
             }
+
+            await SetupWorldsList();
         }
 
         public async Task<bool> RefreshStoreFromCensus()
