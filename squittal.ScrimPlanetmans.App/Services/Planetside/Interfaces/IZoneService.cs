@@ -6,7 +6,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public interface IZoneService : ILocallyBackedCensusStore
     {
-        IEnumerable<Zone> GetAllZones();
+        Task<IEnumerable<Zone>> GetAllZones();
         Task<IEnumerable<Zone>> GetAllZonesAsync();
         Task<Zone> GetZoneAsync(int zoneId);
         Task SetupZonesList();

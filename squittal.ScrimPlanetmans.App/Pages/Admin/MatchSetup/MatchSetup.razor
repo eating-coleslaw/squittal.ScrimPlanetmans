@@ -206,7 +206,8 @@
     #region Facility & World Select List Variables
     private List<MapRegion> _mapRegions { get; set; } = new List<MapRegion>();
     private List<int> _mapZones { get; set; } = new List<int>();
-    private List<Zone> _zones { get; set; } = new List<Zone>();
+    //private List<Zone> _zones { get; set; } = new List<Zone>();
+    private IEnumerable<Zone> _zones { get; set; } //= new List<Zone>();
     private string _noFacilitIdValue { get; set; } = "-1";
 
     private List<World> _worlds { get; set; } = new List<World>();
@@ -233,14 +234,12 @@
     protected override async Task OnInitializedAsync()
     {
         await GetCensusStreamStatus(true);
+
+        _zones = await ZoneService.GetAllZones();
     }
 
     protected override void OnInitialized()
     {
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-        //MessageService.RaiseScrimDeathActionEvent += ReceivePlayerDeathEvent;
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
 
@@ -259,8 +258,6 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
         _matchId = ScrimMatchEngine.GetMatchId();
-
-        _zones = ZoneService.GetAllZones().ToList();
 
         _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
         _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
