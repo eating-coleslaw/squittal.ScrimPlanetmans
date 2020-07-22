@@ -14,51 +14,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemCategoryService _itemCategoryService;
-        private readonly CensusItemCategory _censusItemCategory;
         private readonly CensusItem _censusItem;
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ItemService> _logger;
 
         public string BackupSqlScriptFileName => "dbo.Item.Table.sql";
 
-
         private List<Item> _items = new List<Item>();
         private List<Item> _weapons = new List<Item>();
 
-        private List<ItemCategory> _weaponCategories = new List<ItemCategory>();
 
-        private List<ItemCategory> _itemCategories = new List<ItemCategory>();
-
-        //private static readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
-        //{
-        //    99,  // Camo
-        //    101, // Vehicles
-        //    103, // Infantry Gear
-        //    105, // Vehicle Gear
-        //    106, // Armor Camo
-        //    107, // Weapon Camo
-        //    108, // Vehicle Camo
-        //    133, // Implants
-        //    134, // Consolidated Camo
-        //    135, // VO Packs
-        //    136, // Male VO Pack
-        //    137, // Female VO Pack
-        //    139, // Infantry Abilities
-        //    140, // Vehicle Abilities
-        //    141, // Boosts & Utilities
-        //    142, // Consolidated Decal
-        //    143, // Attachments
-        //    145, // ANT Utility
-        //    148  // ANT Harvesting Tool
-        //};
-
-
-        public ItemService(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, CensusItemCategory censusItemCategory,
+        public ItemService(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService,
             CensusItem censusItem, ISqlScriptRunner sqlScriptRunner, ILogger<ItemService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _itemCategoryService = itemCategoryService;
-            _censusItemCategory = censusItemCategory;
             _censusItem = censusItem;
             _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
@@ -85,20 +55,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                          .ToList();
         }
 
-        //public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
-        //{
-        //    if (_itemCategories == null || !_itemCategories.Any())
-        //    {
-        //        using var factory = _dbContextHelper.GetFactory();
-        //        var dbContext = factory.GetDbContext();
-
-        //        _itemCategories = await dbContext.ItemCategories.ToListAsync();
-        //    }
-
-        //    return _itemCategories.Select(ic => ic.Id).ToList();
-        //}
-
-
         public async Task SetUpItemsListAsync()
         {
             if (_items == null || _items.Count == 0)
@@ -117,31 +73,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return _weapons.FirstOrDefault(w => w.Id == id);
         }
 
-        //public ItemCategory GetWeaponItemCategory(int itemCategoryId)
-        //{
-        //    return _weaponCategories.FirstOrDefault(w => w.Id == itemCategoryId);
-        //}
-
-        //public IEnumerable<ItemCategory> GetWeaponItemCategories()
-        //{
-        //    return _weaponCategories.ToList();
-        //}
-
-        //public async Task<IEnumerable<int>> GetWeaponItemCategoryIdsAsync()
-        //{
-        //    if (_weaponCategories == null || !_weaponCategories.Any())
-        //    {
-        //        await SetUpWeaponCategoriesListAsync();
-        //    }
-
-        //    return GetWeaponItemCategoryIds();
-        //}
-
-        //public IEnumerable<int> GetWeaponItemCategoryIds()
-        //{
-        //    return _weaponCategories.Select(wc => wc.Id).ToList();
-        //}
-
         public async Task SetUpWeaponsListAsnyc()
         {
             if (_weapons == null || _weapons.Count == 0)
@@ -156,45 +87,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                                         .ToListAsync();
             }
         }
-
-        //public async Task SetUpWeaponCategoriesListAsync()
-        //{
-        //    if (_weaponCategories == null || !_weaponCategories.Any())
-        //    {
-        //        using var factory = _dbContextHelper.GetFactory();
-        //        var dbContext = factory.GetDbContext();
-
-        //        _weaponCategories = await dbContext.ItemCategories
-        //                                    .Where(i => !_nonWeaponItemCategoryIds.Contains(i.Id))
-        //                                    .ToListAsync();
-
-        //        var weaponCategoryIds = await dbContext.Items
-        //                                        .Where(i => i.ItemCategoryId != null && !_nonWeaponItemCategoryIds.Contains((int)i.ItemCategoryId))
-        //                                        .Select(i => (int)i.ItemCategoryId)
-        //                                        .Distinct()
-        //                                        .ToListAsync();
-
-        //        var missingCategoryIds = weaponCategoryIds.Where(cId => !_weaponCategories.Any(w => w.Id == cId)).ToList();
-
-        //        foreach (var categoryId in missingCategoryIds)
-        //        {
-        //            var category = new ItemCategory
-        //            {
-        //                Id = categoryId,
-        //                Name = "Unknown Category",
-        //                IsWeaponCategory = true,
-        //                Domain = ItemCategoryDomain.Default
-        //            };
-
-        //            _weaponCategories.Add(category);
-        //        }    
-        //    }
-        //}
-
-        //public IEnumerable<int> GetNonWeaponItemCateogryIds()
-        //{
-        //    return _nonWeaponItemCategoryIds;
-        //}
 
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
