@@ -10,6 +10,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         IEnumerable<int> GetNonWeaponItemCateogryIds();
         IEnumerable<ItemCategory> GetWeaponItemCategories();
         ItemCategory GetWeaponItemCategory(int itemCategoryId);
+        Task<ItemCategory> GetWeaponItemCategoryAsync(int itemCategoryId);
         Task<IEnumerable<int>> GetWeaponItemCategoryIdsAsync();
         Task SetUpWeaponCategoriesListAsync();
     }

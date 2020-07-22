@@ -4,6 +4,8 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,9 +21,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public string BackupSqlScriptFileName => "dbo.ItemCategory.Table.sql";
 
-        private List<ItemCategory> _itemCategories = new List<ItemCategory>();
-        private List<ItemCategory> _weaponCategories = new List<ItemCategory>();
-
+        private ConcurrentDictionary<int, ItemCategory> _itemCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
+        private ConcurrentDictionary<int, ItemCategory> _weaponCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
 
         private static readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
         {
@@ -129,7 +130,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
         {
-            if (_itemCategories == null || !_itemCategories.Any())
+            if (_itemCategoriesMap == null || !_itemCategoriesMap.Any())
             {
                 await SetUpItemCategoriesListAsync();
             }
@@ -139,7 +140,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<int>> GetWeaponItemCategoryIdsAsync()
         {
-            if (_weaponCategories == null || !_weaponCategories.Any())
+            if (_weaponCategoriesMap.Count == 0 || !_weaponCategoriesMap.Any())
             {
                 await SetUpWeaponCategoriesListAsync();
             }
@@ -149,42 +150,103 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public IEnumerable<int> GetItemCategoryIds()
         {
-            return _itemCategories.Select(ic => ic.Id).ToList();
+            return _itemCategoriesMap.Keys.ToList();
         }
 
         public IEnumerable<int> GetWeaponItemCategoryIds()
         {
-            return _weaponCategories.Select(wc => wc.Id).ToList();
+            return _weaponCategoriesMap.Keys.ToList();
         }
 
         public IEnumerable<ItemCategory> GetWeaponItemCategories()
         {
-            return _weaponCategories.ToList();
+            return _weaponCategoriesMap.Values.ToList();
+        }
+
+        public async Task<ItemCategory> GetWeaponItemCategoryAsync(int itemCategoryId)
+        {
+            if (_weaponCategoriesMap.Count == 0 || !_weaponCategoriesMap.Any())
+            {
+                await SetUpWeaponCategoriesListAsync();
+            }
+
+            return GetWeaponItemCategory(itemCategoryId);
         }
 
         public ItemCategory GetWeaponItemCategory(int itemCategoryId)
         {
-            return _weaponCategories.FirstOrDefault(w => w.Id == itemCategoryId);
+            _weaponCategoriesMap.TryGetValue(itemCategoryId, out var category);
+
+            return category;
         }
 
         public async Task SetUpItemCategoriesListAsync()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
-
-            _itemCategories = await dbContext.ItemCategories.ToListAsync();
-        }
-
-        public async Task SetUpWeaponCategoriesListAsync()
-        {
-            if (_weaponCategories == null || !_weaponCategories.Any())
+            try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                _weaponCategories = await dbContext.ItemCategories
-                                            .Where(i => i.IsWeaponCategory)
-                                            .ToListAsync();
+                var storeCategories = await dbContext.ItemCategories.ToListAsync();
+
+                foreach (var categoryId in _itemCategoriesMap.Keys)
+                {
+                    if (!storeCategories.Any(c => c.Id == categoryId))
+                    {
+                        _itemCategoriesMap.TryRemove(categoryId, out var removedItem);
+                    }
+                }
+
+                foreach (var category in storeCategories)
+                {
+                    if (_itemCategoriesMap.ContainsKey(category.Id))
+                    {
+                        _itemCategoriesMap[category.Id] = category;
+                    }
+                    else
+                    {
+                        _itemCategoriesMap.TryAdd(category.Id, category);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Item Categories Map: {ex}");
+            }
+        }
+
+        public async Task SetUpWeaponCategoriesListAsync()
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeCategories = await dbContext.ItemCategories.ToListAsync();
+
+                foreach (var categoryId in _weaponCategoriesMap.Keys)
+                {
+                    if (!storeCategories.Any(c => c.Id == categoryId))
+                    {
+                        _weaponCategoriesMap.TryRemove(categoryId, out var removedItem);
+                    }
+                }
+
+                foreach (var category in storeCategories)
+                {
+                    if (_weaponCategoriesMap.ContainsKey(category.Id))
+                    {
+                        _weaponCategoriesMap[category.Id] = category;
+                    }
+                    else
+                    {
+                        _weaponCategoriesMap.TryAdd(category.Id, category);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Weapon Item Categories Map: {ex}");
             }
         }
 

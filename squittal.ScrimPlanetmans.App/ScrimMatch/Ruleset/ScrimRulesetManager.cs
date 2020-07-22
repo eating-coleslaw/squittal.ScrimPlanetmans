@@ -113,7 +113,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             foreach (var rule in ActiveRuleset.ItemCategoryRules)
             {
-                rule.ItemCategory = _itemCategoryService.GetWeaponItemCategory(rule.ItemCategoryId);
+                rule.ItemCategory = await _itemCategoryService.GetWeaponItemCategoryAsync(rule.ItemCategoryId);
             }
 
             _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
