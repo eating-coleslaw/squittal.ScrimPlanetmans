@@ -11,6 +11,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -28,6 +29,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public string CurrentMatchId { get; set; }
         public int CurrentMatchRound { get; set; } = 0;
+
+        private ConcurrentDictionary<int, ConstructedTeam> _constructedTeamsMap { get; set; } = new ConcurrentDictionary<int, ConstructedTeam>();
 
         public static Regex ConstructedTeamNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public static Regex ConstructedTeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -49,17 +52,29 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region GET Methods
         public async Task<ConstructedTeam> GetConstructedTeam(int teamId, bool ignoreCollections = false)
         {
+            if (_constructedTeamsMap.Count == 0 || !_constructedTeamsMap.Any())
+            {
+                await SetUpConstructedTeamsMap();
+            }
+
+            _constructedTeamsMap.TryGetValue(teamId, out var team);
+
+            if (ignoreCollections || team == null)
+            {
+                return team;
+            }
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var team = await dbContext.ConstructedTeams.FirstOrDefaultAsync(t => t.Id == teamId);
+                //var team = await dbContext.ConstructedTeams.FirstOrDefaultAsync(t => t.Id == teamId);
 
-                if (ignoreCollections || team == null)
-                {
-                    return team;
-                }
+                //if (ignoreCollections || team == null)
+                //{
+                //    return team;
+                //}
 
                 team.PlayerMemberships = await dbContext.ConstructedTeamPlayerMemberships.Where(m => m.ConstructedTeamId == teamId).ToListAsync();
 
@@ -395,7 +410,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             };
         }
 
-        public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false, bool includeHiddenTeams = false)
+        public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeamsAsync(bool ignoreCollections = false, bool includeHiddenTeams = false)
         {
             try
             {
@@ -426,6 +441,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return null;
             }
         }
+
+        public async Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool includeHiddenTeams = false)
+        {
+            if (_constructedTeamsMap.Count == 0 || !_constructedTeamsMap.Any())
+            {
+                await SetUpConstructedTeamsMap();
+            }
+
+            return includeHiddenTeams
+                        ? _constructedTeamsMap.Values.ToList()
+                        : _constructedTeamsMap.Values.Where(t => !t.IsHiddenFromSelection).ToList();
+        }
+
         #endregion GET Methods
 
         #region CREATE / EDIT Methods
@@ -479,6 +507,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                     await dbContext.SaveChangesAsync();
 
+                    await SetUpConstructedTeamsMap();
+
                     var message = new ConstructedTeamInfoChangeMessage(storeEntity, oldName, oldAlias, oldIsHidden);
                     _messageService.BroadcastConstructedTeamInfoChangeMessage(message);
 
@@ -514,6 +544,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                     dbContext.ConstructedTeams.Add(constructedTeam);
 
                     await dbContext.SaveChangesAsync();
+
+                    await SetUpConstructedTeamsMap();
 
                     return constructedTeam;
                 }
@@ -853,6 +885,44 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             }
         }
         #endregion CREATE / EDIT Methods
+
+        public async Task SetUpConstructedTeamsMap()
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                //var teams = await dbContext.ConstructedTeams.Where(t => !t.IsHiddenFromSelection).ToListAsync();
+                var teams = await dbContext.ConstructedTeams.ToListAsync();
+
+                var newMap = new ConcurrentDictionary<int, ConstructedTeam>();
+
+                foreach (var teamId in _constructedTeamsMap.Keys)
+                {
+                    if (!teams.Any(t => t.Id == teamId))
+                    {
+                        _constructedTeamsMap.TryRemove(teamId, out var removedTeam);
+                    }
+                }
+
+                foreach (var team in teams)
+                {
+                    if (_constructedTeamsMap.ContainsKey(team.Id))
+                    {
+                        _constructedTeamsMap[team.Id] = team;
+                    }
+                    else
+                    {
+                        _constructedTeamsMap.TryAdd(team.Id, team);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed setting up ConstructedTeamsMap: {ex}");
+            }
+        }
 
         public async Task<bool> IsCharacterIdOnTeam(int teamId, string characterId)
         {

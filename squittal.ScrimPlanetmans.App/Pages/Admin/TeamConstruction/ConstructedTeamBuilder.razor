@@ -193,7 +193,8 @@
     protected override async Task OnInitializedAsync()
     {
         //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
-        _storedTeamsList = await TeamService.GetConstructedTeams(true, true);
+        //_storedTeamsList = await TeamService.GetConstructedTeamsAsync(true, true);
+        _storedTeamsList = await TeamService.GetConstructedTeams(true);
     }
 
     protected override void OnParametersSet()
@@ -293,6 +294,7 @@
         }
 
         //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
+        //_storedTeamsList = await TeamService.GetConstructedTeamsAsync(true, true);
         _storedTeamsList = await TeamService.GetConstructedTeams(true);
 
         InvokeAsyncStateHasChanged();

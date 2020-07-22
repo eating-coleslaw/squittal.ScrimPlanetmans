@@ -570,7 +570,7 @@
     {
         _worlds = await WorldService.GetAllWorldsAsync();
 
-        var storeConstructedTeams = await ConstructedTeamsService.GetConstructedTeams(true);
+        var storeConstructedTeams = await ConstructedTeamsService.GetConstructedTeamsAsync(true);
         _availableConstructedTeams.AddRange(storeConstructedTeams);
     }
 
