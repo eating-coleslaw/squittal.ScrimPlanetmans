@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             if (_zonesMap.Count == 0 || !_zonesMap.Any())
             {
-                await SetupZonesMap();
+                await SetupZonesMapAsync();
             }
 
             return _zonesMap.Values.ToList();
@@ -54,7 +55,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             if (_zonesMap.Count == 0 || !_zonesMap.Any())
             {
-                await SetupZonesMap();
+                await SetupZonesMapAsync();
             }
 
             _zonesMap.TryGetValue(zoneId, out var zone);
@@ -62,31 +63,38 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return zone;
         }
 
-        public async Task SetupZonesMap()
+        public async Task SetupZonesMapAsync()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
-
-            var storeZones = await dbContext.Zones.ToListAsync();
-
-            foreach (var zoneId in _zonesMap.Keys)
+            try
             {
-                if (!storeZones.Any(z => z.Id == zoneId))
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeZones = await dbContext.Zones.ToListAsync();
+
+                foreach (var zoneId in _zonesMap.Keys)
                 {
-                    _zonesMap.TryRemove(zoneId, out var removedZone);
+                    if (!storeZones.Any(z => z.Id == zoneId))
+                    {
+                        _zonesMap.TryRemove(zoneId, out var removedZone);
+                    }
+                }
+
+                foreach (var zone in storeZones)
+                {
+                    if (_zonesMap.ContainsKey(zone.Id))
+                    {
+                        _zonesMap[zone.Id] = zone;
+                    }
+                    else
+                    {
+                        _zonesMap.TryAdd(zone.Id, zone);
+                    }
                 }
             }
-
-            foreach (var zone in storeZones)
+            catch (Exception ex)
             {
-                if (_zonesMap.ContainsKey(zone.Id))
-                {
-                    _zonesMap[zone.Id] = zone;
-                }
-                else
-                {
-                    _zonesMap.TryAdd(zone.Id, zone);
-                }
+                _logger.LogError($"Error setting up Zones Map: {ex}");
             }
         }
 
@@ -100,7 +108,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyZones = await dbContext.Zones.AnyAsync();
                 if (anyZones)
                 {
-                    await SetupZonesMap();
+                    await SetupZonesMapAsync();
 
                     return;
                 }
@@ -113,7 +121,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 RefreshStoreFromBackup();
             }
 
-            await SetupZonesMap();
+            await SetupZonesMapAsync();
         }
 
         public async Task<bool> RefreshStoreFromCensus()

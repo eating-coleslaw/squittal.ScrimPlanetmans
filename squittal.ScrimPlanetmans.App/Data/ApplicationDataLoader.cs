@@ -52,7 +52,7 @@ namespace squittal.ScrimPlanetmans.Data
             var worldsTask = _worldService.SetupWorldsList();
             TaskList.Add(worldsTask);
 
-            var zonesTask = _zoneService.SetupZonesMap();
+            var zonesTask = _zoneService.SetupZonesMapAsync();
             TaskList.Add(zonesTask);
 
             await Task.WhenAll(TaskList);
