@@ -34,7 +34,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             if (_zonesMap.Count == 0 || !_zonesMap.Any())
             {
-                await SetupZonesList();
+                await SetupZonesMap();
             }
 
             return _zonesMap.Values.ToList();
@@ -54,7 +54,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             if (_zonesMap.Count == 0 || !_zonesMap.Any())
             {
-                await SetupZonesList();
+                await SetupZonesMap();
             }
 
             _zonesMap.TryGetValue(zoneId, out var zone);
@@ -62,7 +62,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return zone;
         }
 
-        public async Task SetupZonesList()
+        public async Task SetupZonesMap()
         {
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
@@ -100,7 +100,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyZones = await dbContext.Zones.AnyAsync();
                 if (anyZones)
                 {
-                    await SetupZonesList();
+                    await SetupZonesMap();
 
                     return;
                 }
@@ -113,7 +113,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 RefreshStoreFromBackup();
             }
 
-            await SetupZonesList();
+            await SetupZonesMap();
         }
 
         public async Task<bool> RefreshStoreFromCensus()

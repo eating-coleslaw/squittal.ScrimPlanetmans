@@ -9,6 +9,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         Task<IEnumerable<Zone>> GetAllZones();
         Task<IEnumerable<Zone>> GetAllZonesAsync();
         Task<Zone> GetZoneAsync(int zoneId);
-        Task SetupZonesList();
+        Task SetupZonesMap();
     }
 }
