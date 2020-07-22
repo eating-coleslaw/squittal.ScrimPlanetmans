@@ -4,6 +4,8 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,8 +22,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public string BackupSqlScriptFileName => "dbo.Item.Table.sql";
 
-        private List<Item> _items = new List<Item>();
-        private List<Item> _weapons = new List<Item>();
+        //private List<Item> _items = new List<Item>();
+        //private List<Item> _weapons = new List<Item>();
+
+        private ConcurrentDictionary<int, Item> _itemsMap { get; set; } = new ConcurrentDictionary<int, Item>();
+        private ConcurrentDictionary<int, Item> _weaponsMap { get; set; } = new ConcurrentDictionary<int, Item>();
 
 
         public ItemService(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService,
@@ -34,57 +39,113 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _logger = logger;
         }
 
-        public async Task<Item> GetItem(int itemId)
+        public async Task<Item> GetItemAsync(int itemId)
         {
-            if (_items == null || _items.Count == 0)
+            if (_itemsMap == null || _itemsMap.Count == 0)
             {
-                await SetUpItemsListAsync();
+                await SetUpItemsMapAsync();
             }
 
-            return _items.FirstOrDefault(i => i.Id == itemId);
+            _itemsMap.TryGetValue(itemId, out var item);
+
+            return item;
         }
 
         public async Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId)
         {
-            if (_items == null || _items.Count == 0)
+            if (_itemsMap == null || _itemsMap.Count == 0)
             {
-                await SetUpItemsListAsync();
+                await SetUpItemsMapAsync();
             }
 
-            return _items.Where(i => i.ItemCategoryId == categoryId && i.ItemCategoryId.HasValue)
-                         .ToList();
+            return _itemsMap.Values.Where(i => i.ItemCategoryId == categoryId && i.ItemCategoryId.HasValue).ToList();
         }
 
-        public async Task SetUpItemsListAsync()
+        public async Task SetUpItemsMapAsync()
         {
-            if (_items == null || _items.Count == 0)
+            try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                _items = await dbContext.Items.ToListAsync();
+                var storeItems = await dbContext.Items.ToListAsync();
+
+                foreach (var itemId in _itemsMap.Keys)
+                {
+                    if (!storeItems.Any(i => i.Id == itemId))
+                    {
+                        _itemsMap.TryRemove(itemId, out var removedItem);
+                    }
+                }
+
+                foreach (var item in storeItems)
+                {
+                    if (_itemsMap.ContainsKey(item.Id))
+                    {
+                        _itemsMap[item.Id] = item;
+                    }
+                    else
+                    {
+                        _itemsMap.TryAdd(item.Id, item);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Items Map: {ex}");
             }
         }
 
-        public Item GetWeaponItem(int id)
+        public async Task<Item> GetWeaponItemAsync(int id)
         {
             // TODO: handle "Unknown" weapon deaths/kills, like Fatalities
             
-            return _weapons.FirstOrDefault(w => w.Id == id);
+            if (_weaponsMap == null || _weaponsMap.Count == 0)
+            {
+                await SetUpWeaponsMapAsync();
+            }
+
+            _weaponsMap.TryGetValue(id, out var item);
+
+            return item;
         }
 
-        public async Task SetUpWeaponsListAsnyc()
+        public async Task SetUpWeaponsMapAsync()
         {
-            if (_weapons == null || _weapons.Count == 0)
+            try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
                 var nonWeaponItemCategoryIds = _itemCategoryService.GetNonWeaponItemCateogryIds();
 
-                _weapons = await dbContext.Items
+                var storeWeapons = await dbContext.Items
                                         .Where(i => i.ItemCategoryId.HasValue && !nonWeaponItemCategoryIds.Contains((int)i.ItemCategoryId))
                                         .ToListAsync();
+
+                foreach (var weaponId in _weaponsMap.Keys)
+                {
+                    if (!storeWeapons.Any(i => i.Id == weaponId))
+                    {
+                        _weaponsMap.TryRemove(weaponId, out var removedItem);
+                    }
+                }
+
+                foreach (var weapon in storeWeapons)
+                {
+                    if (_weaponsMap.ContainsKey(weapon.Id))
+                    {
+                        _weaponsMap[weapon.Id] = weapon;
+                    }
+                    else
+                    {
+                        _weaponsMap.TryAdd(weapon.Id, weapon);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Weapons Map: {ex}");
             }
         }
 
@@ -99,7 +160,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 if (anyItems)
                 {
                     //await SetUpItemsListAsync();
-                    await SetUpWeaponsListAsnyc();
+                    await SetUpWeaponsMapAsync();
 
                     return;
                 }
@@ -113,7 +174,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             //await SetUpItemsListAsync();
-            await SetUpWeaponsListAsnyc();
+            await SetUpWeaponsMapAsync();
         }
 
         public async Task<bool> RefreshStoreFromCensus()

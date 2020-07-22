@@ -206,7 +206,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 IsHeadshot = payload.IsHeadshot
             };
 
-            var weaponItem = await _itemService.GetItem((int)payload.AttackerWeaponId);
+            var weaponItem = await _itemService.GetWeaponItemAsync((int)payload.AttackerWeaponId);
             if (weaponItem != null)
             {
                 deathEvent.Weapon = new ScrimActionWeaponInfo()
@@ -465,7 +465,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 ZoneId = payload.ZoneId,
             };
 
-            var weaponItem = await _itemService.GetItem((int)payload.AttackerWeaponId);
+            var weaponItem = await _itemService.GetWeaponItemAsync((int)payload.AttackerWeaponId);
             if (weaponItem != null)
             {
                 destructionEvent.Weapon = new ScrimActionWeaponInfo

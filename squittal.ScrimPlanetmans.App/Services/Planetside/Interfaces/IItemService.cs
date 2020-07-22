@@ -4,21 +4,13 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
-    public interface IItemService : ILocallyBackedCensusStore //ICountableStore, ILocallyBackedStore, IUpdateable
+    public interface IItemService : ILocallyBackedCensusStore
     {
-        Task<Item> GetItem(int itemId);
-        //Task<IEnumerable<int>> GetItemCategoryIdsAsync();
+        Task<Item> GetItemAsync(int itemId);
         Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId);
-        //IEnumerable<int> GetNonWeaponItemCateogryIds();
-        Item GetWeaponItem(int id);
-        //IEnumerable<ItemCategory> GetWeaponItemCategories();
-        //ItemCategory GetWeaponItemCategory(int itemCategoryId);
-        //IEnumerable<int> GetWeaponItemCategoryIds();
-        //Task<IEnumerable<int>> GetWeaponItemCategoryIdsAsync();
+        Task<Item> GetWeaponItemAsync(int id);
 
-        //Task RefreshStore();
-        Task SetUpItemsListAsync();
-        //Task SetUpWeaponCategoriesListAsync();
-        Task SetUpWeaponsListAsnyc();
+        Task SetUpItemsMapAsync();
+        Task SetUpWeaponsMapAsync();
     }
 }
