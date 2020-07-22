@@ -34,7 +34,14 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSignalR();
 
             services.AddDbContext<PlanetmansDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("PlanetmansDbContext")));
+                options.UseSqlServer(Configuration.GetConnectionString("PlanetmansDbContext"),
+                                        sqlServerOptionsAction: sqlOptions =>
+                                        {
+                                            sqlOptions.EnableRetryOnFailure(
+                                                maxRetryCount: 5,
+                                                maxRetryDelay: TimeSpan.FromSeconds(30),
+                                                errorNumbersToAdd: null);
+                                        }));
 
             services.AddCensusServices(options =>
                 options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
