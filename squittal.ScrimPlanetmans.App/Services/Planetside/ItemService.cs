@@ -22,9 +22,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public string BackupSqlScriptFileName => "dbo.Item.Table.sql";
 
-        //private List<Item> _items = new List<Item>();
-        //private List<Item> _weapons = new List<Item>();
-
         private ConcurrentDictionary<int, Item> _itemsMap { get; set; } = new ConcurrentDictionary<int, Item>();
         private ConcurrentDictionary<int, Item> _weaponsMap { get; set; } = new ConcurrentDictionary<int, Item>();
 
