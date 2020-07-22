@@ -31,8 +31,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public static Regex ConstructedTeamNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public static Regex ConstructedTeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         public static Regex CharacterNameRegex { get; } = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private readonly KeyedSemaphoreSlim _constructedTeamLock = new KeyedSemaphoreSlim();
 
         public ConstructedTeamService(IDbContextHelper dbContextHelper, ICharacterService characterService, IScrimPlayersService playerService,
             IScrimMessageBroadcastService messageService, ILogger<ConstructedTeamService> logger)
@@ -44,6 +45,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             _logger = logger;
         }
 
+
+        #region GET Methods
         public async Task<ConstructedTeam> GetConstructedTeam(int teamId, bool ignoreCollections = false)
         {
             try
@@ -423,7 +426,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return null;
             }
         }
+        #endregion GET Methods
 
+        #region CREATE / EDIT Methods
         public async Task SaveConstructedTeam(ConstructedTeamFormInfo constructedTeamFormInfo)
         {
             await CreateConstructedTeam(ConvertToDbModel(constructedTeamFormInfo));
@@ -448,39 +453,42 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return false;
             }
 
-            try
+            using (await _constructedTeamLock.WaitAsync($"{updateId}"))
             {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
-
-                var storeEntity = await GetConstructedTeam(updateId, true);
-
-                if (storeEntity == null)
+                try
                 {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeEntity = await GetConstructedTeam(updateId, true);
+
+                    if (storeEntity == null)
+                    {
+                        return false;
+                    }
+
+                    var oldName = storeEntity.Name;
+                    var oldAlias = storeEntity.Alias;
+                    var oldIsHidden = storeEntity.IsHiddenFromSelection;
+
+                    storeEntity.Name = updateName;
+                    storeEntity.Alias = updateAlias;
+                    storeEntity.IsHiddenFromSelection = updateIsHidden;
+
+                    dbContext.ConstructedTeams.Update(storeEntity);
+
+                    await dbContext.SaveChangesAsync();
+
+                    var message = new ConstructedTeamInfoChangeMessage(storeEntity, oldName, oldAlias, oldIsHidden);
+                    _messageService.BroadcastConstructedTeamInfoChangeMessage(message);
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error update Constructed Team {updateId} info: {ex}");
                     return false;
                 }
-
-                var oldName = storeEntity.Name;
-                var oldAlias = storeEntity.Alias;
-                var oldIsHidden = storeEntity.IsHiddenFromSelection;
-
-                storeEntity.Name = updateName;
-                storeEntity.Alias = updateAlias;
-                storeEntity.IsHiddenFromSelection = updateIsHidden;
-
-                dbContext.ConstructedTeams.Update(storeEntity);
-
-                await dbContext.SaveChangesAsync();
-
-                var message = new ConstructedTeamInfoChangeMessage(storeEntity, oldName, oldAlias, oldIsHidden);
-                _messageService.BroadcastConstructedTeamInfoChangeMessage(message);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error update Constructed Team {updateId} info: {ex}");
-                return false;
             }
         }
 
@@ -496,31 +504,26 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return null;
             }
 
-            try
+            using (await _constructedTeamLock.WaitAsync($"{constructedTeam.Id}"))
             {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
 
-                dbContext.ConstructedTeams.Add(constructedTeam);
+                    dbContext.ConstructedTeams.Add(constructedTeam);
 
-                await dbContext.SaveChangesAsync();
+                    await dbContext.SaveChangesAsync();
 
-                return constructedTeam;
+                    return constructedTeam;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return null;
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.ToString());
-
-                return null;
-            }
-        }
-
-        public async Task<bool> IsCharacterIdOnTeam(int teamId, string characterId)
-        {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
-
-            return await dbContext.ConstructedTeamPlayerMemberships.AnyAsync(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId);
         }
 
         public async Task<Character> TryAddCharacterToConstructedTeam(int teamId, string characterInput, string customAlias)
@@ -567,53 +570,56 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         private async Task<Character> TryAddCharacterIdToConstructedTeam(int teamId, string characterId, string customAlias)
         {
-            if (await IsCharacterIdOnTeam(teamId, characterId))
+            using (await _constructedTeamLock.WaitAsync($"{teamId}^{characterId}"))
             {
-                return null;
-            }
-
-            var character = await _characterService.GetCharacterAsync(characterId);
-
-            if (character == null)
-            {
-                return null;
-            }
-
-            string playerAlias;
-            if (string.IsNullOrWhiteSpace(customAlias))
-            {
-                playerAlias = Player.GetTrimmedPlayerName(character.Name, character.WorldId);
-
-                if (string.IsNullOrWhiteSpace(playerAlias))
+                if (await IsCharacterIdOnTeam(teamId, characterId))
                 {
-                    playerAlias = character.Name;
+                    return null;
                 }
-            }
-            else
-            {
-                playerAlias = customAlias;
-            }
 
-            if (await TryAddCharacterToConstructedTeamDb(teamId, characterId, character.FactionId, playerAlias))
-            {
-                var member = new ConstructedTeamPlayerMembership
+                var character = await _characterService.GetCharacterAsync(characterId);
+
+                if (character == null)
                 {
-                    ConstructedTeamId = teamId,
-                    CharacterId = characterId,
-                    FactionId = character.FactionId,
-                    Alias = playerAlias
-                };
+                    return null;
+                }
 
-                var memberDetails = ConvertToMemberDetailsModel(character, member);
+                string playerAlias;
+                if (string.IsNullOrWhiteSpace(customAlias))
+                {
+                    playerAlias = Player.GetTrimmedPlayerName(character.Name, character.WorldId);
 
-                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, memberDetails, ConstructedTeamMemberChangeType.Add);
-                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+                    if (string.IsNullOrWhiteSpace(playerAlias))
+                    {
+                        playerAlias = character.Name;
+                    }
+                }
+                else
+                {
+                    playerAlias = customAlias;
+                }
 
-                return character;
-            }
-            else
-            {
-                return null;
+                if (await TryAddCharacterToConstructedTeamDb(teamId, characterId, character.FactionId, playerAlias))
+                {
+                    var member = new ConstructedTeamPlayerMembership
+                    {
+                        ConstructedTeamId = teamId,
+                        CharacterId = characterId,
+                        FactionId = character.FactionId,
+                        Alias = playerAlias
+                    };
+
+                    var memberDetails = ConvertToMemberDetailsModel(character, member);
+
+                    var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, memberDetails, ConstructedTeamMemberChangeType.Add);
+                    _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+
+                    return character;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -626,46 +632,49 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return null;
             }
 
-            if (await IsCharacterIdOnTeam(teamId, character.Id))
+            using (await _constructedTeamLock.WaitAsync($"{teamId}^{character.Id}"))
             {
-                return null;
-            }
-
-            string playerAlias;
-            if (string.IsNullOrWhiteSpace(customAlias))
-            {
-                playerAlias = Player.GetTrimmedPlayerName(character.Name, character.WorldId);
-
-                if (string.IsNullOrWhiteSpace(playerAlias))
+                if (await IsCharacterIdOnTeam(teamId, character.Id))
                 {
-                    playerAlias = characterName;
+                    return null;
                 }
-            }
-            else
-            {
-                playerAlias = customAlias;
-            }
 
-            if (await TryAddCharacterToConstructedTeamDb(teamId, character.Id, character.FactionId, playerAlias))
-            {
-                var member = new ConstructedTeamPlayerMembership
+                string playerAlias;
+                if (string.IsNullOrWhiteSpace(customAlias))
                 {
-                    ConstructedTeamId = teamId,
-                    CharacterId = character.Id,
-                    FactionId = character.FactionId,
-                    Alias = playerAlias
-                };
+                    playerAlias = Player.GetTrimmedPlayerName(character.Name, character.WorldId);
 
-                var memberDetails = ConvertToMemberDetailsModel(character, member);
+                    if (string.IsNullOrWhiteSpace(playerAlias))
+                    {
+                        playerAlias = characterName;
+                    }
+                }
+                else
+                {
+                    playerAlias = customAlias;
+                }
 
-                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, memberDetails, ConstructedTeamMemberChangeType.Add);
-                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+                if (await TryAddCharacterToConstructedTeamDb(teamId, character.Id, character.FactionId, playerAlias))
+                {
+                    var member = new ConstructedTeamPlayerMembership
+                    {
+                        ConstructedTeamId = teamId,
+                        CharacterId = character.Id,
+                        FactionId = character.FactionId,
+                        Alias = playerAlias
+                    };
 
-                return character;
-            }
-            else
-            {
-                return null;
+                    var memberDetails = ConvertToMemberDetailsModel(character, member);
+
+                    var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, character, memberDetails, ConstructedTeamMemberChangeType.Add);
+                    _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+
+                    return character;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -715,16 +724,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public async Task<bool> TryRemoveCharacterFromConstructedTeam(int teamId, string characterId)
         {
-            if (await TryRemoveCharacterFromConstructedTeamDb(teamId, characterId))
+            using (await _constructedTeamLock.WaitAsync($"{teamId}^{characterId}"))
             {
-                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.Remove);
-                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+                if (await TryRemoveCharacterFromConstructedTeamDb(teamId, characterId))
+                {
+                    var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.Remove);
+                    _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
 
-                return true;
-            }
-            else
-            {
-                return false;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
         }
@@ -766,16 +778,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return false;
             }
 
-            if (await TryUpdateMemberAliasInDb(teamId, characterId, newAlias))
+            using (await _constructedTeamLock.WaitAsync($"{teamId}^{characterId}"))
             {
-                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.UpdateAlias, oldAlias, newAlias);
-                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+                if (await TryUpdateMemberAliasInDb(teamId, characterId, newAlias))
+                {
+                    var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.UpdateAlias, oldAlias, newAlias);
+                    _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
 
-                return true;
-            }
-            else
-            {
-                return false;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
@@ -786,16 +801,19 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 return false;
             }
 
-            if (await TryUpdateMemberAliasInDb(teamId, characterId, null))
+            using (await _constructedTeamLock.WaitAsync($"{teamId}^{characterId}"))
             {
-                var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.UpdateAlias, oldAlias, null);
-                _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
+                if (await TryUpdateMemberAliasInDb(teamId, characterId, null))
+                {
+                    var changeMessage = new ConstructedTeamMemberChangeMessage(teamId, characterId, ConstructedTeamMemberChangeType.UpdateAlias, oldAlias, null);
+                    _messageService.BroadcastConstructedTeamMemberChangeMessage(changeMessage);
 
-                return true;
-            }
-            else
-            {
-                return false;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
@@ -833,6 +851,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
                 return false;
             }
+        }
+        #endregion CREATE / EDIT Methods
+
+        public async Task<bool> IsCharacterIdOnTeam(int teamId, string characterId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.ConstructedTeamPlayerMemberships.AnyAsync(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId);
         }
 
         public static bool IsValidConstructedTeamName(string name)
