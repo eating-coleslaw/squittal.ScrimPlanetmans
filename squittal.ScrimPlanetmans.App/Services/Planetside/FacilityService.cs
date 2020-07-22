@@ -83,6 +83,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyMapRegions = await dbContext.MapRegions.AnyAsync();
                 if (anyMapRegions)
                 {
+                    await SetUpScrimmableMapRegionsAsync();
+
                     return;
                 }
             }
@@ -93,6 +95,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 RefreshStoreFromBackup();
             }
+
+            await SetUpScrimmableMapRegionsAsync();
         }
 
         public async Task<bool> RefreshStoreFromCensus()
