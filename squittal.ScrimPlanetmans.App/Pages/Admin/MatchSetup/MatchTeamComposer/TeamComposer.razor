@@ -347,7 +347,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //var storeConstructedTeams = await ConstructedTeamsService.GetConstructedTeamsAsync(true);
         var storeConstructedTeams = await ConstructedTeamsService.GetConstructedTeams();
         _availableConstructedTeams.AddRange(storeConstructedTeams);
     }

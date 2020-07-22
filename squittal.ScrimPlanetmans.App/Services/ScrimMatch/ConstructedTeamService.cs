@@ -69,13 +69,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                //var team = await dbContext.ConstructedTeams.FirstOrDefaultAsync(t => t.Id == teamId);
-
-                //if (ignoreCollections || team == null)
-                //{
-                //    return team;
-                //}
-
                 team.PlayerMemberships = await dbContext.ConstructedTeamPlayerMemberships.Where(m => m.ConstructedTeamId == teamId).ToListAsync();
 
                 return team;
@@ -893,7 +886,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                //var teams = await dbContext.ConstructedTeams.Where(t => !t.IsHiddenFromSelection).ToListAsync();
                 var teams = await dbContext.ConstructedTeams.ToListAsync();
 
                 var newMap = new ConcurrentDictionary<int, ConstructedTeam>();
