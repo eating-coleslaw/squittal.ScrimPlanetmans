@@ -1106,19 +1106,19 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.OutsideInterference;
             }
 
+            var isTeamkillAssist = (assistEvent.AttackerPlayer != null
+                                    && assistEvent.VictimPlayer != null
+                                    && assistEvent.AttackerPlayer.TeamOrdinal == assistEvent.VictimPlayer.TeamOrdinal);
+
             return assistEvent.ExperienceType switch
             {
-                ExperienceType.DamageAssist => ScrimActionType.DamageAssist,
-                ExperienceType.GrenadeAssist => ScrimActionType.GrenadeAssist,
+                ExperienceType.DamageAssist => (isTeamkillAssist ? ScrimActionType.DamageTeamAssist : ScrimActionType.DamageAssist),
+                ExperienceType.GrenadeAssist => (isTeamkillAssist ? ScrimActionType.GrenadeTeamAssist : ScrimActionType.GrenadeAssist),
                 ExperienceType.HealSupportAssist => ScrimActionType.HealSupportAssist,
                 ExperienceType.ProtectAlliesAssist => ScrimActionType.ProtectAlliesAssist,
                 ExperienceType.SpotAssist => ScrimActionType.SpotAssist,
                 _ => ScrimActionType.UtilityAssist
             };
-
-            //return assistEvent.ExperienceType == ExperienceType.DamageAssist
-            //            ? ScrimActionType.DamageAssist
-            //            : ScrimActionType.UtilityAssist;
         }
 
         private async Task SaveScrimDamageAssistToDb(ScrimAssistActionEvent assistEvent, string matchId, int matchRound, int worldId)

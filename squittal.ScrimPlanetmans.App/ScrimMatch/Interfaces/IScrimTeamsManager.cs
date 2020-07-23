@@ -39,19 +39,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         int? GetTeamOrdinalFromPlayerId(string characterId);
         bool DoPlayersShareTeam(string firstId, string secondId, out int? firstOrdinal, out int? secondOrdinal);
-        bool IsPlayerTracked(string characterId);
         
         Team GetTeamFromOutfitAlias(string aliasLower);
         
         bool DoPlayersShareTeam(Player firstPlayer, Player secondPlayer);
         bool IsOutfitAvailable(string alias);
-        Task<bool> TryAddCharacterToTeam(int teamOrdinal, string inputString);
+        Task<bool> TryAddFreeTextInputCharacterToTeam(int teamOrdinal, string inputString);
 
-        //void UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
         Task UpdatePlayerStats(string characterId, ScrimEventAggregate updates);
         void SetPlayerOnlineStatus(string characterId, bool isOnline);
         void SetPlayerLoadoutId(string characterId, int? loadoutId);
-        //void SetPlayerParticipatingStatus(string characterId, bool isParticipating);
         Task SetPlayerParticipatingStatus(string characterId, bool isParticipating);
         void SetPlayerBenchedStatus(string characterId, bool isBenched);
 
@@ -69,14 +66,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> RemoveCharacterFromTeamAndDb(string characterId);
         int? GetTeamScoreDisplay(int teamOrdinal);
         
-        bool IsConstructedTeamAvailable(int constructedTeamId, out Team owningTeam);
-        Team GetTeamFromConstructedTeamId(int constructedTeamId);
-
-        //bool UdatePlayerTemporaryAlias(string playerId, string newAlias);
         Task<bool> UdatePlayerTemporaryAlias(string playerId, string newAlias);
-        //void ClearPlayerDisplayName(string playerId);
         Task ClearPlayerDisplayName(string playerId);
-        bool IsConstructedTeamAvailable(int constructedTeamId);
+
         Task<bool> AddConstructedTeamFactionMembersToTeam(int teamOrdinal, int constructedTeamId, int factionId);
         IEnumerable<Player> GetTeamOutfitPlayers(int teamOrdinal, string outfitAliasLower);
         IEnumerable<Player> GetTeamNonOutfitPlayers(int teamOrdinal);

@@ -15,9 +15,12 @@
     --sq-light-blue-gray-alpha-5a: #d4d4ff5a;
     --sq-light-blue-gray-alpha-80: #d4d4ff80;
     --sq-light-blue-gray-alpha-a0: #d4d4ffa0;
-    --sq-bg-white-lit: #fcf6ff;
+    --sq-bg-white-lit: #fcf6ff; /* #fdfaff */
+    --sq-bg-white: #fdfaff; /* #fcf6ff; */
     --sq-bg-white-lit-alpha-30: rgba(252, 246, 255, 0.3);
-    --sq-bg-white-unlit: #f6f0ff;
+    /*    --sq-bg-white-unlit: #fcf6ff;*/
+    --sq-bg-white-unlit: #f6f0ff; /* #f0e6ff */
+    /*    --sq-bg-white-unlit: #f6f0ff;*/
     --sq-black: #27273A;
     --sq-black-alpha-50: #27273A50;
     --sq-gray: #79839C;
