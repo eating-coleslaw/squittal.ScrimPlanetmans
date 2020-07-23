@@ -1290,7 +1290,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            var mapRegion = _facilityService.GetScrimmableMapRegionFromFacilityId(payload.FacilityId);
+            var mapRegion = await _facilityService.GetScrimmableMapRegionFromFacilityIdAsync(payload.FacilityId);
 
             var controlEvent = new ScrimFacilityControlActionEvent
             {

@@ -4,6 +4,8 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models.Planetside;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +19,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<FacilityService> _logger;
 
-        private List<MapRegion> _scrimmableMapRegions = new List<MapRegion>();
+        private ConcurrentDictionary<int, MapRegion> _scrimmableFacilityMapRegionsMap { get; set; } = new ConcurrentDictionary<int, MapRegion>();
 
         public string BackupSqlScriptFileName => "dbo.MapRegion.Table.sql";
 
@@ -49,14 +51,36 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<MapRegion> GetScrimmableMapRegions()
+        public async Task<IEnumerable<MapRegion>> GetScrimmableMapRegionsAsync()
         {
-            return _scrimmableMapRegions;
+            if (_scrimmableFacilityMapRegionsMap.Count == 0 || !_scrimmableFacilityMapRegionsMap.Any())
+            {
+                await SetUpScrimmableMapRegionsAsync();
+            }
+
+            return GetScrimmableMapRegions();
         }
 
-        public MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId)
+        private IEnumerable<MapRegion> GetScrimmableMapRegions()
         {
-            return _scrimmableMapRegions.FirstOrDefault(r => r.FacilityId == facilityId);
+            return _scrimmableFacilityMapRegionsMap.Values.ToList();
+        }
+
+        public async Task<MapRegion> GetScrimmableMapRegionFromFacilityIdAsync(int facilityId)
+        {
+            if (_scrimmableFacilityMapRegionsMap.Count == 0 || !_scrimmableFacilityMapRegionsMap.Any())
+            {
+                await SetUpScrimmableMapRegionsAsync();
+            }
+
+            return GetScrimmableMapRegionFromFacilityId(facilityId);
+        }
+
+        private MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId)
+        {
+            _scrimmableFacilityMapRegionsMap.TryGetValue(facilityId, out var mapRegion);
+
+            return mapRegion;
         }
 
         public async Task SetUpScrimmableMapRegionsAsync()
@@ -64,13 +88,42 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             var realZones = new List<int> { 2, 4, 6, 8 };
             var scrimFacilityTypes = new List<int> { 5, 6}; // Small Outpost, Large Outpost
 
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
 
-            _scrimmableMapRegions = await dbContext.MapRegions
+                var storeRegions = await dbContext.MapRegions
                                                     .Where(region => realZones.Contains(region.ZoneId)
                                                                         && scrimFacilityTypes.Contains(region.FacilityTypeId))
                                                     .ToListAsync();
+
+                var storeFacilityIds = storeRegions.Select(r => r.FacilityId).ToList();
+
+                foreach (var facilityId in _scrimmableFacilityMapRegionsMap.Keys)
+                {
+                    if (!storeRegions.Any(r => r.FacilityId == facilityId))
+                    {
+                        _scrimmableFacilityMapRegionsMap.TryRemove(facilityId, out var removedItem);
+                    }
+                }
+
+                foreach (var region in storeRegions)
+                {
+                    if (_scrimmableFacilityMapRegionsMap.ContainsKey(region.FacilityId))
+                    {
+                        _scrimmableFacilityMapRegionsMap[region.FacilityId] = region;
+                    }
+                    else
+                    {
+                        _scrimmableFacilityMapRegionsMap.TryAdd(region.FacilityId, region);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Scrimmable Map Regions Map: {ex}");
+            }
         }
 
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
