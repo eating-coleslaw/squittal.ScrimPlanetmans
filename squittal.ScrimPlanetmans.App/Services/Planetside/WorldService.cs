@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System;
+using System.Threading;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
@@ -20,6 +21,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ILogger<ProfileService> _logger;
 
         private ConcurrentDictionary<int, World> WorldsMap { get; set; } = new ConcurrentDictionary<int, World>();
+        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
         public string BackupSqlScriptFileName => "dbo.World.Table.sql";
 
@@ -67,6 +69,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task SetUpWorldsMap()
         {
+            await _mapSetUpSemaphore.WaitAsync();
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
@@ -97,6 +101,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             catch (Exception ex)
             {
                 _logger.LogError($"Error setting up Worlds Map: {ex}");
+            }
+            finally
+            {
+                _mapSetUpSemaphore.Release();
             }
         }
 

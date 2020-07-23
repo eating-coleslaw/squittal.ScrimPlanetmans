@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
@@ -19,10 +20,13 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ItemCategoryService> _logger;
 
+        private ConcurrentDictionary<int, ItemCategory> ItemCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
+        private readonly SemaphoreSlim _itemCategoryMapSetUpSemaphore = new SemaphoreSlim(1);
+        
+        private ConcurrentDictionary<int, ItemCategory> WeaponCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
+        private readonly SemaphoreSlim _weaponCategoryMapSetUpSemaphore = new SemaphoreSlim(1);
         public string BackupSqlScriptFileName => "dbo.ItemCategory.Table.sql";
 
-        private ConcurrentDictionary<int, ItemCategory> _itemCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
-        private ConcurrentDictionary<int, ItemCategory> _weaponCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
 
         private static readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
         {
@@ -130,7 +134,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
         {
-            if (_itemCategoriesMap == null || !_itemCategoriesMap.Any())
+            if (ItemCategoriesMap == null || !ItemCategoriesMap.Any())
             {
                 await SetUpItemCategoriesListAsync();
             }
@@ -140,7 +144,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<int>> GetWeaponItemCategoryIdsAsync()
         {
-            if (_weaponCategoriesMap.Count == 0 || !_weaponCategoriesMap.Any())
+            if (WeaponCategoriesMap.Count == 0 || !WeaponCategoriesMap.Any())
             {
                 await SetUpWeaponCategoriesListAsync();
             }
@@ -150,22 +154,22 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public IEnumerable<int> GetItemCategoryIds()
         {
-            return _itemCategoriesMap.Keys.ToList();
+            return ItemCategoriesMap.Keys.ToList();
         }
 
         public IEnumerable<int> GetWeaponItemCategoryIds()
         {
-            return _weaponCategoriesMap.Keys.ToList();
+            return WeaponCategoriesMap.Keys.ToList();
         }
 
         public IEnumerable<ItemCategory> GetWeaponItemCategories()
         {
-            return _weaponCategoriesMap.Values.ToList();
+            return WeaponCategoriesMap.Values.ToList();
         }
 
         public async Task<ItemCategory> GetWeaponItemCategoryAsync(int itemCategoryId)
         {
-            if (_weaponCategoriesMap.Count == 0 || !_weaponCategoriesMap.Any())
+            if (WeaponCategoriesMap.Count == 0 || !WeaponCategoriesMap.Any())
             {
                 await SetUpWeaponCategoriesListAsync();
             }
@@ -175,13 +179,15 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public ItemCategory GetWeaponItemCategory(int itemCategoryId)
         {
-            _weaponCategoriesMap.TryGetValue(itemCategoryId, out var category);
+            WeaponCategoriesMap.TryGetValue(itemCategoryId, out var category);
 
             return category;
         }
 
         public async Task SetUpItemCategoriesListAsync()
         {
+            await _itemCategoryMapSetUpSemaphore.WaitAsync();
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
@@ -189,23 +195,23 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 var storeCategories = await dbContext.ItemCategories.ToListAsync();
 
-                foreach (var categoryId in _itemCategoriesMap.Keys)
+                foreach (var categoryId in ItemCategoriesMap.Keys)
                 {
                     if (!storeCategories.Any(c => c.Id == categoryId))
                     {
-                        _itemCategoriesMap.TryRemove(categoryId, out var removedItem);
+                        ItemCategoriesMap.TryRemove(categoryId, out var removedItem);
                     }
                 }
 
                 foreach (var category in storeCategories)
                 {
-                    if (_itemCategoriesMap.ContainsKey(category.Id))
+                    if (ItemCategoriesMap.ContainsKey(category.Id))
                     {
-                        _itemCategoriesMap[category.Id] = category;
+                        ItemCategoriesMap[category.Id] = category;
                     }
                     else
                     {
-                        _itemCategoriesMap.TryAdd(category.Id, category);
+                        ItemCategoriesMap.TryAdd(category.Id, category);
                     }
                 }
             }
@@ -213,10 +219,16 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 _logger.LogError($"Error setting up Item Categories Map: {ex}");
             }
+            finally
+            {
+                _itemCategoryMapSetUpSemaphore.Release();
+            }
         }
 
         public async Task SetUpWeaponCategoriesListAsync()
         {
+            await _weaponCategoryMapSetUpSemaphore.WaitAsync();
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
@@ -224,29 +236,33 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 var storeCategories = await dbContext.ItemCategories.ToListAsync();
 
-                foreach (var categoryId in _weaponCategoriesMap.Keys)
+                foreach (var categoryId in WeaponCategoriesMap.Keys)
                 {
                     if (!storeCategories.Any(c => c.Id == categoryId))
                     {
-                        _weaponCategoriesMap.TryRemove(categoryId, out var removedItem);
+                        WeaponCategoriesMap.TryRemove(categoryId, out var removedItem);
                     }
                 }
 
                 foreach (var category in storeCategories)
                 {
-                    if (_weaponCategoriesMap.ContainsKey(category.Id))
+                    if (WeaponCategoriesMap.ContainsKey(category.Id))
                     {
-                        _weaponCategoriesMap[category.Id] = category;
+                        WeaponCategoriesMap[category.Id] = category;
                     }
                     else
                     {
-                        _weaponCategoriesMap.TryAdd(category.Id, category);
+                        WeaponCategoriesMap.TryAdd(category.Id, category);
                     }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error setting up Weapon Item Categories Map: {ex}");
+            }
+            finally
+            {
+                _weaponCategoryMapSetUpSemaphore.Release();
             }
         }
 

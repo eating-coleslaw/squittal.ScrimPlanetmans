@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
@@ -19,7 +20,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<FacilityService> _logger;
 
-        private ConcurrentDictionary<int, MapRegion> _scrimmableFacilityMapRegionsMap { get; set; } = new ConcurrentDictionary<int, MapRegion>();
+        private ConcurrentDictionary<int, MapRegion> ScrimmableFacilityMapRegionsMap { get; set; } = new ConcurrentDictionary<int, MapRegion>();
+        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
         public string BackupSqlScriptFileName => "dbo.MapRegion.Table.sql";
 
@@ -53,7 +55,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<MapRegion>> GetScrimmableMapRegionsAsync()
         {
-            if (_scrimmableFacilityMapRegionsMap.Count == 0 || !_scrimmableFacilityMapRegionsMap.Any())
+            if (ScrimmableFacilityMapRegionsMap.Count == 0 || !ScrimmableFacilityMapRegionsMap.Any())
             {
                 await SetUpScrimmableMapRegionsAsync();
             }
@@ -63,12 +65,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private IEnumerable<MapRegion> GetScrimmableMapRegions()
         {
-            return _scrimmableFacilityMapRegionsMap.Values.ToList();
+            return ScrimmableFacilityMapRegionsMap.Values.ToList();
         }
 
         public async Task<MapRegion> GetScrimmableMapRegionFromFacilityIdAsync(int facilityId)
         {
-            if (_scrimmableFacilityMapRegionsMap.Count == 0 || !_scrimmableFacilityMapRegionsMap.Any())
+            if (ScrimmableFacilityMapRegionsMap.Count == 0 || !ScrimmableFacilityMapRegionsMap.Any())
             {
                 await SetUpScrimmableMapRegionsAsync();
             }
@@ -78,7 +80,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId)
         {
-            _scrimmableFacilityMapRegionsMap.TryGetValue(facilityId, out var mapRegion);
+            ScrimmableFacilityMapRegionsMap.TryGetValue(facilityId, out var mapRegion);
 
             return mapRegion;
         }
@@ -87,6 +89,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             var realZones = new List<int> { 2, 4, 6, 8 };
             var scrimFacilityTypes = new List<int> { 5, 6}; // Small Outpost, Large Outpost
+
+            await _mapSetUpSemaphore.WaitAsync();
 
             try
             {
@@ -98,29 +102,33 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                                                                         && scrimFacilityTypes.Contains(region.FacilityTypeId))
                                                     .ToListAsync();
 
-                foreach (var facilityId in _scrimmableFacilityMapRegionsMap.Keys)
+                foreach (var facilityId in ScrimmableFacilityMapRegionsMap.Keys)
                 {
                     if (!storeRegions.Any(r => r.FacilityId == facilityId))
                     {
-                        _scrimmableFacilityMapRegionsMap.TryRemove(facilityId, out var removedItem);
+                        ScrimmableFacilityMapRegionsMap.TryRemove(facilityId, out var removedItem);
                     }
                 }
 
                 foreach (var region in storeRegions)
                 {
-                    if (_scrimmableFacilityMapRegionsMap.ContainsKey(region.FacilityId))
+                    if (ScrimmableFacilityMapRegionsMap.ContainsKey(region.FacilityId))
                     {
-                        _scrimmableFacilityMapRegionsMap[region.FacilityId] = region;
+                        ScrimmableFacilityMapRegionsMap[region.FacilityId] = region;
                     }
                     else
                     {
-                        _scrimmableFacilityMapRegionsMap.TryAdd(region.FacilityId, region);
+                        ScrimmableFacilityMapRegionsMap.TryAdd(region.FacilityId, region);
                     }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error setting up Scrimmable Map Regions Map: {ex}");
+            }
+            finally
+            {
+                _mapSetUpSemaphore.Release();
             }
         }
 

@@ -21,10 +21,9 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ILogger<ProfileService> _logger;
         
         private ConcurrentDictionary<int, Profile> LoadoutProfilesMap { get; set; } = new ConcurrentDictionary<int, Profile>();
+        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
         public string BackupSqlScriptFileName => "dbo.Profile.Table.sql";
-
-        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
 
         public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
@@ -116,7 +115,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error setting up Scrimmable Map Regions Map: {ex}");
+                _logger.LogError($"Error setting up Loadout Profiles Map: {ex}");
             }
             finally
             {

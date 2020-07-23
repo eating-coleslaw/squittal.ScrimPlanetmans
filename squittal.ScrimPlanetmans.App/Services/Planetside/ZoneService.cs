@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
@@ -19,9 +20,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ZoneService> _logger;
 
+        private ConcurrentDictionary<int, Zone> ZonesMap { get; set; } = new ConcurrentDictionary<int, Zone>();
+        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
+        
         public string BackupSqlScriptFileName => "dbo.Zone.Table.sql";
-
-        private ConcurrentDictionary<int, Zone> _zonesMap { get; set; } = new ConcurrentDictionary<int, Zone>();
 
         public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone, ISqlScriptRunner sqlScriptRunner, ILogger<ZoneService> logger)
         {
@@ -33,12 +35,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<Zone>> GetAllZones()
         {
-            if (_zonesMap.Count == 0 || !_zonesMap.Any())
+            if (ZonesMap.Count == 0 || !ZonesMap.Any())
             {
                 await SetupZonesMapAsync();
             }
 
-            return _zonesMap.Values.ToList();
+            return ZonesMap.Values.ToList();
         }
 
         public async Task<IEnumerable<Zone>> GetAllZonesAsync()
@@ -53,18 +55,20 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<Zone> GetZoneAsync(int zoneId)
         {
-            if (_zonesMap.Count == 0 || !_zonesMap.Any())
+            if (ZonesMap.Count == 0 || !ZonesMap.Any())
             {
                 await SetupZonesMapAsync();
             }
 
-            _zonesMap.TryGetValue(zoneId, out var zone);
+            ZonesMap.TryGetValue(zoneId, out var zone);
 
             return zone;
         }
 
         public async Task SetupZonesMapAsync()
         {
+            await _mapSetUpSemaphore.WaitAsync();
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
@@ -72,29 +76,33 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 var storeZones = await dbContext.Zones.ToListAsync();
 
-                foreach (var zoneId in _zonesMap.Keys)
+                foreach (var zoneId in ZonesMap.Keys)
                 {
                     if (!storeZones.Any(z => z.Id == zoneId))
                     {
-                        _zonesMap.TryRemove(zoneId, out var removedZone);
+                        ZonesMap.TryRemove(zoneId, out var removedZone);
                     }
                 }
 
                 foreach (var zone in storeZones)
                 {
-                    if (_zonesMap.ContainsKey(zone.Id))
+                    if (ZonesMap.ContainsKey(zone.Id))
                     {
-                        _zonesMap[zone.Id] = zone;
+                        ZonesMap[zone.Id] = zone;
                     }
                     else
                     {
-                        _zonesMap.TryAdd(zone.Id, zone);
+                        ZonesMap.TryAdd(zone.Id, zone);
                     }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error setting up Zones Map: {ex}");
+            }
+            finally
+            {
+                _mapSetUpSemaphore.Release();
             }
         }
 
