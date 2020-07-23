@@ -7,8 +7,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     public interface IProfileService : ILocallyBackedCensusStore
     {
         Task<IEnumerable<Profile>> GetAllProfilesAsync();
-        Task<IEnumerable<Loadout>> GetAllLoadoutsAsync();
         Task<Profile> GetProfileFromLoadoutIdAsync(int loadoutId);
-        Task<Dictionary<int, Profile>> GetLoadoutMapping();
     }
 }
