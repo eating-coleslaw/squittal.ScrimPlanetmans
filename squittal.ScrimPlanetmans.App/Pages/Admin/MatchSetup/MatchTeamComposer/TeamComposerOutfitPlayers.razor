@@ -164,6 +164,11 @@ else
 
 
     #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
@@ -173,8 +178,6 @@ else
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-
-        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()

@@ -9,7 +9,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
     public interface IConstructedTeamService
     {
-        Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool ignoreCollections = false, bool includeHiddenTeams = false);
+        Task<IEnumerable<ConstructedTeam>> GetConstructedTeamsAsync(bool ignoreCollections = false, bool includeHiddenTeams = false);
 
         Task<ConstructedTeam> GetConstructedTeam(int teamId, bool ignoreCollections = false);
 
@@ -32,5 +32,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         Task<IEnumerable<Player>> GetConstructedTeamFactionPlayers(int teamId, int factionId);
         Task<bool> TryUpdateMemberAlias(int teamId, string characterId, string oldAlias, string newAlias);
         Task<bool> TryClearMemberAlias(int teamId, string characterId, string oldAlias);
+        Task<IEnumerable<ConstructedTeam>> GetConstructedTeams(bool includeHiddenTeams = false);
     }
 }

@@ -204,12 +204,12 @@
     private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
 
     #region Facility & World Select List Variables
-    private List<MapRegion> _mapRegions { get; set; } = new List<MapRegion>();
+    private IEnumerable<MapRegion> _mapRegions { get; set; }
     private List<int> _mapZones { get; set; } = new List<int>();
-    private List<Zone> _zones { get; set; } = new List<Zone>();
+    private IEnumerable<Zone> _zones { get; set; }
     private string _noFacilitIdValue { get; set; } = "-1";
 
-    private List<World> _worlds { get; set; } = new List<World>();
+    private IEnumerable<World> _worlds { get; set; }
     #endregion
 
     private bool _isStreamServiceEnabled { get; set; } = false;
@@ -233,14 +233,20 @@
     protected override async Task OnInitializedAsync()
     {
         await GetCensusStreamStatus(true);
+
+        _zones = await ZoneService.GetAllZones();
+
+        var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+        _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+        var worlds = await WorldService.GetAllWorldsAsync();
+        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
     }
 
     protected override void OnInitialized()
     {
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-        //MessageService.RaiseScrimDeathActionEvent += ReceivePlayerDeathEvent;
-        //MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
-        //MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
 
@@ -259,13 +265,6 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
         _matchId = ScrimMatchEngine.GetMatchId();
-
-        _zones = ZoneService.GetAllZones().ToList();
-
-        _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
-        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-
-        _worlds = WorldService.GetAllWorlds().OrderBy(w => w.Name).ToList();
     }
 
     public void Dispose()

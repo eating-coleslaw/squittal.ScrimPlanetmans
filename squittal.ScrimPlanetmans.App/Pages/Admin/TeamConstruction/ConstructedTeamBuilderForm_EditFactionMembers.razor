@@ -102,11 +102,14 @@
 
 
     #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
     protected override void OnInitialized()
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
-
-        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()
