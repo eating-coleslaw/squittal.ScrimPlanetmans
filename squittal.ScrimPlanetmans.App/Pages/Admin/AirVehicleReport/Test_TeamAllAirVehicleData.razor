@@ -410,6 +410,11 @@
        Methods
      ***********/
     #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
@@ -424,8 +429,6 @@
         MessageService.RaisePlayerNameDisplayChangeEvent += ReceivePlayerNameDisplayChangeMessageEvent;
 
         MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
-
-        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()

@@ -443,6 +443,11 @@
         Methods
         ***********/
     #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
@@ -463,8 +468,6 @@
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
-
-        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()

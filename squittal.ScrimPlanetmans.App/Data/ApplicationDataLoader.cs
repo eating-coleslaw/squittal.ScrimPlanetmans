@@ -49,7 +49,7 @@ namespace squittal.ScrimPlanetmans.Data
             var scrimmableMapRegionsTask = _facilityService.SetUpScrimmableMapRegionsAsync();
             TaskList.Add(scrimmableMapRegionsTask);
 
-            var worldsTask = _worldService.SetupWorldsList();
+            var worldsTask = _worldService.SetUpWorldsMap();
             TaskList.Add(worldsTask);
 
             var zonesTask = _zoneService.SetupZonesMapAsync();

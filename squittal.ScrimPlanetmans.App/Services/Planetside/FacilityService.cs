@@ -98,8 +98,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                                                                         && scrimFacilityTypes.Contains(region.FacilityTypeId))
                                                     .ToListAsync();
 
-                var storeFacilityIds = storeRegions.Select(r => r.FacilityId).ToList();
-
                 foreach (var facilityId in _scrimmableFacilityMapRegionsMap.Keys)
                 {
                     if (!storeRegions.Any(r => r.FacilityId == facilityId))

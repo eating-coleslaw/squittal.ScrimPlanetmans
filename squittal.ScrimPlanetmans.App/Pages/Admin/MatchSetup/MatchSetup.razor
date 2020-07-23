@@ -209,7 +209,7 @@
     private IEnumerable<Zone> _zones { get; set; }
     private string _noFacilitIdValue { get; set; } = "-1";
 
-    private List<World> _worlds { get; set; } = new List<World>();
+    private IEnumerable<World> _worlds { get; set; }
     #endregion
 
     private bool _isStreamServiceEnabled { get; set; } = false;
@@ -240,6 +240,9 @@
         _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
 
         _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+        var worlds = await WorldService.GetAllWorldsAsync();
+        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
     }
 
     protected override void OnInitialized()
@@ -262,8 +265,6 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _matchState = ScrimMatchEngine.GetMatchState();
         _matchId = ScrimMatchEngine.GetMatchId();
-
-        _worlds = WorldService.GetAllWorlds().OrderBy(w => w.Name).ToList();
     }
 
     public void Dispose()
