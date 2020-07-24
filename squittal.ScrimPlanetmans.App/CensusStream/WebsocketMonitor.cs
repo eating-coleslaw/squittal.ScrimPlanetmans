@@ -1,4 +1,5 @@
-﻿using DaybreakGames.Census.Stream;
+﻿// Credit to Lampjaw @ Voidwell.DaybreakGames for everything except player, world, & facility filtering
+using DaybreakGames.Census.Stream;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using squittal.ScrimPlanetmans.CensusStream.Models;
@@ -11,17 +12,23 @@ using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using Websocket.Client;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
     public class WebsocketMonitor : StatefulHostedService, IWebsocketMonitor, IDisposable
     {
-        private readonly ICensusStreamClient _client;
+        //private readonly ICensusStreamClient _client;
+        private readonly IStreamClient _client;
+        private readonly IWebsocketHealthMonitor _healthMonitor;
         private readonly IWebsocketEventHandler _handler;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<WebsocketMonitor> _logger;
 
-        private CensusHeartbeat _lastHeartbeat;
+        //private CensusHeartbeat _lastHeartbeat;
+
+        private StreamState _lastStateChange;
+        private Timer _timer;
 
         public override string ServiceName => "CensusMonitor";
 
@@ -31,16 +38,21 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public int? SubscribedWorldId;
 
 
-        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
+        public WebsocketMonitor(IStreamClient client, IWebsocketHealthMonitor healthMonitor, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
-            _client = censusStreamClient;
+            _client = client;
+            _healthMonitor = healthMonitor;
+            //_client = censusStreamClient;
             _handler = handler;
             _messageService = messageService;
             _logger = logger;
 
-            _client.Subscribe(CreateSubscription())
-                    .OnMessage(OnMessage)
+            _client.OnMessage(OnMessage)
                    .OnDisconnect(OnDisconnect);
+
+            //_client.Subscribe(CreateSubscription())
+            //        .OnMessage(OnMessage)
+            //       .OnDisconnect(OnDisconnect);
 
             _messageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
             _messageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateEvent;
@@ -48,24 +60,24 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
 
         #region Subscription Setup
-        public async Task Subscribe(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Starting census stream subscription");
+        //public async Task Subscribe(CancellationToken cancellationToken)
+        //{
+        //    _logger.LogInformation("Starting census stream subscription");
 
-            _client.Subscribe(CreateSubscription())
-                   .OnMessage(OnMessage)
-                   .OnDisconnect(OnDisconnect);
+        //    _client.Subscribe(CreateSubscription())
+        //           .OnMessage(OnMessage)
+        //           .OnDisconnect(OnDisconnect);
 
 
-            await _client?.ConnectAsync();
-        }
+        //    await _client?.ConnectAsync();
+        //}
 
-        private Task OnDisconnect(string error)
-        {
-            _logger.LogInformation("Websocket Client Disconnected!");
+        //private Task OnDisconnect(string error)
+        //{
+        //    _logger.LogInformation("Websocket Client Disconnected!");
 
-            return Task.CompletedTask;
-        }
+        //    return Task.CompletedTask;
+        //}
 
         private CensusStreamSubscription CreateSubscription()
         {
@@ -154,17 +166,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             _logger.LogInformation("Starting census stream monitor");
 
-            try
-            {
-                await _client.ConnectAsync();
-            }
-            catch (Exception ex)
-            {
-                await _client?.DisconnectAsync();
-                await UpdateStateAsync(false);
+            await _client.ConnectAsync(CreateSubscription());
 
-                _logger.LogError(91435, ex, "Failed to establish initial connection to Census. Will not attempt to reconnect.");
-            }
+            _timer = new Timer(CheckDataHealth, null, 0, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+
+            //try
+            //{
+            //    await _client.ConnectAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    await _client?.DisconnectAsync();
+            //    await UpdateStateAsync(false);
+
+            //    _logger.LogError(91435, ex, "Failed to establish initial connection to Census. Will not attempt to reconnect.");
+            //}
+
         }
 
         public override async Task StopInternalAsync(CancellationToken cancellationToken)
@@ -176,7 +193,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            await _client.DisconnectAsync();
+            //await _client.DisconnectAsync();
+            await _client?.DisconnectAsync();
+            _timer?.Dispose();
         }
 
         public override async Task OnApplicationShutdown(CancellationToken cancellationToken)
@@ -186,7 +205,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         protected override Task<object> GetStatusAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult((object)_lastHeartbeat);
+            //return Task.FromResult((object)_lastHeartbeat);
+            return Task.FromResult((object)_lastStateChange);
         }
 
         public async Task<ServiceState> GetStatus()
@@ -226,11 +246,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (jMsg.Value<string>("type") == "heartbeat")
             {
-                _lastHeartbeat = new CensusHeartbeat
-                {
-                    LastHeartbeat = DateTime.UtcNow,
-                    Contents = jMsg.ToObject<object>()
-                };
+                //_lastHeartbeat = new CensusHeartbeat
+                //{
+                //    LastHeartbeat = DateTime.UtcNow,
+                //    Contents = jMsg.ToObject<object>()
+                //};
+
+                UpdateStateDetails(jMsg.ToObject<object>());
 
                 return;
             }
@@ -247,6 +269,48 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
         }
         #pragma warning restore CS1998
+
+        private Task OnDisconnect(DisconnectionInfo info)
+        {
+            UpdateStateDetails(info.Exception?.Message ?? info.Type.ToString());
+            _healthMonitor.ClearAllWorlds();
+            return Task.CompletedTask;
+        }
+
+        private void UpdateStateDetails(object contents)
+        {
+            _lastStateChange = new Models.StreamState
+            {
+                LastStateChangeTime = DateTime.UtcNow,
+                Contents = contents
+            };
+        }
+
+        private async void CheckDataHealth(object state)
+        {
+            if (!_isRunning)
+            {
+                //_healthMonitor.ClearAllWorlds();
+                _timer?.Dispose();
+                return;
+            }
+
+            if (!_healthMonitor.IsHealthy())
+            {
+                _logger.LogError(45234, "Census stream has failed health checks. Attempting resetting connection.");
+
+                try
+                {
+                    await _client?.ReconnectAsync();
+                }
+                catch (Exception ex)
+                {
+                    UpdateStateDetails(ex.Message);
+
+                    _logger.LogError(45235, ex, "Failed to reestablish connection to Census");
+                }
+            }
+        }
 
         private bool PayloadContainsSubscribedCharacter(JToken message)
         {
@@ -375,6 +439,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public void Dispose()
         {
             _client?.Dispose();
+            _timer?.Dispose();
+
+            _messageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+            _messageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateEvent;
         }
     }
 }

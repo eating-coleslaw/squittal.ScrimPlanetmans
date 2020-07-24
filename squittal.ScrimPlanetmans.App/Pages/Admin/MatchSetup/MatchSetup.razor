@@ -253,11 +253,11 @@
         {
             SetWebsocketConnectionErrorMessage(isFirstStatusCheck);
 
-            if (isFirstStatusCheck)
-            {
-                await WebsocketMonitor.StartAsync(System.Threading.CancellationToken.None);
-                await GetCensusStreamStatus(false);
-            }
+            //if (isFirstStatusCheck)
+            //{
+            //    await WebsocketMonitor.StartAsync(System.Threading.CancellationToken.None);
+            //    await GetCensusStreamStatus(false);
+            //}
         }
         else
         {

@@ -32,6 +32,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMatchDataService _scrimMatchService;
+        private readonly IWebsocketHealthMonitor _healthMonitor;
         private readonly ILogger<WebsocketEventHandler> _logger;
 
 
@@ -61,7 +62,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer,
             IItemService itemService, IFacilityService facilityService, IVehicleService vehicleService, IScrimMessageBroadcastService messageService,
-            IScrimMatchDataService scrimMatchService, IDbContextHelper dbContextHelper, ILogger<WebsocketEventHandler> logger)
+            IScrimMatchDataService scrimMatchService, IDbContextHelper dbContextHelper, IWebsocketHealthMonitor healthMonitor, ILogger<WebsocketEventHandler> logger)
         {
             _teamsManager = teamsManager;
             _itemService = itemService;
@@ -72,6 +73,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             _scorer = scorer;
             _dbContextHelper = dbContextHelper;
             _scrimMatchService = scrimMatchService;
+            _healthMonitor = healthMonitor;
             _logger = logger;
 
 
@@ -108,6 +110,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 return;
             }
+
+            _healthMonitor.ReceivedEvent(payload.WorldId, eventName);
 
             _logger.LogDebug("Payload received for event: {0}.", eventName);
 

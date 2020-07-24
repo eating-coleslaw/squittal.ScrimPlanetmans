@@ -14,7 +14,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
     public class StreamClient : IStreamClient
     {
         private const string CensusWebsocketEndpoint = "wss://push.planetside2.com/streaming";
-        private const string CensusServiceNamespace = "ps2:v2";
+        private const string CensusServiceNamespace = "ps2";
 
         private readonly string CensusServiceKey;
 
