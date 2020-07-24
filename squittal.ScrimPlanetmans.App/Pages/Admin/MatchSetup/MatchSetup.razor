@@ -36,12 +36,10 @@
     <div class="row">
 
         <div class="col-lg-4">
-            @*<TeamBuilder i_teamOrdinal=1 />*@
             <TeamComposer i_teamOrdinal=1 />
         </div>
 
         <div class="col-lg-4">
-            @*<TeamBuilder i_teamOrdinal=2 />*@
             <TeamComposer i_teamOrdinal=2 />
         </div>
 
@@ -67,9 +65,6 @@
                     <button class="btn btn-primary" @onclick="StartMatch">
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
-                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                        <span class="oi oi-media-record"></span>Subscribe
-                    </button>*@
                     <button class="btn btn-outline-primary" @onclick="ClearMatch">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
@@ -109,35 +104,21 @@
                     <button class="btn btn-primary" @onclick="ResumeRound">
                         <span class="oi oi-media-play"></span>Resume
                     </button>
-                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>*@
                 }
                 else if (_matchState == MatchState.Running)
                 {
                     <button class="btn btn-primary" @onclick="PauseRound">
                         <span class="oi oi-media-pause"></span>Pause Round
                     </button>
-                    @*<button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>*@
                     <button class="btn btn-outline-primary" @onclick="EndRound">
                         <span class="oi oi-media-stop"></span> End Round
                     </button>
                 }
 
-                @*@if (_matchState != MatchState.Uninitialized || _currentRound != 0)
-        {
-            <button class="btn btn-outline-primary" @onclick="SubscribeToCensus">
-                <span class="oi oi-media-record"></span>Subscribe
-            </button>
-        }*@
-
                 @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isResettingRound || _isClearingMatch || _isStartingRound))
                 {
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
-                        @*<p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" @bind-Value="_matchConfiguration.Title" /></p>*@
                         <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" /></p>
                         <p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
 
@@ -145,7 +126,6 @@
                             <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
 
                             <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
-                                @*@bind-Value=@_matchConfiguration.WorldIdString>*@ <!--class="btn-sm"-->
                                 @foreach (var world in _worlds)
                                 {
                                     <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
@@ -153,7 +133,6 @@
                             </InputSelect>
 
                             <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
-                                <!--class="btn-sm"-->
                                 <option value=@_noFacilitIdValue>No Base</option>
 
                                 @foreach (var zone in _mapZones)
@@ -164,10 +143,7 @@
                                         {
                                         <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
                                         }
-                                    /**/
-                                    /**/
                                     }
-                                /**/
                             </InputSelect>
                         </div>
 
@@ -200,9 +176,6 @@
     private string _roundSecondsInput = string.Empty;
     private MatchConfiguration _matchConfiguration { get; set; }
 
-    private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
-    private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
-
     #region Facility & World Select List Variables
     private IEnumerable<MapRegion> _mapRegions { get; set; }
     private List<int> _mapZones { get; set; } = new List<int>();
@@ -215,8 +188,6 @@
     private bool _isStreamServiceEnabled { get; set; } = false;
 
     private string _errorBannerMessage { get; set; }
-
-    private string _debug { get; set; } = "init";
 
     private bool _isStartingRound { get; set; } = false;
     private bool _isClearingMatch { get; set; } = false;
@@ -252,12 +223,10 @@
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
-            _debug = "Scrim Engine Configuration 3";
             _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
         }
         else
         {
-            _debug = "New Configuration 4";
             _matchConfiguration = new MatchConfiguration();
         }
 
@@ -299,7 +268,6 @@
     private void SubscribeToCensus()
     {
         ScrimMatchEngine.SubmitPlayersList();
-        //_debug = "SubscribeToCensus";
 
         LogAdminMessage($"Subscribed all characters to Stream Monitor!");
     }
@@ -307,8 +275,6 @@
     private void EndCensusSubscription()
     {
         WebsocketMonitor.RemoveAllCharacterSubscriptions();
-        //_debug = "EndCensusSubscription";
-
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
 
@@ -470,11 +436,6 @@
     #endregion Match & Subscription State Buttons
 
     #region  Event Handling
-    private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
-    {
-        ReceiveMessage(e.Message);
-    }
-
     private void ReceiveMatchStateUpdateMessageEvent(object sender, MatchStateUpdateEventArgs e)
     {
         var message = e.Message;
@@ -508,139 +469,12 @@
 
     #endregion
 
-    private void ReceiveMessage(string message)
-    {
-        var payload = TryParseMessagePayload(message);
-        if (payload == null)
-        {
-            //LogAdminMessage(message);
-            return;
-        }
-
-        /*
-        var eventName = payload.Value<string>("event_name");
-
-        if (eventName == "Death")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-        }
-
-        else if (eventName == "GainExperience")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-        }
-
-        else if (eventName == "PlayerLogin")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-            HandlePlayerLoginPayload(payload);
-        }
-
-        else if (eventName == "PlayerLogout")
-        {
-            LogMessage(payload.ToString(), _streamLogs);
-            HandlePlayerLogoutPayload(payload);
-        }
-        */
-    }
-
-    private JToken TryParseMessagePayload(string message)
-    {
-        if (message == null)
-        {
-            return null;
-        }
-
-        JToken jMsg;
-
-        try
-        {
-            jMsg = JToken.Parse(message).SelectToken("payload");
-        }
-        catch (Exception)
-        {
-            //Console.WriteLine($"(91097) Failed to parse message: {message}");
-            return null;
-        }
-
-        return jMsg;
-    }
-
-    private void HandlePlayerLoginPayload(JToken payload)
-    {
-        var characterId = payload.Value<string>("character_id");
-
-        var player = ScrimTeamsManager.GetPlayerFromId(characterId);
-
-        if (player == null)
-        {
-            return;
-        }
-
-        var message = $"Team {player.TeamOrdinal} Player LOGIN: [{player.OutfitAlias}] {player.NameDisplay} [{player.Id}]";
-
-        //LogAdminMessage(message);
-    }
-
-    private void HandlePlayerLogoutPayload(JToken payload)
-    {
-        var characterId = payload.Value<string>("character_id");
-
-        var player = ScrimTeamsManager.GetPlayerFromId(characterId);
-
-        if (player == null)
-        {
-            return;
-        }
-
-        var message = $"Team {player.TeamOrdinal} Player LOGOUT: [{player.OutfitAlias}] {player.NameDisplay} [{player.Id}]";
-
-        //LogAdminMessage(message);
-    }
-
-    private void ReceivePlayerDeathEvent(object sender, ScrimDeathActionEventEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogStreamMessage(info);
-    }
-
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogAdminMessage(info);
-    }
-
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogAdminMessage(info);
-    }
-
     /*****************
      *  Log Messages
      *****************/
     private void LogAdminMessage(string message)
     {
         MessageService.BroadcastSimpleMessage(message);
-
-        //LogMessage(message, _adminLogs);
-    }
-
-    private void LogStreamMessage(string message)
-    {
-        LogMessage(message, _streamLogs);
-    }
-
-    private void LogMessage(string message, List<MarkupString> target)
-    {
-        var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
-
-        target.Add((MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}");
-
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
     }
 
     #region Error Messages
