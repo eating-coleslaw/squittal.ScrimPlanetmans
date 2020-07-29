@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         private readonly ConcurrentDictionary<int, ConcurrentDictionary<string, DateTime>> _worldsLastSeenEvents = new ConcurrentDictionary<int, ConcurrentDictionary<string, DateTime>>();
 
-        private readonly List<int> _ignorableWorlds = new List<int> { 25 };
+        private readonly List<int> _ignorableWorlds = new List<int> { 19, 25 }; // Jaeger, Briggs
         private readonly Dictionary<string, TimeSpan> _unhealthyEventIntervals = new Dictionary<string, TimeSpan>
         {
             {  "Death", TimeSpan.FromMinutes(5) }
