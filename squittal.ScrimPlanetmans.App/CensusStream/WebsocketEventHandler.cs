@@ -24,7 +24,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
     public class WebsocketEventHandler : IWebsocketEventHandler
     {
         private readonly IItemService _itemService;
-        private readonly ICharacterService _characterService;
         private readonly IFacilityService _facilityService;
         private readonly IVehicleService _vehicleService;
         private readonly IScrimTeamsManager _teamsManager;
@@ -32,6 +31,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMatchDataService _scrimMatchService;
+        private readonly IWebsocketHealthMonitor _healthMonitor;
         private readonly ILogger<WebsocketEventHandler> _logger;
 
 
@@ -59,19 +59,19 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
         });
 
-        public WebsocketEventHandler(IScrimTeamsManager teamsManager, ICharacterService characterService, IScrimMatchScorer scorer,
-            IItemService itemService, IFacilityService facilityService, IVehicleService vehicleService, IScrimMessageBroadcastService messageService,
-            IScrimMatchDataService scrimMatchService, IDbContextHelper dbContextHelper, ILogger<WebsocketEventHandler> logger)
+        public WebsocketEventHandler(IScrimTeamsManager teamsManager, IScrimMatchScorer scorer, IItemService itemService, IFacilityService facilityService,
+            IVehicleService vehicleService, IScrimMessageBroadcastService messageService, IScrimMatchDataService scrimMatchService,
+            IDbContextHelper dbContextHelper, IWebsocketHealthMonitor healthMonitor, ILogger<WebsocketEventHandler> logger)
         {
             _teamsManager = teamsManager;
             _itemService = itemService;
             _messageService = messageService;
-            _characterService = characterService;
             _facilityService = facilityService;
             _vehicleService = vehicleService;
             _scorer = scorer;
             _dbContextHelper = dbContextHelper;
             _scrimMatchService = scrimMatchService;
+            _healthMonitor = healthMonitor;
             _logger = logger;
 
 
@@ -108,6 +108,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 return;
             }
+
+            _healthMonitor.ReceivedEvent(payload.WorldId, eventName);
 
             _logger.LogDebug("Payload received for event: {0}.", eventName);
 
@@ -150,19 +152,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     case "GainExperience":
                         var experienceParam = jPayload.ToObject<GainExperiencePayload>(_payloadDeserializer);
                         await Process(experienceParam);
-                        //await Task.Run(() =>
-                        //{
-                        //    Process(experienceParam);
-                        //});
                         break;
 
                     case "FacilityControl":
                         var controlParam = jPayload.ToObject<FacilityControlPayload>(_payloadDeserializer);
                         await Process(controlParam);
-                        //await Task.Run(() =>
-                        //{
-                        //    Process(controlParam);
-                        //});
                         break;
 
                     case "VehicleDestroy":
@@ -185,7 +179,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_deathFilter.TryFilterNewPayload(payload))
             {
-                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Death payload detected, excluded</span>");
                 _logger.LogWarning("Duplicate Death payload detected, excluded");
                 return null;
             }
@@ -328,7 +321,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 _messageService.BroadcastScrimDeathActionEventMessage(new ScrimDeathActionEventMessage(deathEvent));
 
-                //return dataModel;
                 return deathEvent;
             }
             catch (Exception ex)
@@ -439,7 +431,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_vehicleDestroyFilter.TryFilterNewPayload(payload))
             {
-                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Vehicle Destroy payload detected, excluded</span>");
                 _logger.LogWarning("Duplicate Vehicle Destroy payload detected, excluded");
                 return null;
             }
@@ -808,7 +799,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_loginFilter.TryFilterNewPayload(payload))
             {
-                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Login payload detected, excluded</span>");
                 _logger.LogWarning("Duplicate Player Login payload detected, excluded");
                 return null;
             }
@@ -838,7 +828,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_logoutFilter.TryFilterNewPayload(payload))
             {
-                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Player Logout payload detected, excluded</span>");
                 _logger.LogWarning("Duplicate Player Logout payload detected, excluded");
                 return null;
             }
@@ -865,13 +854,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
         #endregion
 
         #region GainExperience Payloads
-        //private Task<GainExperience> Process(GainExperiencePayload payload)
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
         private async Task Process(GainExperiencePayload payload)
         {
             if (!_experienceFilter.TryFilterNewPayload(payload))
             {
-                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Gain Experience payload detected, excluded</span>");
                 _logger.LogWarning("Duplicate Gain Experience payload detected, excluded");
                 return;
             }
@@ -1261,7 +1248,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_facilityControlFilter.TryFilterNewPayload(payload))
             {
-                //_messageService.BroadcastSimpleMessage("<span style=\"color: red; font-weight: 600;\">Duplicate Facility Control payload detected, excluded</span>");
                 _logger.LogWarning("Duplicate Facility Control payload detected, excluded");
                 return;
             }
@@ -1342,7 +1328,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 }
             }
 
-            // TODO: broadcast Facility Control message
             _messageService.BroadcastScrimFacilityControlActionEventMessage(new ScrimFacilityControlActionEventMessage(controlEvent));
         }
 
