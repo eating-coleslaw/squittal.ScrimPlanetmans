@@ -76,6 +76,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
+        public int DamageTeamAssists { get; set; } = 0;
+        public int GrenadeTeamAssists { get; set; } = 0;
+        public int DamageTeamAssistedDeaths { get; set; } = 0;
+        public int GrenadeTeamAssistedDeaths { get; set; } = 0;
+
         public int ObjectiveCaptureTicks { get; set; } = 0;
         public int ObjectiveDefenseTicks { get; set; } = 0;
         public int ObjectiveTicks
@@ -294,6 +299,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             SpotAssistedDeaths += addend.SpotAssistedDeaths;
             ProtectAlliesAssistedDeaths += addend.ProtectAlliesAssistedDeaths;
 
+            DamageTeamAssists += addend.DamageTeamAssists;
+            GrenadeTeamAssists += addend.GrenadeTeamAssists;
+            DamageTeamAssistedDeaths += addend.DamageTeamAssistedDeaths;
+            GrenadeTeamAssistedDeaths += addend.GrenadeTeamAssistedDeaths;
+
             VehiclesDestroyed += addend.VehiclesDestroyed;
             VehiclesLost += addend.VehiclesLost;
 
@@ -371,6 +381,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             GrenadeAssistedDeaths -= subtrahend.GrenadeAssistedDeaths;
             SpotAssistedDeaths -= subtrahend.SpotAssistedDeaths;
             ProtectAlliesAssistedDeaths -= subtrahend.ProtectAlliesAssistedDeaths;
+
+            DamageTeamAssists -= subtrahend.DamageTeamAssists;
+            GrenadeTeamAssists -= subtrahend.GrenadeTeamAssists;
+            DamageTeamAssistedDeaths -= subtrahend.DamageTeamAssistedDeaths;
+            GrenadeTeamAssistedDeaths -= subtrahend.GrenadeTeamAssistedDeaths;
 
             VehiclesDestroyed -= subtrahend.VehiclesDestroyed;
             VehiclesLost -= subtrahend.VehiclesLost;

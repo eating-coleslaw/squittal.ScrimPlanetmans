@@ -496,10 +496,11 @@ No-Link Brand Header
     font-size: small;
     /*color: var(--sq-ps2-primary);*/
     margin-bottom: 0px;
-/*    padding: 5px 10px;*/
-/*    padding: 8px 8px;*/
+    /*    padding: 5px 10px;*/
+    /*    padding: 8px 8px;*/
     padding: 8px 16px;
-    border: 2px solid var(--sq-light-blue-gray-alpha);
+    /*    border: 2px solid var(--sq-light-blue-gray-alpha);*/
+    border: 1px solid var(--sq-light-blue-gray-alpha-80);
     border-top: 2px solid var(--sq-ps2-primary);
     border-radius: 0.2rem;
     background-color: var(--sq-bg-white-lit);
@@ -1271,11 +1272,12 @@ button.refresh {
     .sq-mini-card-4 h5,
     .sq-mini-card-3 h5 {
         font-size: 1rem;
-/*        margin-bottom: 0.25rem;*/
+        /*        margin-bottom: 0.25rem;*/
         margin-bottom: 8px;
-/*        padding: 0.5rem 0 0 0.5rem;*/
+        /*        padding: 0.5rem 0 0 0.5rem;*/
         width: 100%;
         font-weight: 400;
+        padding: 8px 0 0 16px;
     }
 
     .sq-mini-card-12 .sq-content,

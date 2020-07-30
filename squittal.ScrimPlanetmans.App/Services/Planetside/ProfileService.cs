@@ -5,6 +5,7 @@ using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models.Planetside;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,89 +17,109 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly CensusProfile _censusProfile;
-        private readonly CensusLoadout _censusLoadout;
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ProfileService> _logger;
+        
+        private ConcurrentDictionary<int, Profile> LoadoutProfilesMap { get; set; } = new ConcurrentDictionary<int, Profile>();
+        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
         public string BackupSqlScriptFileName => "dbo.Profile.Table.sql";
 
 
-        private Dictionary<int, Profile> _loadoutMapping = new Dictionary<int, Profile>();
-
-        private readonly SemaphoreSlim _loadoutSemaphore = new SemaphoreSlim(1);
-
-        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, CensusLoadout censusLoadout, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
+        public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
         {
             _dbContextHelper = dbContextHelper;
             _censusProfile = censusProfile;
-            _censusLoadout = censusLoadout;
             _sqlScriptRunner = sqlScriptRunner;
             _logger = logger;
         }
 
         public async Task<IEnumerable<Profile>> GetAllProfilesAsync()
         {
-            using (var factory = _dbContextHelper.GetFactory())
+            if (LoadoutProfilesMap.Count == 0 || !LoadoutProfilesMap.Any())
             {
-                var dbContext = factory.GetDbContext();
-
-                return await dbContext.Profiles.ToListAsync();
+                await SetUpLoadoutProfilesMapAsync();
             }
 
+            return GetAllProfiles();
         }
 
-        public async Task<IEnumerable<Loadout>> GetAllLoadoutsAsync()
+        private IEnumerable<Profile> GetAllProfiles()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
-
-            return await dbContext.Loadouts.ToListAsync();
-
+            return LoadoutProfilesMap.Values.ToList();
         }
 
         public async Task<Profile> GetProfileFromLoadoutIdAsync(int loadoutId)
         {
-            if (_loadoutMapping == null || _loadoutMapping.Count == 0)
+            if (LoadoutProfilesMap.Count == 0 || !LoadoutProfilesMap.Any())
             {
-                await SetupLoadoutMappingAsync();
+                await SetUpLoadoutProfilesMapAsync();
             }
 
-            return _loadoutMapping.GetValueOrDefault(loadoutId, null);
+            return GetProfileFromLoadoutId(loadoutId);
         }
 
-        public async Task<Dictionary<int, Profile>> GetLoadoutMapping()
+        private Profile GetProfileFromLoadoutId(int loadoutId)
         {
-            if (_loadoutMapping == null || _loadoutMapping.Count == 0)
-            {
-                await SetupLoadoutMappingAsync();
-            }
+            LoadoutProfilesMap.TryGetValue(loadoutId, out var profile);
 
-            return _loadoutMapping;
+            return profile;
         }
 
-        private async Task SetupLoadoutMappingAsync()
+        private async Task SetUpLoadoutProfilesMapAsync()
         {
-            await _loadoutSemaphore.WaitAsync();
+            await _mapSetUpSemaphore.WaitAsync();
 
             try
             {
-                if (_loadoutMapping == null || _loadoutMapping.Count == 0)
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeProfiles = await dbContext.Profiles.ToListAsync();
+
+                var storeLoadouts = await dbContext.Loadouts.ToListAsync();
+
+                foreach (var loadoutId in LoadoutProfilesMap.Keys)
                 {
+                    if (!storeLoadouts.Any(l => l.Id == loadoutId))
+                    {
+                        LoadoutProfilesMap.TryRemove(loadoutId, out var removedProfile);
+                        continue;
+                    }
+                    
+                    var profileId = storeLoadouts.Where(l => l.Id == loadoutId).Select(l => l.ProfileId).FirstOrDefault();
 
-                    var loadoutsTask = GetAllLoadoutsAsync();
-                    var profilesTask = GetAllProfilesAsync();
-
-                    await Task.WhenAll(loadoutsTask, profilesTask);
-
-                    var loadouts = loadoutsTask.Result;
-                    var profiles = profilesTask.Result;
-
-                    _loadoutMapping = loadouts.ToDictionary(l => l.Id, l => profiles.FirstOrDefault(p => p.Id == l.ProfileId));
+                    if (profileId <= 0)
+                    {
+                        LoadoutProfilesMap.TryRemove(loadoutId, out var removedProfile);
+                    }
                 }
+
+                foreach (var profile in storeProfiles)
+                {
+                    var loadoutId = storeLoadouts.Where(l => l.ProfileId == profile.Id).Select(l => l.ProfileId).FirstOrDefault();
+                    if (loadoutId <= 0)
+                    {
+                        continue;
+                    }
+
+                    if (LoadoutProfilesMap.ContainsKey(loadoutId))
+                    {
+                        LoadoutProfilesMap[loadoutId] = profile;
+                    }
+                    else
+                    {
+                        LoadoutProfilesMap.TryAdd(loadoutId, profile);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Loadout Profiles Map: {ex}");
             }
             finally
             {
-                _loadoutSemaphore.Release();
+                _mapSetUpSemaphore.Release();
             }
         }
 
@@ -137,6 +158,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyProfiles = await dbContext.Profiles.AnyAsync();
                 if (anyProfiles)
                 {
+                    await SetUpLoadoutProfilesMapAsync();
+
                     return;
                 }
             }
@@ -147,6 +170,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 RefreshStoreFromBackup();
             }
+
+            await SetUpLoadoutProfilesMapAsync();
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -224,7 +249,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public void Dispose()
         {
-            _loadoutSemaphore.Dispose();
+            _mapSetUpSemaphore.Dispose();
         }
 
         public async Task<int> GetCensusCountAsync()

@@ -110,6 +110,7 @@
     public bool i_showRemovalControls { get; set; } = true;
     private bool _renderedShowRemoveControls { get; set; } = true;
 
+    private int _renderedWorldId { get; set; } = 0;
     private string _renderedWorldName { get; set; } = string.Empty;
 
     private bool _isAliasEditFormVisible { get; set; } = false;
@@ -126,6 +127,23 @@
         MessageService.RaiseConstructedTeamMemberChangeEvent -= ReceiveConstructedTeamMemberChangeEvent;
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (i_character != null && i_character.WorldId != _renderedWorldId)
+        {
+            _renderedWorldId = (int)i_character.WorldId;
+
+            var renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
+
+            _renderedWorldName = renderedWorld == null ? "Unknown World" : renderedWorld.Name;
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
     protected override void OnParametersSet()
     {
         if (i_character.CharacterId != _renderedCharacter.CharacterId || i_index != _renderedIndex
@@ -140,8 +158,6 @@
             if (_renderedCharacter != null)
             {
                 _renderedCharacterId = _renderedCharacter.CharacterId;
-                _renderedWorldName = _renderedCharacter.WorldId == null ? "Unknown"
-                                                                        : WorldService.GetWorld((int)_renderedCharacter.WorldId)?.Name;
 
                 _inputAlias = _renderedCharacter.NameDisplay;
             }
@@ -222,7 +238,7 @@
         }
 
         _isAliasEditFormVisible = false;
-        
+
         InvokeAsyncStateHasChanged();
     }
     #endregion UI & Form Controls

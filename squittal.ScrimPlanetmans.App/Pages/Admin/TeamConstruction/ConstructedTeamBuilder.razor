@@ -8,7 +8,6 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
-@*@inject IConstructedTeamService ConstructedTeamService*@
 @inject IConstructedTeamService TeamService
 @inject IScrimMessageBroadcastService MessageService
 
@@ -107,19 +106,6 @@
                                 <span class="oi oi-check"></span>Save
                             </button>
 
-                            @*@if (!string.IsNullOrWhiteSpace(_newTeamForm.Name) && !string.IsNullOrWhiteSpace(_newTeamForm.Alias))
-                                {
-                                    <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
-                                        <span class="oi oi-check"></span>Save
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button disabled class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
-                                        <span class="oi oi-check"></span>Save
-                                    </button>
-                                }*@
-
                             <button @onclick="HandleCreateNewTeamCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
                                 <span class="oi oi-x" style="top: 0;"></span>Cancel
                             </button>
@@ -192,8 +178,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true, true);
-        _storedTeamsList = await TeamService.GetConstructedTeams(true, true);
+        _storedTeamsList = await TeamService.GetConstructedTeams(true);
     }
 
     protected override void OnParametersSet()
@@ -280,7 +265,6 @@
         {
             return;
         }
-        //var newTeamEntity = await ConstructedTeamService.CreateConstructedTeam(newTeam);
         var newTeamEntity = await TeamService.CreateConstructedTeam(newTeam);
 
         _newTeamForm = new ConstructedTeam();
@@ -292,7 +276,6 @@
             HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
         }
 
-        //_storedTeamsList = await ConstructedTeamService.GetConstructedTeams(true);
         _storedTeamsList = await TeamService.GetConstructedTeams(true);
 
         InvokeAsyncStateHasChanged();

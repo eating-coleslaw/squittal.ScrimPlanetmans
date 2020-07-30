@@ -1,5 +1,4 @@
 ﻿// Credit to Lampjaw
-
 using squittal.ScrimPlanetmans.Models;
 using System.Threading;
 using System.Threading.Tasks;

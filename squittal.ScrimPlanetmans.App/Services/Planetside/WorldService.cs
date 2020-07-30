@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
+using System;
+using System.Threading;
 
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
@@ -17,10 +20,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<ProfileService> _logger;
 
+        private ConcurrentDictionary<int, World> WorldsMap { get; set; } = new ConcurrentDictionary<int, World>();
+        private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
+
         public string BackupSqlScriptFileName => "dbo.World.Table.sql";
 
-
-        private List<World> _worlds = new List<World>();
 
         public WorldService(IDbContextHelper dbContextHelper, CensusWorld censusWorld, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
         {
@@ -33,37 +37,75 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<IEnumerable<World>> GetAllWorldsAsync()
         {
-            using (var factory = _dbContextHelper.GetFactory())
+            if (WorldsMap.Count == 0 || !WorldsMap.Any())
             {
-                var dbContext = factory.GetDbContext();
-
-                return await dbContext.Worlds.ToListAsync();
+                await SetUpWorldsMap();
             }
 
+            return GetAllWorlds();
         }
 
-        public IEnumerable<World> GetAllWorlds()
+        private IEnumerable<World> GetAllWorlds()
         {
-            return _worlds;
+            return WorldsMap.Values.ToList();
         }
 
         public async Task<World> GetWorldAsync(int worldId)
         {
-            var worlds = await GetAllWorldsAsync();
-            return worlds.FirstOrDefault(e => e.Id == worldId);
+            if (WorldsMap.Count == 0 || !WorldsMap.Any())
+            {
+                await SetUpWorldsMap();
+            }
+
+            return GetWorld(worldId);
         }
 
-        public World GetWorld(int worldId)
+        private World GetWorld(int worldId)
         {
-            return _worlds.FirstOrDefault(e => e.Id == worldId);
+            WorldsMap.TryGetValue(worldId, out var world);
+
+            return world;
         }
 
-        public async Task SetupWorldsList()
+        public async Task SetUpWorldsMap()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
+            await _mapSetUpSemaphore.WaitAsync();
 
-            _worlds = await dbContext.Worlds.Where(z => z.Id != 25).ToListAsync(); // RIP Briggs
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeWorlds = await dbContext.Worlds.Where(z => z.Id != 25).ToListAsync(); // RIP Briggs
+
+                foreach (var worldId in WorldsMap.Keys)
+                {
+                    if (!storeWorlds.Any(r => r.Id == worldId))
+                    {
+                        WorldsMap.TryRemove(worldId, out var removedWorld);
+                    }
+                }
+
+                foreach (var world in storeWorlds)
+                {
+                    if (WorldsMap.ContainsKey(world.Id))
+                    {
+                        WorldsMap[world.Id] = world;
+                    }
+                    else
+                    {
+                        WorldsMap.TryAdd(world.Id, world);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error setting up Worlds Map: {ex}");
+            }
+            finally
+            {
+                _mapSetUpSemaphore.Release();
+            }
         }
 
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
@@ -76,6 +118,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyWorlds = await dbContext.Worlds.AnyAsync();
                 if (anyWorlds)
                 {
+                    await SetUpWorldsMap();
+
                     return;
                 }
             }
@@ -86,6 +130,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 RefreshStoreFromBackup();
             }
+
+            await SetUpWorldsMap();
         }
 
         public async Task<bool> RefreshStoreFromCensus()

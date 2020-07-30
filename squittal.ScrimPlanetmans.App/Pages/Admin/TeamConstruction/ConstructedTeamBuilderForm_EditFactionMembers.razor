@@ -17,9 +17,11 @@
 
 
 <div class="sq-mini-card-4 @_renderedFactionAbbreviation.ToLower()">
+    
+    <h5>@_renderedFactionAbbreviation.ToUpper() Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h5>
+    
     <div class="sq-content">
 
-        <h5>@_renderedFactionAbbreviation.ToUpper() Members <span style="font-weight: 400;">(@_renderedCharactersCount)</span></h5>
 
         @if (_isLoadingCharacters)
         {
@@ -102,11 +104,14 @@
 
 
     #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
     protected override void OnInitialized()
     {
         MessageService.RaiseConstructedTeamMemberChangeEvent += ReceiveConstructedTeamMemberChangeEvent;
-
-        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()
