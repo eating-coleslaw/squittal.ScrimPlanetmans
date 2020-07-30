@@ -1226,8 +1226,10 @@ body {
     left: 25%;
 /*    width: 50%;*/
 /*    margin-left: auto;*/
-    width: 55%;
-    margin-left: -2%;
+/*    width: 55%;*/
+/*    margin-left: -2%;*/
+    width: 53%;
+    margin-left: -1%;
     margin-right: auto;
     height: auto;
     box-sizing: border-box;
@@ -1237,6 +1239,15 @@ body {
     font-weight: 500;
     z-index: 1;
 }
+
+    .overlay .match-report.no-hsr {
+        /*    width: 50%;*/
+        /*    margin-left: auto;*/
+        /*    width: 55%;*/
+        /*    margin-left: -2%;*/
+        width: 50%;
+        margin-left: 0%;
+    }
 
     .overlay .match-report .team-report {
         display: grid;

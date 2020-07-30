@@ -226,6 +226,13 @@ app {
     margin-bottom: 0.2rem;
 }
 
+    .btn-primary:disabled, .btn-primary:disabled:hover, .btn-primary:disabled:active,
+    .btn-primary.disabled, .btn-primary.disabled:hover, .btn-primary.disabled:active {
+        background-color: var(--sq-pink-lighter);
+        /*    border-color: var(--sq-pink-darker);*/
+        border-color: var(--sq-pink);
+    }
+
     .btn-primary .oi {
         font-size: 0.7rem;
         padding-right: 0.5rem;
@@ -251,7 +258,9 @@ app {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }
 
-.btn-outline-primary {
+.btn-outline-primary,
+.btn-outline-primary:disabled, .btn-outline-primary:disabled:hover, .btn-outline-primary:disabled:active,
+.btn-outline-primary.disabled, .btn-outline-primary.disabled:hover, .btn-outline-primary.disabled:active {
     border-radius: 0.2rem;
     line-height: 1;
     /*background-color: var(--sq-pink-lighter);

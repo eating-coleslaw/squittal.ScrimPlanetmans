@@ -3,6 +3,7 @@
     public enum ConstructedTeamMemberChangeType
     {
         Add = 1,
-        Remove = 2
+        Remove = 2,
+        UpdateAlias = 3
     }
 }
