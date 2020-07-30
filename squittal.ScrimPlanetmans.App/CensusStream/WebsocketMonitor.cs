@@ -290,7 +290,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             if (!_isRunning)
             {
-                //_healthMonitor.ClearAllWorlds();
+                _healthMonitor.ClearAllWorlds();
                 _timer?.Dispose();
                 return;
             }
