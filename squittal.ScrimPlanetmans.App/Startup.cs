@@ -52,18 +52,13 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimMessageBroadcastService, ScrimMessageBroadcastService>();
 
             services.AddTransient<IFactionService, FactionService>();
-            //services.AddTransient<IZoneService, ZoneService>();
             services.AddSingleton<IZoneService, ZoneService>();
 
-            // TODO: should ItemService, FacilityService, and VehicleService be Singletons, due to their pre-loaded value lists?
-            //services.AddTransient<IItemService, ItemService>();
-            //services.AddTransient<IItemCategoryService, ItemCategoryService>();
             services.AddSingleton<IItemService, ItemService>();
             services.AddSingleton<IItemCategoryService, ItemCategoryService>();
             services.AddSingleton<IFacilityService, FacilityService>();
             services.AddTransient<IFacilityTypeService, FacilityTypeService>();
             services.AddTransient<IVehicleService, VehicleService>();
-            //services.AddTransient<IVehicleFactionService, VehicleFactionService>();
 
             services.AddTransient<IVehicleTypeService, VehicleTypeService>();
             services.AddTransient<IDeathEventTypeService, DeathEventTypeService>();
@@ -81,11 +76,10 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimTeamsManager, ScrimTeamsManager>();
             services.AddSingleton<IScrimPlayersService, ScrimPlayersService>();
 
-            services.AddSingleton<IStatefulTimer, StatefulTimer>(); // TODO: should/can this be Transient?
+            services.AddSingleton<IStatefulTimer, StatefulTimer>();
             services.AddSingleton<IScrimMatchEngine, ScrimMatchEngine>();
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
 
-            //services.AddTransient<IConstructedTeamService, ConstructedTeamService>();
             services.AddSingleton<IConstructedTeamService, ConstructedTeamService>();
 
             services.AddSingleton<IDbSeeder, DbSeeder>();

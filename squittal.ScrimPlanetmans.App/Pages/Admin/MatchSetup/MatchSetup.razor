@@ -203,7 +203,7 @@
     #region Initialization Methods
     protected override async Task OnInitializedAsync()
     {
-        await GetCensusStreamStatus(true);
+        await GetCensusStreamStatus();
 
         _zones = await ZoneService.GetAllZones();
 
@@ -244,20 +244,14 @@
     #endregion Initialization Methods
 
     #region  Match & Subscription State Buttons
-    private async Task GetCensusStreamStatus(bool isFirstStatusCheck)
+    private async Task GetCensusStreamStatus()
     {
         var status = await WebsocketMonitor.GetStatus();
         _isStreamServiceEnabled = status.IsEnabled;
 
         if (!_isStreamServiceEnabled)
         {
-            SetWebsocketConnectionErrorMessage(isFirstStatusCheck);
-
-            //if (isFirstStatusCheck)
-            //{
-            //    await WebsocketMonitor.StartAsync(System.Threading.CancellationToken.None);
-            //    await GetCensusStreamStatus(false);
-            //}
+            SetWebsocketConnectionErrorMessage();
         }
         else
         {
@@ -469,13 +463,12 @@
 
     #endregion
 
-    /*****************
-     *  Log Messages
-     *****************/
+    #region Log Messages
     private void LogAdminMessage(string message)
     {
         MessageService.BroadcastSimpleMessage(message);
     }
+    #endregion Log Messages
 
     #region Error Messages
     private void ClearErrorMessage()
@@ -483,17 +476,9 @@
         _errorBannerMessage = string.Empty;
     }
 
-    private void SetWebsocketConnectionErrorMessage(bool isFirstReconnectAttempt)
+    private void SetWebsocketConnectionErrorMessage()
     {
-        if (isFirstReconnectAttempt)
-        {
-            _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket! Re-attempting to establish connection...";
-
-        }
-        else
-        {
-            _errorBannerMessage = "Second attempt failed to connect to the Planetside 2 Websocket! Reload the page to try again.";
-        }
+            _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket";
     }
     #endregion Error Messages
 }
