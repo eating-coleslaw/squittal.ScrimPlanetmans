@@ -1,0 +1,261 @@
+﻿<h3>ScrimMatchReportBrowser</h3>
+
+@page "/Reports"
+@page "/MatchReport"
+@page "/ReportBrowser"
+
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Data.Models;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Text.RegularExpressions;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject IScrimMessageBroadcastService MessageService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <div class="col-lg-3">
+
+            <div class="header-card-container default">
+                <h3>Match Reports</h3>
+
+                @*<EditForm Model="@_inputTeamStringId" style="display: inline-block;">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div style="margin-bottom: 0.2rem;">
+                        <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
+
+                        <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
+                            <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
+
+                            @foreach (var team in _storedTeamsList)
+                            {
+                                <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                </EditForm>*@
+
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Match ID</th>
+                    <th>Start Time</th>
+                    <th>Title</th>
+                    <th>Server</th>
+                    <th>Facility</th>
+                </tr>
+            </thead>
+
+            @if (_storeScrimMatchList == null || _isLoadingScrimMatchList)
+            {
+                <SpinnerEllipsis />
+            }
+            else
+            {
+                <tbody>
+                @foreach (var match in _storeScrimMatchList)
+                {
+                    <tr>
+                        <td>@match.ScrimMatchId</td>
+                        <td>@match.StartTime</td>
+                        <td>@match.Title</td>
+                        <td>@match.WorldName [@match.WorldId]</td>
+                        @if (match.FacilityId != null)
+                        {
+                            <td>@match.FacilityName [@match.FacilityId]</td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            }
+        </table>
+
+    </div>
+
+        @*@if (_showCreateNewTeamForm)
+            {
+                <div class="col-lg-4">
+
+                    <div class="header-card-container default">
+
+                        <h5 class="default" style="margin-bottom: 0.1rem;">
+                            Team Creation Form
+                        </h5>
+
+                        <div class="sq-content">
+                        </div>
+                    </div>
+                </div>
+            }
+            else*@
+        @if (_isChangingScrimMatch)
+        {
+            <SpinnerEllipsis />
+        }
+        else if (_renderedScrimMatchId != _noScrimMatchSelectedId)
+        {
+            <div class="col-lg-9">
+                @*<ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />*@
+            </div>
+        }
+
+        <p>Debug: @_debug</p>
+
+</div>
+
+
+@code {
+    [Parameter]
+    public string i_scrimMatchId { get; set; } = "-1";
+    private string _renderedScrimMatchId { get; set; } = "-1";
+
+    [Parameter]
+    public string _uriScrimMatchId { get; set; }
+
+    [Parameter]
+    public int i_pageIndex { get; set; } = 1;
+    public int _renderedPageIndex { get; set; } = 1;
+
+    [Parameter]
+    public string _uriPageIndex { get; set; }
+
+
+    private string _inputScrimMatchId { get; set; } = "-1";
+
+    private string _noScrimMatchSelectedId { get; set; } = "-1";
+
+    //private ConstructedTeamFormInfo _renderedTeam { get; set; } = new ConstructedTeamFormInfo();
+
+    //private IEnumerable<ConstructedTeam> _storedTeamsList { get; set; } = new List<ConstructedTeam>();
+    private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
+
+    private bool _isLoadingScrimMatchList { get; set; } = true;
+    private bool _isChangingScrimMatch { get; set; } = false;
+
+    private string _debug { get; set; } = string.Empty;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoadingScrimMatchList = true;
+
+        //_storedTeamsList = await TeamService.GetConstructedTeams(true);
+        var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
+        _storeScrimMatchList = new List<ScrimMatchInfo>();
+        _storeScrimMatchList.AddRange(paginatedList.Contents);
+
+        _debug = $"{_storeScrimMatchList.Count()}";
+
+        _isLoadingScrimMatchList = false;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        UpdateUriParameters();
+
+        if (i_scrimMatchId != _renderedScrimMatchId)
+        {
+            _isChangingScrimMatch = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedScrimMatchId = i_scrimMatchId;
+
+            //_renderedScrimMatchId = GetTeamIdFromStringId(_renderedScrimMatchId);
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingScrimMatch = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            StateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("scrimMatchId", out var qScrimMatchId))
+        {
+            if (_uriScrimMatchId != qScrimMatchId)
+            {
+                stateChanged = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(qScrimMatchId))
+            {
+                _uriScrimMatchId = null;
+                i_scrimMatchId = _noScrimMatchSelectedId;
+            }
+            else
+            {
+                _uriScrimMatchId = qScrimMatchId;
+                i_scrimMatchId = qScrimMatchId;
+            }
+        }
+
+        return stateChanged;
+    }
+
+    public int GetTeamIdFromStringId(string stringId)
+    {
+        if (int.TryParse(stringId, out int intId))
+        {
+            return intId;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

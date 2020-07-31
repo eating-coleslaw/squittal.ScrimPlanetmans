@@ -3,6 +3,7 @@ using squittal.ScrimPlanetmans.Data.DataConfigurations;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.Data.Models;
+using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 
 namespace squittal.ScrimPlanetmans.Data
 {
@@ -64,6 +65,11 @@ namespace squittal.ScrimPlanetmans.Data
         //public DbSet<ConstructedTeamFactionPreference> ConstructedTeamFactionPreferences { get; set; }
         #endregion
 
+        #region Views
+        public DbSet<ScrimMatchInfo> ScrimMatchInfo { get; set; }
+        #endregion Views
+
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -119,6 +125,10 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new ConstructedTeamPlayerMembershipConfiguration());
             //builder.ApplyConfiguration(new ConstructedTeamFactionPreferenceConfiguration());
             #endregion
+
+            #region Views
+            builder.ApplyConfiguration(new ScrimMatchInfoConfiguration());
+            #endregion Views
         }
     }
 }
