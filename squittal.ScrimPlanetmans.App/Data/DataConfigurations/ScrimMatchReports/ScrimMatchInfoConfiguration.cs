@@ -11,6 +11,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.ToView("View_ScrimMatchInfo");
 
             builder.HasNoKey();
+
+            builder.Ignore(e => e.TeamAliases);
         }
     }
 }

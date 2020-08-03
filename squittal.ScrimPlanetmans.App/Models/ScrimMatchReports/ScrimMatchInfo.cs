@@ -1,5 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.Data.Models;
 using System;
+using System.Collections.Generic;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
@@ -9,8 +10,11 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public DateTime StartTime { get; set; }
         public string Title { get; set; }
 
-        //public string FirstTeamTag { get; set; }
-        //public string SecondTeamTag { get; set; }
+        public Dictionary<int, string> TeamAliases { get; set; } = new Dictionary<int, string>()
+        {
+            { 1, "???" },
+            { 2, "???" }
+        };
 
         public int RoundCount { get; set; }
 
@@ -42,6 +46,29 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
             WorldId = lastRoundConfiguration.WorldId;
             FacilityId = lastRoundConfiguration.FacilityId;
             //EndRoundOnFacilityCapture = lastRoundConfiguration.IsRoundEndedOnFacilityCapture;
+        }
+
+        public void SetTeamAliases()
+        {
+            if (string.IsNullOrWhiteSpace(ScrimMatchId))
+            {
+                //TeamAliases.TryAdd(1, "Unknown");
+                //TeamAliases.TryAdd(2, "Unknown");
+
+                return;
+            }
+
+            var idParts = ScrimMatchId.Split("_");
+
+            if (!TeamAliases.TryAdd(1, idParts[1]))
+            {
+                TeamAliases[1] = idParts[1];
+            }
+
+            if (!TeamAliases.TryAdd(2, idParts[2]))
+            {
+                TeamAliases[2] = idParts[2];
+            }
         }
     }
 }

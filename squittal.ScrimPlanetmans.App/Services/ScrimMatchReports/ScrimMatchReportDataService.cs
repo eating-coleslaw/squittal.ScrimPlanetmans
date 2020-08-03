@@ -16,7 +16,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
         private readonly IDbContextHelper _dbContextHelper;
         private readonly ILogger<ScrimMatchReportDataService> _logger;
 
-        private readonly int _scrimMatchBrowserPageSize = 20;
+        private readonly int _scrimMatchBrowserPageSize = 15;
 
         public ScrimMatchReportDataService(IDbContextHelper dbContextHelper, ILogger<ScrimMatchReportDataService> logger)
         {
@@ -134,7 +134,21 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 //        //                             select match.IsRoundEndedOnFacilityCapture).Max()
                 //    };
 
-                return await PaginatedList<ScrimMatchInfo>.CreateAsync(scrimMatchesQuery.AsNoTracking(), pageIndex ?? 1, _scrimMatchBrowserPageSize);
+                var paginatedList = await PaginatedList<ScrimMatchInfo>.CreateAsync(scrimMatchesQuery.AsNoTracking().OrderByDescending(m => m.StartTime), pageIndex ?? 1, _scrimMatchBrowserPageSize);
+
+                if (paginatedList == null)
+                {
+                    return null;
+                }
+
+                //paginatedList.Contents = paginatedList.Contents.OrderByDescending(m => m.StartTime).ToList();
+
+                foreach (var match in paginatedList.Contents)
+                {
+                    match.SetTeamAliases();
+                }
+
+                return paginatedList;
             }
             catch (Exception ex)
             {
