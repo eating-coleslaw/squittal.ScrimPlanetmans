@@ -36,6 +36,7 @@
                             <th>Title</th>
                             <th>Server</th>
                             <th>Facility</th>
+                            <th></th>
                         </tr>
                     </thead>
 
@@ -63,6 +64,9 @@
                                         <td style="font-style: italic;">None</td>
 
                                     }
+                                    <td>
+                                        <NavLink class="nav-link" href=@($"reports/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
