@@ -19,7 +19,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int RoundCount { get; set; }
 
         // World & Facility correspond to last round's configuration
-        //public bool IsManualWorldId { get; set; } = false;
         public int WorldId { get; set; }
         public string WorldName { get; set; }
         public int? FacilityId { get; set; }
@@ -38,23 +37,17 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
             StartTime = scrimMatch.StartTime;
             Title = scrimMatch.Title;
 
-            //FirstTeamTag = firstTeamTag;
-            //SecondTeamTag = secondTeamTag;
+            SetTeamAliases();
 
             RoundCount = lastRoundConfiguration.ScrimMatchRound;
-            //IsManualWorldId = lastRoundConfiguration.IsManualWorldId;
             WorldId = lastRoundConfiguration.WorldId;
             FacilityId = lastRoundConfiguration.FacilityId;
-            //EndRoundOnFacilityCapture = lastRoundConfiguration.IsRoundEndedOnFacilityCapture;
         }
 
         public void SetTeamAliases()
         {
             if (string.IsNullOrWhiteSpace(ScrimMatchId))
             {
-                //TeamAliases.TryAdd(1, "Unknown");
-                //TeamAliases.TryAdd(2, "Unknown");
-
                 return;
             }
 

@@ -1,6 +1,4 @@
-﻿<h3>ScrimMatchReportBrowser</h3>
-
-@page "/Reports"
+﻿@page "/Reports"
 @page "/MatchReport"
 @page "/ReportBrowser"
 
@@ -20,41 +18,18 @@
 
 @implements IDisposable
 
-<div class="container-fluid">
+<div class="container-fluid" style="margin-top: 16px;">
 
     <div class="row">
 
-        <div class="col-lg-4">
+        <div class="col-lg-6" style="margin-left: auto; margin-right: auto;">
 
             <div class="header-card-container default">
                 <h3>Match Reports</h3>
 
-                @*<EditForm Model="@_inputTeamStringId" style="display: inline-block;">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div style="margin-bottom: 0.2rem;">
-                <p style="margin-bottom: 0.2rem;">Select Constructed Team: </p>
-
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputTeamStringId" ValueChanged="@((string s) => HandleOnSelectTeamChange(s))" ValueExpression="@(() => _inputTeamStringId)">
-                    <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
-
-                    @foreach (var team in _storedTeamsList)
-                    {
-                        <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
-                    }
-                </InputSelect>
-            </div>
-
-        </EditForm>*@
-
-
-
-
-                <table style="width: 100%; font-size: 0.75rem;" class="table-responsive-sm table-striped-light">
+                <table style="width: 100%;" class="table-responsive-sm table-striped-light">
                     <thead>
                         <tr>
-                            @*<th>Match ID</th>*@
                             <th>Start Time</th>
                             <th>Team 1</th>
                             <th>Team 2</th>
@@ -74,16 +49,13 @@
                             @foreach (var match in _storeScrimMatchList)
                             {
                                 <tr>
-                                    @*<td>@match.ScrimMatchId</td>*@
-                                    <td>@match.StartTime</td>
+                                    <td>@match.StartTime.ToShortDateString() @match.StartTime.ToShortTimeString()</td>
                                     <td>@match.TeamAliases[1]</td>
                                     <td>@match.TeamAliases[2]</td>
                                     <td>@match.Title</td>
-                                    @*<td>@match.WorldName [@match.WorldId]</td>*@
                                     <td>@match.WorldName</td>
                                     @if (match.FacilityId != null)
                                     {
-                                        @*<td>@match.FacilityName [@match.FacilityId]</td>*@
                                         <td>@match.FacilityName</td>
                                     }
                                     else
@@ -103,22 +75,6 @@
 
     </div>
 
-        @*@if (_showCreateNewTeamForm)
-            {
-                <div class="col-lg-4">
-
-                    <div class="header-card-container default">
-
-                        <h5 class="default" style="margin-bottom: 0.1rem;">
-                            Team Creation Form
-                        </h5>
-
-                        <div class="sq-content">
-                        </div>
-                    </div>
-                </div>
-            }
-            else*@
         @if (_isChangingScrimMatch)
         {
             <SpinnerEllipsis />
@@ -156,9 +112,6 @@
     private string _noScrimMatchSelectedId { get; set; } = "-1";
     private int _defaultPageIndex { get; set; } = 1;
 
-    //private ConstructedTeamFormInfo _renderedTeam { get; set; } = new ConstructedTeamFormInfo();
-
-    //private IEnumerable<ConstructedTeam> _storedTeamsList { get; set; } = new List<ConstructedTeam>();
     private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
 
     private bool _isLoadingScrimMatchList { get; set; } = true;
@@ -181,54 +134,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadScrimMatchListAsync();
-        //_isLoadingScrimMatchList = true;
-
-        ////_storedTeamsList = await TeamService.GetConstructedTeams(true);
-        //var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
-        //_storeScrimMatchList = new List<ScrimMatchInfo>();
-
-        //_storeScrimMatchList.AddRange(paginatedList.Contents);
-        ////if (paginatedList.Contents != null)
-        ////{
-        ////    _storeScrimMatchList.AddRange(paginatedList.Contents);
-        ////}
-
-
-        //_debug = $"{_storeScrimMatchList.Count()}";
-
-        //_isLoadingScrimMatchList = false;
     }
-
-    //protected override void OnParametersSet()
-    //{
-    //    var paramsChanged = false;
-
-    //    UpdateUriParameters();
-
-    //    if (i_scrimMatchId != _renderedScrimMatchId)
-    //    {
-    //        _isChangingScrimMatch = true;
-    //        InvokeAsyncStateHasChanged();
-
-    //        _renderedScrimMatchId = i_scrimMatchId;
-
-    //        //_renderedScrimMatchId = GetTeamIdFromStringId(_renderedScrimMatchId);
-
-    //        paramsChanged = true;
-    //    }
-
-    //    //if (i_pageIndex != _renderedPageIndex)
-    //    //{
-    //    //    _renderedPageIndex = i_pageIndex;
-    //    //    await LoadScrimMatchListAsync();
-    //    //}
-
-    //    if (paramsChanged)
-    //    {
-    //        _isChangingScrimMatch = false;
-    //        InvokeAsyncStateHasChanged();
-    //    }
-    //}
 
     protected override async Task OnParametersSetAsync()
     {
@@ -243,8 +149,6 @@
 
             _renderedScrimMatchId = i_scrimMatchId;
 
-            //_renderedScrimMatchId = GetTeamIdFromStringId(_renderedScrimMatchId);
-
             paramsChanged = true;
         }
 
@@ -252,8 +156,6 @@
         {
             _renderedPageIndex = i_pageIndex;
             await LoadScrimMatchListAsync();
-
-            //InvokeAsyncStateHasChanged();
 
             paramsChanged = true;
         }
@@ -269,16 +171,10 @@
     {
         _isLoadingScrimMatchList = true;
 
-        //_storedTeamsList = await TeamService.GetConstructedTeams(true);
         var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
         _storeScrimMatchList = new List<ScrimMatchInfo>();
 
         _storeScrimMatchList.AddRange(paginatedList.Contents);
-        //if (paginatedList.Contents != null)
-        //{
-        //    _storeScrimMatchList.AddRange(paginatedList.Contents);
-        //}
-
 
         _debug = $"{_storeScrimMatchList.Count()}";
 
