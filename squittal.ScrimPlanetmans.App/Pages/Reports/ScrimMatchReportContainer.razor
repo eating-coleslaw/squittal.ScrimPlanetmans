@@ -4,9 +4,9 @@
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Data.Models;
+@using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
-@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Text.RegularExpressions;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
@@ -15,14 +15,80 @@
 @inject IScrimMatchReportDataService ReportDataService
 @inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
-
 @*@implements IDisposable*@
 
-<h3>@_renderedScrimMatchId</h3>
+<div class="container-fluid" style="margin-top: 16px;">
 
-<div id="MatchStats" class="match-report">  @*@GetReportCss()">*@
-    @*<InfantryMatchReportTeam i_TeamOrdinal=1 i_/>*@
-    @*<InfantryMatchReportTeam i_TeamOrdinal=2 />*@
+    <div class="row">
+
+        <div class="col-lg-6" style="margin-left: auto; margin-right: auto;">
+
+            <div class="header-card-container default">
+                <h3>@_renderedScrimMatchId</h3>
+
+                <table style="width: 100%;" class="table-responsive-sm table-striped-light">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th style="text-align: right;">Points</th>
+                            <th></th>
+                            <th>Net Score</th>
+                            <th>Kills</th>
+                            <th>Deaths</th>
+                            <th>Damage Assists</th>
+                            <th>Damage Assisted Kills</th>
+                            <th>1v1 KDR</th>
+                        </tr>
+                    </thead>
+
+                    @if (_playerStats == null || _isLoadingScrimPlayers)
+                    {
+                        <SpinnerEllipsis />
+                    }
+                    else
+                    {
+                        <tbody>
+                            @foreach (var player in _playerStats)
+                            {
+                            <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ps2-primary);">
+                                <td title="@player.NameFull [@(player.CharacterId)]">
+                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
+                                    @if (player.PrestigeLevel != 0)
+                                    {
+                                        <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
+                                            <sup>
+                                                <span class="oi oi-star small" aria-hidden="true"></span>
+                                            </sup>
+                                        </div>
+                                    }
+                                </td>
+                                <td style="text-align: right;">@player.Points</td>
+                                <td>
+                                    <div class="graph" style="width: 110px;">
+                                        <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 5px 0 0 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="net stats-value">
+                                        <span class="value">@player.NetScore</span><span class="label @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
+                                    </div>
+                                </td>
+                                <td>@player.Kills</td>
+                                <td>@player.Deaths</td>
+                                <td>@player.DamageAssists</td>
+                                <td>@player.DamageAssistedKills</td>
+                                <td>@player.OneVsOneRatio</td>
+                            </tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
 </div>
 
 @code {
@@ -30,26 +96,123 @@
     public string i_scrimMatchId { get; set; }
     private string _renderedScrimMatchId { get; set; }
 
-    #region Initialization Methods
-    protected override void OnParametersSet()
-    {
-        //if (_showHsr != i_showHsr)
-        //{
-        //    _showHsr = i_showHsr;
+    private IEnumerable<ScrimMatchReportInfantryPlayerStats> _playerStats { get; set; }
 
-        //    InvokeAsync(() =>
-        //    {
-        //        StateHasChanged();
-        //    });
-        //}
+    private int _maxPlayerPoints { get; set; } = 1;
+
+    private bool _isLoadingScrimPlayers { get; set; } = false;
+    private bool _isChangingScrimMatch { get; set; } = false;
+
+    private string _debug { get; set; } = string.Empty;
+
+    #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoadingScrimPlayers = true;
+
+        if (i_scrimMatchId != null)
+        {
+            _renderedScrimMatchId = i_scrimMatchId;
+
+            await LoadInfantryPlayerStats();
+
+            //_playerStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerStatsAsync(_renderedScrimMatchId);
+
+            //if (_playerStats.Any())
+            //{
+            //    _maxPlayerPoints = _playerStats.Max(p => p.Points);
+            //}
+        }
+
+        _isLoadingScrimPlayers = false;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        //UpdateUriParameters();
+
+        if (i_scrimMatchId != _renderedScrimMatchId)
+        {
+            _isChangingScrimMatch = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedScrimMatchId = i_scrimMatchId;
+
+            await LoadInfantryPlayerStats();
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingScrimMatch = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadInfantryPlayerStats()
+    {
+        _playerStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerStatsAsync(_renderedScrimMatchId);
+
+        if (_playerStats.Any())
+        {
+            _maxPlayerPoints = _playerStats.Max(p => p.Points);
+        }
     }
     #endregion Initialization Methods
 
-    //private string GetReportCss()
-    //{
-    //    //return _showHsr
-    //    //            ? string.Empty
-    //    //            : "no-hsr";
-    //}
 
+    private decimal GetPointGraphWidth(int points)
+    {
+        var maxPoints = _maxPlayerPoints;
+
+        var playerPoints = points;
+
+        return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
+    }
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private string GetNetScoreLabelCssClass(int netScore)
+    {
+        if (netScore == 0)
+        {
+            return "neutral";
+        }
+        else if (netScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText(int netScore)
+    {
+        if (netScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 }
