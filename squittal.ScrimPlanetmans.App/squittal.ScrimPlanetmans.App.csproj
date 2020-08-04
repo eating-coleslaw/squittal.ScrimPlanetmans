@@ -103,6 +103,9 @@
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryTeamStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

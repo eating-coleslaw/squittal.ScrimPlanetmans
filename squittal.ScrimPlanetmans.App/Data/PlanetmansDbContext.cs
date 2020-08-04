@@ -68,6 +68,7 @@ namespace squittal.ScrimPlanetmans.Data
         #region Views
         public DbSet<ScrimMatchInfo> ScrimMatchInfo { get; set; }
         public DbSet<ScrimMatchReportInfantryPlayerStats> ScrimMatchReportInfantryPlayerStats { get; set; }
+        public DbSet<ScrimMatchReportInfantryTeamStats> ScrimMatchReportInfantryTeamStats { get; set; }
         #endregion Views
 
 
@@ -130,6 +131,7 @@ namespace squittal.ScrimPlanetmans.Data
             #region Views
             builder.ApplyConfiguration(new ScrimMatchInfoConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerStatsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryTeamStatsConfiguration());
             #endregion Views
         }
     }

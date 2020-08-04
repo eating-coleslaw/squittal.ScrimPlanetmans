@@ -38,7 +38,7 @@
                     {
                         <SpinnerEllipsis />
                     }
-                    else if (_playerStats == null || !_playerStats.Any() || !_matchInfo.TeamAliases.Any())
+                    else if (_playerStats == null || !_playerStats.Any() || !_matchInfo.TeamAliases.Any() || !_teamStats.Any())
                     {
                         <p>No player data found for match @_renderedScrimMatchId</p>
                     }
@@ -63,23 +63,29 @@
                         </thead>
 
                         <tbody>
-                            @foreach (var team in _matchInfo.TeamAliases)
+                            @foreach (var team in _teamStats)
                             {
-                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.Key).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light);">
+                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light);">
                                     <td></td>
-                                    <td>@team.Value</td>
-                                    <td>...</td>
+                                    <td>@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
+                                    <td>@team.Points</td>
                                     <td></td>
-                                    <td>...</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.Key).Sum(p => p.Kills)</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.Key).Sum(p => p.Deaths)</td>
-                                    <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.Key).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.Key).Sum(p => p.DamageAssists)</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.Key).Sum(p => p.DamageAssistedKills)</td>
-                                    <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.Key).Average(p => p.OneVsOneRatio), 2)</td>
+                                    <td>@team.NetScore</td>
+                                    <td>@team.Kills</td>
+                                    <td>@team.Deaths</td>
+                                    <td>@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                    <td>@team.DamageAssists</td>
+                                    <td>@team.DamageAssistedKills</td>
+                                    <td>@team.OneVsOneRatio</td>
+                                    @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
+                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
+                                    <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
+                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
+                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
+                                    <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
                                 </tr>
 
-                                @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.Key))
+                                @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
                                 {
                                     <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ps2-primary);">
                                         <td>
@@ -136,6 +142,7 @@
     private string _renderedScrimMatchId { get; set; }
 
     private IEnumerable<ScrimMatchReportInfantryPlayerStats> _playerStats { get; set; }
+    private IEnumerable<ScrimMatchReportInfantryTeamStats> _teamStats { get; set; }
 
     private ScrimMatchInfo _matchInfo { get; set; }
 
@@ -155,9 +162,20 @@
         {
             _renderedScrimMatchId = i_scrimMatchId;
 
-            await LoadInfantryPlayerStats();
+            var TaskList = new List<Task>();
 
-            _matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
+            var playerStatsTask = LoadInfantryPlayerStats();
+            TaskList.Add(playerStatsTask);
+
+            var teamStatsTask = LoadInfantryTeamStats();
+            TaskList.Add(teamStatsTask);
+
+            var matchInfoTask = LoadMatchInfo();
+            TaskList.Add(matchInfoTask);
+
+            await Task.WhenAll(TaskList);
+
+            //_matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
 
             //_playerStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerStatsAsync(_renderedScrimMatchId);
 
@@ -183,9 +201,22 @@
 
             _renderedScrimMatchId = i_scrimMatchId;
 
-            _matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
+            var TaskList = new List<Task>();
 
-            await LoadInfantryPlayerStats();
+            var playerStatsTask = LoadInfantryPlayerStats();
+            TaskList.Add(playerStatsTask);
+
+            var teamStatsTask = LoadInfantryTeamStats();
+            TaskList.Add(teamStatsTask);
+
+            var matchInfoTask = LoadMatchInfo();
+            TaskList.Add(matchInfoTask);
+
+            await Task.WhenAll(TaskList);
+
+            //_matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
+
+            //await LoadInfantryPlayerStats();
 
             paramsChanged = true;
         }
@@ -206,6 +237,17 @@
             _maxPlayerPoints = _playerStats.Max(p => p.Points);
         }
     }
+
+    private async Task LoadInfantryTeamStats()
+    {
+        _teamStats = await ReportDataService.GetHistoricalScrimMatchInfantryTeamStatsAsync(_renderedScrimMatchId);
+    }
+
+    private async Task LoadMatchInfo()
+    {
+        _matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
+    }
+
     #endregion Initialization Methods
 
 

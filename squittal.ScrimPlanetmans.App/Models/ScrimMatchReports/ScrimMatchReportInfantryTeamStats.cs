@@ -4,21 +4,10 @@ using System.Linq;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
-    public class ScrimMatchReportInfantryPlayerStats
+    public class ScrimMatchReportInfantryTeamStats
     {
         public string ScrimMatchId { get; set; }
-        public string CharacterId { get; set; }
         public int TeamOrdinal { get; set; }
-        public string NameDisplay { get; set; }
-        public string NameFull { get; set; }
-        public int FactionId { get; set; }
-        public int WorldId { get; set; }
-        public int PrestigeLevel { get; set; }
-        //public bool IsFromOutfit { get; set; }
-        //public string OutfitId { get; set; }
-        //public string OutfitTag { get; set; }
-        //public bool IsFromConstructedTeam { get; set; }
-        //public int? ConstructedTeamId { get; set; }
         public int Points { get; set; }
         public int NetScore { get; set; }
         public int Kills { get; set; }
@@ -56,7 +45,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int DamageAssistsAsEngineer { get; set; }
         public int DamageAssistsAsMax { get; set; }
 
-        public int EventsAsHeavyAssault=> DeathsAsHeavyAssault + KillsAsHeavyAssault + DamageAssistsAsHeavyAssault;
+        public int EventsAsHeavyAssault => DeathsAsHeavyAssault + KillsAsHeavyAssault + DamageAssistsAsHeavyAssault;
         public int EventsAsLightAssault => DeathsAsLightAssault + KillsAsLightAssault + DamageAssistsAsLightAssault;
         public int EventsAsInfiltrator => DeathsAsInfiltrator + KillsAsInfiltrator + DamageAssistsAsInfiltrator;
         public int EventsAsMedic => DeathsAsMedic + KillsAsMedic + DamageAssistsAsMedic;
@@ -73,7 +62,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         {
             get
             {
-                if (UnassistedEnemyDeaths > 0)
+                if (OneVsOneCount > 0)
                 {
                     return Math.Round((double)(UnassistedKills / (double)UnassistedEnemyDeaths), 2);
                 }
@@ -90,7 +79,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
             {
                 if (Kills > 0)
                 {
-                    return Math.Round((double)(HeadshotKills / (double)Kills) * 100, 1) ;
+                    return Math.Round((double)(HeadshotKills / (double)Kills) * 100, 1);
                 }
                 else
                 {
@@ -129,16 +118,4 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
             return classCountsList.OrderByDescending(c => c.EventCount).ToList();
         }
     }
-
-    //public class PlanetsideClassEventCount
-    //{
-    //    public PlanetsideClass PlanetsideClass { get; set; }
-    //    public int EventCount { get; set; }
-
-    //    public PlanetsideClassEventCount(PlanetsideClass planetsideClass, int eventCount)
-    //    {
-    //        PlanetsideClass = planetsideClass;
-    //        EventCount = eventCount;
-    //    }
-    //}
 }
