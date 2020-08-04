@@ -66,6 +66,30 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
+        public async Task<ScrimMatchInfo> GetHistoricalScrimMatchInfoAsync(string scrimMatchId)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var scrimMatchInfo = await dbContext.ScrimMatchInfo.Where(m => m.ScrimMatchId == scrimMatchId).FirstOrDefaultAsync();
+                
+                if (scrimMatchInfo != null)
+                {
+                    scrimMatchInfo.SetTeamAliases();
+                }
+
+                return scrimMatchInfo;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         public async Task<IEnumerable<ScrimMatchReportInfantryPlayerStats>>  GetHistoricalScrimMatchInfantryPlayerStatsAsync(string scrimMatchId)
         {
             try

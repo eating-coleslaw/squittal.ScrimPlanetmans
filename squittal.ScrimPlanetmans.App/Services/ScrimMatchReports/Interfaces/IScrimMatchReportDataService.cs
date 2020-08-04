@@ -8,5 +8,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
     {
         Task<PaginatedList<ScrimMatchInfo>> GetHistoricalScrimMatchesListAsync(int? pageIndex);
         Task<IEnumerable<ScrimMatchReportInfantryPlayerStats>> GetHistoricalScrimMatchInfantryPlayerStatsAsync(string scrimMatchId);
+        Task<ScrimMatchInfo> GetHistoricalScrimMatchInfoAsync(string scrimMatchId);
     }
 }
