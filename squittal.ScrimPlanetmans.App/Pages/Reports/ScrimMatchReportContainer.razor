@@ -47,7 +47,7 @@
 
                     <table style="width: 100%; text-align: right;" class="table-responsive-sm table-striped-light">
                         <thead>
-                            <tr style="line-height: 1.2; font-size: 0.8rem;">
+                            <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom;">
                                 <th style="padding-left: 10px;"></th>
                                 <th></th>
                                 <th style="text-align: right; font-weight: 300;">Points</th>
@@ -69,7 +69,31 @@
                         <tbody style="font-size: 0.8rem;">
                             @foreach (var team in _teamStats)
                             {
-                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right; border-top: @((team.TeamOrdinal > 1) ? "8px" : "0px") solid transparent;">
+                                @if (team.TeamOrdinal > 1)
+                                {
+                                    <tr style="height: 12px;">
+                                    </tr>
+
+                                    <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom; background-color: transparent;">
+                                        <th style="padding-left: 10px;"></th>
+                                        <th></th>
+                                        <th style="text-align: right; font-weight: 300;">Points</th>
+                                        <th></th>
+                                        <th style="font-weight: 300;">Net Score</th>
+                                        <th style="font-weight: 300;">Kills</th>
+                                        <th style="font-weight: 300;">Deaths</th>
+                                        <th style="font-weight: 300;">HSR</th>
+                                        <th style="font-weight: 300;">Damage Assists</th>
+                                        <th style="font-weight: 300;">Assisted Deaths</th>
+                                        @*<th>Damage Assisted Kills</th>*@
+                                        @*<th style="font-weight: 300;">1vX %</th>*@
+                                        <th style="font-weight: 300;">Favorable Eng. %</th>
+                                        <th style="font-weight: 300;">1v1 Eng. %</th>
+                                        <th style="font-weight: 300;">1v1 KDR</th>
+                                    </tr>
+                                }
+
+                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right;"> @*border-top: @((team.TeamOrdinal > 1) ? "8px" : "0px") solid transparent;">*@
                                     <td style="padding-left: 10px;"></td>
                                     <td style="text-align: left;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                     <td>@team.Points</td>
@@ -86,11 +110,11 @@
                                     <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneKillDeathRatio</td>
                                     @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
-                                    <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
-                                    <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
+                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
+                <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
+                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
+                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
+                <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
                                 </tr>
 
                                 @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
@@ -137,7 +161,7 @@
 
                                 @if (team.FacilityCapturePoints != 0)
                                 {
-                                    <tr style="background-color: transparent;">
+                                    <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; @(team.PointAdjustments == 0 ? "border-bottom: 1px solid var(--sq-ps2-primary-light);" : string.Empty)">
                                         <td colspan="2" style="font-style: italic;">Captures</td>
                                         <td>@team.FacilityCapturePoints</td>
                                     </tr>
@@ -146,7 +170,7 @@
 
                                 @if (team.PointAdjustments != 0)
                                 {
-                                    <tr style="background-color: transparent;">
+                                    <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ps2-primary-light);">
                                         <td colspan="2" style="font-style: italic;">Adjustments</td>
                                         <td>@team.PointAdjustments</td>
                                     </tr>
