@@ -74,6 +74,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int EnemyKillDeathEngagementCount => EnemyDeaths + Kills;
 
         public int EnemyEngagementCount => EnemyKillDeathEngagementCount + DamageAssists; // EnemyDeaths + Kills + DamageAssists;
+        
+        public double WeightedEnemyEngagementCount => EnemyKillDeathEngagementCount + ( DamageAssists / 2.0);
 
         public double UnfavorableEngagementPercent
         {
@@ -101,6 +103,21 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
                 else
                 {
                     return Math.Round(((UnassistedKills + UnassistedEnemyDeaths + (DamageAssists - DamageAssistedEnemyDeaths)) / (double)1.0) * 100.0, 0);
+                }
+            }
+        }
+
+        public double WeightedFavorableEngagementPercent
+        {
+            get
+            {
+                if (EnemyEngagementCount > 0)
+                {
+                    return Math.Round((double)(UnassistedKills + UnassistedEnemyDeaths + ((DamageAssists - DamageAssistedEnemyDeaths))  / 2.0) / WeightedEnemyEngagementCount * 100, 0);
+                }
+                else
+                {
+                    return Math.Round(((UnassistedKills + UnassistedEnemyDeaths + ((DamageAssists - DamageAssistedEnemyDeaths)) / 2.0 ) / (double)1.0) * 100.0, 0);
                 }
             }
         }

@@ -45,7 +45,7 @@
                     else
                     {
 
-                    <table style="width: 100%; text-align: right;" class="table-responsive-sm table-striped-light">
+                    <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
                         <thead>
                             <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom;">
                                 <th style="padding-left: 10px;"></th>
@@ -61,6 +61,8 @@
                                 @*<th>Damage Assisted Kills</th>*@
                                 @*<th style="font-weight: 300;">1vX %</th>*@
                                 <th style="font-weight: 300;">Favorable Eng. %</th>
+                                <th style="font-weight: 300;">W. Fav. Eng. %</th>
+                                <th style="font-weight: 300;">Unass. Kills</th>
                                 <th style="font-weight: 300;">1v1 Eng. %</th>
                                 <th style="font-weight: 300;">1v1 KDR</th>
                             </tr>
@@ -88,6 +90,8 @@
                                         @*<th>Damage Assisted Kills</th>*@
                                         @*<th style="font-weight: 300;">1vX %</th>*@
                                         <th style="font-weight: 300;">Favorable Eng. %</th>
+                                        <th style="font-weight: 300;">W. Fav. Eng. %</th>
+                                        <th style="font-weight: 300;">Unass. Kills</th>
                                         <th style="font-weight: 300;">1v1 Eng. %</th>
                                         <th style="font-weight: 300;">1v1 KDR</th>
                                     </tr>
@@ -107,6 +111,8 @@
                                     @*<td>@team.DamageAssistedKills</td>*@
                                     @*<td>@team.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>*@
                                     <td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                    <td>@team.WeightedFavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                    <td>@team.UnassistedKills</td>
                                     <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneKillDeathRatio</td>
                                     @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
@@ -154,6 +160,8 @@
                                         @*<td>@player.DamageAssistedKills</td>*@
                                         @*<td>@player.UnfavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
                                         <td>@player.FavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                        <td>@player.WeightedFavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                        <td>@player.UnassistedKills</td>
                                         <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.OneVsOneKillDeathRatio</td>
                                     </tr>
@@ -174,6 +182,11 @@
                                         <td colspan="2" style="font-style: italic;">Adjustments</td>
                                         <td>@team.PointAdjustments</td>
                                     </tr>
+                                }
+
+                                @if (team.FacilityCapturePoints == 0 && team.PointAdjustments == 0)
+                                {
+                                    <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ps2-primary-light);"></tr>
                                 }
                             }
                         </tbody>
