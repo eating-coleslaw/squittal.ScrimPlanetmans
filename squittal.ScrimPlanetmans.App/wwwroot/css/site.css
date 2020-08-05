@@ -359,7 +359,35 @@ app {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }*/
 
+/****************************
+    Match Report
+*****************************/
+.net-score-icon {
+    padding-left: 4px;
+    font-size: 1rem;
+    color: var(--sq-ov-semantic-green);
+}
 
+    .net-score-icon.neutral {
+        color: var(--sq-ov-semantic-orange);
+        display: inline-block;
+        font-weight: 700;
+        position: relative;
+        top: 2px;
+        height: 20px;
+    }
+
+    .net-score-icon.negative {
+        color: var(--sq-ov-semantic-red);
+        display: inline-block;
+        transform-origin: center;
+/*        transform: rotateZ(180deg);*/
+        transform: rotateZ(180deg) translateY(-3px);
+        padding: 0 4px 0 0;
+/*        position: relative;*/
+/*        top: 6px;*/
+/*        height: 20px;*/
+    }
 
 
 /****************************

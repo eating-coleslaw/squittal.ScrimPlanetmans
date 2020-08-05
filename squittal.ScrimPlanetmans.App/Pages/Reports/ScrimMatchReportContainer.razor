@@ -21,7 +21,7 @@
 
     <div class="row">
 
-        <div class="col-lg-6" style="margin-left: auto; margin-right: auto;">
+        <div class="col-lg-7" style="margin-left: auto; margin-right: auto;">
 
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
 
@@ -50,18 +50,19 @@
                             <tr>
                                 <th></th>
                                 <th></th>
-                                <th style="text-align: right;">Points</th>
+                                <th style="text-align: right; font-weight: 300;">Points</th>
                                 <th></th>
-                                <th>Net Score</th>
-                                <th>Kills</th>
-                                <th>Deaths</th>
-                                <th>HSR</th>
-                                <th>Damage Assists</th>
+                                <th style="font-weight: 300;">Net Score</th>
+                                <th style="font-weight: 300;">Kills</th>
+                                <th style="font-weight: 300;">Deaths</th>
+                                <th style="font-weight: 300;">HSR</th>
+                                <th style="font-weight: 300;">Damage Assists</th>
+                                <th style="font-weight: 300;">Damage Assisted Deaths</th>
                                 @*<th>Damage Assisted Kills</th>*@
-                                <th>1vX %</th>
-                                <th>1v1 KDR</th>
-                                <th>Favorable %</th>
-                                <th>1v1 %</th>
+                                <th style="font-weight: 300;">1vX %</th>
+                                <th style="font-weight: 300;">1v1 KDR</th>
+                                <th style="font-weight: 300;">Favorable %</th>
+                                <th style="font-weight: 300;">1v1 %</th>
                             </tr>
                         </thead>
 
@@ -78,24 +79,25 @@
                                     <td>@team.Deaths</td>
                                     <td>@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.DamageAssists</td>
+                                    <td>@team.DamageAssistedEnemyDeaths</td>
                                     @*<td>@team.DamageAssistedKills</td>*@
                                     <td>@team.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneKillDeathRatio</td>
                                     <td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
-                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
-                <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
-                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
-                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
-                <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
+                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
+                                    <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
+                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
+                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
+                                    <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
                                 </tr>
 
                                 @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
                                 {
-                                    <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ps2-primary);">
+                                    @*<tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ps2-primary);">*@
+                                    <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
                                         <td>
-                                            @*<div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().FirstOrDefault().PlanetsideClass)" style="filter: drop-shadow(0px 0px 1px var(--sq-ps2-primary)); filter: "></div>*@
                                             <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
                                         </td>
                                         <td title="@player.NameFull [@(player.CharacterId)]">
@@ -117,18 +119,19 @@
                                         </td>
                                         <td>
                                             <div class="net stats-value">
-                                                <span class="value">@player.NetScore</span><span class="label @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
+                                                <span class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
                                             </div>
                                         </td>
                                         <td>@player.Kills</td>
                                         <td>@player.Deaths</td>
-                                        <td>@player.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                        <td>@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.DamageAssists</td>
+                                        <td>@player.DamageAssistedEnemyDeaths</td>
                                         @*<td>@player.DamageAssistedKills</td>*@
-                                        <td>@player.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                        <td>@player.UnfavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.OneVsOneKillDeathRatio</td>
-                                        <td>@player.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
-                                        <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                        <td>@player.FavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                        <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                     </tr>
                                 }
 
