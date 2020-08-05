@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
@@ -11,6 +12,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int Points { get; set; }
         public int NetScore { get; set; }
         public int PointAdjustments { get; set; }
+        public int FacilityCapturePoints { get; set; }
         public int Kills { get; set; }
         public int HeadshotKills { get; set; }
         public int Deaths { get; set; }

@@ -6,9 +6,10 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
 
   SELECT match_teams.ScrimMatchId,
        match_teams.TeamOrdinal,
-       COALESCE(kill_sums.Points + adjustment_sums.Points, kill_sums.Points, 0) Points,
-       COALESCE(kill_sums.NetScore + death_sums.NetScore + adjustment_sums.Points, kill_sums.NetScore + death_sums.NetScore, 0) NetScore,
+       ( COALESCE(kill_sums.Points, 0) +  COALESCE(adjustment_sums.Points, 0) +  COALESCE(capture_sums.Points, 0) ) Points,
+       ( COALESCE(kill_sums.NetScore, 0) + COALESCE(death_sums.NetScore, 0) + COALESCE(adjustment_sums.Points, 0) + COALESCE(capture_sums.Points, 0) ) NetScore,
        COALESCE(adjustment_sums.Points, 0) PointAdjustments,
+       COALESCE(capture_sums.Points, 0) FacilityCapturePoints,
        COALESCE(kill_sums.Kills, 0) Kills,
        COALESCE(kill_sums.HeadshotKills, 0) HeadshotKills,
        COALESCE(death_sums.Deaths, 0) Deaths,
@@ -56,12 +57,12 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                         SUM( CASE WHEN DeathType = 0 AND kills.IsHeadshot = 1 THEN 1 ELSE 0 END ) HeadshotKills,
                         SUM( CASE WHEN DeathType = 0 AND kills.Points > 0 THEN 1 ELSE 0 END ) ScoredKills,
                         SUM( CASE WHEN DeathType = 0 AND kills.Points = 0 THEN 1 ELSE 0 END ) ZeroPointKills,
-                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 2, 10, 17) THEN 1 ELSE 0 END ) KillsAsInfiltrator,
-                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 4, 12, 19) THEN 1 ELSE 0 END ) KillsAsLightAssault,
-                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 5, 13, 20) THEN 1 ELSE 0 END ) KillsAsMedic,
-                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 6, 14, 21) THEN 1 ELSE 0 END ) KillsAsEngineer,
-                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 7, 15, 22) THEN 1 ELSE 0 END ) KillsAsHeavyAssault,
-                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 8, 16, 23) THEN 1 ELSE 0 END ) KillsAsMax,
+                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 1, 8, 15) THEN 1 ELSE 0 END )  KillsAsInfiltrator,
+                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 3, 10, 17) THEN 1 ELSE 0 END ) KillsAsLightAssault,
+                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) KillsAsMedic,
+                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 5, 12, 19) THEN 1 ELSE 0 END ) KillsAsEngineer,
+                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 6, 13, 20) THEN 1 ELSE 0 END ) KillsAsHeavyAssault,
+                        SUM( CASE WHEN DeathType = 0 AND kills.AttackerLoadoutId IN ( 7, 14, 21) THEN 1 ELSE 0 END ) KillsAsMax,
                         SUM( CASE WHEN DeathType = 0 AND damage_sums.TotalDamages > 0 THEN 1 ELSE 0 END ) DamageAssistedKills,
                         SUM( CASE WHEN DeathType = 0 AND damage_sums.TotalDamages IS NULL THEN 1 ELSE 0 END ) UnassistedKills
                     FROM ScrimDeath kills
@@ -88,12 +89,12 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                              SUM( CASE WHEN Deaths.IsHeadshot = 1 THEN 1 ELSE 0 END ) HeadshotDeaths,
                              SUM( CASE WHEN Deaths.Points > 0 THEN 1 ELSE 0 END ) ScoredDeaths,
                              SUM( CASE WHEN Deaths.Points = 0 THEN 1 ELSE 0 END ) ZeroPointDeaths,
-                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 2, 10, 17) THEN 1 ELSE 0 END ) DeathsAsInfiltrator,
-                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 4, 12, 19) THEN 1 ELSE 0 END ) DeathsAsLightAssault,
-                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 5, 13, 20) THEN 1 ELSE 0 END ) DeathsAsMedic,
-                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 6, 14, 21) THEN 1 ELSE 0 END ) DeathsAsEngineer,
-                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 7, 15, 22) THEN 1 ELSE 0 END ) DeathsAsHeavyAssault,
-                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 8, 16, 23) THEN 1 ELSE 0 END ) DeathsAsMax,
+                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 1, 8, 15) THEN 1 ELSE 0 END )  DeathsAsInfiltrator,
+                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 3, 10, 17) THEN 1 ELSE 0 END ) DeathsAsLightAssault,
+                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) DeathsAsMedic,
+                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 5, 12, 19) THEN 1 ELSE 0 END ) DeathsAsEngineer,
+                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 6, 13, 20) THEN 1 ELSE 0 END ) DeathsAsHeavyAssault,
+                             SUM( CASE WHEN Deaths.VictimLoadoutId IN ( 7, 14, 21) THEN 1 ELSE 0 END ) DeathsAsMax,
                              SUM( CASE WHEN DeathType = 0 AND damage_sums.TotalDamages > 0 THEN 1 ELSE 0 END ) DamageAssistedEnemyDeaths,
                              SUM( CASE WHEN damage_sums.TotalDamages > 0 THEN 1 ELSE 0 END ) DamageAssistedDeaths,
                              SUM( CASE WHEN DeathType = 0 AND damage_sums.TotalDamages IS NULL THEN 1 ELSE 0 END ) UnassistedEnemyDeaths,
@@ -118,12 +119,12 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                              match_players.TeamOrdinal,
                              SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 304 THEN 1 ELSE 0 END ) DamageAssists,
                              SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 310 THEN 1 ELSE 0 END ) DamageTeamAssists,
-                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 7, 15, 22) THEN 1 ELSE 0 END ) DamageAssistsAsHeavyAssault,
-                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 2, 10, 17) THEN 1 ELSE 0 END ) DamageAssistsAsInfiltrator,
-                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 4, 12, 19) THEN 1 ELSE 0 END ) DamageAssistsAsLightAssault,
-                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 5, 13, 20) THEN 1 ELSE 0 END ) DamageAssistsAsMedic,
-                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 6, 14, 21) THEN 1 ELSE 0 END ) DamageAssistsAsEngineer,
-                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 8, 16, 23) THEN 1 ELSE 0 END ) DamageAssistsAsMax
+                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 1, 8, 15) THEN 1 ELSE 0 END )  DamageAssistsAsInfiltrator,
+                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 3, 10, 17) THEN 1 ELSE 0 END ) DamageAssistsAsLightAssault,
+                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) DamageAssistsAsMedic,
+                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 5, 12, 19) THEN 1 ELSE 0 END ) DamageAssistsAsEngineer,
+                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 6, 13, 20) THEN 1 ELSE 0 END ) DamageAssistsAsHeavyAssault,
+                             SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.AttackerLoadoutId IN ( 7, 14, 21) THEN 1 ELSE 0 END ) DamageAssistsAsMax
                        FROM ScrimMatchParticipatingPlayer match_players
                          INNER JOIN ScrimDamageAssist damages
                            ON match_players.ScrimMatchId = damages.ScrimMatchId
@@ -138,3 +139,10 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                         GROUP BY adjustments.ScrimMatchId, adjustments.TeamOrdinal) adjustment_sums
       ON adjustment_sums.ScrimMatchId = match_teams.ScrimMatchId
          AND adjustment_sums.TeamOrdinal = match_teams.TeamOrdinal
+    LEFT OUTER JOIN ( SELECT captures.ScrimMatchId,
+                             captures.ControllingTeamOrdinal TeamOrdinal,
+                             SUM( captures.Points ) Points
+                        FROM ScrimFacilityControl captures
+                        GROUP BY captures.ScrimMatchId, captures.ControllingTeamOrdinal ) capture_sums
+      ON match_teams.ScrimMatchId = capture_sums.ScrimMatchId
+         AND match_teams.TeamOrdinal = capture_sums.TeamOrdinal

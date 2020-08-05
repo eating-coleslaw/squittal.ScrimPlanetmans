@@ -28,6 +28,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.NetScore).HasDefaultValue(0);
             builder.Property(e => e.PointAdjustments).HasDefaultValue(0);
+            builder.Property(e => e.FacilityCapturePoints).HasDefaultValue(0);
             builder.Property(e => e.Kills).HasDefaultValue(0);
             builder.Property(e => e.HeadshotKills).HasDefaultValue(0);
             builder.Property(e => e.Deaths).HasDefaultValue(0);

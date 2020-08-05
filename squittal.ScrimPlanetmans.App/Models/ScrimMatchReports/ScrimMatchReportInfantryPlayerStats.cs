@@ -179,6 +179,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
             };
 
             return classCountsList.OrderByDescending(c => c.EventCount).ToList();
+            //return classCountsList.OrderBy(c => c.EventCount).ToList();
         }
     }
 

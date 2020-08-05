@@ -27,6 +27,10 @@
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                 <h3>Match Reports</h3>
 
+                <p style="padding: 0;">i_pageIndex: @i_pageIndex</p>
+                <p style="padding: 0;">_renderedPageIndex: @_renderedPageIndex</p>
+                <p style="padding: 0;">_uriPageIndex: @_uriPageIndex</p>
+
                 <table style="width: 100%;" class="table-responsive-sm table-striped-light">
                     <thead>
                         <tr>
@@ -75,6 +79,40 @@
                     }
                 </table>
 
+                <div style="margin: 0 auto; width: 200px; margin-top: 8px;">
+                    @if (_renderedHasPreviousPage)
+                    {
+                        <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
+                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>@*Previous*@
+                        </NavLink>
+                    }
+                    else
+                    {
+                        <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>@*Previous*@
+                        </div>
+                        @*<NavLink disabled class="nav-link" href="" style="padding: 4px 8px; color: var(--sq-grey);">Previous</NavLink>*@
+                    }
+
+
+                    <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
+
+                    @if (_renderedHasNextPage)
+                    {
+                        <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
+                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                        </NavLink>
+                    }
+                    else
+                    {
+                        <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                        </div>
+                        @*<NavLink disabled class="nav-link" href="" style="padding: 4px 8px; color: var(--sq-grey);">Next</NavLink>*@
+                    }
+
+                </div>
+
             </div>
 
         </div>
@@ -91,8 +129,6 @@
                 @*<ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />*@
             </div>
         }
-
-        <p>Debug: @_debug</p>
 
 </div>
 
@@ -120,6 +156,10 @@
 
     private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
 
+    private int _renderedPageCount { get; set; } = 0;
+    private bool _renderedHasNextPage { get; set; } = false;
+    private bool _renderedHasPreviousPage { get; set; } = false;
+
     private bool _isLoadingScrimMatchList { get; set; } = true;
     private bool _isChangingScrimMatch { get; set; } = false;
 
@@ -139,6 +179,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _renderedPageIndex = i_pageIndex;
+
         await LoadScrimMatchListAsync();
     }
 
@@ -148,23 +190,28 @@
 
         UpdateUriParameters();
 
-        if (i_scrimMatchId != _renderedScrimMatchId)
-        {
-            _isChangingScrimMatch = true;
-            InvokeAsyncStateHasChanged();
+        //if (i_scrimMatchId != _renderedScrimMatchId)
+        //{
+        //    _isChangingScrimMatch = true;
+        //    InvokeAsyncStateHasChanged();
 
-            _renderedScrimMatchId = i_scrimMatchId;
+        //    _renderedScrimMatchId = i_scrimMatchId;
 
-            paramsChanged = true;
-        }
+        //    paramsChanged = true;
+        //}
 
-        if (i_pageIndex != _renderedPageIndex)
-        {
-            _renderedPageIndex = i_pageIndex;
-            await LoadScrimMatchListAsync();
+        //if (i_pageIndex != _renderedPageIndex)
+        //{
+        //    _renderedPageIndex = i_pageIndex;
+        //    await LoadScrimMatchListAsync();
 
-            paramsChanged = true;
-        }
+        //    paramsChanged = true;
+        //}
+
+        _renderedPageIndex = i_pageIndex;
+        await LoadScrimMatchListAsync();
+
+        paramsChanged = true;
 
         if (paramsChanged)
         {
@@ -178,9 +225,14 @@
         _isLoadingScrimMatchList = true;
 
         var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
+
         _storeScrimMatchList = new List<ScrimMatchInfo>();
 
         _storeScrimMatchList.AddRange(paginatedList.Contents);
+
+        _renderedPageCount = paginatedList.PageCount;
+        _renderedHasNextPage = paginatedList.HasNextPage;
+        _renderedHasPreviousPage = paginatedList.HasPreviousPage;
 
         _debug = $"{_storeScrimMatchList.Count()}";
 
@@ -190,10 +242,12 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
         if (UpdateUriParameters())
         {
+            await LoadScrimMatchListAsync();
+
             StateHasChanged();
         }
     }
@@ -231,6 +285,7 @@
                 {
                     _uriPageIndex = page;
                     i_pageIndex = page;
+                    _renderedPageIndex = page;
                     stateChanged = true;
                 }
             }
@@ -243,6 +298,7 @@
 
                 _uriPageIndex = null;
                 i_pageIndex = _defaultPageIndex;
+                _renderedPageIndex = _defaultPageIndex;
             }
         }
 

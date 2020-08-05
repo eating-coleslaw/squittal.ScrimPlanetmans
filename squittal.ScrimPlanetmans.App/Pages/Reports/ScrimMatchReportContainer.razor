@@ -84,11 +84,11 @@
                                     <td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
-                                    <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
-                                    <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
-                                    <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
+                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
+                <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
+                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
+                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
+                <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
                                 </tr>
 
                                 @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
@@ -96,7 +96,7 @@
                                     <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ps2-primary);">
                                         <td>
                                             @*<div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().FirstOrDefault().PlanetsideClass)" style="filter: drop-shadow(0px 0px 1px var(--sq-ps2-primary)); filter: "></div>*@
-                                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().FirstOrDefault().PlanetsideClass)" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>
+                                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
                                         </td>
                                         <td title="@player.NameFull [@(player.CharacterId)]">
                                             <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
@@ -131,6 +131,15 @@
                                         <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     </tr>
                                 }
+
+                                @if (team.FacilityCapturePoints != 0)
+                                {
+                                    <tr>
+                                        <td colspan="2" style="font-style: italic;">Captures</td>
+                                        <td>@team.FacilityCapturePoints</td>
+                                    </tr>
+                                }
+
 
                                 @if (team.PointAdjustments != 0)
                                 {
