@@ -21,6 +21,6 @@ SELECT config1.ScrimMatchId,
     INNER JOIN World world
       ON config1.WorldId = world.Id
     LEFT OUTER JOIN MapRegion facility
-      ON config1.FacilityId = facility.Id
+      ON config1.FacilityId = facility.FacilityId
   WHERE config1.ScrimMatchRound >= config2.ScrimMatchRound
   GROUP BY config1.ScrimMatchId;
