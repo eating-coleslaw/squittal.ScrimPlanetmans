@@ -359,6 +359,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 victimUpdate.DamageAssistedDeaths = 1;
                 victimUpdate.DamageTeamAssistedDeaths = 1;
             }
+            else if (actionType == ScrimActionType.DamageSelfAssist)
+            {
+                victimUpdate.DamageSelfAssists = 1;
+                victimUpdate.DamageAssistedDeaths = 1;
+                victimUpdate.DamageSelfAssistedDeaths = 1;
+            }
             else if (actionType == ScrimActionType.GrenadeAssist)
             {
                 attackerUpdate.GrenadeAssists = 1;
@@ -369,6 +375,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 attackerUpdate.GrenadeTeamAssists = 1;
                 victimUpdate.GrenadeAssistedDeaths = 1;
                 victimUpdate.GrenadeTeamAssistedDeaths = 1;
+            }
+            else if (actionType == ScrimActionType.GrenadeSelfAssist)
+            {
+                victimUpdate.GrenadeSelfAssists = 1;
+                victimUpdate.GrenadeAssistedDeaths = 1;
+                victimUpdate.GrenadeSelfAssistedDeaths = 1;
             }
             else if (actionType == ScrimActionType.HealSupportAssist)
             {
