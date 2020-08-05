@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.HasNoKey();
 
             builder.Ignore(p => p.OneVsOneCount);
-            builder.Ignore(p => p.OneVsOneRatio);
+            builder.Ignore(p => p.OneVsOneKillDeathRatio);
             builder.Ignore(p => p.UnassistedKills);
             builder.Ignore(p => p.EventsAsHeavyAssault);
             builder.Ignore(p => p.EventsAsInfiltrator);
@@ -27,6 +27,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.NetScore).HasDefaultValue(0);
+            builder.Property(e => e.PointAdjustments).HasDefaultValue(0);
             builder.Property(e => e.Kills).HasDefaultValue(0);
             builder.Property(e => e.HeadshotKills).HasDefaultValue(0);
             builder.Property(e => e.Deaths).HasDefaultValue(0);

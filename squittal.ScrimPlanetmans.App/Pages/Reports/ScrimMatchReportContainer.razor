@@ -45,7 +45,7 @@
                     else
                     {
 
-                    <table style="width: 100%;" class="table-responsive-sm table-striped-light">
+                    <table style="width: 100%; text-align: right;" class="table-responsive-sm table-striped-light">
                         <thead>
                             <tr>
                                 <th></th>
@@ -57,15 +57,18 @@
                                 <th>Deaths</th>
                                 <th>HSR</th>
                                 <th>Damage Assists</th>
-                                <th>Damage Assisted Kills</th>
+                                @*<th>Damage Assisted Kills</th>*@
+                                <th>1vX %</th>
                                 <th>1v1 KDR</th>
+                                <th>Favorable %</th>
+                                <th>1v1 %</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             @foreach (var team in _teamStats)
                             {
-                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light);">
+                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right;">
                                     <td></td>
                                     <td>@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                     <td>@team.Points</td>
@@ -75,8 +78,11 @@
                                     <td>@team.Deaths</td>
                                     <td>@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.DamageAssists</td>
-                                    <td>@team.DamageAssistedKills</td>
-                                    <td>@team.OneVsOneRatio</td>
+                                    @*<td>@team.DamageAssistedKills</td>*@
+                                    <td>@team.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                    <td>@team.OneVsOneKillDeathRatio</td>
+                                    <td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                    <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
                                     <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
                                     <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
@@ -118,8 +124,19 @@
                                         <td>@player.Deaths</td>
                                         <td>@player.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                         <td>@player.DamageAssists</td>
-                                        <td>@player.DamageAssistedKills</td>
-                                        <td>@player.OneVsOneRatio</td>
+                                        @*<td>@player.DamageAssistedKills</td>*@
+                                        <td>@player.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                        <td>@player.OneVsOneKillDeathRatio</td>
+                                        <td>@player.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                        <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                    </tr>
+                                }
+
+                                @if (team.PointAdjustments != 0)
+                                {
+                                    <tr>
+                                        <td colspan="2" style="font-style: italic;">Adjustments</td>
+                                        <td>@team.PointAdjustments</td>
                                     </tr>
                                 }
                             }

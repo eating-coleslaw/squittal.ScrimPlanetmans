@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.HasNoKey();
 
             builder.Ignore(p => p.OneVsOneCount);
-            builder.Ignore(p => p.OneVsOneRatio);
+            builder.Ignore(p => p.OneVsOneKillDeathRatio);
             builder.Ignore(p => p.UnassistedKills);
             builder.Ignore(p => p.EventsAsHeavyAssault);
             builder.Ignore(p => p.EventsAsInfiltrator);
