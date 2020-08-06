@@ -1,20 +1,14 @@
 ﻿@page "/Reports"
 @page "/MatchReport"
 @page "/ReportBrowser"
-@page "/Matches"
+@page "/ScrimMatches"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
-@using squittal.ScrimPlanetmans.Data.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
-@using squittal.ScrimPlanetmans.ScrimMatch.Models;
-@using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@using System.Text.RegularExpressions;
-@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimMatchReportDataService ReportDataService
-@inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
 
 @implements IDisposable
@@ -42,14 +36,6 @@
                         </tr>
                     </thead>
 
-                    @*@if (_storeScrimMatchList == null || _isLoadingScrimMatchList)
-            {
-                    <tr style="background-color: transparent; height: 160px;">
-                        <td colspan="8">
-                            <SpinnerEllipsis />
-                        </td>
-                    </tr>
-            }*@
                     @if (_storeScrimMatchList != null && !_isLoadingScrimMatchList)
                     {
                         <tbody>
@@ -68,11 +54,10 @@
                                     else
                                     {
                                         <td style="font-style: italic;">None</td>
-
                                     }
                                     <td>@match.RoundCount</td>
                                     <td>
-                                        <NavLink class="nav-link" href=@($"reports/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
+                                        <NavLink class="nav-link" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
                                     </td>
                                 </tr>
                             }
@@ -89,15 +74,14 @@
                     @if (_renderedHasPreviousPage)
                     {
                         <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
-                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>@*Previous*@
+                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
                         </NavLink>
                     }
                     else
                     {
                         <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
-                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>@*Previous*@
+                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
                         </div>
-                        @*<NavLink disabled class="nav-link" href="" style="padding: 4px 8px; color: var(--sq-grey);">Previous</NavLink>*@
                     }
 
 
@@ -106,7 +90,7 @@
                     @if (_renderedHasNextPage)
                     {
                         <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
-                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
                         </NavLink>
                     }
                     else
@@ -114,7 +98,6 @@
                         <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
                             <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
                         </div>
-                        @*<NavLink disabled class="nav-link" href="" style="padding: 4px 8px; color: var(--sq-grey);">Next</NavLink>*@
                     }
 
                 </div>
@@ -124,28 +107,16 @@
         </div>
 
     </div>
-
-        @if (_isChangingScrimMatch)
-        {
-            <SpinnerEllipsis />
-        }
-        else if (_renderedScrimMatchId != _noScrimMatchSelectedId)
-        {
-            <div class="col-lg-9">
-                @*<ConstructedTeamBuilderForm_Edit i_teamId=@_renderedTeamId />*@
-            </div>
-        }
-
 </div>
 
 
 @code {
-    [Parameter]
-    public string i_scrimMatchId { get; set; } = "-1";
-    private string _renderedScrimMatchId { get; set; } = "-1";
+    //[Parameter]
+    //public string i_scrimMatchId { get; set; } = "-1";
+    //private string _renderedScrimMatchId { get; set; } = "-1";
 
-    [Parameter]
-    public string _uriScrimMatchId { get; set; }
+    //[Parameter]
+    //public string _uriScrimMatchId { get; set; }
 
     [Parameter]
     public int i_pageIndex { get; set; } = 1;
@@ -155,9 +126,9 @@
     public int? _uriPageIndex { get; set; }
 
 
-    private string _inputScrimMatchId { get; set; } = "-1";
+    //private string _inputScrimMatchId { get; set; } = "-1";
 
-    private string _noScrimMatchSelectedId { get; set; } = "-1";
+    //private string _noScrimMatchSelectedId { get; set; } = "-1";
     private int _defaultPageIndex { get; set; } = 1;
 
     private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
@@ -167,7 +138,7 @@
     private bool _renderedHasPreviousPage { get; set; } = false;
 
     private bool _isLoadingScrimMatchList { get; set; } = true;
-    private bool _isChangingScrimMatch { get; set; } = false;
+    //private bool _isChangingScrimMatch { get; set; } = false;
 
     private string _debug { get; set; } = string.Empty;
 
@@ -196,24 +167,6 @@
 
         UpdateUriParameters();
 
-        //if (i_scrimMatchId != _renderedScrimMatchId)
-        //{
-        //    _isChangingScrimMatch = true;
-        //    InvokeAsyncStateHasChanged();
-
-        //    _renderedScrimMatchId = i_scrimMatchId;
-
-        //    paramsChanged = true;
-        //}
-
-        //if (i_pageIndex != _renderedPageIndex)
-        //{
-        //    _renderedPageIndex = i_pageIndex;
-        //    await LoadScrimMatchListAsync();
-
-        //    paramsChanged = true;
-        //}
-
         _renderedPageIndex = i_pageIndex;
         await LoadScrimMatchListAsync();
 
@@ -221,7 +174,6 @@
 
         if (paramsChanged)
         {
-            _isChangingScrimMatch = false;
             InvokeAsyncStateHasChanged();
         }
     }
@@ -240,8 +192,6 @@
         _renderedPageCount = paginatedList.PageCount;
         _renderedHasNextPage = paginatedList.HasNextPage;
         _renderedHasPreviousPage = paginatedList.HasPreviousPage;
-
-        _debug = $"{_storeScrimMatchList.Count()}";
 
         _isLoadingScrimMatchList = false;
     }
@@ -265,24 +215,24 @@
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         var stateChanged = false;
 
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("scrimMatchId", out var qScrimMatchId))
-        {
-            if (_uriScrimMatchId != qScrimMatchId)
-            {
-                stateChanged = true;
-            }
+        //if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("scrimMatchId", out var qScrimMatchId))
+        //{
+        //    if (_uriScrimMatchId != qScrimMatchId)
+        //    {
+        //        stateChanged = true;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(qScrimMatchId))
-            {
-                _uriScrimMatchId = null;
-                i_scrimMatchId = _noScrimMatchSelectedId;
-            }
-            else
-            {
-                _uriScrimMatchId = qScrimMatchId;
-                i_scrimMatchId = qScrimMatchId;
-            }
-        }
+        //    if (string.IsNullOrWhiteSpace(qScrimMatchId))
+        //    {
+        //        _uriScrimMatchId = null;
+        //        i_scrimMatchId = _noScrimMatchSelectedId;
+        //    }
+        //    else
+        //    {
+        //        _uriScrimMatchId = qScrimMatchId;
+        //        i_scrimMatchId = qScrimMatchId;
+        //    }
+        //}
 
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("page", out var qPage))
         {
