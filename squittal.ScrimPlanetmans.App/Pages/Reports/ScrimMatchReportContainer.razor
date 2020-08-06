@@ -26,14 +26,39 @@
 
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
 
-                @if (_matchInfo == null)
+                @if (_matchInfo == null || _isChangingScrimMatch)
                 {
                     <SpinnerEllipsis />
                 }
                 else
                 {
+                    @*<h3>@(_matchInfo.Title): @_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</h3>*@
+                    <div style="display: grid; grid-template-columns: 60% 40%; grid-template-rows: 1.75rem 1rem; align-items: baseline;">
+                        <h4 style="margin-bottom: 0;">@(_matchInfo.Title)</h4> @*margin-bottom: 2px;*@
+                        <p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
+                        @*<p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.WorldName</p>*@
+                        @if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
+                        {
+                            <p style="margin-bottom: 0px; font-size: 0.85rem;">
+                                <span>@_matchInfo.WorldName</span>
+                                <span class="oi oi-caret-right small"></span>
+                                <span style="font-style: italic;">No facility</span>
+                            </p>
+                        }
+                        else
+                        {
+                            @*<p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.FacilityName</p>*@
+                            <p style="margin-bottom: 0px; font-size: 0.85rem;">
+                                <span>@_matchInfo.WorldName</span>
+                                <span class="oi oi-caret-right small"></span>
+                                <span>@_matchInfo.FacilityName</span>
+                            </p>
+                        }
+                        <p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.RoundCount Rounds</p>
 
-                    <h3>@(_matchInfo.Title): @_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</h3>
+                        @*<p style="margin-bottom: 0px; font-size: 0.85rem;">@_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</p>*@
+                    </div>
+                    @*<p style="padding: 0;">@_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2] @@ @_matchInfo.StartTime.ToString("R") </p>*@
 
                     @if (_isLoadingScrimPlayers || _matchInfo == null)
                     {
@@ -193,6 +218,10 @@
                         </tbody>
                     </table>
                     }
+
+                <div style="height: 1rem; line-height: 1rem; color: var(--sq-gray);">
+                    @_matchInfo.ScrimMatchId
+                </div>
 
                 }
 
