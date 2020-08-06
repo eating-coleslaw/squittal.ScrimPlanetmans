@@ -8,7 +8,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
     {
         public void Configure(EntityTypeBuilder<ScrimMatchReportInfantryDeath> builder)
         {
-            builder.ToView("View_ScrimMatchReportInfantryPlayerDeaths");
+            builder.ToView("View_ScrimMatchReportInfantryDeaths");
 
             builder.HasNoKey();
 
