@@ -13,8 +13,9 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.HasNoKey();
 
             builder.Property(p => p.Points).HasDefaultValue(0);
-            builder.Property(p => p.IsHeadshot).HasDefaultValue(false);
+            builder.Property(p => p.IsHeadshot).HasDefaultValue(0);
             builder.Property(p => p.DamageAssists).HasDefaultValue(0);
+            builder.Property(p => p.GrenadeAssists).HasDefaultValue(0);
             builder.Property(p => p.ConcussionGrenadeAssists).HasDefaultValue(0);
             builder.Property(p => p.EmpGrenadeAssists).HasDefaultValue(0);
             builder.Property(p => p.FlashGrenadeAssists).HasDefaultValue(0);

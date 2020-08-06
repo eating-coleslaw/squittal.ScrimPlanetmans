@@ -2,14 +2,14 @@ USE [PlanetmansDbContext];
 
 GO
 
-CREATE OR ALTER VIEW View_ScrimMatchReportInfantryPlayerDeaths AS
+CREATE OR ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
 
   SELECT deaths.ScrimMatchId,
        deaths.Timestamp,
        deaths.AttackerCharacterId,
        deaths.VictimCharacterId,
-       MAX(deaths.ScrimMatchRound) ScrimMatchRound,
-       MAX(deaths.Points) Points,
+       MAX(COALESCE(deaths.ScrimMatchRound, 0)) ScrimMatchRound,
+       MAX(COALESCE(deaths.Points, 0)) Points,
        MAX(deaths.ActionType) ActionType,
        MAX(deaths.DeathType) DeathType,
        MAX(deaths.AttackerTeamOrdinal) AttackerTeamOrdinal,
@@ -18,19 +18,21 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryPlayerDeaths AS
        MAX(CASE WHEN deaths.VictimCharacterId = match_players.CharacterId THEN match_players.NameDisplay ELSE NULL END) VictimNameDisplay,
        MAX(deaths.AttackerNameFull) AttackerNameFull,
        MAX(deaths.VictimNameFull) VictimNameFull,
-       MAX(deaths.AttackerFactionId) AttackerFactionId,
-       MAX(deaths.VictimFactionId) VictimFactionId,
-       MAX(deaths.AttackerLoadoutId) AttackerLoadoutId,
-       MAX(deaths.VictimLoadoutId) VictimLoadoutId,
+       MAX(COALESCE(deaths.AttackerFactionId, 0)) AttackerFactionId,
+       MAX(COALESCE(deaths.VictimFactionId, 0)) VictimFactionId,
+       MAX(COALESCE(deaths.AttackerLoadoutId, 0 ) ) AttackerLoadoutId,
+       MAX(COALESCE(deaths.VictimLoadoutId, 0 ) ) VictimLoadoutId,
        MAX(CASE WHEN deaths.IsHeadshot = 1 THEN 1 ELSE 0 END) IsHeadshot,
-       MAX(deaths.WeaponId) WeaponId,
+       MAX(COALESCE(deaths.WeaponId, 0 ) ) WeaponId,
+       MAX(COALESCE(weapons.Name, 'Unknown Weapon') ) WeaponName,
        MAX(deaths.ZoneId) ZoneId,
        MAX(deaths.WorldId) WorldId,
-       MAX(damage_sums.DamageAssists) DamageAssists,
-       MAX(grenade_sums.ConcussionGrenadeAssists ) ConcussionGrenadeAssists,
-       MAX(grenade_sums.EmpGrenadeAssists) EmpGrenadeAssists,
-       MAX(grenade_sums.FlashGrenadeAssists) FlashGrenadeAssists,
-       MAX(spot_sums.SpotAssists ) SpotAssists
+       MAX(COALESCE(damage_sums.DamageAssists, 0 ) ) DamageAssists,
+       MAX(COALESCE(grenade_sums.GrenadeAssists, 0) ) GrenadeAssists,
+       MAX(COALESCE(grenade_sums.ConcussionGrenadeAssists, 0) ) ConcussionGrenadeAssists,
+       MAX(COALESCE(grenade_sums.EmpGrenadeAssists, 0)) EmpGrenadeAssists,
+       MAX(COALESCE(grenade_sums.FlashGrenadeAssists, 0)) FlashGrenadeAssists,
+       MAX(COALESCE(spot_sums.SpotAssists, 0) ) SpotAssists
     FROM ScrimDeath deaths
       LEFT OUTER JOIN ( SELECT damages.ScrimMatchId,
                                 damages.Timestamp,
@@ -76,4 +78,6 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryPlayerDeaths AS
         ON match_players.ScrimMatchId = deaths.ScrimMatchId
             AND ( match_players.CharacterId = deaths.AttackerCharacterId
                   OR match_players.CharacterId = deaths.VictimCharacterId )
+      LEFT OUTER JOIN Item weapons
+        ON weapons.Id = deaths.WeaponId
       GROUP BY deaths.ScrimMatchId, deaths.Timestamp, deaths.AttackerCharacterId, deaths.VictimCharacterId

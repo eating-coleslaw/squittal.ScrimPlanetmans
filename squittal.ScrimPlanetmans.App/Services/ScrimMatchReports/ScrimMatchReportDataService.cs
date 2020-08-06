@@ -15,7 +15,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
         private readonly ILogger<ScrimMatchReportDataService> _logger;
 
         private readonly int _scrimMatchBrowserPageSize = 15;
-        private readonly int _scrimMatchPlayerDeathsPageSize = 100;
 
         public ScrimMatchReportDataService(IDbContextHelper dbContextHelper, ILogger<ScrimMatchReportDataService> logger)
         {
@@ -121,23 +120,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
-        public async Task<PaginatedList<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryPlayerDeathsAsync(string scrimMatchId, int? pageIndex)
+        public async Task<IEnumerable<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryDeathsAsync(string scrimMatchId)
         {
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var scrimMatchesQuery = dbContext.ScrimMatchReportInfantryDeaths.Where(d => d.ScrimMatchId == scrimMatchId).AsQueryable();
-
-                var paginatedList = await PaginatedList<ScrimMatchReportInfantryDeath>.CreateAsync(scrimMatchesQuery.AsNoTracking().OrderByDescending(d => d.Timestamp), pageIndex ?? 1, _scrimMatchBrowserPageSize);
-
-                if (paginatedList == null)
-                {
-                    return null;
-                }
-
-                return paginatedList;
+                return await dbContext.ScrimMatchReportInfantryDeaths
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId)
+                                        .OrderByDescending(e => e.Timestamp)
+                                        .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -146,5 +140,31 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 return null;
             }
         }
+
+        //public async Task<PaginatedList<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryPlayerDeathsAsync(string scrimMatchId, int? pageIndex)
+        //{
+        //    try
+        //    {
+        //        using var factory = _dbContextHelper.GetFactory();
+        //        var dbContext = factory.GetDbContext();
+
+        //        var scrimMatchesQuery = dbContext.ScrimMatchReportInfantryDeaths.Where(d => d.ScrimMatchId == scrimMatchId).AsQueryable();
+
+        //        var paginatedList = await PaginatedList<ScrimMatchReportInfantryDeath>.CreateAsync(scrimMatchesQuery.AsNoTracking().OrderByDescending(d => d.Timestamp), pageIndex ?? 1, _scrimMatchBrowserPageSize);
+
+        //        if (paginatedList == null)
+        //        {
+        //            return null;
+        //        }
+
+        //        return paginatedList;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"{ex}");
+
+        //        return null;
+        //    }
+        //}
     }
 }
