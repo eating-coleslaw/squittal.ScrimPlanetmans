@@ -36,7 +36,6 @@
                         </tr>
                     </thead>
 
-                    @*@if (_storeScrimMatchList != null && !_isLoadingScrimMatchList)*@
                     @if (_storeScrimMatchList != null)
                     {
                         <tbody style="@(_isLoadingScrimMatchList ? "opacity: 0.5;" : string.Empty)">
@@ -117,13 +116,6 @@
 
 
 @code {
-    //[Parameter]
-    //public string i_scrimMatchId { get; set; } = "-1";
-    //private string _renderedScrimMatchId { get; set; } = "-1";
-
-    //[Parameter]
-    //public string _uriScrimMatchId { get; set; }
-
     [Parameter]
     public int i_pageIndex { get; set; } = 1;
     public int _renderedPageIndex { get; set; } = 1;
@@ -131,10 +123,6 @@
     [Parameter]
     public int? _uriPageIndex { get; set; }
 
-
-    //private string _inputScrimMatchId { get; set; } = "-1";
-
-    //private string _noScrimMatchSelectedId { get; set; } = "-1";
     private int _defaultPageIndex { get; set; } = 1;
 
     private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
@@ -144,7 +132,6 @@
     private bool _renderedHasPreviousPage { get; set; } = false;
 
     private bool _isLoadingScrimMatchList { get; set; } = true;
-    //private bool _isChangingScrimMatch { get; set; } = false;
 
     private string _debug { get; set; } = string.Empty;
 
@@ -220,25 +207,6 @@
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         var stateChanged = false;
-
-        //if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("scrimMatchId", out var qScrimMatchId))
-        //{
-        //    if (_uriScrimMatchId != qScrimMatchId)
-        //    {
-        //        stateChanged = true;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(qScrimMatchId))
-        //    {
-        //        _uriScrimMatchId = null;
-        //        i_scrimMatchId = _noScrimMatchSelectedId;
-        //    }
-        //    else
-        //    {
-        //        _uriScrimMatchId = qScrimMatchId;
-        //        i_scrimMatchId = qScrimMatchId;
-        //    }
-        //}
 
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("page", out var qPage))
         {

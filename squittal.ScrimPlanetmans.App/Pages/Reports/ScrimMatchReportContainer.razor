@@ -4,19 +4,12 @@
 @page "/ScrimMatch/{i_scrimMatchId}"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
-@using squittal.ScrimPlanetmans.Data.Models;
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
-@using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@using System.Text.RegularExpressions;
-@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
-@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimMatchReportDataService ReportDataService
-@inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
-@*@implements IDisposable*@
 
 <div class="container-fluid" style="margin-top: 16px;">
 
@@ -32,11 +25,9 @@
                 }
                 else
                 {
-                    @*<h3>@(_matchInfo.Title): @_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</h3>*@
                     <div style="display: grid; grid-template-columns: 60% 40%; grid-template-rows: 1.75rem 1rem; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 24px;">
                         <h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4> @*margin-bottom: 2px;*@
                         <p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
-                        @*<p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.WorldName</p>*@
                         @if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
                         {
                             <p style="margin-bottom: 0px; font-size: 1rem;">
@@ -47,7 +38,6 @@
                         }
                         else
                         {
-                            @*<p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.FacilityName</p>*@
                             <p style="margin-bottom: 0px; font-size: 1rem;">
                                 <span>@_matchInfo.WorldName</span>
                                 <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
@@ -56,9 +46,7 @@
                         }
                         <p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds</p>
 
-                        @*<p style="margin-bottom: 0px; font-size: 0.85rem;">@_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</p>*@
                     </div>
-                    @*<p style="padding: 0;">@_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2] @@ @_matchInfo.StartTime.ToString("R") </p>*@
 
                     @if (_isLoadingScrimPlayers || _matchInfo == null)
                     {
@@ -72,27 +60,6 @@
                     {
 
                     <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
-                        @*<thead>
-                            <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom;">
-                                <th style="padding-left: 10px;"></th>
-                                <th></th>
-                                <th style="text-align: right; font-weight: 300;">Points</th>
-                                <th></th>
-                                <th style="font-weight: 300;">Net Score</th>
-                                <th style="font-weight: 300;">Kills</th>
-                                <th style="font-weight: 300;">Deaths</th>
-                                <th style="font-weight: 300;">HSR</th>
-                                <th style="font-weight: 300;">Damage Assists</th>
-                                <th style="font-weight: 300;">Assisted Deaths</th>
-                                @*<th>Damage Assisted Kills</th>
-                                @*<th style="font-weight: 300;">1vX %</th>
-                                <th style="font-weight: 300;">Favorable Eng. %</th>
-                                <th style="font-weight: 300;">W. Fav. Eng. %</th>
-                                <th style="font-weight: 300;">Unass. Kills</th>
-                                <th style="font-weight: 300;">1v1 Eng. %</th>
-                                <th style="font-weight: 300;">1v1 KDR</th>
-                            </tr>
-                        </thead>*@
 
                         <tbody style="font-size: 0.8rem;">
                             @foreach (var team in _teamStats)
@@ -115,9 +82,6 @@
                                         <th style="font-weight: 300; width: 70px;">Dmg. Assists</th>
                                         <th style="font-weight: 300; width: 60px;">Solo Kills</th>
                                         <th style="font-weight: 300; width: 70px;">Assisted Deaths</th>
-                                        @*<th>Damage Assisted Kills</th>*@
-                                        @*<th style="font-weight: 300;">1vX %</th>*@
-                                        @*<th style="font-weight: 300;">Favorable Eng. %</th>*@
                                         <th style="font-weight: 300; width: 80px;">Favorable Eng. %</th>
                                         <th style="font-weight: 300; width: 60px;">1v1 Eng. %</th>
                                         <th style="font-weight: 300; width: 60px;">1v1 KDR</th>
@@ -135,23 +99,13 @@
                                     <td>@team.DamageAssists</td>
                                     <td>@team.UnassistedKills</td>
                                     <td>@team.DamageAssistedEnemyDeaths</td>
-                                    @*<td>@team.DamageAssistedKills</td>*@
-                                    @*<td>@team.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>*@
-                                    @*<td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>*@
                                     <td>@team.WeightedFavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneKillDeathRatio</td>
-                                    @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
-                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Deaths)</td>
-                <td>@Math.Round((double)_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.HeadshotPercent), 1)<span style="font-size: smaller;">%</span></td>
-                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssists)</td>
-                <td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.DamageAssistedKills)</td>
-                <td>@Math.Round(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Average(p => p.OneVsOneRatio), 2)</td>*@
                                 </tr>
 
                                 @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
                                 {
-                                    @*<tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ps2-primary);">*@
                                     <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
                                         <td>
                                             <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
@@ -184,9 +138,6 @@
                                         <td>@player.DamageAssists</td>
                                         <td>@player.UnassistedKills</td>
                                         <td>@player.DamageAssistedEnemyDeaths</td>
-                                        @*<td>@player.DamageAssistedKills</td>*@
-                                        @*<td>@player.UnfavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
-                                        @*<td>@player.FavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
                                         <td>@player.WeightedFavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.OneVsOneKillDeathRatio</td>
@@ -232,6 +183,7 @@
     </div>
 </div>
 
+
 @code {
     [Parameter]
     public string i_scrimMatchId { get; set; }
@@ -270,15 +222,6 @@
             TaskList.Add(matchInfoTask);
 
             await Task.WhenAll(TaskList);
-
-            //_matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
-
-            //_playerStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerStatsAsync(_renderedScrimMatchId);
-
-            //if (_playerStats.Any())
-            //{
-            //    _maxPlayerPoints = _playerStats.Max(p => p.Points);
-            //}
         }
 
         _isLoadingScrimPlayers = false;
@@ -287,8 +230,6 @@
     protected override async Task OnParametersSetAsync()
     {
         var paramsChanged = false;
-
-        //UpdateUriParameters();
 
         if (i_scrimMatchId != _renderedScrimMatchId)
         {
@@ -309,10 +250,6 @@
             TaskList.Add(matchInfoTask);
 
             await Task.WhenAll(TaskList);
-
-            //_matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId);
-
-            //await LoadInfantryPlayerStats();
 
             paramsChanged = true;
         }
