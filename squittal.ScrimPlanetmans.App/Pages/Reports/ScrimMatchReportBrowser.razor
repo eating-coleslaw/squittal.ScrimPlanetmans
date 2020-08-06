@@ -1,6 +1,7 @@
 ﻿@page "/Reports"
 @page "/MatchReport"
 @page "/ReportBrowser"
+@page "/Matches"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Data.Models;
@@ -27,29 +28,29 @@
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                 <h3>Match Reports</h3>
 
-                @*<p style="padding: 0;">i_pageIndex: @i_pageIndex</p>
-                <p style="padding: 0;">_renderedPageIndex: @_renderedPageIndex</p>
-                <p style="padding: 0;">_uriPageIndex: @_uriPageIndex</p>*@
-
-                <table style="width: 100%;" class="table-responsive-sm table-striped-light">
+                <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
-                        <tr>
-                            <th>Start Time</th>
-                            <th>Team 1</th>
-                            <th>Team 2</th>
-                            <th>Title</th>
-                            <th>Server</th>
-                            <th>Facility</th>
-                            <th>Rounds</th>
-                            <th></th>
+                        <tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">
+                            <th style="font-weight: 300;">Start Time</th>
+                            <th style="font-weight: 300;">Team 1</th>
+                            <th style="font-weight: 300;">Team 2</th>
+                            <th style="font-weight: 300;">Title</th>
+                            <th style="font-weight: 300;">Server</th>
+                            <th style="font-weight: 300;">Facility</th>
+                            <th style="font-weight: 300;">Rounds</th>
+                            <th style="font-weight: 300;"></th>
                         </tr>
                     </thead>
 
-                    @if (_storeScrimMatchList == null || _isLoadingScrimMatchList)
-                    {
-                        <SpinnerEllipsis />
-                    }
-                    else
+                    @*@if (_storeScrimMatchList == null || _isLoadingScrimMatchList)
+            {
+                    <tr style="background-color: transparent; height: 160px;">
+                        <td colspan="8">
+                            <SpinnerEllipsis />
+                        </td>
+                    </tr>
+            }*@
+                    @if (_storeScrimMatchList != null && !_isLoadingScrimMatchList)
                     {
                         <tbody>
                             @foreach (var match in _storeScrimMatchList)
@@ -79,7 +80,12 @@
                     }
                 </table>
 
-                <div style="margin: 0 auto; width: 200px; margin-top: 8px;">
+                @if (_storeScrimMatchList == null || _isLoadingScrimMatchList)
+                {
+                    <SpinnerEllipsis />
+                }
+
+                <div style="margin: 0 auto; width: 200px; margin-top: 8px; text-align: center;">
                     @if (_renderedHasPreviousPage)
                     {
                         <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
@@ -223,6 +229,7 @@
     private async Task LoadScrimMatchListAsync()
     {
         _isLoadingScrimMatchList = true;
+        InvokeAsyncStateHasChanged();
 
         var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
 
