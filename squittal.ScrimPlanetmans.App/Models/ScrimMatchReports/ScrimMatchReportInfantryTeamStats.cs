@@ -91,6 +91,21 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
             {
                 if (EnemyEngagementCount > 0)
                 {
+                    return Math.Round((double)(UnassistedKills + UnassistedEnemyDeaths + (DamageAssists - DamageAssistedEnemyDeaths)) / (double)WeightedEnemyEngagementCount * 100, 0);
+                }
+                else
+                {
+                    return Math.Round(((UnassistedKills + UnassistedEnemyDeaths + (DamageAssists - DamageAssistedEnemyDeaths)) / (double)1.0) * 100.0, 0);
+                }
+            }
+        }
+
+        public double FavorableEngagementPercent1
+        {
+            get
+            {
+                if (EnemyEngagementCount > 0)
+                {
                     return Math.Round((double)(UnassistedKills + UnassistedEnemyDeaths + (DamageAssists - DamageAssistedEnemyDeaths)) / (double)EnemyEngagementCount * 100, 0);
                 }
                 else
@@ -101,6 +116,21 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         }
 
         public double WeightedFavorableEngagementPercent
+        {
+            get
+            {
+                if (EnemyEngagementCount > 0)
+                {
+                    return Math.Round((double)(UnassistedKills + UnassistedEnemyDeaths + ((DamageAssists - DamageAssistedEnemyDeaths) / 2.0) ) / WeightedEnemyEngagementCount * 100, 0);
+                }
+                else
+                {
+                    return Math.Round(((UnassistedKills + UnassistedEnemyDeaths + ((DamageAssists - DamageAssistedEnemyDeaths) / 2.0) ) / (double)1.0) * 100.0, 0);
+                }
+            }
+        }
+
+        public double WeightedFavorableEngagementPercent1
         {
             get
             {

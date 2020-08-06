@@ -24,7 +24,7 @@
 
         <div class="col-lg-7" style="margin-left: auto; margin-right: auto;">
 
-            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-x: auto;">
 
                 @if (_matchInfo == null || _isChangingScrimMatch)
                 {
@@ -33,28 +33,28 @@
                 else
                 {
                     @*<h3>@(_matchInfo.Title): @_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</h3>*@
-                    <div style="display: grid; grid-template-columns: 60% 40%; grid-template-rows: 1.75rem 1rem; align-items: baseline;">
-                        <h4 style="margin-bottom: 0;">@(_matchInfo.Title)</h4> @*margin-bottom: 2px;*@
-                        <p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
+                    <div style="display: grid; grid-template-columns: 60% 40%; grid-template-rows: 1.75rem 1rem; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 24px;">
+                        <h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4> @*margin-bottom: 2px;*@
+                        <p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
                         @*<p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.WorldName</p>*@
                         @if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
                         {
-                            <p style="margin-bottom: 0px; font-size: 0.85rem;">
+                            <p style="margin-bottom: 0px; font-size: 1rem;">
                                 <span>@_matchInfo.WorldName</span>
-                                <span class="oi oi-caret-right small"></span>
+                                <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
                                 <span style="font-style: italic;">No facility</span>
                             </p>
                         }
                         else
                         {
                             @*<p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.FacilityName</p>*@
-                            <p style="margin-bottom: 0px; font-size: 0.85rem;">
+                            <p style="margin-bottom: 0px; font-size: 1rem;">
                                 <span>@_matchInfo.WorldName</span>
-                                <span class="oi oi-caret-right small"></span>
+                                <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
                                 <span>@_matchInfo.FacilityName</span>
                             </p>
                         }
-                        <p style="margin-bottom: 0px; font-size: 0.85rem; text-align: right;">@_matchInfo.RoundCount Rounds</p>
+                        <p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds</p>
 
                         @*<p style="margin-bottom: 0px; font-size: 0.85rem;">@_matchInfo.TeamAliases[1] vs @_matchInfo.TeamAliases[2]</p>*@
                     </div>
@@ -99,28 +99,28 @@
                             {
                                 @if (team.TeamOrdinal > 1)
                                 {
-                                    <tr style="height: 12px;">
+                                    <tr style="height: 16px;">
                                     </tr>
                                 }
 
-                                    <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom; background-color: transparent;">
+                                    <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
                                         <th style="padding-left: 10px;"></th>
                                         <th></th>
-                                        <th style="text-align: right; font-weight: 300;">Points</th>
-                                        <th></th>
-                                        <th style="font-weight: 300;">Net Score</th>
-                                        <th style="font-weight: 300;">Kills</th>
-                                        <th style="font-weight: 300;">Deaths</th>
-                                        <th style="font-weight: 300;">HSR</th>
-                                        <th style="font-weight: 300;">Damage Assists</th>
-                                        <th style="font-weight: 300;">Assisted Deaths</th>
+                                        <th style="text-align: right; font-weight: 300; width: 60px;">Points</th>
+                                        <th style=" width: 110px;"></th>
+                                        <th style="font-weight: 300; width: 70px;">Net Score</th>
+                                        <th style="font-weight: 300; width: 60px;">Kills</th>
+                                        <th style="font-weight: 300; width: 60px;">Deaths</th>
+                                        <th style="font-weight: 300; width: 70px;">Head Shot %</th>
+                                        <th style="font-weight: 300; width: 70px;">Dmg. Assists</th>
+                                        <th style="font-weight: 300; width: 60px;">Solo Kills</th>
+                                        <th style="font-weight: 300; width: 70px;">Assisted Deaths</th>
                                         @*<th>Damage Assisted Kills</th>*@
                                         @*<th style="font-weight: 300;">1vX %</th>*@
-                                        <th style="font-weight: 300;">Favorable Eng. %</th>
-                                        <th style="font-weight: 300;">W. Fav. Eng. %</th>
-                                        <th style="font-weight: 300;">Unass. Kills</th>
-                                        <th style="font-weight: 300;">1v1 Eng. %</th>
-                                        <th style="font-weight: 300;">1v1 KDR</th>
+                                        @*<th style="font-weight: 300;">Favorable Eng. %</th>*@
+                                        <th style="font-weight: 300; width: 80px;">Favorable Eng. %</th>
+                                        <th style="font-weight: 300; width: 60px;">1v1 Eng. %</th>
+                                        <th style="font-weight: 300; width: 60px;">1v1 KDR</th>
                                     </tr>
 
                                 <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right;"> @*border-top: @((team.TeamOrdinal > 1) ? "8px" : "0px") solid transparent;">*@
@@ -133,12 +133,12 @@
                                     <td>@team.Deaths</td>
                                     <td>@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.DamageAssists</td>
+                                    <td>@team.UnassistedKills</td>
                                     <td>@team.DamageAssistedEnemyDeaths</td>
                                     @*<td>@team.DamageAssistedKills</td>*@
                                     @*<td>@team.UnfavorableEngagementPercent<span style="font-size: smaller;">%</span></td>*@
-                                    <td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                    @*<td>@team.FavorableEngagementPercent<span style="font-size: smaller;">%</span></td>*@
                                     <td>@team.WeightedFavorableEngagementPercent<span style="font-size: smaller;">%</span></td>
-                                    <td>@team.UnassistedKills</td>
                                     <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
                                     <td>@team.OneVsOneKillDeathRatio</td>
                                     @*<td>@_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Sum(p => p.Kills)</td>
@@ -182,12 +182,12 @@
                                         <td>@player.Deaths</td>
                                         <td>@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.DamageAssists</td>
+                                        <td>@player.UnassistedKills</td>
                                         <td>@player.DamageAssistedEnemyDeaths</td>
                                         @*<td>@player.DamageAssistedKills</td>*@
                                         @*<td>@player.UnfavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
-                                        <td>@player.FavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                        @*<td>@player.FavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
                                         <td>@player.WeightedFavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                        <td>@player.UnassistedKills</td>
                                         <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                         <td>@player.OneVsOneKillDeathRatio</td>
                                     </tr>
