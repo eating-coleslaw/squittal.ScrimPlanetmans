@@ -36,9 +36,10 @@
                         </tr>
                     </thead>
 
-                    @if (_storeScrimMatchList != null && !_isLoadingScrimMatchList)
+                    @*@if (_storeScrimMatchList != null && !_isLoadingScrimMatchList)*@
+                    @if (_storeScrimMatchList != null)
                     {
-                        <tbody>
+                        <tbody style="@(_isLoadingScrimMatchList ? "opacity: 0.5;" : string.Empty)">
                             @foreach (var match in _storeScrimMatchList)
                             {
                                 <tr>
@@ -65,12 +66,16 @@
                     }
                 </table>
 
-                @if (_storeScrimMatchList == null || _isLoadingScrimMatchList)
-                {
-                    <SpinnerEllipsis />
+                @if (_isLoadingScrimMatchList)
+                    {
+                    <div class="thin">
+                        <SpinnerEllipsis />
+                    </div>
                 }
+                else
+                {
 
-                <div style="margin: 0 auto; width: 200px; margin-top: 8px; text-align: center;">
+                <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
                     @if (_renderedHasPreviousPage)
                     {
                         <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
@@ -101,6 +106,7 @@
                     }
 
                 </div>
+                }
 
             </div>
 
