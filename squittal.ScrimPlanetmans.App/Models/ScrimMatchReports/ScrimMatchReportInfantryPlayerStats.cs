@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
-    public class ScrimMatchReportInfantryPlayerStats
+    public class ScrimMatchReportInfantryPlayerStats : ScrimMatchReportStats
     {
         public string ScrimMatchId { get; set; }
         public string CharacterId { get; set; }
@@ -19,6 +19,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         //public string OutfitTag { get; set; }
         //public bool IsFromConstructedTeam { get; set; }
         //public int? ConstructedTeamId { get; set; }
+
+        /*
         public int Points { get; set; }
         public int NetScore { get; set; }
         public int Kills { get; set; }
@@ -225,5 +227,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
     //        PlanetsideClass = planetsideClass;
     //        EventCount = eventCount;
     //    }
-    //}
+        */
+    }
 }
