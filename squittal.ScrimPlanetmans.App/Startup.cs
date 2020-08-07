@@ -11,6 +11,7 @@ using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
+using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 using System;
 
 namespace squittal.ScrimPlanetmans.App
@@ -81,6 +82,8 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
 
             services.AddSingleton<IConstructedTeamService, ConstructedTeamService>();
+
+            services.AddTransient<IScrimMatchReportDataService, ScrimMatchReportDataService>();
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 

@@ -1,0 +1,302 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject NavigationManager NavManager
+
+@if (_isLoadingDeaths)
+{
+    <SpinnerEllipsis />
+}
+else if (_deaths == null || !_deaths.Any())
+{
+    <p style="font-style: italic;">No kill data available for this match</p>
+}
+else
+{
+<div style="max-height: 640px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray);">
+    <table class="report-killfeed">
+        <tbody>
+            @foreach (var death in _deaths)
+            {
+                @*<tr class="@GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">*@
+                <tr class="@GetDeathRowBgClass(death.DeathType) @GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">
+                    <td class="team-fill"></td>
+                    <td title="Round @death.ScrimMatchRound" style="text-align: right; padding-left: 8px;">@death.ScrimMatchRound</td>
+                    <td style="text-align: right;">@death.Timestamp.ToLongTimeString()</td>
+                    <td class="points" style="text-align: right;">@GetPointsDisplay(death.Points)</td>
+                    <td>
+                        <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                    </td>
+                    <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]"class="player">@death.AttackerNameDisplay</td>
+                    <td>
+                        @if (death.IsHeadshot == 1)
+                        {
+                            <div class="ps2-icon headshot @SqCssHelper.GetFactionClassFromId(death.AttackerFactionId)" title="Headshot" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>
+                        }
+                    </td>
+                    <td title="@death.WeaponName [@death.WeaponId]" class="weapon">@death.WeaponName</td>
+                    <td>
+                        <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.VictimLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.VictimFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                    </td>
+                    <td title="@death.VictimNameDisplay [@death.VictimCharacterId]" class="@SqCssHelper.GetFactionClassFromId(death.VictimFactionId) player">@death.VictimNameDisplay</td>
+                    <td>
+                        @if (death.DamageAssists > 0)
+                        {
+                            <span title="Damage Assisted">💢</span>
+                        }
+                    </td>
+                    <td>
+                        @if (death.ConcussionGrenadeAssists > 0)
+                        {
+                            <span title="Concussion Grenade Assisted">💫</span>
+                        }
+                    </td>
+                    <td>
+                        @if (death.EmpGrenadeAssists > 0)
+                        {
+                            <span title="EMP Grenade Assisted">⚡</span>
+                        }
+                    </td>
+                    <td>
+                        @if (death.FlashGrenadeAssists > 0)
+                        {
+                            <span title="Flashbang Grenade Assisted">🕶</span>
+                        }
+                    </td>
+                    <td>
+                        @if (death.SpotAssists > 0)
+                        {
+                            <span title="Spot Assisted">👁</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+}
+
+@code {
+    [Parameter]
+    public string i_scrimMatchId { get; set; }
+    private string _renderedScrimMatchId { get; set; }
+
+    private List<ScrimMatchReportInfantryDeath> _deaths { get; set; }
+
+    private bool _isChangingScrimMatch { get; set; } = false;
+    private bool _isLoadingDeaths { get; set; } = false;
+
+    private int[] infiltratorIds = {1, 8, 15};
+    private int[] lightAssaultIds = { 3, 10, 17 };
+    private int[] medicIds = { 4, 11, 18 };
+    private int[] engineerIds = { 5, 12, 19 };
+    private int[] heavyAssaultIds = { 6, 13, 20 };
+    private int[] maxIds = { 7, 14, 21 };
+
+
+    #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoadingDeaths = true;
+
+        if (i_scrimMatchId != null)
+        {
+            _renderedScrimMatchId = i_scrimMatchId;
+
+            await LoadInfantryDeaths();
+        }
+
+        _isLoadingDeaths = false;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_scrimMatchId != _renderedScrimMatchId)
+        {
+            _isChangingScrimMatch = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedScrimMatchId = i_scrimMatchId;
+
+            await LoadInfantryDeaths();
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingScrimMatch = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadInfantryDeaths()
+    {
+        _isLoadingDeaths = true;
+        InvokeAsyncStateHasChanged();
+
+        var deaths = await ReportDataService.GetHistoricalScrimMatchInfantryDeathsAsync(_renderedScrimMatchId);
+
+        _deaths = new List<ScrimMatchReportInfantryDeath>();
+        if (deaths != null && deaths.Any())
+        {
+            _deaths.AddRange(deaths);
+        }
+
+        _isLoadingDeaths = false;
+    }
+    #endregion Initialization Methods
+
+    private string GetHeadshotClass(bool? isHeadshot)
+    {
+        if (isHeadshot == null)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            return (bool)isHeadshot ? "headshot" : string.Empty;
+
+        }
+    }
+
+    private string GetPointsDisplay(int points)
+    {
+        if (points >= 0)
+        {
+            return $"+{points}";
+        }
+        else
+        {
+            return points.ToString();
+        }
+    }
+
+    private string GetDeathRowBgClass(DeathEventType deathType)
+    {
+        if (deathType == DeathEventType.Teamkill || deathType == DeathEventType.Suicide)
+        {
+            return "teamkill"; //#FEF9BF";
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    private string GetDeathRowPrimaryClass(ScrimMatchReportInfantryDeath death)
+    {
+        switch (death.DeathType)
+        {
+            case DeathEventType.Kill:
+                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+
+            case DeathEventType.Suicide:
+                return SqCssHelper.GetFactionClassFromId(death.VictimFactionId);
+
+            case DeathEventType.Teamkill:
+                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+
+            default:
+                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+        }
+    }
+
+
+    private string GetLoadoutIconFromLoadoutId(int loadoutId)
+    {
+        if (infiltratorIds.Contains(loadoutId))
+        {
+            return "infil";
+        }
+        else if (lightAssaultIds.Contains(loadoutId))
+        {
+            return "la";
+        }
+        else if (medicIds.Contains(loadoutId))
+        {
+            return "medic";
+        }
+        else if (engineerIds.Contains(loadoutId))
+        {
+            return "engy";
+        }
+        else if (heavyAssaultIds.Contains(loadoutId))
+        {
+            return "heavy";
+        }
+        else if (maxIds.Contains(loadoutId))
+        {
+            return "max";
+        }
+        else
+        {
+            return "unknown";
+        }
+    }
+
+
+    //private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
+    //{
+    //    if (planetsideClass == PlanetsideClass.Infiltrator)
+    //    {
+    //        return "infil";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.LightAssault)
+    //    {
+    //        return "la";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.Medic)
+    //    {
+    //        return "medic";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.Engineer)
+    //    {
+    //        return "engy";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.HeavyAssault)
+    //    {
+    //        return "heavy";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.MAX)
+    //    {
+    //        return "max";
+    //    }
+    //    else
+    //    {
+    //        return "unknown";
+    //    }
+    //}
+
+    private string GetLoadoutIconFilterStyle(int factionId)
+    {
+        if (factionId == 1)
+        {
+            return "brightness(0) saturate(100%) invert(39%) sepia(41%) saturate(1794%) hue-rotate(224deg) brightness(98%) contrast(91%);";
+        }
+        if (factionId == 2)
+        {
+            return "brightness(0) saturate(100%) invert(49%) sepia(57%) saturate(1428%) hue-rotate(184deg) brightness(101%) contrast(98%);";
+        }
+        if (factionId == 3)
+        {
+            return "brightness(0) saturate(100%) invert(50%) sepia(34%) saturate(1466%) hue-rotate(307deg) brightness(98%) contrast(88%);";
+        }
+
+        return string.Empty;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

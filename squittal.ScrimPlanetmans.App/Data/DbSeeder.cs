@@ -1,4 +1,5 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch;
+using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IVehicleService _vehicleService;
         private readonly IVehicleTypeService _vehicleTypeService;
         private readonly IDeathEventTypeService _deathTypeService;
+        private readonly ISqlScriptRunner _sqlScriptRunner;
 
         public DbSeeder(
             IWorldService worldService,
@@ -36,7 +38,8 @@ namespace squittal.ScrimPlanetmans.Data
             IFacilityTypeService facilityTypeService,
             IVehicleService vehicleService,
             IVehicleTypeService vehicleTypeService,
-            IDeathEventTypeService deathTypeService
+            IDeathEventTypeService deathTypeService,
+            ISqlScriptRunner sqlScriptRunner
         )
         {
             _worldService = worldService;
@@ -52,6 +55,7 @@ namespace squittal.ScrimPlanetmans.Data
             _vehicleService = vehicleService;
             _vehicleTypeService = vehicleTypeService;
             _deathTypeService = deathTypeService;
+            _sqlScriptRunner = sqlScriptRunner;
         }
 
         public async Task OnApplicationStartup(CancellationToken cancellationToken)
@@ -100,6 +104,8 @@ namespace squittal.ScrimPlanetmans.Data
             await Task.WhenAll(TaskList);
 
             await _rulesetManager.SeedDefaultRuleset();
+
+            _sqlScriptRunner.RunSqlDirectoryScripts("Views");
         }
 
         public async Task OnApplicationShutdown(CancellationToken cancellationToken)
