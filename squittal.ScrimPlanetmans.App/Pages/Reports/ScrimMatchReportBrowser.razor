@@ -6,6 +6,7 @@
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimMatchReportDataService ReportDataService
@@ -68,7 +69,7 @@
                 </table>
 
                 @if (_isLoadingScrimMatchList)
-                    {
+                {
                     <div class="thin">
                         <SpinnerEllipsis />
                     </div>
@@ -76,37 +77,37 @@
                 else
                 {
 
-                <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
-                    @if (_renderedHasPreviousPage)
-                    {
-                        <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
-                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
-                        </NavLink>
-                    }
-                    else
-                    {
-                        <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
-                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
-                        </div>
-                    }
+                    <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
+                        @if (_renderedHasPreviousPage)
+                        {
+                            <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </div>
+                        }
 
 
-                    <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
+                        <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
 
-                    @if (_renderedHasNextPage)
-                    {
-                        <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
-                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
-                        </NavLink>
-                    }
-                    else
-                    {
-                        <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
-                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
-                        </div>
-                    }
+                        @if (_renderedHasNextPage)
+                        {
+                            <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                            </div>
+                        }
 
-                </div>
+                    </div>
                 }
 
             </div>
@@ -135,6 +136,8 @@
 
     private bool _isLoadingScrimMatchList { get; set; } = true;
 
+    private CancellationTokenSource cts;
+
     private string _debug { get; set; } = string.Empty;
 
 
@@ -147,6 +150,12 @@
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -178,15 +187,41 @@
         _isLoadingScrimMatchList = true;
         InvokeAsyncStateHasChanged();
 
-        var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
 
-        _storeScrimMatchList = new List<ScrimMatchInfo>();
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
 
-        _storeScrimMatchList.AddRange(paginatedList.Contents);
+        try
+        {
 
-        _renderedPageCount = paginatedList.PageCount;
-        _renderedHasNextPage = paginatedList.HasNextPage;
-        _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _storeScrimMatchList = new List<ScrimMatchInfo>();
+
+            _storeScrimMatchList.AddRange(paginatedList.Contents);
+
+            _renderedPageCount = paginatedList.PageCount;
+            _renderedHasNextPage = paginatedList.HasNextPage;
+            _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
 
         _isLoadingScrimMatchList = false;
     }
