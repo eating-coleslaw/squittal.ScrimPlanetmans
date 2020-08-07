@@ -21,7 +21,9 @@ else if (_deaths == null || !_deaths.Any())
 }
 else
 {
-    <div style="max-height: 640px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray);">
+    <h4>Killfeed</h4>
+    
+    <div style="max-height: 620px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray); margin-bottom: 10px;">
         <table class="report-killfeed">
             <tbody>
                 @foreach (var death in _deaths)
