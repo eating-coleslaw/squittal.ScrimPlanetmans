@@ -24,7 +24,8 @@
 
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
-                        <tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">
+                        @*<tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">*@
+                        <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
                             <th style="font-weight: 300;">Start Time</th>
                             <th style="font-weight: 300;">Team 1</th>
                             <th style="font-weight: 300;">Team 2</th>
@@ -42,7 +43,8 @@
                             @foreach (var match in _storeScrimMatchList)
                             {
                                 <tr>
-                                    <td>@match.StartTime.ToShortDateString() @match.StartTime.ToShortTimeString()</td>
+                                    @*<td>@match.StartTime.ToShortDateString() @match.StartTime.ToShortTimeString()</td>*@
+                                    <td>@GetLocalizedTimeString(match.StartTime)</td>
                                     <td>@match.TeamAliases[1]</td>
                                     <td>@match.TeamAliases[2]</td>
                                     <td>@match.Title</td>
@@ -236,7 +238,7 @@
         return stateChanged;
     }
 
-    public int GetTeamIdFromStringId(string stringId)
+    private int GetTeamIdFromStringId(string stringId)
     {
         if (int.TryParse(stringId, out int intId))
         {
@@ -246,6 +248,22 @@
         {
             return -1;
         }
+    }
+
+    private string GetLocalizedTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
+
+        //var timeUtc = dateTime.ToUniversalTime();
+
+        //return timeUtc.ToLocalTime().ToString("r");
+
+        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
     }
 
     private void InvokeAsyncStateHasChanged()
