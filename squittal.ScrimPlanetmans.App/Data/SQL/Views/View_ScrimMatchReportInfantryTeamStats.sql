@@ -1,7 +1,3 @@
-USE [PlanetmansDbContext];
-
-GO
-
 CREATE OR ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
 
   SELECT match_teams.ScrimMatchId,
