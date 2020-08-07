@@ -1,0 +1,325 @@
+﻿@page "/Reports"
+@page "/MatchReport"
+@page "/ReportBrowser"
+@page "/ScrimMatches"
+
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using System.Threading;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+<div class="container-fluid" style="margin-top: 16px;">
+
+    <div class="row">
+
+        <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
+
+            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+                <h4>Scrim Match Browser</h4>
+
+                <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
+                    <thead>
+                        @*<tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">*@
+                        <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
+                            <th style="font-weight: 300;">Start Time</th>
+                            <th style="font-weight: 300;">Team 1</th>
+                            <th style="font-weight: 300;">Team 2</th>
+                            <th style="font-weight: 300;">Title</th>
+                            <th style="font-weight: 300;">Server</th>
+                            <th style="font-weight: 300;">Facility</th>
+                            <th style="font-weight: 300;">Rounds</th>
+                            <th style="font-weight: 300;"></th>
+                        </tr>
+                    </thead>
+
+                    @if (_storeScrimMatchList != null)
+                    {
+                        <tbody style="@(_isLoadingScrimMatchList ? "opacity: 0.5;" : string.Empty)">
+                            @foreach (var match in _storeScrimMatchList)
+                            {
+                                <tr>
+                                    <td>@GetLocalizedTimeString(match.StartTime)</td>
+                                    @if (match.TeamOneFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[1]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamOneFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[1]</td>
+                                    }
+                                    @if (match.TeamTwoFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[2]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamTwoFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[2]</td>
+                                    }
+                                    <td>@match.Title</td>
+                                    <td>@match.WorldName</td>
+                                    @if (match.FacilityId != null)
+                                    {
+                                        <td>@match.FacilityName</td>
+                                    }
+                                    else
+                                    {
+                                        <td style="font-style: italic;">None</td>
+                                    }
+                                    <td>@match.RoundCount</td>
+                                    <td>
+                                        <NavLink class="nav-link" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+
+                @if (_isLoadingScrimMatchList)
+                {
+                    <div class="thin">
+                        <SpinnerEllipsis />
+                    </div>
+                }
+                else
+                {
+
+                    <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
+                        @if (_renderedHasPreviousPage)
+                        {
+                            <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </div>
+                        }
+
+
+                        <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
+
+                        @if (_renderedHasNextPage)
+                        {
+                            <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                            </div>
+                        }
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_pageIndex { get; set; } = 1;
+    public int _renderedPageIndex { get; set; } = 1;
+
+    [Parameter]
+    public int? _uriPageIndex { get; set; }
+
+    private int _defaultPageIndex { get; set; } = 1;
+
+    private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
+
+    private int _renderedPageCount { get; set; } = 0;
+    private bool _renderedHasNextPage { get; set; } = false;
+    private bool _renderedHasPreviousPage { get; set; } = false;
+
+    private bool _isLoadingScrimMatchList { get; set; } = true;
+
+    private CancellationTokenSource cts;
+
+    private string _debug { get; set; } = string.Empty;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedPageIndex = i_pageIndex;
+
+        await LoadScrimMatchListAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        UpdateUriParameters();
+
+        _renderedPageIndex = i_pageIndex;
+        await LoadScrimMatchListAsync();
+
+        paramsChanged = true;
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadScrimMatchListAsync()
+    {
+        _isLoadingScrimMatchList = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+
+            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _storeScrimMatchList = new List<ScrimMatchInfo>();
+
+            _storeScrimMatchList.AddRange(paginatedList.Contents);
+
+            _renderedPageCount = paginatedList.PageCount;
+            _renderedHasNextPage = paginatedList.HasNextPage;
+            _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingScrimMatchList = false;
+    }
+
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            await LoadScrimMatchListAsync();
+
+            StateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("page", out var qPage))
+        {
+            if (int.TryParse(qPage, out int page))
+            {
+                if (_uriPageIndex != page)
+                {
+                    _uriPageIndex = page;
+                    i_pageIndex = page;
+                    _renderedPageIndex = page;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                if (_uriPageIndex != null)
+                {
+                    stateChanged = true;
+                }
+
+                _uriPageIndex = null;
+                i_pageIndex = _defaultPageIndex;
+                _renderedPageIndex = _defaultPageIndex;
+            }
+        }
+
+        return stateChanged;
+    }
+
+    private int GetTeamIdFromStringId(string stringId)
+    {
+        if (int.TryParse(stringId, out int intId))
+        {
+            return intId;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    private string GetLocalizedTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
+
+        //var timeUtc = dateTime.ToUniversalTime();
+
+        //return timeUtc.ToLocalTime().ToString("r");
+
+        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

@@ -1095,12 +1095,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var isTeamkillAssist = (assistEvent.AttackerPlayer != null
                                     && assistEvent.VictimPlayer != null
-                                    && assistEvent.AttackerPlayer.TeamOrdinal == assistEvent.VictimPlayer.TeamOrdinal);
+                                    && assistEvent.AttackerPlayer.TeamOrdinal == assistEvent.VictimPlayer.TeamOrdinal
+                                    && assistEvent.AttackerPlayer != assistEvent.VictimPlayer);
+
+            var isSuicideAssist = (assistEvent.AttackerPlayer != null
+                                    && assistEvent.VictimPlayer != null
+                                    && assistEvent.AttackerPlayer.TeamOrdinal == assistEvent.VictimPlayer.TeamOrdinal
+                                    && assistEvent.AttackerPlayer == assistEvent.VictimPlayer);
 
             return assistEvent.ExperienceType switch
             {
-                ExperienceType.DamageAssist => (isTeamkillAssist ? ScrimActionType.DamageTeamAssist : ScrimActionType.DamageAssist),
-                ExperienceType.GrenadeAssist => (isTeamkillAssist ? ScrimActionType.GrenadeTeamAssist : ScrimActionType.GrenadeAssist),
+                ExperienceType.DamageAssist => (!(isTeamkillAssist || isSuicideAssist) ? ScrimActionType.DamageAssist
+                                                    : (isTeamkillAssist ? ScrimActionType.DamageTeamAssist
+                                                            : ScrimActionType.DamageSelfAssist)),
+                ExperienceType.GrenadeAssist => (!(isTeamkillAssist || isSuicideAssist) ? ScrimActionType.GrenadeAssist
+                                                    : (isTeamkillAssist ? ScrimActionType.GrenadeTeamAssist
+                                                            : ScrimActionType.GrenadeSelfAssist)),
                 ExperienceType.HealSupportAssist => ScrimActionType.HealSupportAssist,
                 ExperienceType.ProtectAlliesAssist => ScrimActionType.ProtectAlliesAssist,
                 ExperienceType.SpotAssist => ScrimActionType.SpotAssist,

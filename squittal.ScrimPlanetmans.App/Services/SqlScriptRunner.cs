@@ -33,5 +33,29 @@ namespace squittal.ScrimPlanetmans.Services
 
             _server.ConnectionContext.ExecuteNonQuery(scriptText);
         }
+
+        public void RunSqlDirectoryScripts(string directoryName)
+        {
+            var directoryPath = Path.Combine(_scriptDirectory, directoryName);
+
+            try
+            {
+                var files = Directory.GetFiles(directoryPath);
+
+                foreach (var file in files)
+                {
+                    if (!file.EndsWith(".sql"))
+                    {
+                        continue;
+                    }
+
+                    RunSqlScript(file);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error running SQL scripts in directory {directoryName}: {ex}");
+            }
+        }
     }
 }
