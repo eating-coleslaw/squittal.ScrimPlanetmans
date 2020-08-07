@@ -25,6 +25,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public string FacilityName { get; set; }
 
         //public bool EndRoundOnFacilityCapture { get; set; } = false;
+        public int TeamOneFactionId { get; set; }
+        public int TeamTwoFactionId { get; set; }
 
         public ScrimMatchInfo()
         {

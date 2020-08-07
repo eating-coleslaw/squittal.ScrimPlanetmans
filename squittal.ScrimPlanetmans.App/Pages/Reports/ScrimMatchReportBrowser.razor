@@ -4,6 +4,7 @@
 @page "/ScrimMatches"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
@@ -44,10 +45,23 @@
                             @foreach (var match in _storeScrimMatchList)
                             {
                                 <tr>
-                                    @*<td>@match.StartTime.ToShortDateString() @match.StartTime.ToShortTimeString()</td>*@
                                     <td>@GetLocalizedTimeString(match.StartTime)</td>
-                                    <td>@match.TeamAliases[1]</td>
-                                    <td>@match.TeamAliases[2]</td>
+                                    @if (match.TeamOneFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[1]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamOneFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[1]</td>
+                                    }
+                                    @if (match.TeamTwoFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[2]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamTwoFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[2]</td>
+                                    }
                                     <td>@match.Title</td>
                                     <td>@match.WorldName</td>
                                     @if (match.FacilityId != null)
