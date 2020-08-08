@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
@@ -38,15 +39,31 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             Contents.AddRange(contents);
         }
 
-        public static async Task<PaginatedList<T>> CreateAsync(IQueryable<T> source, int pageIndex, int pageSize)
+        public static async Task<PaginatedList<T>> CreateAsync(IQueryable<T> source, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
-            var count = await source.CountAsync();
-            
-            var items = await source.Skip((pageIndex - 1) * pageSize)
-                                    .Take(pageSize)
-                                    .ToListAsync();
+            try
+            {
 
-            return new PaginatedList<T>(items, count, pageIndex, pageSize);
+                var count = await source.CountAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var items = await source.Skip((pageIndex - 1) * pageSize)
+                                        .Take(pageSize)
+                                        .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return new PaginatedList<T>(items, count, pageIndex, pageSize);
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

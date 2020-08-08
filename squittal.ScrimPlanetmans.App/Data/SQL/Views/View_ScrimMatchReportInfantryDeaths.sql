@@ -1,7 +1,3 @@
-USE [PlanetmansDbContext];
-
-GO
-
 CREATE OR ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
 
   SELECT deaths.ScrimMatchId,
@@ -33,14 +29,14 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
        MAX(COALESCE(grenade_sums.EmpGrenadeAssists, 0)) EmpGrenadeAssists,
        MAX(COALESCE(grenade_sums.FlashGrenadeAssists, 0)) FlashGrenadeAssists,
        MAX(COALESCE(spot_sums.SpotAssists, 0) ) SpotAssists
-    FROM ScrimDeath deaths
+    FROM [PlanetmansDbContext].[dbo].ScrimDeath deaths
       LEFT OUTER JOIN ( SELECT damages.ScrimMatchId,
                                 damages.Timestamp,
                                 damages.VictimCharacterId,
                                 SUM( CASE WHEN damages.ActionType = 304 THEN 1 ELSE 0 END ) DamageAssists,
                                 SUM( CASE WHEN damages.ActionType = 310 THEN 1 ELSE 0 END ) DamageTeamAssists,
                                 SUM( CASE WHEN damages.ActionType = 312 THEN 1 ELSE 0 END ) DamageSelfAssists
-                          FROM ScrimDamageAssist damages
+                          FROM [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
                           GROUP BY damages.ScrimMatchId, damages.Timestamp, damages.VictimCharacterId ) damage_sums
                 ON damage_sums.ScrimMatchId = deaths.ScrimMatchId
                     AND damage_sums.Timestamp = deaths.Timestamp
@@ -60,7 +56,7 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
                                 SUM( CASE WHEN grenades.ActionType = 306 AND grenades.ExperienceGainId IN ( 554, 555 ) THEN 1 ELSE 0 END ) FlashGrenadeAssists,
                                 SUM( CASE WHEN grenades.ActionType = 311 AND grenades.ExperienceGainId IN ( 554, 555 ) THEN 1 ELSE 0 END ) FlashGrenadeTeamAssists,
                                 SUM( CASE WHEN grenades.ActionType = 313 AND grenades.ExperienceGainId IN ( 554, 555 ) THEN 1 ELSE 0 END ) FlashGrenadeSelfAssists
-                          FROM ScrimGrenadeAssist grenades
+                          FROM [PlanetmansDbContext].[dbo].ScrimGrenadeAssist grenades
                           GROUP BY grenades.ScrimMatchId, grenades.Timestamp, grenades.VictimCharacterId ) grenade_sums
                 ON grenade_sums.ScrimMatchId = deaths.ScrimMatchId
                     AND grenade_sums.Timestamp = deaths.Timestamp
@@ -69,15 +65,15 @@ CREATE OR ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
                                 spots.Timestamp,
                                 spots.VictimCharacterId,
                                 SUM( CASE WHEN spots.ActionType = 308 THEN 1 ELSE 0 END ) SpotAssists
-                          FROM ScrimSpotAssist spots
+                          FROM [PlanetmansDbContext].[dbo].ScrimSpotAssist spots
                           GROUP BY spots.ScrimMatchId, spots.Timestamp, spots.VictimCharacterId ) spot_sums
                 ON grenade_sums.ScrimMatchId = deaths.ScrimMatchId
                     AND grenade_sums.Timestamp = deaths.Timestamp
                     AND grenade_sums.VictimCharacterId = deaths.VictimCharacterId
-      LEFT OUTER JOIN ScrimMatchParticipatingPlayer match_players
+      LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
         ON match_players.ScrimMatchId = deaths.ScrimMatchId
             AND ( match_players.CharacterId = deaths.AttackerCharacterId
                   OR match_players.CharacterId = deaths.VictimCharacterId )
-      LEFT OUTER JOIN Item weapons
+      LEFT OUTER JOIN [PlanetmansDbContext].[dbo].Item weapons
         ON weapons.Id = deaths.WeaponId
       GROUP BY deaths.ScrimMatchId, deaths.Timestamp, deaths.AttackerCharacterId, deaths.VictimCharacterId

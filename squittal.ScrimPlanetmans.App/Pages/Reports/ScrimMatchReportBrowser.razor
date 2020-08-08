@@ -4,8 +4,10 @@
 @page "/ScrimMatches"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimMatchReportDataService ReportDataService
@@ -20,11 +22,12 @@
         <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
 
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
-                <h3>Scrim Match Browser</h3>
+                <h4>Scrim Match Browser</h4>
 
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
-                        <tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">
+                        @*<tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">*@
+                        <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
                             <th style="font-weight: 300;">Start Time</th>
                             <th style="font-weight: 300;">Team 1</th>
                             <th style="font-weight: 300;">Team 2</th>
@@ -42,9 +45,23 @@
                             @foreach (var match in _storeScrimMatchList)
                             {
                                 <tr>
-                                    <td>@match.StartTime.ToShortDateString() @match.StartTime.ToShortTimeString()</td>
-                                    <td>@match.TeamAliases[1]</td>
-                                    <td>@match.TeamAliases[2]</td>
+                                    <td>@GetLocalizedTimeString(match.StartTime)</td>
+                                    @if (match.TeamOneFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[1]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamOneFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[1]</td>
+                                    }
+                                    @if (match.TeamTwoFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[2]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamTwoFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[2]</td>
+                                    }
                                     <td>@match.Title</td>
                                     <td>@match.WorldName</td>
                                     @if (match.FacilityId != null)
@@ -66,7 +83,7 @@
                 </table>
 
                 @if (_isLoadingScrimMatchList)
-                    {
+                {
                     <div class="thin">
                         <SpinnerEllipsis />
                     </div>
@@ -74,37 +91,37 @@
                 else
                 {
 
-                <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
-                    @if (_renderedHasPreviousPage)
-                    {
-                        <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
-                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
-                        </NavLink>
-                    }
-                    else
-                    {
-                        <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
-                            <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
-                        </div>
-                    }
+                    <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
+                        @if (_renderedHasPreviousPage)
+                        {
+                            <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </div>
+                        }
 
 
-                    <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
+                        <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
 
-                    @if (_renderedHasNextPage)
-                    {
-                        <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
-                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
-                        </NavLink>
-                    }
-                    else
-                    {
-                        <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
-                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
-                        </div>
-                    }
+                        @if (_renderedHasNextPage)
+                        {
+                            <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                            </div>
+                        }
 
-                </div>
+                    </div>
                 }
 
             </div>
@@ -133,6 +150,8 @@
 
     private bool _isLoadingScrimMatchList { get; set; } = true;
 
+    private CancellationTokenSource cts;
+
     private string _debug { get; set; } = string.Empty;
 
 
@@ -145,6 +164,12 @@
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -176,15 +201,41 @@
         _isLoadingScrimMatchList = true;
         InvokeAsyncStateHasChanged();
 
-        var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex);
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
 
-        _storeScrimMatchList = new List<ScrimMatchInfo>();
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
 
-        _storeScrimMatchList.AddRange(paginatedList.Contents);
+        try
+        {
 
-        _renderedPageCount = paginatedList.PageCount;
-        _renderedHasNextPage = paginatedList.HasNextPage;
-        _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _storeScrimMatchList = new List<ScrimMatchInfo>();
+
+            _storeScrimMatchList.AddRange(paginatedList.Contents);
+
+            _renderedPageCount = paginatedList.PageCount;
+            _renderedHasNextPage = paginatedList.HasNextPage;
+            _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
 
         _isLoadingScrimMatchList = false;
     }
@@ -236,7 +287,7 @@
         return stateChanged;
     }
 
-    public int GetTeamIdFromStringId(string stringId)
+    private int GetTeamIdFromStringId(string stringId)
     {
         if (int.TryParse(stringId, out int intId))
         {
@@ -246,6 +297,22 @@
         {
             return -1;
         }
+    }
+
+    private string GetLocalizedTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
+
+        //var timeUtc = dateTime.ToUniversalTime();
+
+        //return timeUtc.ToLocalTime().ToString("r");
+
+        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
     }
 
     private void InvokeAsyncStateHasChanged()

@@ -112,7 +112,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         {
             get
             {
-                if (EnemyEngagementCount > 0)
+                if (EnemyKillDeathEngagementCount > 0)
                 {
                     return Math.Round((double)(UnassistedKills + UnassistedEnemyDeaths) / EnemyKillDeathEngagementCount * 100.0, 0);
                 }
@@ -127,7 +127,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         {
             get
             {
-                if (OneVsOneCount > 0)
+                if (UnassistedEnemyDeaths > 0)
                 {
                     return Math.Round((double)(UnassistedKills / (double)UnassistedEnemyDeaths), 1);
                 }

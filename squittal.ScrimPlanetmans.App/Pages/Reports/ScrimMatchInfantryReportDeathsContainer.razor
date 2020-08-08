@@ -3,9 +3,13 @@
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using System.Threading; 
 
 @inject IScrimMatchReportDataService ReportDataService
 @inject NavigationManager NavManager
+
+@implements IDisposable
+
 
 @if (_isLoadingDeaths)
 {
@@ -17,67 +21,69 @@ else if (_deaths == null || !_deaths.Any())
 }
 else
 {
-<div style="max-height: 640px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray);">
-    <table class="report-killfeed">
-        <tbody>
-            @foreach (var death in _deaths)
-            {
-                @*<tr class="@GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">*@
-                <tr class="@GetDeathRowBgClass(death.DeathType) @GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">
-                    <td class="team-fill"></td>
-                    <td title="Round @death.ScrimMatchRound" style="text-align: right; padding-left: 8px;">@death.ScrimMatchRound</td>
-                    <td style="text-align: right;">@death.Timestamp.ToLongTimeString()</td>
-                    <td class="points" style="text-align: right;">@GetPointsDisplay(death.Points)</td>
-                    <td>
-                        <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
-                    </td>
-                    <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]"class="player">@death.AttackerNameDisplay</td>
-                    <td>
-                        @if (death.IsHeadshot == 1)
-                        {
-                            <div class="ps2-icon headshot @SqCssHelper.GetFactionClassFromId(death.AttackerFactionId)" title="Headshot" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>
-                        }
-                    </td>
-                    <td title="@death.WeaponName [@death.WeaponId]" class="weapon">@death.WeaponName</td>
-                    <td>
-                        <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.VictimLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.VictimFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
-                    </td>
-                    <td title="@death.VictimNameDisplay [@death.VictimCharacterId]" class="@SqCssHelper.GetFactionClassFromId(death.VictimFactionId) player">@death.VictimNameDisplay</td>
-                    <td>
-                        @if (death.DamageAssists > 0)
-                        {
-                            <span title="Damage Assisted">💢</span>
-                        }
-                    </td>
-                    <td>
-                        @if (death.ConcussionGrenadeAssists > 0)
-                        {
-                            <span title="Concussion Grenade Assisted">💫</span>
-                        }
-                    </td>
-                    <td>
-                        @if (death.EmpGrenadeAssists > 0)
-                        {
-                            <span title="EMP Grenade Assisted">⚡</span>
-                        }
-                    </td>
-                    <td>
-                        @if (death.FlashGrenadeAssists > 0)
-                        {
-                            <span title="Flashbang Grenade Assisted">🕶</span>
-                        }
-                    </td>
-                    <td>
-                        @if (death.SpotAssists > 0)
-                        {
-                            <span title="Spot Assisted">👁</span>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+    <h4>Killfeed</h4>
+    
+    <div style="max-height: 620px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray); margin-bottom: 10px;">
+        <table class="report-killfeed">
+            <tbody>
+                @foreach (var death in _deaths)
+                {
+                    @*<tr class="@GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">*@
+                    <tr class="@GetDeathRowBgClass(death.DeathType) @GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">
+                        <td class="team-fill"></td>
+                        <td title="Round @death.ScrimMatchRound" style="text-align: right; padding-left: 8px;">@death.ScrimMatchRound</td>
+                        <td style="text-align: right;">@death.Timestamp.ToLongTimeString()</td>
+                        <td class="points" style="text-align: right;">@GetPointsDisplay(death.Points)</td>
+                        <td>
+                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                        </td>
+                        <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.AttackerNameDisplay</td>
+                        <td>
+                            @if (death.IsHeadshot == 1)
+                            {
+                                <div class="ps2-icon headshot @SqCssHelper.GetFactionClassFromId(death.AttackerFactionId)" title="Headshot" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>
+                            }
+                        </td>
+                        <td title="@death.WeaponName [@death.WeaponId]" class="weapon">@death.WeaponName</td>
+                        <td>
+                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.VictimLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.VictimFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                        </td>
+                        <td title="@death.VictimNameDisplay [@death.VictimCharacterId]" class="@SqCssHelper.GetFactionClassFromId(death.VictimFactionId) player">@death.VictimNameDisplay</td>
+                        <td>
+                            @if (death.DamageAssists > 0)
+                            {
+                                <span title="Damage Assisted">💢</span>
+                            }
+                        </td>
+                        <td>
+                            @if (death.ConcussionGrenadeAssists > 0)
+                            {
+                                <span title="Concussion Grenade Assisted">💫</span>
+                            }
+                        </td>
+                        <td>
+                            @if (death.EmpGrenadeAssists > 0)
+                            {
+                                <span title="EMP Grenade Assisted">⚡</span>
+                            }
+                        </td>
+                        <td>
+                            @if (death.FlashGrenadeAssists > 0)
+                            {
+                                <span title="Flashbang Grenade Assisted">🕶</span>
+                            }
+                        </td>
+                        <td>
+                            @if (death.SpotAssists > 0)
+                            {
+                                <span title="Spot Assisted">👁</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {
@@ -90,12 +96,14 @@ else
     private bool _isChangingScrimMatch { get; set; } = false;
     private bool _isLoadingDeaths { get; set; } = false;
 
-    private int[] infiltratorIds = {1, 8, 15};
+    private int[] infiltratorIds = { 1, 8, 15 };
     private int[] lightAssaultIds = { 3, 10, 17 };
     private int[] medicIds = { 4, 11, 18 };
     private int[] engineerIds = { 5, 12, 19 };
     private int[] heavyAssaultIds = { 6, 13, 20 };
     private int[] maxIds = { 7, 14, 21 };
+
+    private CancellationTokenSource cts;
 
 
     #region Initialization Methods
@@ -111,6 +119,15 @@ else
         }
 
         _isLoadingDeaths = false;
+    }
+
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -141,12 +158,37 @@ else
         _isLoadingDeaths = true;
         InvokeAsyncStateHasChanged();
 
-        var deaths = await ReportDataService.GetHistoricalScrimMatchInfantryDeathsAsync(_renderedScrimMatchId);
-
-        _deaths = new List<ScrimMatchReportInfantryDeath>();
-        if (deaths != null && deaths.Any())
+        // If a process is already underway, cancel it
+        if (cts != null)
         {
-            _deaths.AddRange(deaths);
+            cts.Cancel();
+        }
+
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var deaths = await ReportDataService.GetHistoricalScrimMatchInfantryDeathsAsync(_renderedScrimMatchId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _deaths = new List<ScrimMatchReportInfantryDeath>();
+            if (deaths != null && deaths.Any())
+            {
+                _deaths.AddRange(deaths);
+            }
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
         }
 
         _isLoadingDeaths = false;
