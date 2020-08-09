@@ -5,12 +5,18 @@
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimMatchReportDataService ReportDataService
+@inject IFacilityService FacilityService
+@inject IZoneService ZoneService
+@inject IWorldService WorldService
 @inject NavigationManager NavManager
 
 @implements IDisposable
@@ -23,6 +29,64 @@
 
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                 <h4>Scrim Match Browser</h4>
+
+                @if (!_isLoadingSearchFilterData)
+                {
+
+            <EditForm Model="@_searchFilter" OnValidSubmit="OnSearchFilterSubmit" style="display: inline; font-size: 0.9rem; color: inherit; font-family: Roboto, 'Segoe UI', sans-serif;">
+                @*class="mono-font"*@
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                @*<p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_searchFilter.PrimaryTeamAlias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" /></p>*@
+                @*<p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Alias:</span><InputText id="inputTeamAlias" @bind-Value=@_searchFilter.SecondaryTeamAlias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" /></p>*@
+                @*<InputText id="inputTeamAlias" @bind-Value=@_searchFilter.PrimaryTeamAlias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" />*@
+                @*<InputText id="inputTeamAlias" @bind-Value=@_searchFilter.SecondaryTeamAlias maxlength="4" pattern="^[A-Za-z0-9]{1,4}$" style="display: inline-block; width: 48px;" />*@
+                <div style="display: inline-block; margin-bottom: 8px;">Search: <InputText id="inputTeamAlias" @bind-Value=@_searchFilter.InputSearchTerms maxlength="50" style="display: inline-block; width: 250px; margin-left: 4px;" /></div>
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-magnifying-glass"></span>Search
+                </button>
+                
+                @if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
+                {
+                    <button class="btn btn-outline-primary" @onclick="OnClearSearchFilters">
+                        <span class="oi oi-x" style="top: 0px;"></span>Clear
+                    </button>
+                }
+
+                <div style="margin-bottom: 0.2rem; display: block;">
+                    @*<div style="margin-bottom: 0.2rem;">Scrim Server & Base: </div>*@
+
+                    <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.WorldIdString" ValueChanged="@((string s) => _searchFilter.SetWorldId(s))" ValueExpression="@(() => _searchFilter.WorldIdString)">
+                        <option value=@_anyWorldIdValue>All Servers</option>
+
+                        @foreach (var world in _worlds)
+                        {
+                            <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
+                        }
+                    </InputSelect>
+
+                    @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_searchFilter.FacilityIdString>*@
+                    <InputSelect TValue="string" style="margin-right: 5px; width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.FacilityIdString" ValueChanged="@((string s) => _searchFilter.SetFacilityId(s))" ValueExpression="@(() => _searchFilter.FacilityIdString)">
+                        <option value=@_anyFacilityIdValue>Any Facility</option>
+                        <option value=@_noFacilitIdFilterValue>No Filter</option>
+
+                        @foreach (var zone in _mapZones)
+                        {
+                            <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                            @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                            {
+                                <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                            }
+                        }
+                    </InputSelect>
+                    
+                    <div style="margin-bottom: 0.5rem; display: inline-block; vertical-align: top;">Min. Rounds: <InputNumber style="width: 50px;" min="1" type="text" id="roundSecondsTotal" @bind-Value="_searchFilter.MinimumRoundCount" /></div>
+                </div>
+            </EditForm>
+            }
 
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
@@ -74,7 +138,7 @@
                                     }
                                     <td>@match.RoundCount</td>
                                     <td>
-                                        <NavLink class="nav-link" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
+                                        <NavLink class="nav-link" target="_blank" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
                                     </td>
                                 </tr>
                             }
@@ -124,6 +188,15 @@
                     </div>
                 }
 
+                @*<p>@_storeScrimMatchList.Count()</p>
+                <p>Search Terms: @_debug</p>
+                @foreach (var term in _searchFilter.SearchTermsList)
+                {
+                    <p style="margin: 0;">@term</p>
+                }
+                <p>Is Filtered: @_isFilteredResults</p>
+                <p>Is Default: @_searchFilter.IsDefaultFilter</p>
+                 *@
             </div>
 
         </div>
@@ -152,6 +225,22 @@
 
     private CancellationTokenSource cts;
 
+    #region Search Filter Variables
+    private ScrimMatchReportBrowserSearchFilter _searchFilter { get; set; } = new ScrimMatchReportBrowserSearchFilter();
+
+    private IEnumerable<MapRegion> _mapRegions { get; set; }
+    private List<int> _mapZones { get; set; } = new List<int>();
+    private IEnumerable<Zone> _zones { get; set; }
+    private string _noFacilitIdFilterValue { get; set; } = "-1";
+    private string _anyFacilityIdValue { get; set; } = "0";
+    private IEnumerable<World> _worlds { get; set; }
+    private string _anyWorldIdValue { get; set; } = "0";
+
+    private bool _isLoadingSearchFilterData { get; set; } = true;
+
+    private bool _isFilteredResults { get; set; } = false;
+    #endregion Search Filter Variables
+
     private string _debug { get; set; } = string.Empty;
 
 
@@ -159,6 +248,13 @@
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
+
+        if (_searchFilter == null)
+        {
+            _searchFilter = new ScrimMatchReportBrowserSearchFilter();
+        }
+
+        _isFilteredResults = false;
     }
 
     public void Dispose()
@@ -176,7 +272,26 @@
     {
         _renderedPageIndex = i_pageIndex;
 
+        _isLoadingSearchFilterData = true;
+
         await LoadScrimMatchListAsync();
+
+        _zones = await ZoneService.GetAllZones();
+
+        var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+        _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+        var worlds = await WorldService.GetAllWorldsAsync();
+        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+
+        _isLoadingSearchFilterData = false;
+
+        if (_searchFilter.IsDefaultFilter)
+        {
+            _isFilteredResults = false;
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -187,6 +302,11 @@
 
         _renderedPageIndex = i_pageIndex;
         await LoadScrimMatchListAsync();
+
+        if (_searchFilter.IsDefaultFilter)
+        {
+            _isFilteredResults = false;
+        }
 
         paramsChanged = true;
 
@@ -214,7 +334,7 @@
         try
         {
 
-            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, cts.Token);
+            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, _searchFilter, cts.Token);
 
             cts.Token.ThrowIfCancellationRequested();
 
@@ -249,10 +369,50 @@
         {
             await LoadScrimMatchListAsync();
 
+            if (_searchFilter.IsDefaultFilter)
+            {
+                _isFilteredResults = false;
+            }
+
             StateHasChanged();
         }
     }
     #endregion Event Handling
+
+    #region Form Controls
+    private async Task OnSearchFilterSubmit()
+    {
+        _searchFilter.ParseSearchTermsString();
+
+        _debug = _searchFilter.SearchTermsList.Count().ToString();
+
+        if (!_searchFilter.IsDefaultFilter)
+        {
+            await LoadScrimMatchListAsync();
+
+            _isFilteredResults = true;
+        }
+
+        NavManager.NavigateTo($"/reports?page=1");
+    }
+
+    private async void OnClearSearchFilters()
+    {
+        _searchFilter = new ScrimMatchReportBrowserSearchFilter();
+
+        if (_isFilteredResults)
+        {
+            await LoadScrimMatchListAsync();
+        }
+
+        _isFilteredResults = false;
+
+        NavManager.NavigateTo($"/reports?page=1");
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    #endregion Form Controls
 
     private bool UpdateUriParameters()
     {
