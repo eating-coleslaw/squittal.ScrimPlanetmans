@@ -1,4 +1,14 @@
-CREATE OR ALTER VIEW View_ScrimMatchInfo AS
+USE [PlanetmansDbContext];
+
+IF (NOT EXISTS (SELECT 1 FROM sys.views WHERE name = 'View_ScrimMatchInfo'))
+BEGIN
+    EXECUTE('CREATE VIEW View_ScrimMatchInfo as SELECT 1 as x');
+END;
+
+GO
+
+ALTER VIEW View_ScrimMatchInfo AS
+-- CREATE OR ALTER VIEW View_ScrimMatchInfo AS
 
 SELECT config1.ScrimMatchId,
        MAX(StartTime) StartTime,

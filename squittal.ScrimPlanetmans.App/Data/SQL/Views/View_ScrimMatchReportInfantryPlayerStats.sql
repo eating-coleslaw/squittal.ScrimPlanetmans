@@ -1,4 +1,14 @@
-CREATE OR ALTER VIEW View_ScrimMatchReportInfantryPlayerStats AS
+USE [PlanetmansDbContext];
+
+IF (NOT EXISTS (SELECT 1 FROM sys.views WHERE name = 'View_ScrimMatchReportInfantryPlayerStats'))
+BEGIN
+    EXECUTE('CREATE VIEW View_ScrimMatchReportInfantryPlayerStats as SELECT 1 as x');
+END;
+
+GO
+
+ALTER VIEW View_ScrimMatchReportInfantryPlayerStats AS
+-- CREATE OR ALTER VIEW View_ScrimMatchReportInfantryPlayerStats AS
 
   SELECT match_players.ScrimMatchId,
          match_players.TeamOrdinal,
