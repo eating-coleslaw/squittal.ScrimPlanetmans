@@ -32,63 +32,68 @@
 
                 @if (!_isLoadingSearchFilterData)
                 {
+                    <EditForm Model="@_searchFilter" OnValidSubmit="OnSearchFilterSubmit" style="display: inline; font-size: 0.9rem; color: inherit; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 8px;">
+                        @*class="mono-font"*@
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
 
-            <EditForm Model="@_searchFilter" OnValidSubmit="OnSearchFilterSubmit" style="display: inline; font-size: 0.9rem; color: inherit; font-family: Roboto, 'Segoe UI', sans-serif;">
-                @*class="mono-font"*@
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+                        <div style="display: inline-block; margin-bottom: 8px;">Search: <InputText id="inputTeamAlias" @bind-Value=@_searchFilter.InputSearchTerms maxlength="50" style="display: inline-block; width: 250px; margin-left: 4px;" /></div>
 
-                <div style="display: inline-block; margin-bottom: 8px;">Search: <InputText id="inputTeamAlias" @bind-Value=@_searchFilter.InputSearchTerms maxlength="50" style="display: inline-block; width: 250px; margin-left: 4px;" /></div>
-
-                <button type="submit" class="btn btn-primary">
-                    <span class="oi oi-magnifying-glass"></span>Search
-                </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="oi oi-magnifying-glass"></span>Search
+                        </button>
                 
-                @if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
-                {
-                    <button class="btn btn-outline-primary" @onclick="OnClearSearchFilters">
-                        <span class="oi oi-x" style="top: 0px;"></span>Clear
-                    </button>
-                }
-
-                <div style="margin-bottom: 0.2rem; display: block;">
-
-                    <div style="margin-bottom: 0.5rem; display: inline-block;">From: <InputDate style="" @bind-Value="_searchFilter.SearchStartDate" /></div>
-                    <div style="margin-left: 8px; margin-bottom: 0.5rem; display: inline-block;">To: <InputDate style="" @bind-Value="_searchFilter.SearchEndDate" /></div>
-
-                    <InputSelect TValue="string" style="margin-left: 16px; margin-right: 4px; width: 125px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.WorldIdString" ValueChanged="@((string s) => _searchFilter.SetWorldId(s))" ValueExpression="@(() => _searchFilter.WorldIdString)">
-                        <option value=@_anyWorldIdValue>All Servers</option>
-
-                        @foreach (var world in _worlds)
+                        @if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
                         {
-                            <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
+                            <button class="btn btn-outline-primary" @onclick="OnClearSearchFilters">
+                                <span class="oi oi-x" style="top: 0px;"></span>Clear
+                            </button>
                         }
-                    </InputSelect>
 
-                    <InputSelect TValue="string" style="width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.FacilityIdString" ValueChanged="@((string s) => _searchFilter.SetFacilityId(s))" ValueExpression="@(() => _searchFilter.FacilityIdString)">
-                        <option value=@_anyFacilityIdValue>Any Facility</option>
-                        <option value=@_noFacilitIdFilterValue>No Filter</option>
+                        <div style="margin-bottom: 8px; display: block;">
+                            @if (_worlds != null)
+                            { 
+                                <InputSelect TValue="string" style="margin-left: 55px; margin-right: 4px; width: 125px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.WorldIdString" ValueChanged="@((string s) => _searchFilter.SetWorldId(s))" ValueExpression="@(() => _searchFilter.WorldIdString)">
+                                    <option value=@_anyWorldIdValue>All Servers</option>
 
-                        @foreach (var zone in _mapZones)
-                        {
-                            <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
-
-                            @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                            {
-                                <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                    @foreach (var world in _worlds)
+                                    {
+                                        <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
+                                    }
+                                </InputSelect>
                             }
-                        }
-                    </InputSelect>
+
+                            <InputSelect TValue="string" style="width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.FacilityIdString" ValueChanged="@((string s) => _searchFilter.SetFacilityId(s))" ValueExpression="@(() => _searchFilter.FacilityIdString)">
+                                <option value=@_anyFacilityIdValue>Any Facility</option>
+                                <option value=@_noFacilitIdFilterValue>No Filter</option>
+
+                                @if (_mapZones != null && _mapRegions != null)
+                                { 
+                                    @foreach (var zone in _mapZones)
+                                    {
+                                        <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                                        @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                        {
+                                            <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                        }
+                                    }
+                                }
+                            </InputSelect>
                     
-                    <div style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block; vertical-align: top;">Min. Rounds: <InputNumber style="width: 50px;" min="1" type="text" id="roundSecondsTotal" @bind-Value="_searchFilter.MinimumRoundCount" /></div>
-                </div>
-            </EditForm>
-            }
+                            <div style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block;">From: <InputDate style="" @bind-Value="_searchFilter.SearchStartDate" /></div>
+                            <div style="margin-left: 8px; margin-bottom: 0.5rem; display: inline-block;">To: <InputDate style="" @bind-Value="_searchFilter.SearchEndDate" /></div>
+
+                            <div title="Minimum match rounds played (inclusive)" style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block; vertical-align: top;">Min. Rounds: <InputNumber style="width: 50px;" min="1" type="text" id="roundSecondsTotal" @bind-Value="_searchFilter.MinimumRoundCount" /></div>
+                        </div>
+                    </EditForm>
+                }
 
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
                         @*<tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">*@
                         <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
+                            <th style="font-weight: 300;">Date</th>
                             <th style="font-weight: 300;">Start Time</th>
                             <th style="font-weight: 300;">Team 1</th>
                             <th style="font-weight: 300;">Team 2</th>
@@ -106,6 +111,7 @@
                             @foreach (var match in _storeScrimMatchList)
                             {
                                 <tr>
+                                    <td>@GetLocalizedDateString(match.StartTime)</td>
                                     <td>@GetLocalizedTimeString(match.StartTime)</td>
                                     @if (match.TeamOneFactionId <= 0)
                                     {
@@ -185,18 +191,18 @@
                     </div>
                 }
 
-                @*<p>@_storeScrimMatchList.Count()</p>
-                <p>Search Terms: @_debug</p>
+                <p>@_storeScrimMatchList.Count()</p>
+                @*<p>Search Terms: @_debug</p>
                 @foreach (var term in _searchFilter.SearchTermsList)
                 {
                     <p style="margin: 0;">@term</p>
-                }
+                }*@
                 <p>Is Filtered: @_isFilteredResults</p>
                 <p>Is Default: @_searchFilter.IsDefaultFilter</p>
                     
                 <p>Start: @(_searchFilter.SearchStartDate.ToString())</p>
                 <p>  End: @(_searchFilter.SearchEndDate.ToString())</p>
-                 *@
+                 
             </div>
 
         </div>
@@ -223,7 +229,8 @@
 
     private bool _isLoadingScrimMatchList { get; set; } = true;
 
-    private CancellationTokenSource cts;
+    private CancellationTokenSource ctsMatches;
+    private CancellationTokenSource ctsFilters;
 
     #region Search Filter Variables
     private ScrimMatchReportBrowserSearchFilter _searchFilter { get; set; } = new ScrimMatchReportBrowserSearchFilter();
@@ -261,10 +268,16 @@
     {
         NavManager.LocationChanged -= OnLocationChanged;
 
-        if (cts != null)
+        if (ctsMatches != null)
         {
-            cts.Cancel();
-            cts.Dispose();
+            ctsMatches.Cancel();
+            ctsMatches.Dispose();
+        }
+
+        if (ctsFilters != null)
+        {
+            ctsFilters.Cancel();
+            ctsFilters.Dispose();
         }
     }
 
@@ -276,12 +289,14 @@
 
         await LoadScrimMatchListAsync();
 
-        _zones = await ZoneService.GetAllZones();
+        await LoadPlayedFacilitiesListAsync();
 
-        var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-        _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+        //_zones = await ZoneService.GetAllZones();
 
-        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+        //var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+        //_mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
 
         var worlds = await WorldService.GetAllWorldsAsync();
         _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
@@ -322,21 +337,21 @@
         InvokeAsyncStateHasChanged();
 
         // If a process is already underway, cancel it
-        if (cts != null)
+        if (ctsMatches != null)
         {
-            cts.Cancel();
+            ctsMatches.Cancel();
         }
 
-        // Set cts to cancel the current process if another table refresh is requested
+        // Set ctsMatches to cancel the current process if another table refresh is requested
         CancellationTokenSource newCTS = new CancellationTokenSource();
-        cts = newCTS;
+        ctsMatches = newCTS;
 
         try
         {
 
-            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, _searchFilter, cts.Token);
+            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, _searchFilter, ctsMatches.Token);
 
-            cts.Token.ThrowIfCancellationRequested();
+            ctsMatches.Token.ThrowIfCancellationRequested();
 
             _storeScrimMatchList = new List<ScrimMatchInfo>();
 
@@ -352,12 +367,53 @@
         }
 
         // When the process is complete, signal that another process can proceed
-        if (cts == newCTS)
+        if (ctsMatches == newCTS)
         {
-            cts = null;
+            ctsMatches = null;
         }
 
         _isLoadingScrimMatchList = false;
+    }
+
+    private async Task LoadPlayedFacilitiesListAsync()
+    {
+        // If a process is already underway, cancel it
+        if (ctsFilters != null)
+        {
+            ctsFilters.Cancel();
+        }
+
+        // Set ctsMatches to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        ctsFilters = newCTS;
+
+        try
+        {
+
+            var playedFacilities = await ReportDataService.GetScrimMatchBrowserFacilityIdsListAsync(CancellationToken.None);
+
+            ctsFilters.Token.ThrowIfCancellationRequested();
+
+            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+
+            _mapRegions = mapRegions.Where(r => playedFacilities.Contains(r.FacilityId)).OrderBy(r => r.FacilityName).ToList();
+
+            _zones = await ZoneService.GetAllZones();
+
+            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+            //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (ctsFilters == newCTS)
+        {
+            ctsFilters = null;
+        }
     }
 
     #endregion Initialization Methods
@@ -386,11 +442,16 @@
 
         _debug = _searchFilter.SearchTermsList.Count().ToString();
 
-        if (!_searchFilter.IsDefaultFilter)
+
+        if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
         {
             await LoadScrimMatchListAsync();
-
             _isFilteredResults = true;
+        }
+        
+        if (_searchFilter.IsDefaultFilter || !_isFilteredResults)
+        {
+            _isFilteredResults = false;
         }
 
         NavManager.NavigateTo($"/reports?page=1");
@@ -400,6 +461,7 @@
     {
         _searchFilter = new ScrimMatchReportBrowserSearchFilter();
 
+        //await LoadScrimMatchListAsync();
         if (_isFilteredResults)
         {
             await LoadScrimMatchListAsync();
@@ -459,13 +521,46 @@
         }
     }
 
-    private string GetLocalizedTimeString(DateTime dateTime)
+    private string GetLocalizedDateTimeString(DateTime dateTime)
     {
         dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
 
         var dateTimeLocal = dateTime.ToLocalTime();
 
         return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
+
+        //var timeUtc = dateTime.ToUniversalTime();
+
+        //return timeUtc.ToLocalTime().ToString("r");
+
+        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
+    }
+
+    private string GetLocalizedDateString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("ddd")} {dateTime.ToShortDateString()}";
+        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
+
+        //var timeUtc = dateTime.ToUniversalTime();
+
+        //return timeUtc.ToLocalTime().ToString("r");
+
+        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
+    }
+
+    private string GetLocalizedTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        //return $"{dateTimeLocal.ToString("g")}";
+        return $"{dateTimeLocal.ToShortTimeString()}";
         //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
 
         //var timeUtc = dateTime.ToUniversalTime();

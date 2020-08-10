@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Models.Forms
 {
@@ -11,8 +10,6 @@ namespace squittal.ScrimPlanetmans.Models.Forms
     {
         public DateTime? SearchStartDate { get; set; } = _defaultSearchStartDate; // new DateTime(2012,11, 20); // PlanetSide 2 release date
         public DateTime? SearchEndDate { get; set; } = _defaultSearchEndDate; //DateTime.UtcNow.AddDays(1);
-        //public int WorldId { get; set; } = -1;
-        //public int FacilityId { get; set; } = -1;
         public int WorldId { get => GetWorldIdFromString(); }
         public string WorldIdString { get; set; } = _defaultSearchWorldIdString; //"19";
         public int FacilityId { get => GetFacilityIdFromString(); }
@@ -23,11 +20,6 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
         public List<string> SearchTermsList { get; private set; } = new List<string>();
         public List<string> AliasSearchTermsList { get; private set; } = new List<string>();
-
-        public string PrimaryTeamAlias { get; set; } = string.Empty;
-        public string SecondaryTeamAlias { get; set; } = string.Empty;
-        //public OutfitAlias PrimaryTeamAlias { get; set; } = new OutfitAlias();
-        //public OutfitAlias SecondaryTeamAlias { get; set; } = new OutfitAlias();
 
         private readonly AutoResetEvent _searchTermsAutoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _worldAutoEvent = new AutoResetEvent(true);
@@ -57,7 +49,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
         public void ParseSearchTermsString()
         {
-            //_searchTermsAutoEvent.WaitOne();
+            _searchTermsAutoEvent.WaitOne();
 
             var searchTerms = InputSearchTerms;
 
@@ -66,6 +58,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
             
             if (string.IsNullOrWhiteSpace(searchTerms))
             {
+                _searchTermsAutoEvent.Set();
                 return;
             }
 
@@ -85,7 +78,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                 }
             }
 
-            //_searchTermsAutoEvent.Set();
+            _searchTermsAutoEvent.Set();
         }
 
         public bool SetWorldId(int worldId)

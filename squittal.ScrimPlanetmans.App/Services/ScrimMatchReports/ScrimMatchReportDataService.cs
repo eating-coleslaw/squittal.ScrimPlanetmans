@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.SqlServer.Management.Sdk.Sfc;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Models.Forms;
@@ -36,46 +35,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
 
                 var scrimMatchesQuery = dbContext.ScrimMatchInfo
                                                     .Where(GetHistoricalScrimMatchBrowserWhereExpression(searchFilter))
-                                                    /*
-                                                    .Where(m => m.RoundCount >= searchFilter.MinimumRoundCount
-                                                             && ( m.FacilityId == searchFilter.FacilityId 
-                                                                  || ( m.FacilityId != null && searchFilter.FacilityId == 0 ) // Any Facility
-                                                                  //|| ( m.FacilityId == null && searchFilter.FacilityId == -1 ) ) // No Facility Filter
-                                                                  || searchFilter.FacilityId == -1 ) // Don't Filter
-                                                             && ( m.WorldId == searchFilter.WorldId || searchFilter.WorldId == 0 )
-                                                             //&& ( (searchFilter.SearchTermsList.Any(t => DbFunctionsExtensions.Like(EF.Functions, m.Title, "%" + t + "%") ) )
-                                                             //&& ( DbFunctionsExtensions.Like(EF.Functions, m.Title, "%" + searchFilter.InputSearchTerms + "%")
-                                                             //&& ( m.Title.Contains(searchFilter.InputSearchTerms)
-                                                                  //|| m.Title.Intersect(searchFilter.SearchTermsList).Count() > 0 // searchFilter.SearchTermsList.Any(t => m.Title.Contains(t))
-                                                             //&& ( ( !searchFilter.SearchTermsList.Any() || searchFilter.SearchTermsList.Count == 0
-                                                             //       //|| searchFilter.SearchTermsList.Any(t => m.Title.ToLower().Contains(t)) ) 
-                                                             //       || searchFilter.SearchTermsList.Any(t => m.Title.Contains(t)) ) 
-                                                                    ) //)
-                                                                  //&& ( !searchFilter.AliasSearchTermsList.Any()
-                                                                  //     || searchFilter.AliasSearchTermsList.Any(t => m.ScrimMatchId.ToLower().Contains(t) ) ) ) )
-                                                    //.Where(m => m.FacilityId == searchFilter.FacilityId || searchFilter.FacilityId == -1)
-                                                    //.Where(m => m.WorldId == searchFilter.WorldId || searchFilter.WorldId == -1)
-                                                    //.Where(m => searchFilter.AliasSearchTermsList.Count == 0
-                                                                //|| searchFilter.AliasSearchTermsList.Any(t => DbFunctionsExtensions.Like(EF.Functions, m.ScrimMatchId, "%" + t + "%")) )
-                                                    */
                                                     .AsQueryable();
-
-
-
-                //Expression<Func< ScrimMatchInfo, bool>> whereExpression = null;
-                //Expression<Func< ScrimMatchInfo, bool>> whereExpression = m => searchFilter.AliasSearchTermsList.Count == 0;
-
-                //foreach (var term in searchFilter.AliasSearchTermsList)
-                //{
-                //    Expression<Func<ScrimMatchInfo, bool>> e1 = m => DbFunctionsExtensions.Like(EF.Functions, m.ScrimMatchId, "%" + term + "%");
-                //    whereExpression = whereExpression == null ? e1 : whereExpression.Or(e1);
-                //}
-
-                //scrimMatchesQuery = scrimMatchesQuery.Where(whereExpression);
-
-                //return query.Where(whereExpression);
-
-
 
                 var paginatedList = await PaginatedList<ScrimMatchInfo>.CreateAsync(scrimMatchesQuery.AsNoTracking().OrderByDescending(m => m.StartTime), pageIndex ?? 1, _scrimMatchBrowserPageSize, cancellationToken);
 
@@ -116,7 +76,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             var isDefaultFilter = searchFilter.IsDefaultFilter;
 
             Expression<Func<ScrimMatchInfo, bool>> whereExpression = null;
-            //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
 
             if (isDefaultFilter)
             {
@@ -128,9 +87,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 roundExpression = roundExpression.Or(recentMatchExpression);
 
                 whereExpression = whereExpression == null ? roundExpression : whereExpression.And(roundExpression);
-
-                //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
-                //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
             }
             else
             {
@@ -138,10 +94,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
 
                 whereExpression = whereExpression == null ? roundExpression : whereExpression.And(roundExpression);
             }
-
-            //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => searchFilter.AliasSearchTermsList.Count == 0;
-
-            //Expression<Func<ScrimMatchInfo, bool>> roundExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
 
             if (searchFilter.SearchStartDate != null)
             {
@@ -189,7 +141,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 foreach (var term in searchFilter.SearchTermsList)
                 {
                     Expression<Func<ScrimMatchInfo, bool>> exp = m => m.Title.Contains(term); // DbFunctionsExtensions.Like(EF.Functions, m.Title, "%" + term + "%");
-                    //termsExpresion = termsExpresion == null ? exp : termsExpresion.Or(exp);
                     searchTermsExpression = searchTermsExpression == null ? exp : searchTermsExpression.Or(exp);
                 }
 
@@ -199,8 +150,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 foreach (var term in searchFilter.AliasSearchTermsList)
                 {
                     Expression<Func<ScrimMatchInfo, bool>> exp = m => m.ScrimMatchId.Contains(term); // DbFunctionsExtensions.Like(EF.Functions, m.ScrimMatchId, "%" + term + "%");
-                    //termsExpresion = termsExpresion == null ? exp : termsExpresion.Or(exp);
-                    //termsExpresion = termsExpresion == null ? exp : termsExpresion.And(exp);
                     aliasTermsExpression = aliasTermsExpression == null ? exp : aliasTermsExpression.And(exp);
                 }
 
@@ -210,15 +159,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
 
             return whereExpression;
-
-
-            //scrimMatchesQuery = scrimMatchesQuery.Where(whereExpression);
-
-            //Where(m => m.RoundCount >= searchFilter.MinimumRoundCount
-            //                                                 && (m.FacilityId == searchFilter.FacilityId
-            //                                                      || (m.FacilityId != null && searchFilter.FacilityId == 0) // Any Facility
-            //                                                      || searchFilter.FacilityId == -1) // Don't Filter
-            //                                                 && (m.WorldId == searchFilter.WorldId || searchFilter.WorldId == 0)
         }
 
         public async Task<ScrimMatchInfo> GetHistoricalScrimMatchInfoAsync(string scrimMatchId, CancellationToken cancellationToken)
@@ -247,6 +187,41 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             catch (OperationCanceledException)
             {
                 _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfoAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<int>> GetScrimMatchBrowserFacilityIdsListAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var distinctFacilityIds = await dbContext.ScrimMatchInfo
+                                                        .Where(m => m.FacilityId != null)
+                                                        .Select(m => (int)m.FacilityId)
+                                                        .Distinct()
+                                                        .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return distinctFacilityIds;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetScrimMatchBrowserFacilityIdsListAsync");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetScrimMatchBrowserFacilityIdsListAsync");
                 return null;
             }
             catch (Exception ex)
