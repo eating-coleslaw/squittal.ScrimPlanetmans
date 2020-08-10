@@ -33,7 +33,6 @@
                 @if (!_isLoadingSearchFilterData)
                 {
                     <EditForm Model="@_searchFilter" OnValidSubmit="OnSearchFilterSubmit" style="display: inline; font-size: 0.9rem; color: inherit; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 8px;">
-                        @*class="mono-font"*@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
@@ -91,7 +90,6 @@
 
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
-                        @*<tr style="line-height: 1.5; vertical-align: bottom; border-bottom: 1px solid var(--sq-gray);">*@
                         <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
                             <th style="font-weight: 300;">Date</th>
                             <th style="font-weight: 300;">Start Time</th>
@@ -191,18 +189,19 @@
                     </div>
                 }
 
+                @*
                 <p>@_storeScrimMatchList.Count()</p>
-                @*<p>Search Terms: @_debug</p>
+                <p>Search Terms: @_debug</p>
                 @foreach (var term in _searchFilter.SearchTermsList)
                 {
                     <p style="margin: 0;">@term</p>
-                }*@
+                }
                 <p>Is Filtered: @_isFilteredResults</p>
                 <p>Is Default: @_searchFilter.IsDefaultFilter</p>
                     
                 <p>Start: @(_searchFilter.SearchStartDate.ToString())</p>
                 <p>  End: @(_searchFilter.SearchEndDate.ToString())</p>
-                 
+                 *@
             </div>
 
         </div>
@@ -290,13 +289,6 @@
         await LoadScrimMatchListAsync();
 
         await LoadPlayedFacilitiesListAsync();
-
-        //_zones = await ZoneService.GetAllZones();
-
-        //var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-        //_mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
-
-        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
 
         var worlds = await WorldService.GetAllWorldsAsync();
         _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
@@ -401,8 +393,6 @@
             _zones = await ZoneService.GetAllZones();
 
             _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-
-            //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
         }
         catch
         {
@@ -461,7 +451,6 @@
     {
         _searchFilter = new ScrimMatchReportBrowserSearchFilter();
 
-        //await LoadScrimMatchListAsync();
         if (_isFilteredResults)
         {
             await LoadScrimMatchListAsync();
@@ -528,13 +517,6 @@
         var dateTimeLocal = dateTime.ToLocalTime();
 
         return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
-        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
-
-        //var timeUtc = dateTime.ToUniversalTime();
-
-        //return timeUtc.ToLocalTime().ToString("r");
-
-        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
     }
 
     private string GetLocalizedDateString(DateTime dateTime)
@@ -544,13 +526,6 @@
         var dateTimeLocal = dateTime.ToLocalTime();
 
         return $"{dateTimeLocal.ToString("ddd")} {dateTime.ToShortDateString()}";
-        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
-
-        //var timeUtc = dateTime.ToUniversalTime();
-
-        //return timeUtc.ToLocalTime().ToString("r");
-
-        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
     }
 
     private string GetLocalizedTimeString(DateTime dateTime)
@@ -559,15 +534,7 @@
 
         var dateTimeLocal = dateTime.ToLocalTime();
 
-        //return $"{dateTimeLocal.ToString("g")}";
         return $"{dateTimeLocal.ToShortTimeString()}";
-        //return $"{dateTime.ToString("ddd")} {dateTime.ToString("g")}";
-
-        //var timeUtc = dateTime.ToUniversalTime();
-
-        //return timeUtc.ToLocalTime().ToString("r");
-
-        //return TimeZoneInfo.ConvertTimeFromUtc(killTimeUtc, TimeZoneInfo.Local).ToLongTimeString();
     }
 
     private void InvokeAsyncStateHasChanged()
