@@ -3,7 +3,7 @@
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
-@using System.Threading; 
+@using System.Threading;
 
 @inject IScrimMatchReportDataService ReportDataService
 @inject NavigationManager NavManager
@@ -11,9 +11,21 @@
 @implements IDisposable
 
 
-@if (_isLoadingDeaths)
+<h4>Killfeed</h4>
+
+@if (!_hasLoadedKillfeed && !_isLoadingDeaths)
+{
+    <button class="btn btn-outline-primary" @onclick="OnLoadKillsSubmit" style="font-size: 1.1rem; font-family: Roboto, 'Segoe UI', sans-serif; display: block; margin: 0 auto 12px auto;">
+        <span class="oi oi-data-transfer-download" style="font-size: 0.9rem;"></span>Load Kills
+    </button>
+}
+else if (_isLoadingDeaths)
 {
     <SpinnerEllipsis />
+
+    <button class="btn btn-outline-primary" @onclick="OnCancelLoadKillsSubmit" style="font-size: 1.1rem; font-family: Roboto, 'Segoe UI', sans-serif; display: block; margin: 0 auto 16px auto;">
+        <span class="oi oi-x" style="top: 0px; font-size: 0.9rem;"></span>Cancel
+    </button>
 }
 else if (_deaths == null || !_deaths.Any())
 {
@@ -21,14 +33,12 @@ else if (_deaths == null || !_deaths.Any())
 }
 else
 {
-    <h4>Killfeed</h4>
-    
+
     <div style="max-height: 620px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray); margin-bottom: 10px;">
         <table class="report-killfeed">
             <tbody>
                 @foreach (var death in _deaths)
                 {
-                    @*<tr class="@GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">*@
                     <tr class="@GetDeathRowBgClass(death.DeathType) @GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">
                         <td class="team-fill"></td>
                         <td title="Round @death.ScrimMatchRound" style="text-align: right; padding-left: 8px;">@death.ScrimMatchRound</td>
@@ -93,6 +103,8 @@ else
 
     private List<ScrimMatchReportInfantryDeath> _deaths { get; set; }
 
+    private bool _hasLoadedKillfeed { get; set; } = false;
+
     private bool _isChangingScrimMatch { get; set; } = false;
     private bool _isLoadingDeaths { get; set; } = false;
 
@@ -107,6 +119,11 @@ else
 
 
     #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        _hasLoadedKillfeed = false;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _isLoadingDeaths = true;
@@ -115,7 +132,10 @@ else
         {
             _renderedScrimMatchId = i_scrimMatchId;
 
-            await LoadInfantryDeaths();
+            if (_hasLoadedKillfeed)
+            {
+                await LoadInfantryDeaths();
+            }
         }
 
         _isLoadingDeaths = false;
@@ -141,7 +161,10 @@ else
 
             _renderedScrimMatchId = i_scrimMatchId;
 
-            await LoadInfantryDeaths();
+            if (_hasLoadedKillfeed)
+            {
+                await LoadInfantryDeaths();
+            }
 
             paramsChanged = true;
         }
@@ -179,6 +202,8 @@ else
             {
                 _deaths.AddRange(deaths);
             }
+
+            _hasLoadedKillfeed = true;
         }
         catch
         {
@@ -194,6 +219,27 @@ else
         _isLoadingDeaths = false;
     }
     #endregion Initialization Methods
+
+    #region Form Controls
+    private async void OnLoadKillsSubmit()
+    {
+        await LoadInfantryDeaths();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnCancelLoadKillsSubmit()
+    {
+        _isLoadingDeaths = false;
+        _hasLoadedKillfeed = false;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+    }
+    #endregion Form Controls
 
     private string GetHeadshotClass(bool? isHeadshot)
     {
