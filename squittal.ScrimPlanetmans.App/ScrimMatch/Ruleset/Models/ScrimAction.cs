@@ -116,6 +116,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         ProtectAlliesAssist         = 309,
         DamageTeamAssist            = 310,
         GrenadeTeamAssist           = 311,
+        DamageSelfAssist            = 312,
+        GrenadeSelfAssist           = 313,
+
 
         // Vehicles: 400 - 499        
         VehicleKillInfantry                = 400,
