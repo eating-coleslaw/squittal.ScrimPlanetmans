@@ -9,17 +9,17 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 {
     public class ScrimMatchReportBrowserSearchFilter
     {
-        public DateTime? SearchStartDate { get; set; } = new DateTime(2012,11, 20); // PlanetSide 2 release date
-        public DateTime? SearchEndDate { get; set; } = DateTime.UtcNow.AddDays(1);
+        public DateTime? SearchStartDate { get; set; } = _defaultSearchStartDate; // new DateTime(2012,11, 20); // PlanetSide 2 release date
+        public DateTime? SearchEndDate { get; set; } = _defaultSearchEndDate; //DateTime.UtcNow.AddDays(1);
         //public int WorldId { get; set; } = -1;
         //public int FacilityId { get; set; } = -1;
         public int WorldId { get => GetWorldIdFromString(); }
-        public string WorldIdString { get; set; } = "19";
+        public string WorldIdString { get; set; } = _defaultSearchWorldIdString; //"19";
         public int FacilityId { get => GetFacilityIdFromString(); }
-        public string FacilityIdString { get; set; } = "0";
-        public int MinimumRoundCount { get; set; } = 2;
+        public string FacilityIdString { get; set; } = _defaultSearchFacilityIdString; //"0";
+        public int MinimumRoundCount { get; set; } = _defaultSearchMinimumRoundCount; //2;
 
-        public string InputSearchTerms { get; set; } = string.Empty;
+        public string InputSearchTerms { get; set; } = _defaultSearchInputTerms; // string.Empty;
 
         public List<string> SearchTermsList { get; private set; } = new List<string>();
         public List<string> AliasSearchTermsList { get; private set; } = new List<string>();
@@ -33,16 +33,25 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         private readonly AutoResetEvent _worldAutoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _facilityAutoEvent = new AutoResetEvent(true);
 
+        private static readonly DateTime _defaultSearchStartDate = new DateTime(2012, 11, 20); // PlanetSide 2 release date
+        private static readonly DateTime _defaultSearchEndDate = DateTime.UtcNow.AddDays(1);
+        private static readonly string _defaultSearchWorldIdString = "19"; // Jaeger
+        private static readonly string _defaultSearchFacilityIdString = "0"; // Any Facility
+        private static readonly int _defaultSearchMinimumRoundCount = 2;
+        private static readonly string _defaultSearchInputTerms = string.Empty;
+        
+
         public bool IsDefaultFilter => GetIsDefaultFilter();
 
         private static Regex TeamAliasRegex { get; } = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private bool GetIsDefaultFilter()
         {
-            return MinimumRoundCount == 2
-                   && WorldIdString == "19"
-                   && FacilityIdString == "0"
-                   && InputSearchTerms == string.Empty
+            return MinimumRoundCount == _defaultSearchMinimumRoundCount
+                   && WorldIdString == _defaultSearchWorldIdString
+                   && FacilityIdString == _defaultSearchFacilityIdString
+                   && SearchStartDate == _defaultSearchStartDate && SearchEndDate == _defaultSearchEndDate
+                   && InputSearchTerms == _defaultSearchInputTerms
                    && !SearchTermsList.Any() && !AliasSearchTermsList.Any();
         }
 

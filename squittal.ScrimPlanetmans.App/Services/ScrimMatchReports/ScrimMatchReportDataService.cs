@@ -113,12 +113,49 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
 
         private Expression<Func<ScrimMatchInfo, bool>> GetHistoricalScrimMatchBrowserWhereExpression(ScrimMatchReportBrowserSearchFilter searchFilter)
         {
-            //Expression<Func<ScrimMatchInfo, bool>> whereExpression = null;
-            Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
+            var isDefaultFilter = searchFilter.IsDefaultFilter;
+
+            Expression<Func<ScrimMatchInfo, bool>> whereExpression = null;
+            //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
+
+            if (isDefaultFilter)
+            {
+                Expression<Func<ScrimMatchInfo, bool>> roundExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
+
+                var twoHoursAgo = DateTime.UtcNow - TimeSpan.FromHours(2);
+                Expression<Func<ScrimMatchInfo, bool>> recentMatchExpression = m => m.StartTime >= twoHoursAgo;
+
+                roundExpression = roundExpression.Or(recentMatchExpression);
+
+                whereExpression = whereExpression == null ? roundExpression : whereExpression.And(roundExpression);
+
+                //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
+                //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
+            }
+            else
+            {
+                Expression<Func<ScrimMatchInfo, bool>> roundExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
+
+                whereExpression = whereExpression == null ? roundExpression : whereExpression.And(roundExpression);
+            }
+
             //Expression<Func<ScrimMatchInfo, bool>> whereExpression = m => searchFilter.AliasSearchTermsList.Count == 0;
 
             //Expression<Func<ScrimMatchInfo, bool>> roundExpression = m => m.RoundCount >= searchFilter.MinimumRoundCount;
-            //whereExpression = whereExpression == null ? roundExpression : whereExpression.And(roundExpression);
+
+            if (searchFilter.SearchStartDate != null)
+            {
+                Expression<Func<ScrimMatchInfo, bool>> startDateExpression = m => m.StartTime >= searchFilter.SearchStartDate;
+
+                whereExpression = whereExpression == null ? startDateExpression : whereExpression.And(startDateExpression);
+            }
+
+            if (searchFilter.SearchEndDate != null)
+            {
+                Expression<Func<ScrimMatchInfo, bool>> endDateExpression = m => m.StartTime <= searchFilter.SearchEndDate;
+
+                whereExpression = whereExpression == null ? endDateExpression : whereExpression.And(endDateExpression);
+            }
 
             if (searchFilter.FacilityId != -1)
             {
