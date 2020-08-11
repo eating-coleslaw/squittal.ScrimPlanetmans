@@ -43,6 +43,7 @@
                             <th style="font-weight: 300;">Description</th>
                             <th style="font-weight: 300;"></th>
                             <th style="font-weight: 300;"></th>
+                            <th style="font-weight: 300;"></th>
                         </tr>
                     </thead>
 
@@ -62,7 +63,10 @@
                                     <td>ruleset.Author</td>
                                     <td>ruleset.Description</td>
                                     <td>
-                                        <NavLink class="nav-link" target="_blank" href=@($"Ruleset/{ruleset.Id}") style="padding: 4px 8px;">Open</NavLink>
+                                        <NavLink class="nav-link" target="_blank" href=@($"Ruleset/{ruleset.Id}") style="padding: 4px 8px;">View</NavLink>
+                                    </td>
+                                    <td>
+                                        <NavLink class="nav-link" target="_blank" href=@($"Ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
                                     </td>
                                     <td>
                                         <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetActiveClick(ruleset.Id))">
