@@ -1,13 +1,17 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Services.Rulesets
 {
     public interface IRulesetDataService
     {
+        Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
+
         Task<Ruleset> GetRulesetFromIdAsync(int id);
         Task<Ruleset> GetRulesetFromNameAsync(string name);
         Task<Ruleset> GetLatestRulesetAsync();

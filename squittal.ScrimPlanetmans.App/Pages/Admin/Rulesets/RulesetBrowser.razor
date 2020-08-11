@@ -5,20 +5,21 @@
 @using squittal.ScrimPlanetmans.Models.Forms;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
-@inject IScrimMatchReportDataService ReportDataService
-@inject IFacilityService FacilityService
-@inject IZoneService ZoneService
-@inject IWorldService WorldService
+@inject IRulesetDataService RulesetDataService 
+@*@inject IScrimMatchReportDataService ReportDataService*@
+@*@inject IFacilityService FacilityService*@
+@*@inject IZoneService ZoneService*@
+@*@inject IWorldService WorldService*@
 @inject NavigationManager NavManager
 
 @implements IDisposable
-
-<h3>RulesetBrowser</h3>
 
 <div class="container-fluid" style="margin-top: 16px;">
 
@@ -45,43 +46,28 @@
                         </tr>
                     </thead>
 
-                    @if (_storeScrimMatchList != null)
+                    @if (_storeRulesetList != null)
                     {
-                        <tbody style="@(_isLoadingScrimMatchList ? "opacity: 0.5;" : string.Empty)">
-                            @foreach (var match in _storeScrimMatchList)
+                        <tbody style="@(_isLoadingRulesetList ? "opacity: 0.5;" : string.Empty)">
+                            @foreach (var ruleset in _storeRulesetList)
                             {
                                 <tr>
-                                    <td>@GetLocalizedDateString(match.StartTime)</td>
-                                    <td>@GetLocalizedTimeString(match.StartTime)</td>
-                                    @if (match.TeamOneFactionId <= 0)
-                                    {
-                                        <td style="color: var(--sq-black);">@match.TeamAliases[1]</td>
-                                    }
-                                    else
-                                    {
-                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamOneFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[1]</td>
-                                    }
-                                    @if (match.TeamTwoFactionId <= 0)
-                                    {
-                                        <td style="color: var(--sq-black);">@match.TeamAliases[2]</td>
-                                    }
-                                    else
-                                    {
-                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamTwoFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[2]</td>
-                                    }
-                                    <td>@match.Title</td>
-                                    <td>@match.WorldName</td>
-                                    @if (match.FacilityId != null)
-                                    {
-                                        <td>@match.FacilityName</td>
-                                    }
-                                    else
-                                    {
-                                        <td style="font-style: italic;">None</td>
-                                    }
-                                    <td>@match.RoundCount</td>
+                                    @*<td>@ruleset.IsActive</td>*@
+                                    <td>@ruleset.IsDefault</td>
+                                    <td>@ruleset.Id</td>
+                                    <td>@ruleset.Name</td>
+                                    <td>@GetLocalizedDateString(ruleset.DateCreated)</td>
+                                    <td>@(ruleset.DateLastModified != null ? GetLocalizedDateString((DateTime)ruleset.DateLastModified) : "--")</td>
+                                    <td>ruleset.SourceFile</td>
+                                    <td>ruleset.Author</td>
+                                    <td>ruleset.Description</td>
                                     <td>
-                                        <NavLink class="nav-link" target="_blank" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
+                                        <NavLink class="nav-link" target="_blank" href=@($"Ruleset/{ruleset.Id}") style="padding: 4px 8px;">Open</NavLink>
+                                    </td>
+                                    <td>
+                                        <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetActiveClick(ruleset.Id))">
+                                            <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>Set Active
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -89,7 +75,7 @@
                     }
                 </table>
 
-                @if (_isLoadingScrimMatchList)
+                @if (_isLoadingRulesetList)
                 {
                     <div class="thin">
                         <SpinnerEllipsis />
@@ -132,7 +118,7 @@
                 }
 
                 @*
-                    <p>@_storeScrimMatchList.Count()</p>
+                    <p>@_storeRulesetList.Count()</p>
                     <p>Search Terms: @_debug</p>
                     @foreach (var term in _searchFilter.SearchTermsList)
                     {
@@ -162,32 +148,15 @@
 
     private int _defaultPageIndex { get; set; } = 1;
 
-    private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
+    private List<Ruleset> _storeRulesetList { get; set; } = new List<Ruleset>();
 
     private int _renderedPageCount { get; set; } = 0;
     private bool _renderedHasNextPage { get; set; } = false;
     private bool _renderedHasPreviousPage { get; set; } = false;
 
-    private bool _isLoadingScrimMatchList { get; set; } = true;
+    private bool _isLoadingRulesetList { get; set; } = true;
 
-    private CancellationTokenSource ctsMatches;
-    private CancellationTokenSource ctsFilters;
-
-    #region Search Filter Variables
-    private ScrimMatchReportBrowserSearchFilter _searchFilter { get; set; } = new ScrimMatchReportBrowserSearchFilter();
-
-    private IEnumerable<MapRegion> _mapRegions { get; set; }
-    private List<int> _mapZones { get; set; } = new List<int>();
-    private IEnumerable<Zone> _zones { get; set; }
-    private string _noFacilitIdFilterValue { get; set; } = "-1";
-    private string _anyFacilityIdValue { get; set; } = "0";
-    private IEnumerable<World> _worlds { get; set; }
-    private string _anyWorldIdValue { get; set; } = "0";
-
-    private bool _isLoadingSearchFilterData { get; set; } = true;
-
-    private bool _isFilteredResults { get; set; } = false;
-    #endregion Search Filter Variables
+    private CancellationTokenSource ctsRulesets;
 
     private string _debug { get; set; } = string.Empty;
 
@@ -196,29 +165,16 @@
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
-
-        if (_searchFilter == null)
-        {
-            _searchFilter = new ScrimMatchReportBrowserSearchFilter();
-        }
-
-        _isFilteredResults = false;
     }
 
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;
 
-        if (ctsMatches != null)
+        if (ctsRulesets != null)
         {
-            ctsMatches.Cancel();
-            ctsMatches.Dispose();
-        }
-
-        if (ctsFilters != null)
-        {
-            ctsFilters.Cancel();
-            ctsFilters.Dispose();
+            ctsRulesets.Cancel();
+            ctsRulesets.Dispose();
         }
     }
 
@@ -226,21 +182,7 @@
     {
         _renderedPageIndex = i_pageIndex;
 
-        _isLoadingSearchFilterData = true;
-
-        await LoadScrimMatchListAsync();
-
-        await LoadPlayedFacilitiesListAsync();
-
-        var worlds = await WorldService.GetAllWorldsAsync();
-        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
-
-        _isLoadingSearchFilterData = false;
-
-        if (_searchFilter.IsDefaultFilter)
-        {
-            _isFilteredResults = false;
-        }
+        await LoadRulesetListAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -250,12 +192,7 @@
         UpdateUriParameters();
 
         _renderedPageIndex = i_pageIndex;
-        await LoadScrimMatchListAsync();
-
-        if (_searchFilter.IsDefaultFilter)
-        {
-            _isFilteredResults = false;
-        }
+        await LoadRulesetListAsync();
 
         paramsChanged = true;
 
@@ -265,31 +202,31 @@
         }
     }
 
-    private async Task LoadScrimMatchListAsync()
+    private async Task LoadRulesetListAsync()
     {
-        _isLoadingScrimMatchList = true;
+        _isLoadingRulesetList = true;
         InvokeAsyncStateHasChanged();
 
         // If a process is already underway, cancel it
-        if (ctsMatches != null)
+        if (ctsRulesets != null)
         {
-            ctsMatches.Cancel();
+            ctsRulesets.Cancel();
         }
 
-        // Set ctsMatches to cancel the current process if another table refresh is requested
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
         CancellationTokenSource newCTS = new CancellationTokenSource();
-        ctsMatches = newCTS;
+        ctsRulesets = newCTS;
 
         try
         {
 
-            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, _searchFilter, ctsMatches.Token);
+            var paginatedList = await RulesetDataService.GetRulesetListAsync(_renderedPageIndex, ctsRulesets.Token);
 
-            ctsMatches.Token.ThrowIfCancellationRequested();
+            ctsRulesets.Token.ThrowIfCancellationRequested();
 
-            _storeScrimMatchList = new List<ScrimMatchInfo>();
+            _storeRulesetList = new List<Ruleset>();
 
-            _storeScrimMatchList.AddRange(paginatedList.Contents);
+            _storeRulesetList.AddRange(paginatedList.Contents);
 
             _renderedPageCount = paginatedList.PageCount;
             _renderedHasNextPage = paginatedList.HasNextPage;
@@ -301,53 +238,13 @@
         }
 
         // When the process is complete, signal that another process can proceed
-        if (ctsMatches == newCTS)
+        if (ctsRulesets == newCTS)
         {
-            ctsMatches = null;
+            ctsRulesets = null;
         }
 
-        _isLoadingScrimMatchList = false;
+        _isLoadingRulesetList = false;
     }
-
-    private async Task LoadPlayedFacilitiesListAsync()
-    {
-        // If a process is already underway, cancel it
-        if (ctsFilters != null)
-        {
-            ctsFilters.Cancel();
-        }
-
-        // Set ctsMatches to cancel the current process if another table refresh is requested
-        CancellationTokenSource newCTS = new CancellationTokenSource();
-        ctsFilters = newCTS;
-
-        try
-        {
-
-            var playedFacilities = await ReportDataService.GetScrimMatchBrowserFacilityIdsListAsync(CancellationToken.None);
-
-            ctsFilters.Token.ThrowIfCancellationRequested();
-
-            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-
-            _mapRegions = mapRegions.Where(r => playedFacilities.Contains(r.FacilityId)).OrderBy(r => r.FacilityName).ToList();
-
-            _zones = await ZoneService.GetAllZones();
-
-            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-        }
-        catch
-        {
-            // Ignore
-        }
-
-        // When the process is complete, signal that another process can proceed
-        if (ctsFilters == newCTS)
-        {
-            ctsFilters = null;
-        }
-    }
-
     #endregion Initialization Methods
 
     #region Event Handling
@@ -355,12 +252,7 @@
     {
         if (UpdateUriParameters())
         {
-            await LoadScrimMatchListAsync();
-
-            if (_searchFilter.IsDefaultFilter)
-            {
-                _isFilteredResults = false;
-            }
+            await LoadRulesetListAsync();
 
             StateHasChanged();
         }
@@ -368,43 +260,10 @@
     #endregion Event Handling
 
     #region Form Controls
-    private async Task OnSearchFilterSubmit()
+    private async void OnSetActiveClick(int rulesetId)
     {
-        _searchFilter.ParseSearchTermsString();
 
-        _debug = _searchFilter.SearchTermsList.Count().ToString();
-
-
-        if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
-        {
-            await LoadScrimMatchListAsync();
-            _isFilteredResults = true;
-        }
-
-        if (_searchFilter.IsDefaultFilter || !_isFilteredResults)
-        {
-            _isFilteredResults = false;
-        }
-
-        NavManager.NavigateTo($"/reports?page=1");
     }
-
-    private async void OnClearSearchFilters()
-    {
-        _searchFilter = new ScrimMatchReportBrowserSearchFilter();
-
-        if (_isFilteredResults)
-        {
-            await LoadScrimMatchListAsync();
-        }
-
-        _isFilteredResults = false;
-
-        NavManager.NavigateTo($"/reports?page=1");
-
-        InvokeAsyncStateHasChanged();
-    }
-
     #endregion Form Controls
 
     private bool UpdateUriParameters()
@@ -438,18 +297,6 @@
         }
 
         return stateChanged;
-    }
-
-    private int GetTeamIdFromStringId(string stringId)
-    {
-        if (int.TryParse(stringId, out int intId))
-        {
-            return intId;
-        }
-        else
-        {
-            return -1;
-        }
     }
 
     private string GetLocalizedDateTimeString(DateTime dateTime)
