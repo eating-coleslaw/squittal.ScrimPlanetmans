@@ -1,0 +1,27 @@
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace squittal.ScrimPlanetmans.Services.Rulesets
+{
+    public interface IRulesetDataService
+    {
+        Task<Ruleset> GetRulesetFromIdAsync(int id);
+        Task<Ruleset> GetRulesetFromNameAsync(string name);
+        Task<Ruleset> GetLatestRulesetAsync();
+
+        Task<Ruleset> GetDefaultRulesetAsync();
+
+        Task<IEnumerable<int>> GetAllRulesetIdsAsync();
+        Task<IEnumerable<string>> GetAllRulesetNamesAsync();
+
+        Task SaveRulesetAsync(Ruleset ruleset);
+
+        Task SaveActionRuleAsync(RulesetActionRule rule);
+        Task SaveItemCategoryRuleAsync(RulesetItemCategoryRule rule);
+
+        Task RefreshStoreAsync();
+    }
+}

@@ -5,63 +5,63 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace squittal.ScrimPlanetmans.Services.ScrimMatch
+namespace squittal.ScrimPlanetmans.Services.Rulesets
 {
-    public class ScrimRulesetService : IScrimRulesetService
+    public class RulesetDataService : IRulesetDataService
     {
-        private readonly ILogger<ScrimRulesetService> _logger;
+        private readonly ILogger<RulesetDataService> _logger;
 
-        public ScrimRulesetService(ILogger<ScrimRulesetService> logger)
+        public RulesetDataService(ILogger<RulesetDataService> logger)
         {
             _logger = logger;
         }
         
-        public Task<IEnumerable<int>> GetAllRulesetIds()
+        public Task<IEnumerable<int>> GetAllRulesetIdsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<string>> GetAllRulesetNames()
+        public Task<IEnumerable<string>> GetAllRulesetNamesAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<Ruleset> GetDefaultRuleset()
+        public Task<Ruleset> GetDefaultRulesetAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<Ruleset> GetLatestRuleset()
+        public Task<Ruleset> GetLatestRulesetAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<Ruleset> GetRulesetFromId(int id)
+        public Task<Ruleset> GetRulesetFromIdAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Ruleset> GetRulesetFromName(string name)
+        public Task<Ruleset> GetRulesetFromNameAsync(string name)
         {
             throw new NotImplementedException();
         }
 
-        public Task RefreshStore()
+        public Task RefreshStoreAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task SaveActionRule(RulesetActionRule rule)
+        public Task SaveActionRuleAsync(RulesetActionRule rule)
         {
             throw new NotImplementedException();
         }
 
-        public Task SaveItemCategoryRule(RulesetItemCategoryRule rule)
+        public Task SaveItemCategoryRuleAsync(RulesetItemCategoryRule rule)
         {
             throw new NotImplementedException();
         }
 
-        public Task SaveRuleset(Ruleset ruleset)
+        public Task SaveRulesetAsync(Ruleset ruleset)
         {
             throw new NotImplementedException();
         }
