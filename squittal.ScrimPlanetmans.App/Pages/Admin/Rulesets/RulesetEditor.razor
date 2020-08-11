@@ -16,7 +16,7 @@
 <div class="container-fluid">
     <div class="row">
 
-        <div class="col-lg-8">
+        <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
 
 
             @if (_activeRuleset == null)
@@ -32,11 +32,49 @@
                     <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
                     <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
 
-                </div>
+                @*</div>*@
 
                 <div style="display: flex;">
 
-                    <div class="sq-mini-card-6 default">
+                    <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+                        <h5>Scrim Action Rules</h5>
+
+                        <div class="sq-content">
+                            @if (_activeRuleset.RulesetActionRules != null && _activeRuleset.RulesetActionRules.Any())
+                            {
+                                <table class="table-responsive-sm table-striped-light default">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th style="text-align: right;">ID</th>
+                                            <th style="text-align: right;">Points</th>
+                                            <th>Defer to Item<br />Category Rules?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var actionRule in _activeRuleset.RulesetActionRules)
+                                        {
+                                            @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
+                                            {
+                                                <tr>
+                                                    <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
+                                                    <td style="text-align: right;">@((int)actionRule.ScrimActionType)</td>
+                                                    <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points);">@actionRule.Points</td>
+                                                    <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules);">@actionRule.DeferToItemCategoryRules</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p>No scrim action rules...</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                         <h5>Item Category Rules</h5>
 
                         <div class="sq-content">
@@ -111,44 +149,9 @@
                     </div>
 
 
-                    <div class="sq-mini-card-6 default">
-                        <h5>Scrim Action Rules</h5>
 
-                        <div class="sq-content">
-                            @if (_activeRuleset.RulesetActionRules != null && _activeRuleset.RulesetActionRules.Any())
-                            {
-                                <table class="table-responsive-sm table-striped-light default">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: right;">ID</th>
-                                            <th style="text-align: right;">Points</th>
-                                            <th>Defer to Item<br />Category Rules?</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var actionRule in _activeRuleset.RulesetActionRules)
-                                        {
-                                            @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
-                                            {
-                                                <tr>
-                                                    <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
-                                                    <td style="text-align: right;">@((int)actionRule.ScrimActionType)</td>
-                                                    <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points);">@actionRule.Points</td>
-                                                    <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules);">@actionRule.DeferToItemCategoryRules</td>
-                                                </tr>
-                                            }
-                                        }
-                                    </tbody>
-                                </table>
-                            }
-                            else
-                            {
-                                <p>No scrim action rules...</p>
-                            }
-                        </div>
-                    </div>
                 </div>
+            </div>
             }
 
         </div>
