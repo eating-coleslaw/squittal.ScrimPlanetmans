@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
     {
         Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
 
-        Task<Ruleset> GetRulesetFromIdAsync(int id);
+        Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken);
         Task<Ruleset> GetRulesetFromNameAsync(string name);
         Task<Ruleset> GetLatestRulesetAsync();
 

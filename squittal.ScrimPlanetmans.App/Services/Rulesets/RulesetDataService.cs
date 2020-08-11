@@ -68,6 +68,42 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var ruleset = await dbContext.Rulesets
+                                                .Where(r => r.Id == rulesetId)
+                                                .Include("RulesetItemCategoryRules")
+                                                .Include("RulesetActionRules")
+                                                .Include("RulesetItemCategoryRules.ItemCategory")
+                                                .FirstOrDefaultAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return ruleset;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: CancellationToken rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: CancellationToken rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         public Task<IEnumerable<int>> GetAllRulesetIdsAsync()
         {
             throw new NotImplementedException();
@@ -88,10 +124,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             throw new NotImplementedException();
         }
 
-        public Task<Ruleset> GetRulesetFromIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         public Task<Ruleset> GetRulesetFromNameAsync(string name)
         {

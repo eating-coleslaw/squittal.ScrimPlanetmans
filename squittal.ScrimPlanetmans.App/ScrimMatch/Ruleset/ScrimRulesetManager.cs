@@ -47,7 +47,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return await GetDefaultRuleset();
             }
-            else if (forceRefresh || !ActiveRuleset.ActionRules.Any() || !ActiveRuleset.ItemCategoryRules.Any())
+            else if (forceRefresh || !ActiveRuleset.RulesetActionRules.Any() || !ActiveRuleset.RulesetItemCategoryRules.Any())
             {
                 await SetupActiveRuleset();
                 return ActiveRuleset;
@@ -87,8 +87,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             await dbContext.SaveChangesAsync();
 
             ActiveRuleset = newActiveRuleset;
-            ActiveRuleset.ActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
-            ActiveRuleset.ItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+            ActiveRuleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+            ActiveRuleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
 
             return ActiveRuleset;
         }
@@ -108,10 +108,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             ActiveRuleset = ruleset;
-            ActiveRuleset.ActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
-            ActiveRuleset.ItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
+            ActiveRuleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
+            ActiveRuleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
 
-            foreach (var rule in ActiveRuleset.ItemCategoryRules)
+            foreach (var rule in ActiveRuleset.RulesetItemCategoryRules)
             {
                 rule.ItemCategory = await _itemCategoryService.GetWeaponItemCategoryAsync(rule.ItemCategoryId);
             }
@@ -132,8 +132,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     return null;
                 }
 
-                ruleset.ActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == _defaultRulesetId).ToListAsync();
-                ruleset.ItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == _defaultRulesetId).ToListAsync();
+                ruleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == _defaultRulesetId).ToListAsync();
+                ruleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == _defaultRulesetId).ToListAsync();
 
                 return ruleset;
             }
@@ -155,8 +155,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 var actionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
                 var itemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
 
-                ruleset.ActionRules = actionRules;
-                ruleset.ItemCategoryRules = itemCategoryRules;
+                ruleset.RulesetActionRules = actionRules;
+                ruleset.RulesetItemCategoryRules = itemCategoryRules;
 
                 return ruleset;
             }
@@ -316,8 +316,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
                 }
 
-                storeRuleset.ActionRules = allActionRules;
-                storeRuleset.ItemCategoryRules = allItemCategoryRules;
+                storeRuleset.RulesetActionRules = allActionRules;
+                storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
 
                 if (rulesetExistsInDb)
                 {
@@ -331,8 +331,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await dbContext.SaveChangesAsync();
 
                 ActiveRuleset = storeRuleset;
-                ActiveRuleset.ActionRules = allActionRules.ToList();
-                ActiveRuleset.ItemCategoryRules = allItemCategoryRules.ToList();
+                ActiveRuleset.RulesetActionRules = allActionRules.ToList();
+                ActiveRuleset.RulesetItemCategoryRules = allItemCategoryRules.ToList();
             }
         }
 

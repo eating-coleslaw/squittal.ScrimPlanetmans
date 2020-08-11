@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
@@ -18,7 +17,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             });
 
             builder.HasOne(rule => rule.Ruleset)
-                .WithMany(ruleset => ruleset.ActionRules)
+                .WithMany(ruleset => ruleset.RulesetActionRules)
                 .HasForeignKey(rule => rule.RulesetId);
 
             builder.Property(e => e.Points).HasDefaultValue(0);

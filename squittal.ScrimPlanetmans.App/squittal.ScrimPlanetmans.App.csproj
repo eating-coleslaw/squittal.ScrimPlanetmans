@@ -47,6 +47,8 @@
     <Compile Remove="Migrations\20200803205259_AddInfantryPlayerStatsReportView.Designer.cs" />
     <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.cs" />
     <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.Designer.cs" />
+    <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.cs" />
+    <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
