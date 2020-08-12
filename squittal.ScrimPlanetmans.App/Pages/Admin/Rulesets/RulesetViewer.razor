@@ -5,17 +5,19 @@
 @using squittal.ScrimPlanetmans.Services.Rulesets;
 @using System.Text.RegularExpressions;
 @using System.Threading;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
+@inject NavigationManager NavManager
+
+@implements IDisposable
 
 
-
-<div class="container-fluid">
+@*<div class="container-fluid">
     <div class="row">
 
-        <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
-
+        <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">*@
 
             @if (_activeRuleset == null)
             {
@@ -24,7 +26,7 @@
             else
             {
                 <div class="header-card-container default">
-                    <h4>Ruleset Editor</h4>
+                    <h4>Ruleset Viewer</h4>
 
                     @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
                     <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
@@ -152,19 +154,30 @@
                 </div>
             }
 
-        </div>
+        @*</div>
     </div>
-</div>
+</div>*@
 
 
 @code {
     [Parameter]
-    public string i_rulesetId { get; set; }
-    private string _renderedRulesetStringId { get; set; }
-
+    public int i_rulesetId { get; set; }
     private int _renderedRulesetId { get; set; }
 
     private Ruleset _activeRuleset { get; set; }
+
+    [Parameter]
+    public bool i_editMode { get; set; } = false;
+    private bool _renderedEditMode { get; set; } = false;
+
+    [Parameter]
+    public bool? _uriEditMode { get; set; }
+
+    private bool _defaultEditMode = false;
+
+    bool _isLoadingRuleset { get; set; } = false;
+
+    private CancellationTokenSource cts;
 
     private bool _showInfantry = true;
     private bool _showMax = false;
@@ -179,24 +192,147 @@
     };
 
     #region Initializtion Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         //_activeRuleset = await RulesetManager.GetActiveRuleset(true);
-        if (int.TryParse(i_rulesetId, out int parsedId))
-        {
-            _renderedRulesetStringId = i_rulesetId;
-            _renderedRulesetId = parsedId;
+        //if (int.TryParse(i_rulesetId, out int parsedId))
+        //_renderedRulesetStringId = i_rulesetId;
+        //_renderedRulesetId = parsedId;
 
-            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, CancellationToken.None);
+        _renderedRulesetId = i_rulesetId;
+
+        await LoadRulesetAsync();
+        //{
+
+
+        //    /*
+        //    _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, CancellationToken.None);
+
+        //    _showInfantry = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
+        //    _showMax = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
+        //    _showGroundVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
+        //    _showAirVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
+        //    */
+        //}
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (UpdateUriParameters())
+        {
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
 
             _showInfantry = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
             _showMax = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
             _showGroundVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
             _showAirVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
         }
-    }
+        catch
+        {
+            // Ignore
+        }
 
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRuleset = false;
+    }
     #endregion Initializtion Methods
+
+    #region Event Handling
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            await LoadRulesetAsync();
+
+            StateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("edit", out var qEdit))
+        {
+            if (bool.TryParse(qEdit, out bool edit))
+            {
+                if (_uriEditMode != edit)
+                {
+                    _uriEditMode = edit;
+                    i_editMode = edit;
+                    _renderedEditMode = edit;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                if (_uriEditMode != null)
+                {
+                    stateChanged = true;
+                }
+
+                _uriEditMode = null;
+                i_editMode = _defaultEditMode;
+                _renderedEditMode = _defaultEditMode;
+            }
+        }
+
+        return stateChanged;
+    }
 
     private string GetActionRuleDescription(ScrimActionType actionType)
     {
@@ -236,5 +372,13 @@
         return (value == true)
             ? 1.0
             : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 }

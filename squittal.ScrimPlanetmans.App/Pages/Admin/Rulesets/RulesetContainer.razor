@@ -21,6 +21,16 @@
 
         <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
 
+            @if (_renderedEditMode)
+            {
+                <RulesetEditor i_rulesetId="@_renderedRulesetId" />
+            }
+            else
+            {
+                <RulesetViewer i_rulesetId="@_renderedRulesetId" />
+            }
+
+            @*
             @if (_activeRuleset == null)
             {
                 <SpinnerEllipsis />
@@ -30,11 +40,8 @@
                 <div class="header-card-container default">
                     <h4>Ruleset Editor</h4>
 
-                    @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
                     <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
                     <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
-
-                    @*</div>*@
 
                     <div style="display: flex;">
 
@@ -155,6 +162,7 @@
                     </div>
                 </div>
             }
+            *@
 
         </div>
     </div>
@@ -220,7 +228,7 @@
             _renderedRulesetStringId = i_rulesetId;
             _renderedRulesetId = parsedId;
 
-            await LoadRulesetAsync();
+            //await LoadRulesetAsync();
 
             /*
             _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, CancellationToken.None);
@@ -239,7 +247,7 @@
 
         if (UpdateUriParameters())
         {
-            await LoadRulesetAsync();
+            //await LoadRulesetAsync();
             paramsChanged = true;
         }
 
@@ -295,7 +303,7 @@
     {
         if (UpdateUriParameters())
         {
-            await LoadRulesetAsync();
+            //await LoadRulesetAsync();
 
             StateHasChanged();
         }
@@ -331,6 +339,11 @@
                 _renderedEditMode = _defaultEditMode;
             }
         }
+
+        //if (stateChanged)
+        //{
+        //    NavManager.NavigateTo($"/Ruleset/{_renderedRulesetId}?edit={_renderedEditMode}");
+        //}
 
         return stateChanged;
     }
