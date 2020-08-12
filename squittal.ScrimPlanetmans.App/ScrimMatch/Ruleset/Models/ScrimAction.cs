@@ -120,7 +120,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         GrenadeSelfAssist           = 313,
 
 
-        // Vehicles: 400 - 499        
+        #region Vehicles: 400 - 499        
         VehicleKillInfantry                = 400,
         VehicleKillMax                     = 401,
         VehicleKillVehicle                 = 402,
@@ -156,8 +156,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         VehicleDestroyMbt                   = 428,
         VehicleTeamDestroyMbt               = 429,
 
+        VehicleSuicide                      = 430,
+        #endregion Vehicles: 400 - 499        
 
-        // Interceptor: 500 - 599
+        #region Interceptor: 500 - 599
+        /*
         InterceptorKillInfantry         = 500,
         InterceptorKillMax              = 501,
         InterceptorTeamkillInfantry     = 502,
@@ -189,9 +192,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         InterceptorTeamkillLiberator    = 526,
         InterceptorTeamkillGalaxy       = 527,
         InterceptorTeamkillBastion      = 528,
+        */
+        InterceptorSuicide = 529,
+        #endregion Interceptor: 500 - 599
 
-        // ESF: 600 - 699
-        EsfKillInfantry         = 600,
+        #region ESF: 600 - 699
+        /*
+        EsfKillInfantry = 600,
         EsfKillMax              = 601,
         EsfTeamkillInfantry     = 602,
         EsfTeamkillMax          = 603,
@@ -222,9 +229,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         EsfTeamkillLiberator    = 626,
         EsfTeamkillGalaxy       = 627,
         EsfTeamkillBastion      = 628,
+        */
+        EsfSuicide              = 629,
+        #endregion ESF: 600 - 699
 
-        // Valkyrie: 700 - 799
-        ValkyrieKillInfantry        = 700,
+        #region Valkyrie: 700 - 799
+        /*
+        ValkyrieKillInfantry = 700,
         ValkyrieKillMax             = 701,
         ValkyrieTeamkillInfantry    = 702,
         ValkyrieTeamkillMax         = 703,
@@ -255,8 +266,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         ValkyrieTeamkillLiberator   = 726,
         ValkyrieTeamkillGalaxy      = 727,
         ValkyrieTeamkillBastion     = 728,
+        */
+        ValkyrieSuicide             = 729,
+        #endregion Valkyrie: 700 - 799
 
-        // Liberator: 800 - 899
+        #region Liberator: 800 - 899
+        /*
         LiberatorKillInfantry        = 800,
         LiberatorKillMax             = 801,
         LiberatorTeamkillInfantry    = 802,
@@ -288,9 +303,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         LiberatorTeamkillLiberator   = 826,
         LiberatorTeamkillGalaxy      = 827,
         LiberatorTeamkillBastion     = 828,
+        */
+        LiberatorSuicide             = 829,
+        #endregion Liberator: 800 - 899
 
-        // Galaxy: 900 - 999
-        GalaxyKillInfantry          = 900,
+        #region Galaxy: 900 - 999
+        /*
+        GalaxyKillInfantry = 900,
         GalaxyKillMax               = 901,
         GalaxyTeamkillInfantry      = 902,
         GalaxyTeamkillMax           = 903,
@@ -321,9 +340,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         GalaxyTeamkillLiberator     = 926,
         GalaxyTeamkillGalaxy        = 927,
         GalaxyTeamkillBastion       = 928,
+        */
+        GalaxySuicide               = 929,
+        #endregion Galaxy: 900 - 999
 
-        // Bastion: 1000 - 1099
-        BastionKillInfantry         = 1000,
+        #region Bastion: 1000 - 1099
+        /*
+        BastionKillInfantry = 1000,
         BastionKillMax              = 1001,
         BastionTeamkillInfantry     = 1002,
         BastionTeamkillMax          = 1003,
@@ -354,31 +377,42 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         BastionTeamkillLiberator    = 1026,
         BastionTeamkillGalaxy       = 1027,
         BastionTeamkillBastion      = 1028,
+        */
+        BastionSuicide              = 1029,
+        #endregion Bastion: 1000 - 1099
 
-        // Flash: 1100 - 1199
-        FlashSuicide = 1104,
+        #region Flash: 1100 - 1199
+        FlashSuicide = 1129,
+        #endregion Flash: 1100 - 1199
 
-        // Harasser: 1200 - 1299
-        HarasserSuicide = 1204,
+        #region Harasser: 1200 - 1299
+        HarasserSuicide = 1229,
+        #endregion Harasser: 1200 - 1299
 
-        // ANT: 1300 - 1399
-        AntSuicide = 1304,
+        #region ANT: 1300 - 1399
+        AntSuicide = 1329,
+        #endregion ANT: 1300 - 1399
 
-        // Sunderer: 1400 - 1499
-        SundererSuicide = 1404,
+        #region Sunderer: 1400 - 1499
+        SundererSuicide = 1429,
+        #endregion Sunderer: 1400 - 1499
 
-        // Lightning: 1500 - 1599
-        LightningSuicide = 1504,
+        #region Lightning: 1500 - 1599
+        LightningSuicide = 1529,
+        #endregion Lightning: 1500 - 1599
 
-        // MBT: 1600 - 1699
-        MbtSuicide = 1604,
+        #region MBT: 1600 - 1699
+        MbtSuicide = 1629,
+        #endregion MBT: 1600 - 1699
 
-        // Miscellaneous: 5000 - 6099
-        Login   = 5000,
+        #region Miscellaneous: 5000 - 6099
+        Login = 5000,
         Logout  = 5001,
+        #endregion Miscellaneous: 5000 - 6099
 
-        // Warnings & Errors: 9000+
+        #region Warnings & Errors: 9000+
         OutsideInterference = 9000,
         Unknown             = 9001
+        #endregion Warnings & Errors: 9000+
     };
 }

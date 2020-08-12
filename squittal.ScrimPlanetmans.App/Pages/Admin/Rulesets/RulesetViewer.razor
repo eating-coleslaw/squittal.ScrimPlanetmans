@@ -1,0 +1,240 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+
+@inject IScrimRulesetManager RulesetManager
+@inject IRulesetDataService RulesetDataService
+
+
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
+
+
+            @if (_activeRuleset == null)
+            {
+                <SpinnerEllipsis />
+            }
+            else
+            {
+                <div class="header-card-container default">
+                    <h4>Ruleset Editor</h4>
+
+                    @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
+                    <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
+                    <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
+
+                    @*</div>*@
+
+                    <div style="display: flex;">
+
+                        <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+                            <h5>Scrim Action Rules</h5>
+
+                            <div class="sq-content">
+                                @if (_activeRuleset.RulesetActionRules != null && _activeRuleset.RulesetActionRules.Any())
+                                {
+                                    <table class="table-responsive-sm table-striped-light default">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th style="text-align: right;">ID</th>
+                                                <th style="text-align: right;">Points</th>
+                                                <th>Defer to Item<br />Category Rules?</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var actionRule in _activeRuleset.RulesetActionRules)
+                                            {
+                                                @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
+                                                {
+                                                    <tr>
+                                                        <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
+                                                        <td style="text-align: right;">@((int)actionRule.ScrimActionType)</td>
+                                                        <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points);">@actionRule.Points</td>
+                                                        <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules);">@actionRule.DeferToItemCategoryRules</td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                                else
+                                {
+                                    <p>No scrim action rules...</p>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+                            <h5>Item Category Rules</h5>
+
+                            <div class="sq-content">
+                                @if (_activeRuleset.RulesetItemCategoryRules != null && _activeRuleset.RulesetItemCategoryRules.Any())
+                                {
+                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
+                                        <EditForm Model="@_showInfantry">
+                                            <DataAnnotationsValidator />
+                                            <ValidationSummary />
+
+                                            Infantry <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" />
+                                        </EditForm>
+                                    </div>
+
+                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
+                                        <EditForm Model="@_showMax">
+                                            <DataAnnotationsValidator />
+                                            <ValidationSummary />
+
+                                            MAX <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" />
+                                        </EditForm>
+                                    </div>
+
+                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
+                                        <EditForm Model="@_showGroundVehicle">
+                                            <DataAnnotationsValidator />
+                                            <ValidationSummary />
+
+                                            Ground <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" />
+                                        </EditForm>
+                                    </div>
+
+                                    <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
+                                        <EditForm Model="@_showAirVehicle">
+                                            <DataAnnotationsValidator />
+                                            <ValidationSummary />
+
+                                            Air <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" />
+                                        </EditForm>
+                                    </div>
+
+                                    <table class="table-responsive-sm table-striped-light default">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th style="text-align: right;">ID</th>
+                                                <th>Domain</th>
+                                                <th style="text-align: right;">Points</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var itemCategoryRule in _activeRuleset.RulesetItemCategoryRules.OrderBy(icr => icr.ItemCategory.Domain).ToList())
+                                            {
+                                                if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
+                                                {
+                                                    <tr>
+                                                        <td>@itemCategoryRule.ItemCategory.Name</td>
+                                                        <td style="text-align: right;">@itemCategoryRule.ItemCategory.Id</td>
+                                                        <td>@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
+                                                        <td style="text-align: right; opacity: @GetValueOpacity(itemCategoryRule.Points);">@itemCategoryRule.Points</td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                                else
+                                {
+                                    <p>No item category rules...</p>
+                                }
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string i_rulesetId { get; set; }
+    private string _renderedRulesetStringId { get; set; }
+
+    private int _renderedRulesetId { get; set; }
+
+    private Ruleset _activeRuleset { get; set; }
+
+    private bool _showInfantry = true;
+    private bool _showMax = false;
+    private bool _showGroundVehicle = false;
+    private bool _showAirVehicle = false;
+
+    private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
+{
+        ScrimActionType.None,
+        ScrimActionType.OutsideInterference,
+        ScrimActionType.Unknown
+    };
+
+    #region Initializtion Methods
+    protected override async Task OnInitializedAsync()
+    {
+        //_activeRuleset = await RulesetManager.GetActiveRuleset(true);
+        if (int.TryParse(i_rulesetId, out int parsedId))
+        {
+            _renderedRulesetStringId = i_rulesetId;
+            _renderedRulesetId = parsedId;
+
+            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, CancellationToken.None);
+
+            _showInfantry = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
+            _showMax = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
+            _showGroundVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
+            _showAirVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
+        }
+    }
+
+    #endregion Initializtion Methods
+
+    private string GetActionRuleDescription(ScrimActionType actionType)
+    {
+        var name = Enum.GetName(typeof(ScrimActionType), actionType);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
+    {
+        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private bool CanDisplayItemCategory(ItemCategory category)
+    {
+        return category.Domain switch
+        {
+            ItemCategoryDomain.Infantry => _showInfantry,
+            ItemCategoryDomain.Max => _showMax,
+            ItemCategoryDomain.GroundVehicle => _showGroundVehicle,
+            ItemCategoryDomain.AirVehicle => _showAirVehicle,
+            _ => false
+        };
+    }
+
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetDeferValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+}

@@ -212,7 +212,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 var createdActionRules = new List<RulesetActionRule>();
                 var allActionRules = new List<RulesetActionRule>();
 
-                var allActionEnumValues = GetScrimActionTypes();
+                var allActionEnumValues = GetScrimActionTypes().Where(a => a != ScrimActionType.None && a != ScrimActionType.Login && a != ScrimActionType.Logout);
 
                 var allActionValues = new List<ScrimActionType>();
                 allActionValues.AddRange(allActionEnumValues);
