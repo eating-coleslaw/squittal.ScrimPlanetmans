@@ -265,7 +265,7 @@
 
         try
         {
-            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token);
+            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, true);
 
             cts.Token.ThrowIfCancellationRequested();
 

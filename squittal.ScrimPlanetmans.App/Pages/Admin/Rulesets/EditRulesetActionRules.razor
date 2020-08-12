@@ -1,0 +1,270 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+@using System.Collections.Concurrent;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimRulesetManager RulesetManager
+@inject IRulesetDataService RulesetDataService
+@inject NavigationManager NavManager
+@*@implements IDisposable*@
+
+<div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+    <h5>Scrim Action Rules</h5>
+
+    @if (_isLoadingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        <div class="sq-content">
+            @if (_actionRules != null && _actionRules.Any())
+            {
+                <EditForm Model="@_actionRules" style="" OnValidSubmit="OnSaveScrimActionRulesEditSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <table class="table-responsive-sm table-striped-light default">
+                        <thead style="font-family: Roboto, 'Segoe UI', sans-serif;">
+                            <tr>
+                                <th style="">ID</th>
+                                <th></th>
+                                <th style="text-align: right;">Points</th>
+                                <th>Defer to Item<br />Category Rules?</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var actionRule in _actionRules)
+                            {
+                                @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
+                                {
+                                    <tr>
+                                        <td style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
+                                        <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType)</td>
+                                        <td style="opacity: @GetValueOpacity(actionRule.Points);">
+                                            <InputNumber Value="@actionRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(actionRule, p))" ValueExpression="@(() => actionRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                            @*<InputNumber @bind-Value="actionRule.Points" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />*@
+                                        </td>
+                                        @*<td style="color: var(--sq-gray);">@(actionRule.Points)</td>*@
+                                        <td>
+                                            <InputCheckbox Value="@actionRule.DeferToItemCategoryRules" ValueChanged="@((bool d) => OnChangeRuleDefer(actionRule, d))" ValueExpression="@(() => actionRule.DeferToItemCategoryRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>
+                                            @*<InputCheckbox @bind-Value="actionRule.DeferToItemCategoryRules" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>*@
+                                        </td>
+                                        @*<td style="color: var(--sq-gray);">@(actionRule.DeferToItemCategoryRules)</td>*@
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </EditForm>
+            }
+            else
+            {
+                <p>No scrim action rules...</p>
+            }
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private IEnumerable<RulesetActionRule> _actionRules { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+    private ConcurrentDictionary<ScrimActionType, RulesetActionRule> _changedRules { get; set; } = new ConcurrentDictionary<ScrimActionType, RulesetActionRule>();
+    private ConcurrentDictionary<ScrimActionType, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<ScrimActionType, int>();
+    private ConcurrentDictionary<ScrimActionType, bool> _originalRuleDefers { get; set; } = new ConcurrentDictionary<ScrimActionType, bool>();
+
+    private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
+{
+        ScrimActionType.None,
+        ScrimActionType.OutsideInterference,
+        ScrimActionType.Unknown
+    };
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedRulesetId = i_rulesetId;
+
+        await LoadRulesetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _actionRules = await RulesetDataService.GetRulesetActionRulesAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private void OnChangeRulePoints(RulesetActionRule rule, int newPoints)
+    {
+        var action = rule.ScrimActionType;
+        var currentPoints = rule.Points;
+
+        var hasAlreadyChanged = _originalRulePoints.ContainsKey(action);
+
+        if (_originalRulePoints.TryGetValue(action, out int originalPoints))
+        {
+            if (newPoints == originalPoints)
+            {
+                _changedRules.TryRemove(action, out var removedRule);
+            }
+
+            rule.Points = newPoints;
+        }
+        else
+        {
+            if (!_originalRulePoints.TryAdd(action, currentPoints))
+            {
+                return;
+            }
+
+            rule.Points = newPoints;
+
+            _changedRules.AddOrUpdate(action, rule, (key, oldValue) => rule);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnChangeRuleDefer(RulesetActionRule rule, bool newDefer)
+    {
+        var action = rule.ScrimActionType;
+        var currentDefer = rule.DeferToItemCategoryRules;
+
+        var hasAlreadyChanged = _originalRuleDefers.ContainsKey(action);
+
+        if (_originalRuleDefers.TryGetValue(action, out bool originalDefer))
+        {
+            if (newDefer == originalDefer)
+            {
+                _changedRules.TryRemove(action, out var removedRule);
+            }
+
+            rule.DeferToItemCategoryRules = newDefer;
+        }
+        else
+        {
+            if (!_originalRuleDefers.TryAdd(action, currentDefer))
+            {
+                return;
+            }
+
+            rule.DeferToItemCategoryRules = newDefer;
+
+            _changedRules.AddOrUpdate(action, rule, (key, oldValue) => rule);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    #endregion Event Handling
+
+    #region Form Handling
+    private async void OnSaveScrimActionRulesEditSubmit()
+    {
+        await Task.CompletedTask;
+    }
+    #endregion Form Handling
+
+    private string GetActionRuleDescription(ScrimActionType actionType)
+    {
+        var name = Enum.GetName(typeof(ScrimActionType), actionType);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetDeferValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

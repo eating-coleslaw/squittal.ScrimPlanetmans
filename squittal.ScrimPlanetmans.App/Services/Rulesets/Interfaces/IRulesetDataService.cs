@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
     {
         Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
 
-        Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken);
+        Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true);
         Task<Ruleset> GetRulesetFromNameAsync(string name);
         Task<Ruleset> GetLatestRulesetAsync();
 
@@ -27,5 +27,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task SaveItemCategoryRuleAsync(RulesetItemCategoryRule rule);
 
         Task RefreshStoreAsync();
+        Task<IEnumerable<RulesetActionRule>> GetRulesetActionRulesAsync(int rulesetId, CancellationToken cancellationToken);
+        Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesAsync(int rulesetId, CancellationToken cancellationToken);
     }
 }

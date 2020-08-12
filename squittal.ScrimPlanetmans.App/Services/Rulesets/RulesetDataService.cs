@@ -18,6 +18,10 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private readonly int _rulesetBrowserPageSize = 15;
 
+        private readonly KeyedSemaphoreSlim _rulesetLock = new KeyedSemaphoreSlim();
+        private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
+        private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
+
         public RulesetDataService(IDbContextHelper dbContextHelper, ILogger<RulesetDataService> logger)
         {
             _dbContextHelper = dbContextHelper;
@@ -68,19 +72,30 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken)
+        public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true)
         {
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var ruleset = await dbContext.Rulesets
+                Ruleset ruleset;
+
+                if (includeCollections)
+                {
+                    ruleset = await dbContext.Rulesets
                                                 .Where(r => r.Id == rulesetId)
                                                 .Include("RulesetItemCategoryRules")
                                                 .Include("RulesetActionRules")
                                                 .Include("RulesetItemCategoryRules.ItemCategory")
                                                 .FirstOrDefaultAsync(cancellationToken);
+                }
+                else
+                {
+                    ruleset = await dbContext.Rulesets
+                                               .Where(r => r.Id == rulesetId)
+                                               .FirstOrDefaultAsync(cancellationToken);
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -88,12 +103,81 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
             catch (TaskCanceledException)
             {
-                _logger.LogInformation($"Task Request cancelled: CancellationToken rulesetId {rulesetId}");
+                _logger.LogInformation($"Task Request cancelled: GetRulesetFromIdAsync rulesetId {rulesetId}");
                 return null;
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation($"Request cancelled: CancellationToken rulesetId {rulesetId}");
+                _logger.LogInformation($"Request cancelled: GetRulesetFromIdAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<RulesetActionRule>> GetRulesetActionRulesAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetActionRules
+                                               .Where(r => r.RulesetId == rulesetId)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetActionRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetActionRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetItemCategoryRules
+                                               .Where(r => r.RulesetId == rulesetId)
+                                               .Include("ItemCategory")
+                                               .OrderBy(r => r.ItemCategory.Domain)
+                                               .ThenBy(r => r.ItemCategory.Name)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetItemCategoryRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetItemCategoryRulesAsync rulesetId {rulesetId}");
                 return null;
             }
             catch (Exception ex)

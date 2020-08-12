@@ -19,23 +19,24 @@
 
         <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">*@
 
-@if (_activeRuleset == null)
-{
-    <SpinnerEllipsis />
-}
-else
-{
-    <div class="header-card-container default">
-        <h4>Ruleset Editor</h4>
+<div class="header-card-container default">
+    <h4>Ruleset Editor</h4>
 
+    @if (_activeRuleset == null)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
         @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
         <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
         <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
 
-        @*</div>*@
-
         <div style="display: flex;">
+            
+            <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
 
+            @*
             <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                 <h5>Scrim Action Rules</h5>
 
@@ -61,7 +62,6 @@ else
                                     {
                                         @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
                                         {
-                                            @*<EditScrimActionRuleRow i_actionRule="@actionRule" />*@
                                             <tr>
                                                 <td style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
                                                 <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType)</td>
@@ -71,14 +71,7 @@ else
                                                 <td>
                                                     <InputCheckbox @bind-Value="actionRule.DeferToItemCategoryRules" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>
                                                 </td>
-                                                @*<td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules); color: var(--sq-black);">@actionRule.DeferToItemCategoryRules</td>*@
                                             </tr>
-                                            @*<tr>
-                                                    <td style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
-                                                    <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType)</td>
-                                                    <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points); color: var(--sq-black);">@actionRule.Points</td>
-                                                    <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules); color: var(--sq-black);">@actionRule.DeferToItemCategoryRules</td>
-                                                </tr>*@
                                         }
                                     }
                                 </tbody>
@@ -91,7 +84,10 @@ else
                     }
                 </div>
             </div>
-
+            *@
+            
+            <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+            @*
             <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                 <h5>Item Category Rules</h5>
 
@@ -165,16 +161,12 @@ else
                     }
                 </div>
             </div>
-
+            *@
 
 
         </div>
-    </div>
-}
-
-@*</div>
-        </div>
-    </div>*@
+    }
+</div>
 
 
 @code {
@@ -286,7 +278,7 @@ else
 
         try
         {
-            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token);
+            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, true);
 
             cts.Token.ThrowIfCancellationRequested();
 

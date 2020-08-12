@@ -1,0 +1,284 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+@using System.Collections.Concurrent;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimRulesetManager RulesetManager
+@inject IRulesetDataService RulesetDataService
+@inject NavigationManager NavManager
+@*@implements IDisposable*@
+
+<div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+    <h5>Scrim Action Rules</h5>
+
+    @if (_isLoadingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        <div class="sq-content">
+            @if (_itemCategoryRules != null && _itemCategoryRules.Any())
+            {
+                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
+                    <EditForm Model="@_showInfantry">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        Infantry <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" />
+                    </EditForm>
+                </div>
+
+                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
+                    <EditForm Model="@_showMax">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        MAX <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" />
+                    </EditForm>
+                </div>
+
+                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
+                    <EditForm Model="@_showGroundVehicle">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        Ground <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" />
+                    </EditForm>
+                </div>
+
+                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
+                    <EditForm Model="@_showAirVehicle">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        Air <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" />
+                    </EditForm>
+                </div>
+                
+                <EditForm Model="@_itemCategoryRules" style="" OnValidSubmit="OnSaveScrimActionRulesEditSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <table class="table-responsive-sm table-striped-light default">
+                        <thead style="font-family: Roboto, 'Segoe UI', sans-serif;">
+                            <tr>
+                                <th style="">ID</th>
+                                <th></th>
+                                <th style="text-align: right;">Points</th>
+                                <th>Defer to Item<br />Category Rules?</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var itemCategoryRule in _itemCategoryRules)
+                            {
+                                if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
+                                { 
+                                    <tr>
+                                        <td style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
+                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name</td>
+                                        <td style="color: var(--sq-black);">@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
+                                        <td style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
+                                            <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                            @*<InputNumber @bind-Value="actionRule.Points" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />*@
+                                        </td>
+                                        @*<td style="color: var(--sq-gray);">@(actionRule.Points)</td>*@
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </EditForm>
+            }
+            else
+            {
+                <p>No item category rules...</p>
+            }
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private IEnumerable<RulesetItemCategoryRule> _itemCategoryRules { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+    private ConcurrentDictionary<int, RulesetItemCategoryRule> _changedRules { get; set; } = new ConcurrentDictionary<int, RulesetItemCategoryRule>();
+    private ConcurrentDictionary<int, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<int, int>();
+
+    private bool _showInfantry = true;
+    private bool _showMax = false;
+    private bool _showGroundVehicle = false;
+    private bool _showAirVehicle = false;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedRulesetId = i_rulesetId;
+
+        await LoadRulesetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _itemCategoryRules = await RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _showInfantry = _itemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
+            _showMax = _itemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
+            _showGroundVehicle = _itemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
+            _showAirVehicle = _itemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private void OnChangeRulePoints(RulesetItemCategoryRule rule, int newPoints)
+    {
+        var categoryId = rule.ItemCategory.Id;
+        var currentPoints = rule.Points;
+
+        var hasAlreadyChanged = _originalRulePoints.ContainsKey(categoryId);
+
+        if (_originalRulePoints.TryGetValue(categoryId, out int originalPoints))
+        {
+            if (newPoints == originalPoints)
+            {
+                _changedRules.TryRemove(categoryId, out var removedRule);
+            }
+
+            rule.Points = newPoints;
+        }
+        else
+        {
+            if (!_originalRulePoints.TryAdd(categoryId, currentPoints))
+            {
+                return;
+            }
+
+            rule.Points = newPoints;
+
+            _changedRules.AddOrUpdate(categoryId, rule, (key, oldValue) => rule);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    #region Form Handling
+    private async void OnSaveScrimActionRulesEditSubmit()
+    {
+        await Task.CompletedTask;
+    }
+    #endregion Form Handling
+
+    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
+    {
+        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private bool CanDisplayItemCategory(ItemCategory category)
+    {
+        return category.Domain switch
+        {
+            ItemCategoryDomain.Infantry => _showInfantry,
+            ItemCategoryDomain.Max => _showMax,
+            ItemCategoryDomain.GroundVehicle => _showGroundVehicle,
+            ItemCategoryDomain.AirVehicle => _showAirVehicle,
+            _ => false
+        };
+    }
+
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetDeferValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}
