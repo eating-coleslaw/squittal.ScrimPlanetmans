@@ -23,25 +23,54 @@
     {
         <h5>Scrim Action Rules</h5>
     }
-    @if (_isLoadingRules)
+
+    @if (_isLoadingRules || _isSavingRules)
     {
         <SpinnerEllipsis />
     }
     else
     {
-        <div class="sq-content">
-            @if (_itemCategoryRules != null && _itemCategoryRules.Any())
-            {
-                <div class="tabbed-button-container" style="">
-                    <button title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
-                    <button title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
-                    <button title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
-                    <button title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
-                </div>
+        @if (_itemCategoryRules != null && _itemCategoryRules.Any())
+        {
+            @*<EditForm EditContext="@_editContext" style="margin-top: 8px;" >*@
+            <EditForm Model="@_itemCategoryRules" OnValidSubmit="(() => OnSaveScrimActionRulesEditSubmit(false))" style="margin-top: 8px;" >
+                <DataAnnotationsValidator />
+                @*<ValidationSummary />*@
+        
+                <div class="sq-content">
 
-                <EditForm Model="@_itemCategoryRules" OnValidSubmit="OnSaveScrimActionRulesEditSubmit" style="margin-top: 8px;" >
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
+                    @if (_changesCount > 0)
+                    {
+                        <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimActionRulesEditSubmit(true))">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+
+                        <button type="button" title="Reset changes to original values"class="btn btn-outline-primary" @onclick="OnClearRuleChanges">
+                            <span class="oi oi-x" style="top: 0px;"></span>Clear
+                        </button>
+                    }
+                    else
+                    {
+                        <button title="There are no changes to save" disabled class="btn btn-primary disabled">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+                    }
+
+                    @*<button class="btn btn-outline-primary" @onclick="OnClearRuleChanges">
+                        <span class="oi oi-x" style="top: 0px;"></span>Clear
+                    </button>*@
+
+                                @*<button class="btn btn-outline-primary" @onclick="OnClearSearchFilters">
+                        <span class="oi oi-x" style="top: 0px;"></span>Cancel
+                    </button>*@
+
+                    <div class="tabbed-button-container" style="">
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
+                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
+                        <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
+                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
+                    </div>
+
 
                     <table class="table-responsive-sm table-striped-light default">
                         <thead style="font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-black-alpha-50);">
@@ -56,24 +85,24 @@
                         <tbody>
                             @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
                             {
-                                    <tr>
-                                        <td style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
-                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name</td>
-                                        <td style="color: var(--sq-black);">@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
-                                        <td style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
-                                            <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
+                                    <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name</td>
+                                    <td style="color: var(--sq-black);">@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
+                                    <td style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
+                                        <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                    </td>
+                                </tr>
                             }
                         </tbody>
                     </table>
-                </EditForm>
-            }
-            else
-            {
-                <p>No item category rules...</p>
-            }
-        </div>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <p>No item category rules...</p>
+        }
     }
 </div>
 
@@ -86,6 +115,8 @@
     private IEnumerable<RulesetItemCategoryRule> _itemCategoryRules { get; set; }
 
     bool _isLoadingRules { get; set; } = false;
+    bool _isSavingRules { get; set; } = false;
+    bool _isClearingRules { get; set; } = false;
 
     private CancellationTokenSource cts;
 
@@ -114,7 +145,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRulesetAsync();
+        await LoadRulesAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -125,7 +156,7 @@
         {
             _renderedRulesetId = i_rulesetId;
 
-            await LoadRulesetAsync();
+            await LoadRulesAsync();
             paramsChanged = true;
         }
 
@@ -135,7 +166,7 @@
         }
     }
 
-    private async Task LoadRulesetAsync()
+    private async Task LoadRulesAsync()
     {
         _isLoadingRules = true;
         InvokeAsyncStateHasChanged();
@@ -155,6 +186,9 @@
             _itemCategoryRules = await RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
 
             cts.Token.ThrowIfCancellationRequested();
+
+            _originalRulePoints.Clear();
+            _changedRules.Clear();
         }
         catch
         {
@@ -208,14 +242,64 @@
 
         _changesCount = _changedRules.Count();
 
-        InvokeAsyncStateHasChanged();
+        //InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
 
     #region Form Handling
-    private async void OnSaveScrimActionRulesEditSubmit()
+    private async void OnSaveScrimActionRulesEditSubmit(bool isManualClick)
     {
-        await Task.CompletedTask;
+        if (!isManualClick)
+        {
+            return;
+        }
+
+        if (_changedRules.Any())
+        {
+            _isSavingRules = true;
+            InvokeAsyncStateHasChanged();
+
+            await RulesetDataService.SaveRulesetItemCategoryRules(_renderedRulesetId, _changedRules.Values.AsEnumerable());
+
+            foreach (var idRulePair in _changedRules)
+            {
+                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
+
+            }
+
+            _originalRulePoints.Clear();
+            _changedRules.Clear();
+            _changesCount = 0;
+            
+            _isSavingRules = false;
+
+            //await LoadRulesAsync();
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void OnClearRuleChanges()
+    {
+        if (!_changedRules.Any() || !_itemCategoryRules.Any())
+        {
+            return;
+        }
+
+        _isClearingRules = true;
+        //InvokeAsyncStateHasChanged();
+
+        foreach (var idPointsPair in _originalRulePoints)
+        {
+            _itemCategoryRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
+        }
+
+        _originalRulePoints.Clear();
+        _changedRules.Clear();
+        _changesCount = 0;
+
+        _isClearingRules = false;
+        //InvokeAsyncStateHasChanged();
+
     }
     #endregion Form Handling
 

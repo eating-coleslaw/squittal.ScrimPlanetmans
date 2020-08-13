@@ -152,6 +152,55 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        /*
+         * Upsert New or Modified RulesetActionRules for a specific ruleset.
+         */
+        public async Task SaveRulesetActionRules(int rulesetId, IEnumerable<RulesetActionRule> rules)
+        {
+            var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
+
+            if (!ruleUpdates.Any())
+            {
+                return;
+            }
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeRules = await dbContext.RulesetActionRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+
+                var newEntities = new List<RulesetActionRule>();
+
+                foreach (var rule in ruleUpdates)
+                {
+                    var storeEntity = storeRules.Where(r => r.ScrimActionType == rule.ScrimActionType).FirstOrDefault();
+
+                    if (storeEntity == null)
+                    {
+                        newEntities.Add(rule);
+                    }
+                    else
+                    {
+                        storeEntity = rule;
+                        dbContext.RulesetActionRules.Update(storeEntity);
+                    }
+                }
+
+                if (newEntities.Any())
+                {
+                    dbContext.RulesetActionRules.AddRange(newEntities);
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error saving RulesetActionRule changes to database: {ex}");
+            }
+        }
+
         public async Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesAsync(int rulesetId, CancellationToken cancellationToken)
         {
             try
@@ -185,6 +234,55 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 _logger.LogError($"{ex}");
 
                 return null;
+            }
+        }
+
+        /*
+         * Upsert New or Modified RulesetItemCategoryRules for a specific ruleset.
+         */
+        public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules)
+        {
+            var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
+
+            if (!ruleUpdates.Any())
+            {
+                return;
+            }
+            
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var storeRules = await dbContext.RulesetItemCategoryRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+
+                var newEntities = new List<RulesetItemCategoryRule>();
+
+                foreach (var rule in ruleUpdates)
+                {
+                    var storeEntity = storeRules.Where(r => r.ItemCategoryId == rule.ItemCategoryId).FirstOrDefault();
+
+                    if (storeEntity == null)
+                    {
+                        newEntities.Add(rule);
+                    }
+                    else
+                    {
+                        storeEntity = rule;
+                        dbContext.RulesetItemCategoryRules.Update(storeEntity);
+                    }
+                }
+
+                if (newEntities.Any())
+                {
+                    dbContext.RulesetItemCategoryRules.AddRange(newEntities);
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error saving RulesetItemCategoryRule changes to database: {ex}");
             }
         }
 
