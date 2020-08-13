@@ -1303,7 +1303,8 @@ button.refresh {
 .sq-mini-card-6.default,
 .sq-mini-card-4.default,
 .sq-mini-card-3.default {
-    background-color: var(--sq-bg-white-lit);
+/*    background-color: var(--sq-bg-white-lit);*/
+    background-color: var(--sq-ps2-primary-light-alpha-15);
     border: 1px solid var(--sq-pink-lighter-alpha-25);
     border-top: 2px solid var(--sq-pink-lighter-alpha-50);
 }
@@ -1348,7 +1349,9 @@ button.refresh {
         /*max-height: calc(360px - 1.5rem);*/
         overflow: auto;
         /*        padding: 0 0 0 0.5rem;*/
-        padding: 8px 0 0 16px;
+/*        padding: 8px 0 0 16px;*/
+/*        padding: 8px 16px 0 16px;*/
+        padding: 0px 16px 0 16px;
         margin-bottom: 0.5rem;
     }
 
@@ -1366,10 +1369,12 @@ button.refresh {
         .sq-mini-card-6 .sq-content table,
         .sq-mini-card-4 .sq-content table,
         .sq-mini-card-3 .sq-content table {
-            max-width: calc(100% - 0.75rem);
+/*            max-width: calc(100% - 0.75rem);*/
+            max-width: calc(100%);
             font-size: 0.8rem !important;
             border-bottom: 1px solid var(--sq-ps2-primary-light);
-            width: calc(100% - 0.75rem);
+/*            width: calc(100% - 0.75rem);*/
+            width: calc(100%);
         }
 
             .sq-mini-card-12 .sq-content table.sq-table-fit-content,
@@ -1413,7 +1418,8 @@ button.refresh {
     .sq-mini-card-6 .table-responsive-sm.table-striped-light,
     .sq-mini-card-4 .table-responsive-sm.table-striped-light,
     .sq-mini-card-3 .table-responsive-sm.table-striped-light {
-        width: calc(100% - 0.75rem);
+/*        width: calc(100% - 0.75rem);*/
+        width: calc(100%);
         font-size: 0.8rem !important;
         border-bottom: 1px solid var(--sq-ps2-primary-light);
     }
@@ -1797,24 +1803,42 @@ dl.labeled-stats-grid {
 
 .tabbed-button-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    border-top-left-radius: 0.2rem;
-    border-bottom: 2px solid var(--sq-ps2-primary-light);
+    /*    grid-template-columns: 1fr 1fr 1fr 1fr;*/
+    grid-auto-columns: 1fr;
+    /*    border-top-left-radius: 0.2rem;*/
+    /*    border-bottom: 2px solid var(--sq-ps2-primary-light);*/
+    /*    border-bottom: 2px solid var(--sq-pink-lighter-alpha-10);*/
+    /*    font-family: Roboto, 'Segoe UI', sans-serif;*/
+    margin-bottom: 12px;
 }
 
     .tabbed-button-container button {
-        padding: 0rem !important;
+        /*        padding: 0rem !important;*/
+        padding: 4px 0 0 0;
         transition: none !important;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: 2px solid var(--sq-pink-lighter-alpha-30);
+        border-left: none;
+        border-right: none;
+        font-size: 0.9rem;
+        font-family: Roboto, 'Segoe UI', sans-serif;
     }
 
         .tabbed-button-container button.view-visible {
             grid-row: 1;
-            background-color: var(--sq-ps2-primary-light-alpha-80);
-            color: var(--sq-black) !important;
-            font-size: 1rem;
+/*            background-color: var(--sq-ps2-primary-light-alpha-80);*/
+            background-color: var(--sq-pink-lighter);
+/*            color: var(--sq-black) !important;*/
+            color: white;
+/*            font-size: 1rem;*/
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
             text-decoration: none;
+            cursor: default;
+            border-bottom: 2px solid var(--sq-pink-lighter);
+            color: var(--sq-black);
+            background-color: transparent;
         }
 
         .tabbed-button-container button.view-hidden {
@@ -1822,16 +1846,20 @@ dl.labeled-stats-grid {
             background-color: transparent;
             color: var(--blue);
             font-weight: 400;
-            font-size: 1rem;
+/*            font-size: 1rem;*/
+            /*border-left: none;
+            border-right: none;*/
         }
 
             .tabbed-button-container button.view-hidden:hover,
             .tabbed-button-container button.view-hidden:focus {
                 grid-row: 1;
-                background-color: var(--sq-ps2-primary-light-alpha-40);
+                /*                background-color: var(--sq-ps2-primary-light-alpha-40);*/
+/*                background-color: var(--sq-pink-lighter-alpha-10);*/
+                border-bottom: 2px solid var(--sq-pink-lighter-alpha-50);
                 color: var(--blue);
                 font-weight: 400;
-                font-size: 1rem;
+/*                font-size: 1rem;*/
             }
 
 

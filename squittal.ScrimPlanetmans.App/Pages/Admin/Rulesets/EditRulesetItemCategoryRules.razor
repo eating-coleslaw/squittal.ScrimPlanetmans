@@ -14,8 +14,14 @@
 @*@implements IDisposable*@
 
 <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
-    <h5>Scrim Action Rules</h5>
-
+    @if (_changesCount > 0)
+    {
+        <h5>Scrim Action Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
+    }
+    else
+    {
+        <h5>Scrim Action Rules</h5>
+    }
     @if (_isLoadingRules)
     {
         <SpinnerEllipsis />
@@ -25,12 +31,13 @@
         <div class="sq-content">
             @if (_itemCategoryRules != null && _itemCategoryRules.Any())
             {
+                @*
                 <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
                     <EditForm Model="@_showInfantry">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        Infantry <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" />
+                        <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" /> Infantry
                     </EditForm>
                 </div>
 
@@ -39,7 +46,7 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        MAX <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" />
+                        <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" /> MAX
                     </EditForm>
                 </div>
 
@@ -48,7 +55,7 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        Ground <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" />
+                        <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" /> Ground
                     </EditForm>
                 </div>
 
@@ -57,29 +64,37 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        Air <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" />
+                        <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" /> Air
                     </EditForm>
                 </div>
-                
-                <EditForm Model="@_itemCategoryRules" style="" OnValidSubmit="OnSaveScrimActionRulesEditSubmit">
+                *@
+
+                <div class="tabbed-button-container" style="">
+                    <button title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
+                    <button title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
+                    <button title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
+                    <button title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
+                </div>
+
+                <EditForm Model="@_itemCategoryRules" OnValidSubmit="OnSaveScrimActionRulesEditSubmit" style="margin-top: 8px;" >
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
                     <table class="table-responsive-sm table-striped-light default">
-                        <thead style="font-family: Roboto, 'Segoe UI', sans-serif;">
+                        <thead style="font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-black-alpha-50);">
                             <tr>
-                                <th style="">ID</th>
-                                <th></th>
-                                <th style="text-align: right;">Points</th>
-                                <th>Defer to Item<br />Category Rules?</th>
+                                <th style="padding-bottom: 2px;">ID</th>
+                                <th style="padding-bottom: 2px;">Item Category</th>
+                                <th style="padding-bottom: 2px;">Domain</th>
+                                <th style="padding-bottom: 2px;">Points</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            @foreach (var itemCategoryRule in _itemCategoryRules)
+                            @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
                             {
-                                if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
-                                { 
+                                //if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
+                                //{ 
                                     <tr>
                                         <td style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
                                         <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name</td>
@@ -90,7 +105,7 @@
                                         </td>
                                         @*<td style="color: var(--sq-gray);">@(actionRule.Points)</td>*@
                                     </tr>
-                                }
+                                //}
                             }
                         </tbody>
                     </table>
@@ -119,6 +134,10 @@
     private ConcurrentDictionary<int, RulesetItemCategoryRule> _changedRules { get; set; } = new ConcurrentDictionary<int, RulesetItemCategoryRule>();
     private ConcurrentDictionary<int, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<int, int>();
 
+    private int _changesCount { get; set; } = 0;
+
+    private ItemCategoryDomain _selectedDomainView { get; set; } = ItemCategoryDomain.Infantry;
+
     private bool _showInfantry = true;
     private bool _showMax = false;
     private bool _showGroundVehicle = false;
@@ -135,9 +154,14 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _renderedRulesetId = i_rulesetId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //_renderedRulesetId = i_rulesetId;
 
         await LoadRulesetAsync();
     }
@@ -230,6 +254,8 @@
             _changedRules.AddOrUpdate(categoryId, rule, (key, oldValue) => rule);
         }
 
+        _changesCount = _changedRules.Count();
+
         InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
@@ -260,6 +286,57 @@
         };
     }
 
+
+    string GetViewTabStyle(ItemCategoryDomain thisView)
+    {
+        if (_selectedDomainView == thisView)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    public void OnSelectNewView(ItemCategoryDomain newView)
+    {
+        if (newView != _selectedDomainView)
+        {
+            _selectedDomainView = newView;
+            SetSelectedViewBools(newView);
+        }
+    }
+
+    void SetSelectedViewBools(ItemCategoryDomain view)
+    {
+        _showInfantry = (view == ItemCategoryDomain.Infantry);
+        _showMax = (view == ItemCategoryDomain.Max);
+        _showGroundVehicle = (view == ItemCategoryDomain.GroundVehicle);
+        _showAirVehicle = (view == ItemCategoryDomain.AirVehicle);
+    }
+
+    private static Dictionary<PlayerDetailsView, string> GetViewTranslator()
+    {
+        var views = new Dictionary<PlayerDetailsView, string>();
+        views.Add(PlayerDetailsView.kills, "kills");
+        views.Add(PlayerDetailsView.weapons, "weapons");
+        views.Add(PlayerDetailsView.players, "players");
+        views.Add(PlayerDetailsView.loadouts, "loadouts");
+
+        return views;
+    }
+
+    public enum PlayerDetailsView
+    {
+        kills,
+        weapons,
+        players,
+        loadouts
+    }
+
+
+    #region Helpers
     private double GetValueOpacity(int value)
     {
         return (value != 0)
@@ -281,4 +358,5 @@
             StateHasChanged();
         });
     }
+    #endregion Helpers
 }

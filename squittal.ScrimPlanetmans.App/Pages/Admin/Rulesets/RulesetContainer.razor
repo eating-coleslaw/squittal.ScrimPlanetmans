@@ -1,4 +1,4 @@
-﻿@page "/Ruleset/{i_rulesetId}"
+﻿@page "/Ruleset/{i_rulesetId:int}"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models.Planetside;
@@ -171,8 +171,9 @@
 
 @code {
     [Parameter]
-    public string i_rulesetId { get; set; }
-    private string _renderedRulesetStringId { get; set; }
+    public int i_rulesetId { get; set; }
+    //public string i_rulesetId { get; set; }
+    //private string _renderedRulesetStringId { get; set; }
 
     private int _renderedRulesetId { get; set; }
 
@@ -220,34 +221,43 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        //_activeRuleset = await RulesetManager.GetActiveRuleset(true);
-        if (int.TryParse(i_rulesetId, out int parsedId))
-        {
-            _renderedRulesetStringId = i_rulesetId;
-            _renderedRulesetId = parsedId;
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    _renderedRulesetId = i_rulesetId;
 
-            //await LoadRulesetAsync();
+    //    //_activeRuleset = await RulesetManager.GetActiveRuleset(true);
+    //    /*
+    //    if (int.TryParse(i_rulesetId, out int parsedId))
+    //    {
+    //        _renderedRulesetStringId = i_rulesetId;
+    //        _renderedRulesetId = parsedId;
 
-            /*
-            _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, CancellationToken.None);
+    //        //await LoadRulesetAsync();
 
-            _showInfantry = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
-            _showMax = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
-            _showGroundVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
-            _showAirVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
-            */
-        }
-    }
+    //        /*
+    //        _activeRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, CancellationToken.None);
 
-    protected override async Task OnParametersSetAsync()
+    //        _showInfantry = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
+    //        _showMax = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
+    //        _showGroundVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
+    //        _showAirVehicle = _activeRuleset.RulesetItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
+
+    //    }
+    //    */
+    //}
+
+    protected override void OnParametersSet()
     {
         var paramsChanged = false;
 
+        if (_renderedRulesetId != i_rulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+            paramsChanged = true;
+        }
+
         if (UpdateUriParameters())
         {
-            //await LoadRulesetAsync();
             paramsChanged = true;
         }
 
@@ -256,6 +266,22 @@
             InvokeAsyncStateHasChanged();
         }
     }
+
+    //protected override async Task OnParametersSetAsync()
+    //{
+    //    var paramsChanged = false;
+
+    //    if (UpdateUriParameters())
+    //    {
+    //        //await LoadRulesetAsync();
+    //        paramsChanged = true;
+    //    }
+
+    //    if (paramsChanged)
+    //    {
+    //        InvokeAsyncStateHasChanged();
+    //    }
+    //}
 
     private async Task LoadRulesetAsync()
     {
@@ -299,15 +325,23 @@
     #endregion Initializtion Methods
 
     #region Event Handling
-    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
         if (UpdateUriParameters())
         {
-            //await LoadRulesetAsync();
-
             StateHasChanged();
         }
     }
+
+    //private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    //{
+    //    if (UpdateUriParameters())
+    //    {
+    //        //await LoadRulesetAsync();
+
+    //        StateHasChanged();
+    //    }
+    //}
     #endregion Event Handling
 
     private bool UpdateUriParameters()
