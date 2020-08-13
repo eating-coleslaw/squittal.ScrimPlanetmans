@@ -14,7 +14,16 @@
 @*@implements IDisposable*@
 
 <div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
-    <h5>Scrim Action Rules</h5>
+    @*<h5>Scrim Action Rules</h5>*@
+
+    @if (_changesCount > 0)
+    {
+        <h5>Scrim Action Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
+    }
+    else
+    {
+        <h5>Scrim Action Rules</h5>
+    }
 
     @if (_isLoadingRules)
     {
@@ -34,7 +43,7 @@
                             <tr>
                                 <th style="">ID</th>
                                 <th></th>
-                                <th style="text-align: right;">Points</th>
+                                <th style="">Points</th>
                                 <th>Defer to Item<br />Category Rules?</th>
                             </tr>
                         </thead>
@@ -87,6 +96,8 @@
     private ConcurrentDictionary<ScrimActionType, RulesetActionRule> _changedRules { get; set; } = new ConcurrentDictionary<ScrimActionType, RulesetActionRule>();
     private ConcurrentDictionary<ScrimActionType, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<ScrimActionType, int>();
     private ConcurrentDictionary<ScrimActionType, bool> _originalRuleDefers { get; set; } = new ConcurrentDictionary<ScrimActionType, bool>();
+
+    private int _changesCount { get; set; } = 0;
 
     private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
 {
@@ -177,17 +188,24 @@
 
         if (_originalRulePoints.TryGetValue(action, out int originalPoints))
         {
+            rule.Points = newPoints;
+
             if (newPoints == originalPoints)
             {
                 _changedRules.TryRemove(action, out var removedRule);
             }
+            else
+            {
+                _changedRules.AddOrUpdate(action, rule, (key, oldValue) => rule);
+            }
 
-            rule.Points = newPoints;
         }
         else
         {
             if (!_originalRulePoints.TryAdd(action, currentPoints))
             {
+                _changesCount = _changedRules.Count();
+
                 return;
             }
 
@@ -195,6 +213,8 @@
 
             _changedRules.AddOrUpdate(action, rule, (key, oldValue) => rule);
         }
+
+        _changesCount = _changedRules.Count();
 
         InvokeAsyncStateHasChanged();
     }
