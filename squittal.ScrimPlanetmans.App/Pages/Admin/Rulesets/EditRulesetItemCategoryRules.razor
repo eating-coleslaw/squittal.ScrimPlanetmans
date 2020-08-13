@@ -39,7 +39,7 @@
         
                 <div class="sq-content">
 
-                    @if (_changesCount > 0)
+                    @if (_changesCount > 0 && !_isClearingRules)
                     {
                         <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimActionRulesEditSubmit(true))">
                             <span class="oi oi-data-transfer-upload"></span>Save
@@ -273,7 +273,6 @@
             
             _isSavingRules = false;
 
-            //await LoadRulesAsync();
             InvokeAsyncStateHasChanged();
         }
     }
