@@ -157,47 +157,50 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
          */
         public async Task SaveRulesetActionRules(int rulesetId, IEnumerable<RulesetActionRule> rules)
         {
-            var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
-
-            if (!ruleUpdates.Any())
+            using (await _actionRulesLock.WaitAsync($"{rulesetId}"))
             {
-                return;
-            }
+                var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
 
-            try
-            {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
-
-                var storeRules = await dbContext.RulesetActionRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
-
-                var newEntities = new List<RulesetActionRule>();
-
-                foreach (var rule in ruleUpdates)
+                if (!ruleUpdates.Any())
                 {
-                    var storeEntity = storeRules.Where(r => r.ScrimActionType == rule.ScrimActionType).FirstOrDefault();
-
-                    if (storeEntity == null)
-                    {
-                        newEntities.Add(rule);
-                    }
-                    else
-                    {
-                        storeEntity = rule;
-                        dbContext.RulesetActionRules.Update(storeEntity);
-                    }
+                    return;
                 }
 
-                if (newEntities.Any())
+                try
                 {
-                    dbContext.RulesetActionRules.AddRange(newEntities);
-                }
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
 
-                await dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error saving RulesetActionRule changes to database: {ex}");
+                    var storeRules = await dbContext.RulesetActionRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+
+                    var newEntities = new List<RulesetActionRule>();
+
+                    foreach (var rule in ruleUpdates)
+                    {
+                        var storeEntity = storeRules.Where(r => r.ScrimActionType == rule.ScrimActionType).FirstOrDefault();
+
+                        if (storeEntity == null)
+                        {
+                            newEntities.Add(rule);
+                        }
+                        else
+                        {
+                            storeEntity = rule;
+                            dbContext.RulesetActionRules.Update(storeEntity);
+                        }
+                    }
+
+                    if (newEntities.Any())
+                    {
+                        dbContext.RulesetActionRules.AddRange(newEntities);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error saving RulesetActionRule changes to database: {ex}");
+                }
             }
         }
 
@@ -284,6 +287,52 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 _logger.LogError($"Error saving RulesetItemCategoryRule changes to database: {ex}");
             }
+        }
+
+        public async Task<Ruleset> CreateRulesetAsync(Ruleset ruleset)
+        {
+            if (!IsValidRulesetName(ruleset.Name))
+            {
+                return null;
+            }
+
+            using (await _rulesetLock.WaitAsync($"{ruleset.Id}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    dbContext.Rulesets.Add(ruleset);
+
+                    await dbContext.SaveChangesAsync();
+                    
+                    // TODO: Set Up default Action Type, Item Category, and Facility values
+
+                    return ruleset;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return null;
+                }
+            }
+        }
+
+        private bool IsValidRulesetName(string name)
+        {
+            return true;
+        }
+
+        private bool IsValidDefaultRoundSeconds(int seconds)
+        {
+            return true;
+        }
+
+        private bool IsValidDefaultRounds(int rounds)
+        {
+            return true;
         }
 
         public Task<IEnumerable<int>> GetAllRulesetIdsAsync()

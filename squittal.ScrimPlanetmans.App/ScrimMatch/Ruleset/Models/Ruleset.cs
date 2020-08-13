@@ -22,10 +22,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsCustomDefault { get; set; }
         public bool IsDefault { get; set; }
 
+        //public string FileName { get; set; }
+        // public string SourceFileName { get; set; }
+
         //public bool IsFavorite { get; set; }
 
-        //public int DefaultRoundTime { get; set; }
-        //public int DefaultRounds { get; set; }
+        //public int DefaultRoundSeconds { get; set; } == 900
+        //public int DefaultRounds { get; set; } == 600
 
         public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }

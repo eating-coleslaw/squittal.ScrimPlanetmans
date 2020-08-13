@@ -31,6 +31,46 @@
             <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
                 <h4>Ruleset Browser</h4>
 
+                @if (_showNewRulesetForm)
+                {
+                    @*<div class="col-lg-4">
+
+                        <div class="header-card-container default">
+
+                            <h5 class="default" style="margin-bottom: 0.1rem;">
+                                Team Creation Form
+                            </h5>
+
+                            <div class="sq-content">*@
+                                <EditForm Model="@_newRuleset" OnValidSubmit="OnCreateNewRulesetSubmit" style="margin-top: 0.5rem;">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+
+                                    <p style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_newRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></p>
+
+                                    <button type="submit" class="btn btn-primary" style="display: inline-block; margin: 8px 0;">
+                                        <span class="oi oi-check"></span>Save
+                                    </button>
+
+                                    <button @onclick="OnCreateNewRulesetCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 8px 0;" title="Cancel creating new team">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
+
+                                    <p style="margin: 8px 0; font-size: 0.9rem;">Open Team On Save? <InputCheckbox id="openNewTeamOnSave" @bind-Value="_openNewRulesetOnSave" />@($"{(_openNewRulesetOnSave ? " Yes" : " No")}")</p>
+
+                                </EditForm>
+                            @*</div>
+                        </div>
+                    </div>*@
+                }
+                else
+                {
+                    <button class="btn btn-outline-primary" @onclick="ToggleCreateNewRulesetFormVisibility" style="display: inline-block; margin: 12px 0 16px 0; font-size: small;">
+                        <span class="oi oi-plus"></span>Create New
+                    </button>
+                }
+
+
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
                         <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
@@ -123,17 +163,17 @@
                 }
 
                 @*
-                    <p>@_storeRulesetList.Count()</p>
-                    <p>Search Terms: @_debug</p>
-                    @foreach (var term in _searchFilter.SearchTermsList)
-                    {
-                        <p style="margin: 0;">@term</p>
-                    }
-                    <p>Is Filtered: @_isFilteredResults</p>
-                    <p>Is Default: @_searchFilter.IsDefaultFilter</p>
+        <p>@_storeRulesetList.Count()</p>
+        <p>Search Terms: @_debug</p>
+        @foreach (var term in _searchFilter.SearchTermsList)
+        {
+            <p style="margin: 0;">@term</p>
+        }
+        <p>Is Filtered: @_isFilteredResults</p>
+        <p>Is Default: @_searchFilter.IsDefaultFilter</p>
 
-                    <p>Start: @(_searchFilter.SearchStartDate.ToString())</p>
-                    <p>  End: @(_searchFilter.SearchEndDate.ToString())</p>
+        <p>Start: @(_searchFilter.SearchStartDate.ToString())</p>
+        <p>  End: @(_searchFilter.SearchEndDate.ToString())</p>
                 *@
             </div>
 
@@ -162,6 +202,14 @@
     private bool _isLoadingRulesetList { get; set; } = true;
 
     private CancellationTokenSource ctsRulesets;
+
+    #region New Ruleset Form
+    private Ruleset _newRuleset { get; set; } = new Ruleset();
+
+    private bool _showNewRulesetForm { get; set; } = false;
+    private bool _openNewRulesetOnSave { get; set; } = true;
+
+    #endregion New Ruleset Form
 
     private string _debug { get; set; } = string.Empty;
 
@@ -268,6 +316,59 @@
     private async void OnSetActiveClick(int rulesetId)
     {
 
+    }
+
+    private async void OnCreateNewRulesetSubmit()
+    {
+        var newRuleset = _newRuleset;
+
+        if (string.IsNullOrWhiteSpace(newRuleset.Name))
+        {
+            return;
+        }
+
+        //Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        //if (!nameRegex.Match(newTeam.Name).Success)
+        //{
+        //    return;
+        //}
+
+        //Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        //if (!aliasRegex.Match(newTeam.Alias).Success)
+        //{
+        //    return;
+        //}
+
+        var newRulesetEntity = await RulesetDataService.CreateRulesetAsync(newRuleset);
+
+        _newRuleset = new Ruleset();
+
+        _showNewRulesetForm = false;
+
+        if (_openNewRulesetOnSave && newRulesetEntity != null)
+        {
+            //HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
+        }
+        else
+        {
+            await LoadRulesetListAsync();
+        }
+
+        //_storeRulesetList = await TeamService.GetConstructedTeams(true);
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnCreateNewRulesetCancel()
+    {
+        _newRuleset = new Ruleset();
+
+        _showNewRulesetForm = false;
+    }
+
+    private void ToggleCreateNewRulesetFormVisibility()
+    {
+        _showNewRulesetForm = !_showNewRulesetForm;
     }
     #endregion Form Controls
 
