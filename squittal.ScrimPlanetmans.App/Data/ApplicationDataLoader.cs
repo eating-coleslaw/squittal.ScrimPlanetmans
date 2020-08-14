@@ -57,7 +57,7 @@ namespace squittal.ScrimPlanetmans.Data
 
             await Task.WhenAll(TaskList);
 
-            await _matchScorer.SetActiveRuleset();
+            await _matchScorer.SetActiveRulesetAsync();
         }
 
         public async Task OnApplicationShutdown(CancellationToken cancellationToken)

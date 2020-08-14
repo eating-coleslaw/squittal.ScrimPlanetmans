@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         //int ScoreGainExperienceEvent(GainExperience expGain);
         void HandlePlayerLogin(PlayerLogin login);
         void HandlePlayerLogout(PlayerLogout login);
-        Task SetActiveRuleset();
+        Task SetActiveRulesetAsync();
         //int ScoreReviveEvent(ScrimReviveActionEvent revive);
         Task<int> ScoreReviveEvent(ScrimReviveActionEvent revive);
         //int ScoreAssistEvent(ScrimAssistActionEvent assist);

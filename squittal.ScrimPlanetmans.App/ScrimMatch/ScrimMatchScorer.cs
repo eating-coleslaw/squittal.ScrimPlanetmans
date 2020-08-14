@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System.Linq;
 using System.Threading.Tasks;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -22,11 +23,30 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _teamsManager = teamsManager;
             _messageService = messageService;
             _logger = logger;
+
+            _messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
+            _messageService.RaiseRulesetRuleChangeEvent += OnRulesetRuleChangeEvent;
+
         }
 
-        public async Task SetActiveRuleset()
+        private async void OnActiveRulesetChangeEvent(object sender, ActiveRulesetChangeEventArgs e)
         {
-            _activeRuleset = await _rulesets.GetActiveRuleset();
+            await SetActiveRulesetAsync();
+        }
+
+        private async void OnRulesetRuleChangeEvent(object sender, RulesetRuleChangeEventArgs e)
+        {
+            if (_activeRuleset.Id == e.Message.Ruleset.Id)
+            {
+                await SetActiveRulesetAsync();
+            }
+
+            // TODO: specific methods for only updating Rule Type that changed (Action Rules or Item Category Rules)
+        }
+
+        public async Task SetActiveRulesetAsync()
+        {
+            _activeRuleset = await _rulesets.GetActiveRulesetAsync();
         }
 
         #region Death Events

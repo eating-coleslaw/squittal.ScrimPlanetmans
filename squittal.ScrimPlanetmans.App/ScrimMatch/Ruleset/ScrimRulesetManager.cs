@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.Data;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.Rulesets;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,22 +20,36 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemCategoryService _itemCategoryService;
         private readonly IRulesetDataService _rulesetDataService;
+        private readonly IScrimMessageBroadcastService _messageService;
         public ILogger<ScrimRulesetManager> _logger;
 
         private Ruleset ActiveRuleset { get; set; }
 
         private readonly int _defaultRulesetId = 1;
 
+        //public event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
+        //public delegate void ActiveRulesetChangeMessageEventHandler(object sender, ActiveRulesetChangeEventArgs e);
 
-        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IRulesetDataService rulesetDataService, ILogger<ScrimRulesetManager> logger)
+
+        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
         {
             _dbContextHelper = dbContextHelper;
             _itemCategoryService = itemCategoryService;
             _rulesetDataService = rulesetDataService;
+            _messageService = messageService;
             _logger = logger;
         }
 
-        public async Task<Ruleset> GetActiveRuleset(bool forceRefresh = false)
+        //public void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message)
+        //{
+        //    OnRaiseActiveRulesetChangeEvent(new ActiveRulesetChangeEventArgs(message));
+        //}
+        //protected virtual void OnRaiseActiveRulesetChangeEvent(ActiveRulesetChangeEventArgs e)
+        //{
+        //    RaiseActiveRulesetChangeEvent?.Invoke(this, e);
+        //}
+
+        public async Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false)
         {
             if (ActiveRuleset == null)
             {
@@ -92,6 +108,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ActiveRuleset = newActiveRuleset;
             //ActiveRuleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
             //ActiveRuleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+
+            var message = new ActiveRulesetChangeMessage(ActiveRuleset, currentActiveRuleset);
+            _messageService.BroadcastActiveRulesetChangeMessage(message);
 
             return ActiveRuleset;
         }

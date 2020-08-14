@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +16,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
     public class RulesetDataService : IRulesetDataService
     {
         private readonly IDbContextHelper _dbContextHelper;
+        private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<RulesetDataService> _logger;
 
         private readonly int _rulesetBrowserPageSize = 15;
@@ -24,9 +27,10 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
 
-        public RulesetDataService(IDbContextHelper dbContextHelper, ILogger<RulesetDataService> logger)
+        public RulesetDataService(IDbContextHelper dbContextHelper, IScrimMessageBroadcastService messageService, ILogger<RulesetDataService> logger)
         {
             _dbContextHelper = dbContextHelper;
+            _messageService = messageService;
             _logger = logger;
         }
         
@@ -210,6 +214,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     }
 
                     await dbContext.SaveChangesAsync();
+
+                    var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ActionRule);
+                    _messageService.BroadcastRulesetRuleChangeMessage(message);
                 }
                 catch (Exception ex)
                 {
@@ -310,6 +317,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     }
 
                     await dbContext.SaveChangesAsync();
+
+                    var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
+                    _messageService.BroadcastRulesetRuleChangeMessage(message);
                 }
                 catch (Exception ex)
                 {
