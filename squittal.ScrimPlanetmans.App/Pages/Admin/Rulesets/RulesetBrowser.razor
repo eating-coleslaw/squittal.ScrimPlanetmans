@@ -55,12 +55,12 @@
                                     
                                     <div style="text-align: right; margin-top: 12px;">
                                         
-                                        <button @onclick="OnCreateNewRulesetCancel" class="btn btn-outline-primary" style="display: inline-block; margin: 0; width: 85px;" title="Cancel creating new ruleset">
-                                            <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                        </button>
-
-                                        <button type="submit" class="btn btn-primary" style="display: inline-block; margin:0 0 0 8px; width: 85px;" title="Create new ruleset">
+                                        <button type="submit" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Create new ruleset">
                                             <span class="oi oi-check"></span>Save
+                                        </button>
+                                        
+                                        <button @onclick="OnCreateNewRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel creating new ruleset">
+                                            <span class="oi oi-x" style="top: 0;"></span>Cancel
                                         </button>
 
                                     </div>
@@ -73,7 +73,7 @@
                 else
                 {
                     <button class="btn btn-outline-primary" @onclick="ToggleCreateNewRulesetFormVisibility" style="display: inline-block; margin: 4px 0 24px 0; font-size: small;">
-                        <span class="oi oi-plus"></span>Create New
+                        <span class="oi oi-plus"></span>New Ruleset
                     </button>
                 }
 
