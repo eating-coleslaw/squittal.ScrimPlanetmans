@@ -55,7 +55,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return await GetDefaultRuleset();
             }
-            else if (forceRefresh || !ActiveRuleset.RulesetActionRules.Any() || !ActiveRuleset.RulesetItemCategoryRules.Any())
+            else if (forceRefresh || ActiveRuleset.RulesetActionRules == null || !ActiveRuleset.RulesetActionRules.Any() || ActiveRuleset.RulesetItemCategoryRules == null || !ActiveRuleset.RulesetItemCategoryRules.Any())
             {
                 await SetupActiveRuleset();
                 return ActiveRuleset;

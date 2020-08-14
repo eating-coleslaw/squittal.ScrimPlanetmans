@@ -25,18 +25,46 @@
         <h5>Scrim Action Rules</h5>
     }
 
-    @if (_isLoadingRules)
+    @if (_isLoadingRules || _isSavingRules)
     {
         <SpinnerEllipsis />
     }
     else
     {
-        <div class="sq-content">
-            @if (_actionRules != null && _actionRules.Any())
-            {
-                <EditForm Model="@_actionRules" style="" OnValidSubmit="OnSaveScrimActionRulesEditSubmit">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
+        @if (_actionRules != null && _actionRules.Any())
+        {
+            <EditForm Model="@_actionRules" OnValidSubmit="(() => OnSaveScrimActionRulesEditSubmit(false))" style="margin-top: 8px;">
+                <DataAnnotationsValidator />
+                @*<ValidationSummary />*@
+            
+                <div class="sq-content">
+                        
+                    @if (_changesCount > 0 && !_isClearingRules)
+                    {
+                        <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimActionRulesEditSubmit(true))">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+
+                        <button type="button" title="Reset changes to original values"class="btn btn-outline-primary" @onclick="OnClearRuleChanges">
+                            <span class="oi oi-x" style="top: 0px;"></span>Clear
+                        </button>
+                    }
+                    else
+                    {
+                        <button title="There are no changes to save" disabled class="btn btn-primary disabled">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+                    }
+
+                    <div class="tabbed-button-container" style="">
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Objective)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Objective))">Objective</button>
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Support)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Support))">Support</button>
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Infantry)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Infantry))">Infantry</button>
+                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.MAX)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.MAX))">MAX</button>
+                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Vehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Vehicle))">Vehicle</button>
+                        @*<button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.GroundVehicle))">Ground</button>
+                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.AirVehicle))">Air</button>*@
+                    </div>
 
                     <table class="table-responsive-sm table-striped-light default">
                         <thead style="font-family: Roboto, 'Segoe UI', sans-serif;">
@@ -51,7 +79,7 @@
                         <tbody>
                             @foreach (var actionRule in _actionRules)
                             {
-                                @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
+                                @if (CanShowActionRuleInSelectedDomain(actionRule))
                                 {
                                     <tr>
                                         <td style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
@@ -71,13 +99,13 @@
                             }
                         </tbody>
                     </table>
-                </EditForm>
-            }
-            else
-            {
-                <p>No scrim action rules...</p>
-            }
-        </div>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <p>No scrim action rules...</p>
+        }
     }
 </div>
 
@@ -90,6 +118,8 @@
     private IEnumerable<RulesetActionRule> _actionRules { get; set; }
 
     bool _isLoadingRules { get; set; } = false;
+    bool _isSavingRules { get; set; } = false;
+    bool _isClearingRules { get; set; } = false;
 
     private CancellationTokenSource cts;
 
@@ -98,6 +128,8 @@
     private ConcurrentDictionary<ScrimActionType, bool> _originalRuleDefers { get; set; } = new ConcurrentDictionary<ScrimActionType, bool>();
 
     private int _changesCount { get; set; } = 0;
+
+    private ScrimActionTypeDomain _selectedDomainView { get; set; } = ScrimActionTypeDomain.Objective;
 
     private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
 {
@@ -252,12 +284,101 @@
 
     #endregion Event Handling
 
-    #region Form Handling
-    private async void OnSaveScrimActionRulesEditSubmit()
+    #region Form & UI Handling
+    private async void OnSaveScrimActionRulesEditSubmit(bool isManualClick)
     {
-        await Task.CompletedTask;
+        if (!isManualClick)
+        {
+            return;
+        }
+
+        if (_changedRules.Any())
+        {
+            _isSavingRules = true;
+            InvokeAsyncStateHasChanged();
+
+            await RulesetDataService.SaveRulesetActionRules(_renderedRulesetId, _changedRules.Values.AsEnumerable());
+
+            foreach (var idRulePair in _changedRules)
+            {
+                _actionRules.Where(r => r.ScrimActionType == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
+                _actionRules.Where(r => r.ScrimActionType == idRulePair.Key).FirstOrDefault().DeferToItemCategoryRules = idRulePair.Value.DeferToItemCategoryRules;
+
+            }
+
+            _originalRulePoints.Clear();
+            _changedRules.Clear();
+            _changesCount = 0;
+
+            _isSavingRules = false;
+
+            InvokeAsyncStateHasChanged();
+        }
     }
-    #endregion Form Handling
+
+    private void OnClearRuleChanges()
+    {
+        if (!_changedRules.Any() || !_actionRules.Any())
+        {
+            return;
+        }
+
+        _isClearingRules = true;
+        //InvokeAsyncStateHasChanged();
+
+        foreach (var idPointsPair in _originalRulePoints)
+        {
+            _actionRules.Where(r => r.ScrimActionType == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
+        }
+
+        foreach (var idDeferPair in _originalRuleDefers)
+        {
+            _actionRules.Where(r => r.ScrimActionType == idDeferPair.Key).FirstOrDefault().DeferToItemCategoryRules = idDeferPair.Value;
+        }
+
+        _originalRulePoints.Clear();
+        _changedRules.Clear();
+        _changesCount = 0;
+
+        _isClearingRules = false;
+        //InvokeAsyncStateHasChanged();
+
+    }
+
+    private string GetViewTabStyle(ScrimActionTypeDomain thisView)
+    {
+        if (_selectedDomainView == thisView)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    private void OnSelectNewView(ScrimActionTypeDomain newView)
+    {
+        if (newView != _selectedDomainView)
+        {
+            _selectedDomainView = newView;
+        }
+    }
+
+    private bool CanShowActionRuleInSelectedDomain(RulesetActionRule rule)
+    {
+        if (_selectedDomainView == ScrimActionTypeDomain.Vehicle)
+        {
+            return (rule.ScrimActionTypeDomain == ScrimActionTypeDomain.Vehicle
+                        || rule.ScrimActionTypeDomain == ScrimActionTypeDomain.AirVehicle
+                        || rule.ScrimActionTypeDomain == ScrimActionTypeDomain.GroundVehicle) ? true : false;
+        }
+        else
+        {
+            return _selectedDomainView == rule.ScrimActionTypeDomain;
+        }
+    }
+    #endregion Form & UI Handling
 
     private string GetActionRuleDescription(ScrimActionType actionType)
     {

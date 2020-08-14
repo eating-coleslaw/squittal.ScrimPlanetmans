@@ -88,9 +88,9 @@
                             <th style="font-weight: 300;">Name</th>
                             <th style="font-weight: 300;">Created</th>
                             <th style="font-weight: 300;">Edited</th>
-                            <th style="font-weight: 300;">Source File</th>
-                            <th style="font-weight: 300;">Author</th>
-                            <th style="font-weight: 300;">Description</th>
+                            @*<th style="font-weight: 300;">Source File</th>*@
+                            @*<th style="font-weight: 300;">Author</th>*@
+                            <th style="font-weight: 300;">Description</th>k
                             <th style="font-weight: 300;"></th>
                             <th style="font-weight: 300;"></th>
                             <th style="font-weight: 300;"></th>
@@ -109,9 +109,9 @@
                                     <td>@ruleset.Name</td>
                                     <td>@GetLocalizedDateString(ruleset.DateCreated)</td>
                                     <td>@(ruleset.DateLastModified != null ? GetLocalizedDateString((DateTime)ruleset.DateLastModified) : "--")</td>
-                                    <td>ruleset.SourceFile</td>
+                                    @*<td>ruleset.SourceFile</td>
                                     <td>ruleset.Author</td>
-                                    <td>ruleset.Description</td>
+                                    <td>ruleset.Description</td>*@
                                     <td>
                                         <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}") style="padding: 4px 8px;">View</NavLink>
                                     </td>

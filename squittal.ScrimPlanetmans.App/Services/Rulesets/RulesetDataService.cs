@@ -432,7 +432,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 RulesetId = rulesetId,
                 ScrimActionType = actionType,
                 Points = points,
-                DeferToItemCategoryRules = deferToItemCategoryRules
+                DeferToItemCategoryRules = deferToItemCategoryRules,
+                ScrimActionTypeDomain = ScrimAction.GetDomainFromActionType(actionType)
             };
         }
 
