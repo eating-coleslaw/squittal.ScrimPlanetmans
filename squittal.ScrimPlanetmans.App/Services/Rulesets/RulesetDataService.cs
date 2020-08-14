@@ -18,6 +18,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private readonly int _rulesetBrowserPageSize = 15;
 
+        private readonly int _defaultRulesetId = 1;
+
         private readonly KeyedSemaphoreSlim _rulesetLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
@@ -157,6 +159,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
          */
         public async Task SaveRulesetActionRules(int rulesetId, IEnumerable<RulesetActionRule> rules)
         {
+            if (rulesetId == _defaultRulesetId)
+            {
+                return;
+            }
+            
             using (await _actionRulesLock.WaitAsync($"{rulesetId}"))
             {
                 var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
@@ -193,6 +200,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     if (newEntities.Any())
                     {
                         dbContext.RulesetActionRules.AddRange(newEntities);
+                    }
+
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    if (storeRuleset != null)
+                    {
+                        storeRuleset.DateLastModified = DateTime.UtcNow;
+                        dbContext.Rulesets.Update(storeRuleset);
                     }
 
                     await dbContext.SaveChangesAsync();
@@ -245,51 +259,88 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
          */
         public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules)
         {
-            var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
-
-            if (!ruleUpdates.Any())
+            if (rulesetId == _defaultRulesetId)
             {
                 return;
             }
+
+            using (await _itemCategoryRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
+
+                if (!ruleUpdates.Any())
+                {
+                    return;
+                }
             
-            try
-            {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
-
-                var storeRules = await dbContext.RulesetItemCategoryRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
-
-                var newEntities = new List<RulesetItemCategoryRule>();
-
-                foreach (var rule in ruleUpdates)
+                try
                 {
-                    var storeEntity = storeRules.Where(r => r.ItemCategoryId == rule.ItemCategoryId).FirstOrDefault();
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
 
-                    if (storeEntity == null)
+                    var storeRules = await dbContext.RulesetItemCategoryRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+
+                    var newEntities = new List<RulesetItemCategoryRule>();
+
+                    foreach (var rule in ruleUpdates)
                     {
-                        newEntities.Add(rule);
+                        var storeEntity = storeRules.Where(r => r.ItemCategoryId == rule.ItemCategoryId).FirstOrDefault();
+
+                        if (storeEntity == null)
+                        {
+                            newEntities.Add(rule);
+                        }
+                        else
+                        {
+                            storeEntity = rule;
+                            dbContext.RulesetItemCategoryRules.Update(storeEntity);
+                        }
                     }
-                    else
+
+                    if (newEntities.Any())
                     {
-                        storeEntity = rule;
-                        dbContext.RulesetItemCategoryRules.Update(storeEntity);
+                        dbContext.RulesetItemCategoryRules.AddRange(newEntities);
                     }
+
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    if (storeRuleset != null)
+                    {
+                        storeRuleset.DateLastModified = DateTime.UtcNow;
+                        dbContext.Rulesets.Update(storeRuleset);
+                    }
+
+                    await dbContext.SaveChangesAsync();
                 }
-
-                if (newEntities.Any())
+                catch (Exception ex)
                 {
-                    dbContext.RulesetItemCategoryRules.AddRange(newEntities);
+                    _logger.LogError($"Error saving RulesetItemCategoryRule changes to database: {ex}");
                 }
-
-                await dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error saving RulesetItemCategoryRule changes to database: {ex}");
             }
         }
 
-        public async Task<Ruleset> CreateRulesetAsync(Ruleset ruleset)
+        public async Task<Ruleset> SaveNewRulesetAsync(Ruleset ruleset)
+        {
+            ruleset = await CreateRulesetAsync(ruleset);
+
+            if (ruleset == null)
+            {
+                return null;
+            }
+
+            var TaskList = new List<Task>();
+
+            var itemCategoryRulesTask = SeedNewRulesetDefaultItemCategoryRules(ruleset.Id);
+            TaskList.Add(itemCategoryRulesTask);
+
+            var actionRulesTask = SeedNewRulesetDefaultActionRules(ruleset.Id);
+            TaskList.Add(actionRulesTask);
+
+            await Task.WhenAll(TaskList);
+
+            return ruleset;
+        }
+
+        private async Task<Ruleset> CreateRulesetAsync(Ruleset ruleset)
         {
             if (!IsValidRulesetName(ruleset.Name))
             {
@@ -302,6 +353,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
+
+                    ruleset.DateCreated = DateTime.UtcNow;
 
                     dbContext.Rulesets.Add(ruleset);
 
@@ -318,6 +371,107 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     return null;
                 }
             }
+        }
+
+        /*
+         * Seed default RulesetItemCategoryRules for a newly created ruleset. Will not do anything if the ruleset
+         * already has any RulesetItemCategoryRules in the database.
+        */
+        private async Task SeedNewRulesetDefaultActionRules(int rulesetId)
+        {
+            using (await _actionRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeRulesCount = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).CountAsync();
+
+                    if (storeRulesCount > 0)
+                    {
+                        return;
+                    }
+
+                    var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+
+                    var defaultRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == defaultRulesetId).ToListAsync();
+
+                    if (defaultRules == null)
+                    {
+                        return;
+                    }
+
+                    dbContext.RulesetActionRules.AddRange(defaultRules.Select(r => BuildRulesetActionRule(rulesetId, r.ScrimActionType, r.Points, r.DeferToItemCategoryRules)));
+
+                    await dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return;
+                }
+            }
+        }
+
+        private RulesetActionRule BuildRulesetActionRule(int rulesetId, ScrimActionType actionType, int points = 0, bool deferToItemCategoryRules = false)
+        {
+            return new RulesetActionRule
+            {
+                RulesetId = rulesetId,
+                ScrimActionType = actionType,
+                Points = points,
+                DeferToItemCategoryRules = deferToItemCategoryRules
+            };
+        }
+
+        private async Task SeedNewRulesetDefaultItemCategoryRules(int rulesetId)
+        {
+            using (await _itemCategoryRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeRulesCount = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).CountAsync();
+
+                    if (storeRulesCount > 0)
+                    {
+                        return;
+                    }
+
+                    var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+
+                    var defaultRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == defaultRulesetId).ToListAsync();
+
+                    if (defaultRules == null)
+                    {
+                        return;
+                    }
+
+                    dbContext.RulesetItemCategoryRules.AddRange(defaultRules.Select(r => BuildRulesetItemCategoryRule(rulesetId, r.ItemCategoryId, r.Points)));
+
+                    await dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return;
+                }
+            }
+        }
+
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0)
+        {
+            return new RulesetItemCategoryRule
+            {
+                RulesetId = rulesetId,
+                ItemCategoryId = itemCategoryId,
+                Points = points
+            };
         }
 
         private bool IsValidRulesetName(string name)

@@ -106,9 +106,16 @@
                                     <td>
                                         <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}") style="padding: 4px 8px;">View</NavLink>
                                     </td>
-                                    <td>
-                                        <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
-                                    </td>
+                                    @if (ruleset.IsDefault)
+                                    {
+                                        <td></td>
+                                    }
+                                    else
+                                    {
+                                        <td>
+                                            <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
+                                        </td>
+                                    }
                                     <td>
                                         <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetActiveClick(ruleset.Id))">
                                             <span class="oi oi-target" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set Active
@@ -339,7 +346,7 @@
         //    return;
         //}
 
-        var newRulesetEntity = await RulesetDataService.CreateRulesetAsync(newRuleset);
+        var newRulesetEntity = await RulesetDataService.SaveNewRulesetAsync(newRuleset);
 
         _newRuleset = new Ruleset();
 
@@ -348,6 +355,7 @@
         if (_openNewRulesetOnSave && newRulesetEntity != null)
         {
             //HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
+            NavManager.NavigateTo($"/Ruleset/{newRulesetEntity.Id}?edit=true");
         }
         else
         {
