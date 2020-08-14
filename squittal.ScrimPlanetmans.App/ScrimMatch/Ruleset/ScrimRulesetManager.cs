@@ -415,7 +415,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 RulesetId = rulesetId,
                 ScrimActionType = actionType,
                 Points = points,
-                DeferToItemCategoryRules = deferToItemCategoryRules
+                DeferToItemCategoryRules = deferToItemCategoryRules,
+                ScrimActionTypeDomain = ScrimAction.GetDomainFromActionType(actionType)
             };
         }
 
@@ -425,7 +426,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 ScrimActionType = actionType,
                 Points = points,
-                DeferToItemCategoryRules = deferToItemCategoryRules
+                DeferToItemCategoryRules = deferToItemCategoryRules,
+                ScrimActionTypeDomain = ScrimAction.GetDomainFromActionType(actionType)
             };
         }
 
@@ -450,28 +452,27 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task SeedScrimActionModels()
         {
-            using (var factory = _dbContextHelper.GetFactory())
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var createdEntities = new List<ScrimAction>();
+
+            var allActionTypeValues = new List<ScrimActionType>();
+
+            var enumValues = (ScrimActionType[])Enum.GetValues(typeof(ScrimActionType));
+
+            allActionTypeValues.AddRange(enumValues);
+
+            var storeEntities = await dbContext.ScrimActions.ToListAsync();
+
+            allActionTypeValues.AddRange(storeEntities.Where(a => !allActionTypeValues.Contains(a.Action)).Select(a => a.Action).ToList());
+
+            allActionTypeValues.Distinct().ToList();
+
+            foreach (var value in allActionTypeValues)
             {
-                var dbContext = factory.GetDbContext();
-
-                var createdEntities = new List<ScrimAction>();
-
-                var allActionTypeValues = new List<ScrimActionType>();
-
-                var enumValues = (ScrimActionType[])Enum.GetValues(typeof(ScrimActionType));
-
-                allActionTypeValues.AddRange(enumValues);
-
-                var storeEntities = await dbContext.ScrimActions.ToListAsync();
-
-                allActionTypeValues.AddRange(storeEntities.Where(a => !allActionTypeValues.Contains(a.Action)).Select(a => a.Action).ToList());
-
-                allActionTypeValues.Distinct().ToList();
-
-                foreach (var value in allActionTypeValues)
+                try
                 {
-                    try
-                    {
 
                     var storeEntity = storeEntities.FirstOrDefault(e => e.Action == value);
                     var isValidEnum = enumValues.Any(enumValue => enumValue == value);
@@ -489,22 +490,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     {
                         dbContext.ScrimActions.Remove(storeEntity);
                     }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex.ToString());
-                    }
                 }
-
-                if (createdEntities.Any())
+                catch (Exception ex)
                 {
-                    await dbContext.ScrimActions.AddRangeAsync(createdEntities);
+                    _logger.LogError(ex.ToString());
                 }
-
-                await dbContext.SaveChangesAsync();
-
-                _logger.LogInformation($"Seeded Scrim Actions store");
             }
+
+            if (createdEntities.Any())
+            {
+                await dbContext.ScrimActions.AddRangeAsync(createdEntities);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            _logger.LogInformation($"Seeded Scrim Actions store");
         }
 
         private ScrimAction ConvertToDbModel(ScrimActionType value)
@@ -515,7 +515,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 Action = value,
                 Name = name,
-                Description = Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2")
+                Description = Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2"),
+                Domain = ScrimAction.GetDomainFromActionType(value)
             };
         }
 
