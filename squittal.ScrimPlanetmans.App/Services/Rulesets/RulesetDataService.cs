@@ -474,6 +474,50 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             };
         }
 
+        #region Ruleset Activation / Defaulting / Favoriting
+        /*
+        public async Task<Ruleset> ActivateRuleset(int rulesetId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+
+            //var newActiveRuleset = await dbContext.Rulesets
+            //                                        .Where(r => r.Id == rulesetId)
+            //                                        .Include()
+            //                                        .FirstOrDefaultAsync(r => r.Id == rulesetId);
+
+            var newActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(rulesetId, CancellationToken.None);
+
+            if (newActiveRuleset == null)
+            {
+                return null;
+            }
+
+            if (currentActiveRuleset != null && currentActiveRuleset.Id != rulesetId)
+            {
+                currentActiveRuleset.IsActive = false;
+                dbContext.Rulesets.Update(currentActiveRuleset);
+            }
+            else
+            {
+                newActiveRuleset.IsActive = true;
+                dbContext.Rulesets.Update(newActiveRuleset);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            ActiveRuleset = newActiveRuleset;
+            //ActiveRuleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+            //ActiveRuleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
+
+            return ActiveRuleset;
+        }
+        */
+
+        #endregion Ruleset Activation / Defaulting / Favoriting
+
         private bool IsValidRulesetName(string name)
         {
             return true;
