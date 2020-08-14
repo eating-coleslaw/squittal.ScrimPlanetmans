@@ -83,9 +83,9 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
 
             services.AddSingleton<IConstructedTeamService, ConstructedTeamService>();
+            services.AddSingleton<IRulesetDataService, RulesetDataService>();
 
             services.AddTransient<IScrimMatchReportDataService, ScrimMatchReportDataService>();
-            services.AddTransient<IRulesetDataService, RulesetDataService>();
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 
