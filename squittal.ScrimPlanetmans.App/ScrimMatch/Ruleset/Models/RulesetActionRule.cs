@@ -17,6 +17,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
 
         public Ruleset Ruleset { get; set; }
-        public ScrimAction ScrimAction { get; set; }
+        //public ScrimAction ScrimAction { get; set; }
     }
 }

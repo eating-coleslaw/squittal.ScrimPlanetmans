@@ -247,9 +247,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     var storeEntity = storeActionRules?.FirstOrDefault(r => r.ScrimActionType == actionType);
                     var defaultEntity = defaultActionRules.FirstOrDefault(r => r.ScrimActionType == actionType);
 
-                    var isValidAction = (storeEntity != null)
-                                            ? allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType)
-                                            : true;
+                    var isValidAction = storeEntity == null || allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType);
 
                     if (storeEntity == null)
                     {
@@ -267,11 +265,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     }
                     else if (isValidAction)
                     {
-                        storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
+                        //storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
 
                         if (defaultEntity != null)
                         {
+                            storeEntity.Points = defaultEntity.Points;
                             storeEntity.DeferToItemCategoryRules = defaultEntity.DeferToItemCategoryRules;
+                            storeEntity.ScrimActionTypeDomain = defaultEntity.ScrimActionTypeDomain;
+                        }
+                        else
+                        {
+                            storeEntity.Points = 0;
+                            storeEntity.ScrimActionTypeDomain = ScrimAction.GetDomainFromActionType(storeEntity.ScrimActionType);
                         }
 
                         dbContext.RulesetActionRules.Update(storeEntity);

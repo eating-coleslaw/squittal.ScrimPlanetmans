@@ -20,9 +20,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
                 .WithMany(ruleset => ruleset.RulesetActionRules)
                 .HasForeignKey(rule => rule.RulesetId);
 
-            builder.HasOne(rule => rule.ScrimAction)
-                .WithOne();
-
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.DeferToItemCategoryRules).HasDefaultValue(false);
             builder.Property(e => e.ScrimActionTypeDomain).HasDefaultValue(ScrimActionTypeDomain.Default);
