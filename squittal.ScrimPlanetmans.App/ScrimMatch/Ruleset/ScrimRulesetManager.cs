@@ -37,6 +37,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _logger = logger;
         }
 
+        public async Task<IEnumerable<Ruleset>> GetRulesetsAsync(CancellationToken cancellationToken)
+        {
+            return await _rulesetDataService.GetAllRulesetsAsync(cancellationToken);
+        }
+
         public async Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false)
         {
             if (ActiveRuleset == null)
