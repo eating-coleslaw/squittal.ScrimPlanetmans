@@ -13,6 +13,7 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.Services.Planetside;
+@using System.Threading;
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
@@ -23,6 +24,7 @@
 @inject IFacilityService FacilityService
 @inject IZoneService ZoneService
 @inject IWorldService WorldService
+@inject IScrimRulesetManager RulesetManager
 
 @implements IDisposable
 
@@ -46,6 +48,11 @@
         <div class="col-lg-4">
 
             <div class="header-card-container default">
+                <p style="padding: 2px;">RulesetID: @_debug</p>
+                <p style="padding: 2px;">Selected?: @(_selectedRuleset != null)</p>
+                <p style="padding: 2px;">Rulesets?: @(_rulesets != null && _rulesets.Any())</p>
+                <p style="padding: 2px;">Clearing?: @_isClearingMatch</p>
+                
                 <div style="display: grid; grid-template-columns: 1fr 115px;">
                     <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
                     <div class="mono-font" style="font-size: 18px; text-align: right;">
@@ -54,13 +61,13 @@
                 </div>
 
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
-                @if (_isResettingRound || _isClearingMatch || _isStartingRound)
+                @if (_isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset)
                 {
                     <span class="thin">
                         <SpinnerEllipsis />
                     </span>
                 }
-                else if (_matchState == MatchState.Uninitialized && _currentRound == 0)
+                else if (_matchState == MatchState.Uninitialized && _currentRound == 0 && !_isChangingRuleset)
                 {
                     <button class="btn btn-primary" @onclick="StartMatch">
                         <span class="oi oi-media-play"></span>Start Match
@@ -115,8 +122,33 @@
                     </button>
                 }
 
-                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isResettingRound || _isClearingMatch || _isStartingRound))
+                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isLoadingRulesets))
                 {
+                    @if (_currentRound == 0 && _rulesets != null && _rulesets.Any() && _selectedRuleset != null)
+                    {
+                        <EditForm Model="@_inputSelectRulesetStringId" style="display: inline-block;">
+                            @*OnValidSubmit="HandleAddConstructedTeamFactionSubmit" >*@
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div style="margin-bottom: 0.2rem; display: inline-block;">
+                                @*<p style="margin-bottom: 0.2rem;">Ruleset: </p>*@
+
+                                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.ConstructedTeamStringId>*@
+                                Ruleset: <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputSelectRulesetStringId" ValueChanged="@((string s) => OnChangeRulesetSelection(s))" ValueExpression="@(() => _inputSelectRulesetStringId)">
+                                    @*<option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>*@
+
+                                    <option value=@_selectedRuleset.Id.ToString() label="@($"{_selectedRuleset.Name} [{_selectedRuleset.Id}]")">@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</option>
+
+                                    @foreach (var ruleset in _rulesets.Where(r => r.Id != _selectedRuleset.Id))
+                                    {
+                                        <option value=@ruleset.Id.ToString() label="@($"{ruleset.Name} [{ruleset.Id}]")">@ruleset.Name [@ruleset.Id.ToString()]</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </EditForm>
+                    }
+
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
                         <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" /></p>
@@ -125,26 +157,33 @@
                         <div style="margin-bottom: 0.2rem;">
                             <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
 
-                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
-                                @foreach (var world in _worlds)
-                                {
-                                    <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
-                                }
-                            </InputSelect>
 
-                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
-                                <option value=@_noFacilitIdValue>No Base</option>
-
-                                @foreach (var zone in _mapZones)
+                            @if (_worlds != null)
+                            {
+                                <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
+                                    @foreach (var world in _worlds)
                                     {
-                                    <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
-
-                                    @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                        {
-                                        <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                        }
+                                        <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
                                     }
-                            </InputSelect>
+                                </InputSelect>
+                            }
+
+                            @if (_mapZones != null && _mapRegions != null)
+                            {
+                                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
+                                    <option value=@_noFacilitIdValue>No Base</option>
+
+                                    @foreach (var zone in _mapZones)
+                                            {
+                                        <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                                        @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                                {
+                                            <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                                }
+                                            }
+                                </InputSelect>
+                            }
                         </div>
 
                         <p style="margin-bottom: 0.2rem;">End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture" />@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
@@ -176,6 +215,22 @@
     private string _roundSecondsInput = string.Empty;
     private MatchConfiguration _matchConfiguration { get; set; }
 
+    #region Ruleset Select List Variables
+    private IEnumerable<Ruleset> _rulesets { get; set; }
+
+    private Ruleset _inputSelectRuleset { get; set; }
+
+    private string _inputSelectRulesetStringId { get; set; } = "1";
+
+    private Ruleset _activeRuleset { get; set; }
+    private Ruleset _selectedRuleset { get; set; }
+
+    private bool _isLoadingRulesets { get; set; } = false;
+    private bool _isChangingRuleset { get; set; } = false;
+
+    private string _debug = string.Empty;
+    #endregion Ruleset Select List Variables
+
     #region Facility & World Select List Variables
     private IEnumerable<MapRegion> _mapRegions { get; set; }
     private List<int> _mapZones { get; set; } = new List<int>();
@@ -201,25 +256,48 @@
     private string _matchId = string.Empty;
 
     #region Initialization Methods
-    protected override async Task OnInitializedAsync()
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    await GetCensusStreamStatus();
+
+    //    await SetUpRulesetsAsync();
+
+    //    _zones = await ZoneService.GetAllZones();
+
+    //    var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+    //    _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+    //    _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+    //    var worlds = await WorldService.GetAllWorldsAsync();
+    //    _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+    //}
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await GetCensusStreamStatus();
+        if (firstRender)
+        {
+            await GetCensusStreamStatus();
 
-        _zones = await ZoneService.GetAllZones();
+            await SetUpRulesetsAsync();
 
-        var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-        _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+            _zones = await ZoneService.GetAllZones();
 
-        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+            _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
 
-        var worlds = await WorldService.GetAllWorldsAsync();
-        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+
+            var worlds = await WorldService.GetAllWorldsAsync();
+            _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+        }
     }
 
     protected override void OnInitialized()
     {
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
+        //MessageService.RaiseActiveRulesetChangeEvent += ReceiveActiveRulesetChangeMessageEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
@@ -240,6 +318,29 @@
     {
         MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateMessageEvent;
+    }
+
+    private async Task SetUpRulesetsAsync()
+    {
+        _isLoadingRulesets = true;
+        InvokeAsyncStateHasChanged();
+
+        _rulesets = await RulesetManager.GetRulesetsAsync(CancellationToken.None);
+
+        if (_rulesets.Any())
+        {
+            //_isLoadingRulesets = false;
+            //InvokeAsyncStateHasChanged();
+            //return;
+            _activeRuleset = _rulesets.Where(r => r.IsActive).FirstOrDefault();
+            _selectedRuleset = _activeRuleset;
+            _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
+        }
+
+        //_inputSelectRuleset = _activeRuleset;
+
+        _isLoadingRulesets = false;
+        InvokeAsyncStateHasChanged();
     }
     #endregion Initialization Methods
 
@@ -281,10 +382,11 @@
 
         _isStartingRound = true;
 
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        //await InvokeAsync(() =>
+        //{
+        //    StateHasChanged();
+        //});
+        InvokeAsyncStateHasChanged();
 
         SubscribeToCensus();
 
@@ -299,10 +401,11 @@
 
         _isStartingRound = false;
 
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        //await InvokeAsync(() =>
+        //{
+        //    StateHasChanged();
+        //});
+        InvokeAsyncStateHasChanged();
     }
 
     private async void EndRound()
@@ -317,10 +420,11 @@
 
             _isDeleteDataEnabled = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -336,10 +440,11 @@
 
             _isDeleteDataEnabled = false;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            //InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -355,26 +460,46 @@
 
             _isDeleteDataEnabled = false;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            //InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+            InvokeAsyncStateHasChanged();
         }
     }
 
     private async void ClearMatch()
     {
+        //if (_isClearingMatch)
+        //{
+        //    return;
+        //}
+
+        //_isClearingMatch = true;
+        //StateHasChanged();
+        //InvokeAsyncStateHasChanged();
+
+        //await InvokeAsync(() =>
+        //{
+        //    StateHasChanged();
+        //});
+
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound && !_isClearingMatch)
+        //if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound)
         {
             _isClearingMatch = true;
             _isDeleteDataEnabled = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
 
-            await ScrimMatchEngine.ClearMatch();
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+
+            await Task.Run(() => ScrimMatchEngine.ClearMatch());
+
+            //await ScrimMatchEngine.ClearMatch();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -384,24 +509,40 @@
 
             _isClearingMatch = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+            InvokeAsyncStateHasChanged();
+        }
+        else
+        {
+            _isClearingMatch = false;
+            InvokeAsyncStateHasChanged();
         }
     }
 
     private async void ResetRound()
     {
-        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isResettingRound && !_isClearingMatch)
+        if (_isResettingRound)
+        {
+            return;
+        }
+
+        _isResettingRound = true;
+        InvokeAsyncStateHasChanged();
+
+        //if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isResettingRound && !_isClearingMatch)
+        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isClearingMatch)
         {
             _isResettingRound = true;
             _isDeleteDataEnabled = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+            InvokeAsyncStateHasChanged();
 
             await ScrimMatchEngine.ResetRound();
 
@@ -411,10 +552,16 @@
 
             _isResettingRound = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            //await InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
+            InvokeAsyncStateHasChanged();
+        }
+        else
+        {
+            _isResettingRound = false;
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -463,6 +610,66 @@
 
     #endregion
 
+    #region Ruleset Form Controls
+    private async void OnChangeRulesetSelection(string rulesetStringId)
+    {
+        _isChangingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        _debug = rulesetStringId;
+
+        if (!int.TryParse(rulesetStringId, out var rulesetId))
+        {
+            _debug = $"{rulesetStringId} - failed to parse";
+
+            _isChangingRuleset = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
+        //var newSelectedRuleset = _rulesets.Where(r => r.Id == rulesetId).FirstOrDefault();
+
+        //if (newSelectedRuleset == null)
+        //{
+        //    _isChangingRuleset = false;
+        //    InvokeAsyncStateHasChanged();
+        //    return;
+        //}
+
+        //_selectedRuleset = newSelectedRuleset;
+        //_inputSelectRulesetStringId = _selectedRuleset.Id.ToString();
+
+        //if (_selectedRuleset.Id == _activeRuleset.Id)
+        //{
+        //    _isChangingRuleset = false;
+        //    InvokeAsyncStateHasChanged();
+        //    return;
+        //}
+
+        var newActiveRuleset = await RulesetManager.ActivateRulesetAsync(rulesetId);
+
+        if (newActiveRuleset == null || newActiveRuleset.Id == _activeRuleset.Id)
+        {
+            _debug = $"{rulesetId} - no new active ruleset";
+
+            _isChangingRuleset = false;
+            return;
+        }
+
+        _activeRuleset = newActiveRuleset;
+        _selectedRuleset = newActiveRuleset;
+        _inputSelectRulesetStringId = newActiveRuleset.Id.ToString();
+
+        _debug = $"{_inputSelectRulesetStringId} - new selected ruleset ID";
+
+        await SetUpRulesetsAsync();
+
+        _isChangingRuleset = false;
+        InvokeAsyncStateHasChanged();
+
+    }
+    #endregion Ruleset Form Controls
+
     #region Log Messages
     private void LogAdminMessage(string message)
     {
@@ -478,7 +685,15 @@
 
     private void SetWebsocketConnectionErrorMessage()
     {
-            _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket";
+        _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket";
     }
     #endregion Error Messages
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 }

@@ -350,7 +350,7 @@
         _isActivatingRuleset = true;
         //InvokeAsyncStateHasChanged();
 
-        await RulesetManager.ActivateRuleset(rulesetId);
+        await RulesetManager.ActivateRulesetAsync(rulesetId);
 
         await LoadRulesetListAsync();
 

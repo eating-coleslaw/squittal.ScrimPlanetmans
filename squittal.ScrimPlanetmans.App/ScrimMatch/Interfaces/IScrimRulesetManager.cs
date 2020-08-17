@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false);
         Task<Ruleset> GetDefaultRuleset();
 
-        Task<Ruleset> ActivateRuleset(int rulesetId);
+        Task<Ruleset> ActivateRulesetAsync(int rulesetId);
         Task SetupActiveRuleset();
 
         Task SeedDefaultRuleset();
