@@ -43,7 +43,7 @@
                                 Team Creation Form
                             </h5>*@
 
-                            <div class="sq-content"style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray);">
+                            <div class="sq-content"style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
                                 
                                 <div style="font-weight: 500; font-size: 1rem; margin-bottom: 8px;">New Ruleset</div>
                                 
@@ -51,16 +51,17 @@
                                     <DataAnnotationsValidator />
                                     <ValidationSummary />
 
-                                    <div style="margin-bottom: 0.5rem;"><span style="width: 55px; display: inline-block;">Name:</span><InputText id="inputTeamName" @bind-Value=@_newRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></div>
+                                    <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText id="inputRulesetName" @bind-Value=@_newRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_]$" style="display: inline-block; width: 248px;" /></div>
+                                    <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1"  type="text" @bind-Value=@_newRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
 
-                                    <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="margin-left: 55px; position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>@*@($"{(_openNewRulesetOnSave ? " Yes" : " No")}")*@
-                                    
+                                    <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>@*@($"{(_openNewRulesetOnSave ? " Yes" : " No")}")*@
+
                                     <div style="text-align: right; margin-top: 12px;">
-                                        
+
                                         <button type="submit" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Create new ruleset">
                                             <span class="oi oi-check"></span>Save
                                         </button>
-                                        
+
                                         <button @onclick="OnCreateNewRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel creating new ruleset">
                                             <span class="oi oi-x" style="top: 0;"></span>Cancel
                                         </button>
