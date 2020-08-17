@@ -6,6 +6,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<RulesetDataService> _logger;
+
+        private ConcurrentDictionary<int, Ruleset> RulesetsMap { get; set; } = new ConcurrentDictionary<int, Ruleset>();
 
         private readonly int _rulesetBrowserPageSize = 15;
 
@@ -33,7 +36,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             _messageService = messageService;
             _logger = logger;
         }
-        
+
+        #region GET methods
         public async Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken)
         {
             try
@@ -76,6 +80,21 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 return null;
             }
+        }
+        
+        public  async Task<IEnumerable<Ruleset>> GetAllRulesetsAsync(CancellationToken cancellationToken)
+        {
+            if (RulesetsMap.Count == 0 || !RulesetsMap.Any())
+            {
+                await SetUpRulesetsMapAsync(cancellationToken);
+            }
+
+            if (RulesetsMap  == null || !RulesetsMap.Any())
+            {
+                return null;
+            }
+
+            return RulesetsMap.Values.AsEnumerable();
         }
 
         public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true)
@@ -158,6 +177,45 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        public async Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetItemCategoryRules
+                                               .Where(r => r.RulesetId == rulesetId)
+                                               .Include("ItemCategory")
+                                               .OrderBy(r => r.ItemCategory.Domain)
+                                               .ThenBy(r => r.ItemCategory.Name)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetItemCategoryRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetItemCategoryRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+        #endregion GET methods
+
+
+        #region SAVE / UPDATE methods
         /*
          * Upsert New or Modified RulesetActionRules for a specific ruleset.
          */
@@ -222,42 +280,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     _logger.LogError($"Error saving RulesetActionRule changes to database: {ex}");
                 }
-            }
-        }
-
-        public async Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesAsync(int rulesetId, CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
-
-                var rules = await dbContext.RulesetItemCategoryRules
-                                               .Where(r => r.RulesetId == rulesetId)
-                                               .Include("ItemCategory")
-                                               .OrderBy(r => r.ItemCategory.Domain)
-                                               .ThenBy(r => r.ItemCategory.Name)
-                                               .ToListAsync(cancellationToken);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                return rules;
-            }
-            catch (TaskCanceledException)
-            {
-                _logger.LogInformation($"Task Request cancelled: GetRulesetItemCategoryRulesAsync rulesetId {rulesetId}");
-                return null;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation($"Request cancelled: GetRulesetItemCategoryRulesAsync rulesetId {rulesetId}");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"{ex}");
-
-                return null;
             }
         }
 
@@ -484,8 +506,44 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 Points = points
             };
         }
+        #endregion SAVE / UPDATE methods
 
         #region Ruleset Activation / Defaulting / Favoriting
+
+        #region Helper Methods
+        private async Task SetUpRulesetsMapAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rulesets = await dbContext.Rulesets.ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var newMap = new ConcurrentDictionary<int, Ruleset>();
+
+                foreach (var rulesetId in RulesetsMap.Keys)
+                {
+                    if (!rulesets.Any(t => t.Id == rulesetId))
+                    {
+                        RulesetsMap.TryRemove(rulesetId, out var removeRuleset);
+                    }
+                }
+
+                foreach (var ruleset in rulesets)
+                {
+                    RulesetsMap.AddOrUpdate(ruleset.Id, ruleset, (key, oldValue) => ruleset);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed setting up RulesetsMap: {ex}");
+            }
+        }
+        #endregion Helper Methods
+
         /*
         public async Task<Ruleset> ActivateRuleset(int rulesetId)
         {
