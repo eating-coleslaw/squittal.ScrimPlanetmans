@@ -61,7 +61,7 @@
                 </div>
 
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
-                @if (_isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset)
+                @if (_isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isEndingRound)
                 {
                     <span class="thin">
                         <SpinnerEllipsis />
@@ -247,6 +247,8 @@
     private bool _isStartingRound { get; set; } = false;
     private bool _isClearingMatch { get; set; } = false;
     private bool _isResettingRound { get; set; } = false;
+    private bool _isEndingRound { get; set; } = false;
+
     private bool _isDeleteDataEnabled { get; set; } = false;
 
     private bool _isRunning = false;
@@ -391,7 +393,9 @@
         SubscribeToCensus();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
-        await ScrimMatchEngine.Start();
+
+        await Task.Run(() => ScrimMatchEngine.Start());
+        //await ScrimMatchEngine.Start();
 
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -410,9 +414,13 @@
 
     private async void EndRound()
     {
-        if (ScrimMatchEngine.GetMatchState() == MatchState.Running)
+        if (ScrimMatchEngine.GetMatchState() == MatchState.Running && !_isEndingRound)
         {
-            await ScrimMatchEngine.EndRound();
+            _isEndingRound = true;
+            InvokeAsyncStateHasChanged();
+
+            await Task.Run(() => ScrimMatchEngine.EndRound());
+            //await ScrimMatchEngine.EndRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -424,6 +432,8 @@
             //{
             //    StateHasChanged();
             //});
+
+            _isEndingRound = false;
             InvokeAsyncStateHasChanged();
         }
     }
@@ -544,7 +554,8 @@
             //});
             InvokeAsyncStateHasChanged();
 
-            await ScrimMatchEngine.ResetRound();
+            await Task.Run(() => ScrimMatchEngine.ResetRound());
+            //await ScrimMatchEngine.ResetRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
