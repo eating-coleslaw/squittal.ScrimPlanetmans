@@ -27,9 +27,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly int _defaultRulesetId = 1;
 
-        //public event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
-        //public delegate void ActiveRulesetChangeMessageEventHandler(object sender, ActiveRulesetChangeEventArgs e);
-
 
         public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
         {
@@ -39,15 +36,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService = messageService;
             _logger = logger;
         }
-
-        //public void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message)
-        //{
-        //    OnRaiseActiveRulesetChangeEvent(new ActiveRulesetChangeEventArgs(message));
-        //}
-        //protected virtual void OnRaiseActiveRulesetChangeEvent(ActiveRulesetChangeEventArgs e)
-        //{
-        //    RaiseActiveRulesetChangeEvent?.Invoke(this, e);
-        //}
 
         public async Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false)
         {

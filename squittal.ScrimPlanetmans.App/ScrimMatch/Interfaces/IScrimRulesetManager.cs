@@ -7,9 +7,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimRulesetManager
     {
-        //event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
-        //delegate void ActiveRulesetChangeMessageEventHandler(object sender, ActiveRulesetChangeEventArgs e);
-
         Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false);
         Task<Ruleset> GetDefaultRuleset();
 
