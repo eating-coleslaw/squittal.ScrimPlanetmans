@@ -127,16 +127,12 @@
                     @if (_currentRound == 0 && _rulesets != null && _rulesets.Any() && _selectedRuleset != null)
                     {
                         <EditForm Model="@_inputSelectRulesetStringId" style="display: inline-block;">
-                            @*OnValidSubmit="HandleAddConstructedTeamFactionSubmit" >*@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
                             <div style="margin-bottom: 0.2rem; display: inline-block;">
-                                @*<p style="margin-bottom: 0.2rem;">Ruleset: </p>*@
 
-                                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.ConstructedTeamStringId>*@
                                 Ruleset: <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputSelectRulesetStringId" ValueChanged="@((string s) => OnChangeRulesetSelection(s))" ValueExpression="@(() => _inputSelectRulesetStringId)">
-                                    @*<option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>*@
 
                                     <option value=@_selectedRuleset.Id.ToString() label="@($"{_selectedRuleset.Name} [{_selectedRuleset.Id}]")">@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</option>
 
@@ -299,7 +295,6 @@
     {
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
-        //MessageService.RaiseActiveRulesetChangeEvent += ReceiveActiveRulesetChangeMessageEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
@@ -331,15 +326,10 @@
 
         if (_rulesets.Any())
         {
-            //_isLoadingRulesets = false;
-            //InvokeAsyncStateHasChanged();
-            //return;
             _activeRuleset = _rulesets.Where(r => r.IsActive).FirstOrDefault();
             _selectedRuleset = _activeRuleset;
             _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
         }
-
-        //_inputSelectRuleset = _activeRuleset;
 
         _isLoadingRulesets = false;
         InvokeAsyncStateHasChanged();
@@ -384,10 +374,6 @@
 
         _isStartingRound = true;
 
-        //await InvokeAsync(() =>
-        //{
-        //    StateHasChanged();
-        //});
         InvokeAsyncStateHasChanged();
 
         SubscribeToCensus();
@@ -395,7 +381,6 @@
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
         await Task.Run(() => ScrimMatchEngine.Start());
-        //await ScrimMatchEngine.Start();
 
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -405,10 +390,6 @@
 
         _isStartingRound = false;
 
-        //await InvokeAsync(() =>
-        //{
-        //    StateHasChanged();
-        //});
         InvokeAsyncStateHasChanged();
     }
 
@@ -420,18 +401,12 @@
             InvokeAsyncStateHasChanged();
 
             await Task.Run(() => ScrimMatchEngine.EndRound());
-            //await ScrimMatchEngine.EndRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
             _isDeleteDataEnabled = false;
-
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
 
             _isEndingRound = false;
             InvokeAsyncStateHasChanged();
@@ -480,36 +455,14 @@
 
     private async void ClearMatch()
     {
-        //if (_isClearingMatch)
-        //{
-        //    return;
-        //}
-
-        //_isClearingMatch = true;
-        //StateHasChanged();
-        //InvokeAsyncStateHasChanged();
-
-        //await InvokeAsync(() =>
-        //{
-        //    StateHasChanged();
-        //});
-
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound && !_isClearingMatch)
-        //if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound)
         {
             _isClearingMatch = true;
             _isDeleteDataEnabled = false;
 
             InvokeAsyncStateHasChanged();
 
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-
             await Task.Run(() => ScrimMatchEngine.ClearMatch());
-
-            //await ScrimMatchEngine.ClearMatch();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -519,10 +472,6 @@
 
             _isClearingMatch = false;
 
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
             InvokeAsyncStateHasChanged();
         }
         else
@@ -534,28 +483,14 @@
 
     private async void ResetRound()
     {
-        if (_isResettingRound)
-        {
-            return;
-        }
-
-        _isResettingRound = true;
-        InvokeAsyncStateHasChanged();
-
-        //if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isResettingRound && !_isClearingMatch)
-        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isClearingMatch)
+        if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped && ScrimMatchEngine.GetCurrentRound() > 0 && !_isResettingRound && !_isClearingMatch)
         {
             _isResettingRound = true;
             _isDeleteDataEnabled = false;
 
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
             InvokeAsyncStateHasChanged();
 
             await Task.Run(() => ScrimMatchEngine.ResetRound());
-            //await ScrimMatchEngine.ResetRound();
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -563,15 +498,6 @@
 
             _isResettingRound = false;
 
-            //await InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
-            InvokeAsyncStateHasChanged();
-        }
-        else
-        {
-            _isResettingRound = false;
             InvokeAsyncStateHasChanged();
         }
     }
@@ -637,25 +563,6 @@
             InvokeAsyncStateHasChanged();
             return;
         }
-
-        //var newSelectedRuleset = _rulesets.Where(r => r.Id == rulesetId).FirstOrDefault();
-
-        //if (newSelectedRuleset == null)
-        //{
-        //    _isChangingRuleset = false;
-        //    InvokeAsyncStateHasChanged();
-        //    return;
-        //}
-
-        //_selectedRuleset = newSelectedRuleset;
-        //_inputSelectRulesetStringId = _selectedRuleset.Id.ToString();
-
-        //if (_selectedRuleset.Id == _activeRuleset.Id)
-        //{
-        //    _isChangingRuleset = false;
-        //    InvokeAsyncStateHasChanged();
-        //    return;
-        //}
 
         var newActiveRuleset = await RulesetManager.ActivateRulesetAsync(rulesetId);
 
