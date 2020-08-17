@@ -94,7 +94,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 return null;
             }
 
-            return RulesetsMap.Values.AsEnumerable();
+            return RulesetsMap.Values.ToList();
         }
 
         public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true)
