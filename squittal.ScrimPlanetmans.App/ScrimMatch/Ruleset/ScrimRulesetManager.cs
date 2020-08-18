@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimMessageBroadcastService _messageService;
         public ILogger<ScrimRulesetManager> _logger;
 
-        private Ruleset ActiveRuleset { get; set; }
+        public Ruleset ActiveRuleset { get; private set; }
 
         private readonly int _defaultRulesetId = 1;
 

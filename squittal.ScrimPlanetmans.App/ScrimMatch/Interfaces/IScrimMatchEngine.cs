@@ -8,6 +8,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     public interface IScrimMatchEngine
     {
         MatchConfiguration MatchConfiguration { get; set; }
+        Ruleset MatchRuleset { get; }
         
         //void Start();
         Task Start();

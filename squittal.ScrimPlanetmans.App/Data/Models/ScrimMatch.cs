@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.SqlServer.Management.Assessment.Configuration;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace squittal.ScrimPlanetmans.Data.Models
@@ -10,7 +11,14 @@ namespace squittal.ScrimPlanetmans.Data.Models
 
         [Required]
         public DateTime StartTime { get; set; }
+        
+        [Required]
+        public int RulesetId { get; set; }
 
         public string Title { get; set; }
+
+        #region Navigation Properties
+        public Ruleset Ruleset { get; set; }
+        #endregion Navigation Properties
     }
 }

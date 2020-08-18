@@ -15,11 +15,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IScrimMatchDataService _matchDataService;
+        private readonly IScrimRulesetManager _rulesetManager;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
         private readonly IStatefulTimer _timer;
 
         public MatchConfiguration MatchConfiguration { get; set; } = new MatchConfiguration();
+        public Ruleset MatchRuleset { get; private set; }
 
         private bool _isRunning = false;
 
@@ -35,13 +37,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
 
         public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer,
-            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
+            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, IScrimRulesetManager rulesetManager, ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
             _timer = timer;
             _messageService = messageService;
             _matchDataService = matchDataService;
+            _rulesetManager = rulesetManager;
             _logger = logger;
 
             _messageService.RaiseMatchTimerTickEvent += async (s, e) => await OnMatchTimerTick(s, e);
@@ -50,6 +53,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
 
             _messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
+
+            //_messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
         }
 
 
@@ -112,6 +117,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendMatchConfigurationUpdateMessage(); // TODO: why was this commented out before?
         }
 
+        public bool TrySetMatchRuleset(Ruleset matchRuleset)
+        {
+            if (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning)
+            {
+                MatchRuleset = matchRuleset;
+                _matchDataService.CurrentMatchRulesetId = matchRuleset.Id;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public async Task EndRound()
         {
             _isRunning = false;
@@ -136,6 +155,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task InitializeNewMatch()
         {
+            TrySetMatchRuleset(_rulesetManager.ActiveRuleset);
+
             _matchStartTime = DateTime.UtcNow;
 
             if (MatchConfiguration.SaveLogFiles == true)
@@ -148,7 +169,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 {
                     Id = matchId,
                     StartTime = _matchStartTime,
-                    Title = MatchConfiguration.Title
+                    Title = MatchConfiguration.Title,
+                    RulesetId = MatchRuleset.Id
                 };
 
                 await _matchDataService.SaveToCurrentMatch(scrimMatch);
@@ -403,6 +425,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await EndRound();
             }
         }
+
+        //private void OnActiveRulesetChangeEvent(object sender, ActiveRulesetChangeEventArgs e)
+        //{
+        //    var newActiveRuleset = e.Message.ActiveRuleset;
+
+        //    TrySetMatchRuleset(newActiveRuleset);
+        //}
 
         private void SendMatchStateUpdateMessage()
         {

@@ -9,6 +9,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimRulesetManager
     {
+        Ruleset ActiveRuleset { get; }
+
         Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false);
         Task<Ruleset> GetDefaultRuleset();
 
