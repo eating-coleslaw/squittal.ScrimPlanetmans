@@ -84,9 +84,10 @@
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
                         <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
-                            <th style="font-weight: 300;">Is Default?</th>
-                            <th style="font-weight: 300;">ID</th>
-                            <th style="font-weight: 300;">Name</th>
+                            @*<th style="font-weight: 300;">Is Default?</th>*@
+                            <th style="width: 20px; padding-left: 8px;"></th>
+                            @*<th style="font-weight: 300;">ID</th>*@
+                            <th style="font-weight: 300;">Name <span style="color: var(--sq-gray);">[ID]</span></th>
                             <th style="font-weight: 300;">Created</th>
                             <th style="font-weight: 300;">Edited</th>
                             @*<th style="font-weight: 300;">Source File</th>*@
@@ -94,7 +95,7 @@
                             @*<th style="font-weight: 300;">Description</th>*@
                             <th style="font-weight: 300;"></th>
                             <th style="font-weight: 300;"></th>
-                            <th style="font-weight: 300;"></th>
+                            @*<th style="font-weight: 300;"></th>*@
                         </tr>
                     </thead>
 
@@ -104,12 +105,22 @@
                             @foreach (var ruleset in _storeRulesetList)
                             {
                                 <tr>
+                                    @if (ruleset.IsActive)
+                                    {
+                                        <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
+                                            <span class="oi oi-target" style=""></span>
+                                        </td> 
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
                                     @*<td>@ruleset.IsActive</td>*@
-                                    <td>@ruleset.IsDefault</td>
-                                    <td>@ruleset.Id</td>
-                                    <td>@ruleset.Name</td>
-                                    <td>@GetLocalizedDateString(ruleset.DateCreated)</td>
-                                    <td>@(ruleset.DateLastModified != null ? GetLocalizedDateString((DateTime)ruleset.DateLastModified) : "--")</td>
+                                    @*<td>@ruleset.IsDefault</td>*@
+                                    @*<td>@ruleset.Id</td>*@
+                                    <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
+                                    <td>@GetLocalizedDateString(ruleset.DateCreated) @GetLocalizedTimeString(ruleset.DateCreated)</td>
+                                    <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)ruleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
                                     @*<td>ruleset.SourceFile</td>
                                     <td>ruleset.Author</td>
                                     <td>ruleset.Description</td>*@
@@ -126,7 +137,7 @@
                                             <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
                                         </td>
                                     }
-                                    @if (ruleset.IsActive)
+                                    @*@if (ruleset.IsActive)
                                     {
                                         <td>Active</td>
                                     }
@@ -145,7 +156,7 @@
                                                 <span class="oi oi-target" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set Active
                                             </div>
                                         </td>
-                                    }
+                                    }*@
                                 </tr>
                             }
                         </tbody>

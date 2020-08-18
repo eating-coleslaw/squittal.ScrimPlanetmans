@@ -66,39 +66,41 @@
                         <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.AirVehicle))">Air</button>*@
                     </div>
 
-                    <table class="table-responsive-sm table-striped-light default">
-                        <thead style="font-family: Roboto, 'Segoe UI', sans-serif;">
-                            <tr>
-                                <th style="">ID</th>
-                                <th></th>
-                                <th style="">Points</th>
-                                <th>Defer to Item<br />Category Rules?</th>
-                            </tr>
-                        </thead>
+                    <div style="max-height: 544px; overflow-y: auto;">
+                        <table class="table-responsive-sm table-striped-light default">
+                            <thead style="font-family: Roboto, 'Segoe UI', sans-serif;">
+                                <tr>
+                                    <th style="">ID</th>
+                                    <th></th>
+                                    <th style="">Points</th>
+                                    <th>Defer to Item<br />Category Rules?</th>
+                                </tr>
+                            </thead>
 
-                        <tbody>
-                            @foreach (var actionRule in _actionRules)
-                            {
-                                @if (CanShowActionRuleInSelectedDomain(actionRule))
+                            <tbody>
+                                @foreach (var actionRule in _actionRules)
                                 {
-                                    <tr>
-                                        <td style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
-                                        <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType)</td>
-                                        <td style="opacity: @GetValueOpacity(actionRule.Points);">
-                                            <InputNumber Value="@actionRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(actionRule, p))" ValueExpression="@(() => actionRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
-                                            @*<InputNumber @bind-Value="actionRule.Points" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />*@
-                                        </td>
-                                        @*<td style="color: var(--sq-gray);">@(actionRule.Points)</td>*@
-                                        <td>
-                                            <InputCheckbox Value="@actionRule.DeferToItemCategoryRules" ValueChanged="@((bool d) => OnChangeRuleDefer(actionRule, d))" ValueExpression="@(() => actionRule.DeferToItemCategoryRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>
-                                            @*<InputCheckbox @bind-Value="actionRule.DeferToItemCategoryRules" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>*@
-                                        </td>
-                                        @*<td style="color: var(--sq-gray);">@(actionRule.DeferToItemCategoryRules)</td>*@
-                                    </tr>
+                                    @if (CanShowActionRuleInSelectedDomain(actionRule))
+                                    {
+                                        <tr>
+                                            <td style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
+                                            <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType)</td>
+                                            <td style="opacity: @GetValueOpacity(actionRule.Points);">
+                                                <InputNumber Value="@actionRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(actionRule, p))" ValueExpression="@(() => actionRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                @*<InputNumber @bind-Value="actionRule.Points" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />*@
+                                            </td>
+                                            @*<td style="color: var(--sq-gray);">@(actionRule.Points)</td>*@
+                                            <td>
+                                                <InputCheckbox Value="@actionRule.DeferToItemCategoryRules" ValueChanged="@((bool d) => OnChangeRuleDefer(actionRule, d))" ValueExpression="@(() => actionRule.DeferToItemCategoryRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>
+                                                @*<InputCheckbox @bind-Value="actionRule.DeferToItemCategoryRules" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>*@
+                                            </td>
+                                            @*<td style="color: var(--sq-gray);">@(actionRule.DeferToItemCategoryRules)</td>*@
+                                        </tr>
+                                    }
                                 }
-                            }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </EditForm>
         }
