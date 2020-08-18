@@ -49,6 +49,8 @@
     <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.Designer.cs" />
     <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.cs" />
     <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.Designer.cs" />
+    <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.cs" />
+    <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,7 +18,12 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 name: "IX_ScrimMatch_RulesetId",
                 table: "ScrimMatch",
                 column: "RulesetId",
-                unique: true);
+                unique: false);
+
+            var sqlFile = "Data/SQL/MigrationHelpers/Backfill_ScrimMatchRulesetId.sql";
+            var basePath = AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
+            var filePath = Path.Combine(basePath, sqlFile);
+            migrationBuilder.Sql(File.ReadAllText(filePath));
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ScrimMatch_Ruleset_RulesetId",
@@ -27,11 +32,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 principalTable: "Ruleset",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
-
-            var sqlFile = "Data/SQL/MigrationHelpers/Backfill_ScrimMatchRulesetId.sql";
-            var basePath = AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
-            var filePath = Path.Combine(basePath, sqlFile);
-            migrationBuilder.Sql(File.ReadAllText(filePath));
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

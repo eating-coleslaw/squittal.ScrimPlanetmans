@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.Property(e => e.Id).ValueGeneratedNever();
 
-            //builder.Ignore(e => e.Ruleset);
+            builder.Ignore(e => e.Ruleset);
 
             builder.HasOne(e => e.Ruleset)
                 .WithOne();
