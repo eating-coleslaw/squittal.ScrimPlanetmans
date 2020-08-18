@@ -13,10 +13,13 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.Property(e => e.Id).ValueGeneratedNever();
 
+            //builder.Ignore(e => e.Ruleset);
+
+            builder.HasOne(e => e.Ruleset)
+                .WithOne();
+
             builder.Property(e => e.RulesetId).HasDefaultValue(-1);
 
-            builder.HasOne(r => r.Ruleset)
-                .WithOne();
         }
     }
 }

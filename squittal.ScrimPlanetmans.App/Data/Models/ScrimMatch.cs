@@ -1,4 +1,4 @@
-﻿using Microsoft.SqlServer.Management.Assessment.Configuration;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
 

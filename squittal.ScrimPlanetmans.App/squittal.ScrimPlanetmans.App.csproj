@@ -105,6 +105,9 @@
     <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetActionRuleDeferToItemCategoryRules.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_ScrimMatchRulesetId.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\Views\View_ScrimMatchInfo.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
