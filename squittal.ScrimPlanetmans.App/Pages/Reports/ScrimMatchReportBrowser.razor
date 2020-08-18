@@ -98,6 +98,7 @@
                             <th style="font-weight: 300;">Title</th>
                             <th style="font-weight: 300;">Server</th>
                             <th style="font-weight: 300;">Facility</th>
+                            <th style="font-weight: 300;">Ruleset</th>
                             <th style="font-weight: 300;">Rounds</th>
                             <th style="font-weight: 300;"></th>
                         </tr>
@@ -137,6 +138,7 @@
                                     {
                                         <td style="font-style: italic;">None</td>
                                     }
+                                    <td>@match.RulesetName</td>
                                     <td>@match.RoundCount</td>
                                     <td>
                                         <NavLink class="nav-link" target="_blank" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
