@@ -308,8 +308,6 @@
         _isLoadingSearchFilterData = true;
         InvokeAsyncStateHasChanged();
 
-        //await LoadScrimMatchListAsync();
-
         await LoadFilterDataAsync();
 
         var worlds = await WorldService.GetAllWorldsAsync();
@@ -322,51 +320,6 @@
             _isFilteredResults = false;
         }
     }
-
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //    if (firstRender)
-    //    {
-    //        //_isLoadingSearchFilterData = true;
-
-    //        await LoadScrimMatchListAsync();
-
-    //        //await LoadFilterDataAsync();
-
-    //        //var worlds = await WorldService.GetAllWorldsAsync();
-    //        //_worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
-
-    //        //_isLoadingSearchFilterData = false;
-
-    //        //if (_searchFilter.IsDefaultFilter)
-    //        //{
-    //        //    _isFilteredResults = false;
-    //        //}
-    //    }
-
-    //    //await LoadScrimMatchListAsync();
-    //}
-
-    //protected override void OnParametersSet()
-    //{
-    //    var paramsChanged = false;
-
-    //    UpdateUriParameters();
-
-    //    _renderedPageIndex = i_pageIndex;
-
-    //    if (_searchFilter.IsDefaultFilter)
-    //    {
-    //        _isFilteredResults = false;
-    //    }
-
-    //    paramsChanged = true;
-
-    //    if (paramsChanged)
-    //    {
-    //        InvokeAsyncStateHasChanged();
-    //    }
-    //}
 
     protected override async Task OnParametersSetAsync()
     {
