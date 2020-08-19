@@ -78,41 +78,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 ActiveRuleset = newActiveRuleset;
 
-            ////var newActiveRuleset = await dbContext.Rulesets
-            ////                                        .Where(r => r.Id == rulesetId)
-            ////                                        .Include()
-            ////                                        .FirstOrDefaultAsync(r => r.Id == rulesetId);
-
-            //var newActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
-
-            //if (newActiveRuleset == null)
-            //{
-            //    return null;
-            //}
-
-            //if (currentActiveRuleset != null && currentActiveRuleset.Id != rulesetId)
-            //{
-            //    currentActiveRuleset.IsActive = false;
-            //    dbContext.Rulesets.Update(currentActiveRuleset);
-                
-            //    newActiveRuleset.IsActive = true;
-            //    dbContext.Rulesets.Update(newActiveRuleset);
-            //}
-            //else if (currentActiveRuleset != null)
-            //{
-            //    return currentActiveRuleset;
-            //}
-            //else
-            //{
-            //    return null;
-            //}
-
-            //await dbContext.SaveChangesAsync();
-
-            //ActiveRuleset = newActiveRuleset;
-            //ActiveRuleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
-            //ActiveRuleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
-
                 var message = new ActiveRulesetChangeMessage(ActiveRuleset, currentActiveRuleset);
                 _messageService.BroadcastActiveRulesetChangeMessage(message);
 
@@ -141,15 +106,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(ruleset.Id, CancellationToken.None);
 
-            //ActiveRuleset = ruleset;
-            //ActiveRuleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
-            //ActiveRuleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == ruleset.Id).ToListAsync();
-
-            //foreach (var rule in ActiveRuleset.RulesetItemCategoryRules)
-            //{
-            //    rule.ItemCategory = await _itemCategoryService.GetWeaponItemCategoryAsync(rule.ItemCategoryId);
-            //}
-
             _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
         }
 
@@ -167,34 +123,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ruleset = await _rulesetDataService.GetRulesetFromIdAsync(ruleset.Id, CancellationToken.None);
 
-            //ruleset.RulesetActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == _defaultRulesetId).ToListAsync();
-            //ruleset.RulesetItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == _defaultRulesetId).ToListAsync();
-
             return ruleset;
         }
-
-        //public async Task<Ruleset> GetRulesetFromId(int rulesetId)
-        //{
-        //    using (var factory = _dbContextHelper.GetFactory())
-        //    {
-        //        var dbContext = factory.GetDbContext();
-
-        //        var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == rulesetId);
-
-        //        if (ruleset == null)
-        //        {
-        //            return null;
-        //        }
-
-        //        var actionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
-        //        var itemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == rulesetId).ToListAsync();
-
-        //        ruleset.RulesetActionRules = actionRules;
-        //        ruleset.RulesetItemCategoryRules = itemCategoryRules;
-
-        //        return ruleset;
-        //    }
-        //}
 
         public async Task SeedDefaultRuleset()
         {
@@ -275,8 +205,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     }
                     else if (isValidAction)
                     {
-                        //storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
-
                         if (defaultEntity != null)
                         {
                             storeEntity.Points = defaultEntity.Points;
