@@ -53,6 +53,14 @@
     <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.Designer.cs" />
     <Compile Remove="Migrations\20200819145208_AddRulesetFacilityRuleModel.cs" />
     <Compile Remove="Migrations\20200819145208_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819145319_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819145319_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819155817_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819155817_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819160924_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819160924_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819161916_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819161916_AddRulesetFacilityRuleModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

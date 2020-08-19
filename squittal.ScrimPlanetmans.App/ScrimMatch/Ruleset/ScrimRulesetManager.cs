@@ -140,12 +140,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 var storeActionRules = new List<RulesetActionRule>();
                 var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
+                var storeFacilityRules = new List<RulesetFacilityRule>();
 
                 if (storeRuleset != null)
                 {
                     storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
                     
                     storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+
+                    storeFacilityRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
                     rulesetExistsInDb = true;
                 }
@@ -171,7 +174,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 }
 
 
-                // Action Rules
+                #region Action rules
                 var defaultActionRules = GetDefaultActionRules();
                 var createdActionRules = new List<RulesetActionRule>();
                 var allActionRules = new List<RulesetActionRule>();
@@ -230,8 +233,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 {
                     await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
                 }
+                #endregion Action rules
 
-                // Item Category Rules
+                #region Item Category Rules
                 var defaultItemCategoryRules = GetDefaultItemCategoryRules();
                 var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
                 var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
@@ -282,9 +286,56 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 {
                     await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
                 }
+                #endregion Item Category Rules
+
+                #region Facility Rules
+                var defaultFacilityRules = GetDefaultFacilityRules();
+
+                var createdFacilityRules = new List<RulesetFacilityRule>();
+
+                var allFacilityRules = new List<RulesetFacilityRule>(storeFacilityRules);
+                allFacilityRules.AddRange(defaultFacilityRules);
+
+                foreach (var facilityRule in allFacilityRules)
+                {
+                    var storeEntity = storeFacilityRules?.FirstOrDefault(r => r.FacilityId == facilityRule.FacilityId);
+                    var defaultEntity = defaultFacilityRules.FirstOrDefault(r => r.FacilityId == facilityRule.FacilityId);
+
+                    if (storeEntity == null)
+                    {
+                        if (defaultEntity != null)
+                        {
+                            defaultEntity.RulesetId = defaultRulesetId;
+
+                            createdFacilityRules.Add(defaultEntity);
+                            
+                        }
+                    }
+                    else
+                    {
+                        if (defaultEntity != null)
+                        {
+                            storeEntity.FacilityId = defaultEntity.FacilityId;
+                            dbContext.RulesetFacilityRules.Update(storeEntity);
+                        }
+                        else
+                        {
+                            dbContext.RulesetFacilityRules.Remove(storeEntity);
+                            allFacilityRules.Remove(storeEntity);
+                        }
+                    }
+                }
+
+                if (createdFacilityRules.Any())
+                {
+                    await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
+                }
+                #endregion Facility Rules
+
 
                 storeRuleset.RulesetActionRules = allActionRules;
                 storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
+                storeRuleset.RulesetFacilityRules = allFacilityRules;
 
                 if (rulesetExistsInDb)
                 {
@@ -300,15 +351,33 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 ActiveRuleset = storeRuleset;
                 ActiveRuleset.RulesetActionRules = allActionRules.ToList();
                 ActiveRuleset.RulesetItemCategoryRules = allItemCategoryRules.ToList();
+                ActiveRuleset.RulesetFacilityRules = allFacilityRules.ToList();
             }
         }
 
         private IEnumerable<RulesetItemCategoryRule> GetDefaultItemCategoryRules()
         {
-            var categories = GetDefaultScoredItemCategories();
+            return new RulesetItemCategoryRule[]
+            {
+                BuildRulesetItemCategoryRule(2, 1),   // Knife
+                BuildRulesetItemCategoryRule(3, 1),   // Pistol
+                BuildRulesetItemCategoryRule(5, 1),   // SMG
+                BuildRulesetItemCategoryRule(6, 1),   // LMG
+                BuildRulesetItemCategoryRule(7, 1),   // Assault Rifle
+                BuildRulesetItemCategoryRule(8, 1),   // Carbine
+                BuildRulesetItemCategoryRule(11, 1),  // Sniper Rifle
+                BuildRulesetItemCategoryRule(12, 1),  // Scout Rifle
+                BuildRulesetItemCategoryRule(19, 1),  // Battle Rifle
+                BuildRulesetItemCategoryRule(24, 1),  // Crossbow
+                BuildRulesetItemCategoryRule(100, 1), // Infantry
+                BuildRulesetItemCategoryRule(102, 1), // Infantry Weapons
+                BuildRulesetItemCategoryRule(157, 1)  // Hybrid Rifle
+            };
+
+            //var categories = GetDefaultScoredItemCategories();
 
             //return categories.Select(c => BuildRulesetItemCategoryRule(c, 2)).ToArray(); //2pts for all valid weapons in PIL 1
-            return categories.Select(c => BuildRulesetItemCategoryRule(c, 1)).ToArray();
+            //return categories.Select(c => BuildRulesetItemCategoryRule(c, 1)).ToArray();
         }
 
         private IEnumerable<int> GetDefaultScoredItemCategories()
@@ -351,6 +420,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
+        private IEnumerable<RulesetFacilityRule> GetDefaultFacilityRules()
+        {
+            return new RulesetFacilityRule[]
+            {
+                /* Hossin */
+                BuildRulesetFacilityRule(266000), // Kessel's Crossing
+                BuildRulesetFacilityRule(272000), // Bridgewater Shipping
+                BuildRulesetFacilityRule(283000), // Nettlemire
+                BuildRulesetFacilityRule(286000), // Four Fingers
+                BuildRulesetFacilityRule(287070), // Fort Liberty
+                BuildRulesetFacilityRule(302030), // Acan South
+                BuildRulesetFacilityRule(303030), // Bitol Eastern
+                BuildRulesetFacilityRule(305010), // Ghanan South
+                BuildRulesetFacilityRule(307010), // Chac Fusion
+                
+                /* Esamir */
+                BuildRulesetFacilityRule(239000), // Pale Canyon
+                BuildRulesetFacilityRule(244610), // Rime Analtyics
+                BuildRulesetFacilityRule(244620), // The Rink
+                BuildRulesetFacilityRule(252020), // Elli Barracks
+                BuildRulesetFacilityRule(254010), // Eisa Mountain Pass
+                
+                /* Indar */
+                BuildRulesetFacilityRule(219), // Ceres
+                BuildRulesetFacilityRule(230), // Xenotech
+                BuildRulesetFacilityRule(3430), // Peris Eastern
+                BuildRulesetFacilityRule(3620), // Rashnu
+                
+                /* Amerish */
+                BuildRulesetFacilityRule(210002) // Wokuk Shipping
+            };
+        }
+
         private RulesetActionRule BuildRulesetActionRule(int rulesetId, ScrimActionType actionType, int points = 0, bool deferToItemCategoryRules = false)
         {
             return new RulesetActionRule
@@ -390,6 +492,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 ItemCategoryId = itemCategoryId,
                 Points = points
+            };
+        }
+
+        private RulesetFacilityRule BuildRulesetFacilityRule(int rulesetId, int facilityId)
+        {
+            return new RulesetFacilityRule
+            {
+                RulesetId = rulesetId,
+                FacilityId = facilityId
+            };
+        }
+        private RulesetFacilityRule BuildRulesetFacilityRule(int facilityId)
+        {
+            return new RulesetFacilityRule
+            {
+                FacilityId = facilityId
             };
         }
 

@@ -15,6 +15,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.HasOne(e => e.MapRegion)
                 .WithOne()
+                //.HasForeignKey<RulesetFacilityRule>(e => new { e.MapRegionId, e.FacilityId });
                 .HasPrincipalKey<MapRegion>(r => r.FacilityId)
                 .HasForeignKey<RulesetFacilityRule>(e => e.FacilityId);
 
