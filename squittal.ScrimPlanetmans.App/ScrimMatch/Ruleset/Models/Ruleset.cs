@@ -32,7 +32,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }
-        //public ICollection<RulesetFacility> Facilities { get; set; }
+        public ICollection<RulesetFacilityRule> RulesetFacilityRules { get; set; }
 
     }
 }

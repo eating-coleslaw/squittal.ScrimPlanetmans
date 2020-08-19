@@ -51,6 +51,8 @@
     <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.Designer.cs" />
     <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.cs" />
     <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819145208_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819145208_AddRulesetFacilityRuleModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
