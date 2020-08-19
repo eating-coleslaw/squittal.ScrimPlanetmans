@@ -373,31 +373,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 BuildRulesetItemCategoryRule(102, 1), // Infantry Weapons
                 BuildRulesetItemCategoryRule(157, 1)  // Hybrid Rifle
             };
-
-            //var categories = GetDefaultScoredItemCategories();
-
-            //return categories.Select(c => BuildRulesetItemCategoryRule(c, 2)).ToArray(); //2pts for all valid weapons in PIL 1
-            //return categories.Select(c => BuildRulesetItemCategoryRule(c, 1)).ToArray();
-        }
-
-        private IEnumerable<int> GetDefaultScoredItemCategories()
-        {
-            return new int[]
-            {
-                2,   // Knife
-                3,   // Pistol
-                5,   // SMG
-                6,   // LMG
-                7,   // Assault Rifle
-                8,   // Carbine
-                11,  // Sniper Rifle
-                12,  // Scout Rifle
-                19,  // Battle Rifle
-                24,  // Crossbow
-                100, // Infantry
-                102, // Infantry Weapons
-                157  // Hybrid Rifle
-            };
         }
 
         private IEnumerable<RulesetActionRule> GetDefaultActionRules()
