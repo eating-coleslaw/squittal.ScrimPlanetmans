@@ -61,6 +61,16 @@
     <Compile Remove="Migrations\20200819160924_AddRulesetFacilityRuleModel.Designer.cs" />
     <Compile Remove="Migrations\20200819161916_AddRulesetFacilityRuleModel.cs" />
     <Compile Remove="Migrations\20200819161916_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819205340_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819205340_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819210420_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819210420_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819210812_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819210812_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819215851_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819215851_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819220816_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819220816_AddRulesetFacilityRuleModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

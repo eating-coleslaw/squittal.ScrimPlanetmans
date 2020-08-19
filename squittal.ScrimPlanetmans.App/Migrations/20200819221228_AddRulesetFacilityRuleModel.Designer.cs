@@ -10,7 +10,7 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20200819162443_AddRulesetFacilityRuleModel")]
+    [Migration("20200819221228_AddRulesetFacilityRuleModel")]
     partial class AddRulesetFacilityRuleModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1109,6 +1109,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("FacilityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MapRegionId")
                         .HasColumnType("int");
 
                     b.HasKey("RulesetId", "FacilityId");

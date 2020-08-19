@@ -16,7 +16,8 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 columns: table => new
                 {
                     RulesetId = table.Column<int>(nullable: false),
-                    FacilityId = table.Column<int>(nullable: false)
+                    FacilityId = table.Column<int>(nullable: false),
+                    MapRegionId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {

@@ -14,7 +14,7 @@
 
 @implements IDisposable
 
-<div class="sq-mini-card-6 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
     @if (_changesCount > 0)
     {
         <h5>Item Category Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
@@ -72,8 +72,9 @@
                     </div>
 
                     <div style="max-height: 544px; overflow-y: auto;">
-                        <table class="table-responsive-sm table-striped-light default">
-                            <thead style="font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                            @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-black-alpha-50);">*@
+                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                 <tr>
                                     <th style="padding-bottom: 2px;">ID</th>
                                     <th style="padding-bottom: 2px;">Item Category</th>
@@ -85,11 +86,11 @@
                             <tbody>
                                 @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
                                 {
-                                    <tr>
-                                        <td style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
+                                    <tr class="sans-serif-font">
+                                        <td class="mono-font" style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
                                         <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name</td>
                                         <td style="color: var(--sq-black);">@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
-                                        <td style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
                                             <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
                                         </td>
                                     </tr>

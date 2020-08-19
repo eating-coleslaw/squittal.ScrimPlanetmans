@@ -2,8 +2,11 @@
 using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models;
+using squittal.ScrimPlanetmans.Models.Forms;
+using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Concurrent;
@@ -17,6 +20,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
     public class RulesetDataService : IRulesetDataService
     {
         private readonly IDbContextHelper _dbContextHelper;
+        private readonly IFacilityService _facilityService;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<RulesetDataService> _logger;
 
@@ -29,10 +33,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly KeyedSemaphoreSlim _rulesetLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
+        private readonly KeyedSemaphoreSlim _facilityRulesLock = new KeyedSemaphoreSlim();
 
-        public RulesetDataService(IDbContextHelper dbContextHelper, IScrimMessageBroadcastService messageService, ILogger<RulesetDataService> logger)
+        public RulesetDataService(IDbContextHelper dbContextHelper, IFacilityService facilityService, IScrimMessageBroadcastService messageService, ILogger<RulesetDataService> logger)
         {
             _dbContextHelper = dbContextHelper;
+            _facilityService = facilityService;
             _messageService = messageService;
             _logger = logger;
         }
@@ -113,6 +119,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                                                 .Include("RulesetItemCategoryRules")
                                                 .Include("RulesetActionRules")
                                                 .Include("RulesetItemCategoryRules.ItemCategory")
+                                                .Include("RulesetFacilityRules")
+                                                .Include("RulesetFacilityRules.MapRegion")
                                                 .FirstOrDefaultAsync(cancellationToken);
                 }
                 else
@@ -211,6 +219,96 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 return null;
             }
+        }
+
+        public async Task<IEnumerable<RulesetFacilityRule>> GetRulesetFacilityRulesAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetFacilityRules
+                                               .Where(r => r.RulesetId == rulesetId)
+                                               .Include("MapRegion")
+                                               .OrderBy(r => r.MapRegion.ZoneId)
+                                               .ThenBy(r => r.MapRegion.FacilityName)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetFacilityRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetFacilityRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<RulesetFacilityRule>> GetUnusedRulesetFacilityRulesAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var usedFacilities = await GetRulesetFacilityRulesAsync(rulesetId, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var allFacilities = await _facilityService.GetScrimmableMapRegionsAsync();
+                
+                if (usedFacilities == null)
+                {
+                    return allFacilities?.Select(a => ConvertToFacilityRule(rulesetId, a)).ToList();
+                }
+                //else if (allFacilities == null)
+                //{
+                //    return usedFacilities;
+                //}
+
+                return allFacilities?.Where(a => !usedFacilities.Any(u => u.FacilityId == a.FacilityId))
+                                        .Select(a => ConvertToFacilityRule(rulesetId, a))
+                                        .OrderBy(r => r.MapRegion.ZoneId)
+                                        .ThenBy(r => r.MapRegion.FacilityName)
+                                        .ToList();
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetFacilityRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetFacilityRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        private RulesetFacilityRule ConvertToFacilityRule(int rulesetId, MapRegion mapRegion)
+        {
+            return new RulesetFacilityRule
+            {
+                RulesetId = rulesetId,
+                FacilityId = mapRegion.FacilityId,
+                MapRegionId = mapRegion.Id,
+                MapRegion = mapRegion
+            };
         }
         #endregion GET methods
 
@@ -350,6 +448,86 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        /*
+         * Upsert New or Modified RulesetFacilityRules for a specific ruleset.
+         */
+        public async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules)
+        {
+            if (rulesetId == _defaultRulesetId)
+            {
+                return;
+            }
+
+            using (await _facilityRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                var ruleUpdates = rules.Where(rule => rule.RulesetFacilityRule.RulesetId == rulesetId).ToList();
+
+                if (!ruleUpdates.Any())
+                {
+                    return;
+                }
+
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeRules = await dbContext.RulesetFacilityRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+
+                    var newEntities = new List<RulesetFacilityRule>();
+
+                    foreach (var rule in ruleUpdates)
+                    {
+                        var storeEntity = storeRules.Where(r => r.FacilityId == rule.RulesetFacilityRule.FacilityId).FirstOrDefault();
+
+                        if (storeEntity == null)
+                        {
+                            if (rule.ChangeType == RulesetFacilityRuleChangeType.Add)
+                            {
+                                rule.RulesetFacilityRule.MapRegion = null;
+                                newEntities.Add(rule.RulesetFacilityRule);
+                            }
+                        }
+                        else
+                        {
+                            if (rule.ChangeType == RulesetFacilityRuleChangeType.Add)
+                            {
+
+                                rule.RulesetFacilityRule.MapRegion = null;
+                                storeEntity = rule.RulesetFacilityRule;
+                                dbContext.RulesetFacilityRules.Update(storeEntity);
+                            }
+                            else if (rule.ChangeType == RulesetFacilityRuleChangeType.Remove)
+                            {
+                                dbContext.RulesetFacilityRules.Remove(storeEntity);
+                            }
+                        }
+                    }
+
+                    if (newEntities.Any())
+                    {
+                        dbContext.RulesetFacilityRules.AddRange(newEntities);
+                    }
+
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    if (storeRuleset != null)
+                    {
+                        storeRuleset.DateLastModified = DateTime.UtcNow;
+                        dbContext.Rulesets.Update(storeRuleset);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+
+                    var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.FacilityRule);
+                    _messageService.BroadcastRulesetRuleChangeMessage(message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error saving RulesetFacilityRule changes to database: {ex}");
+                }
+            }
+        }
+
         public async Task<Ruleset> SaveNewRulesetAsync(Ruleset ruleset)
         {
             ruleset = await CreateRulesetAsync(ruleset);
@@ -366,6 +544,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
             var actionRulesTask = SeedNewRulesetDefaultActionRules(ruleset.Id);
             TaskList.Add(actionRulesTask);
+
+            var facilityRulesTask = SeedNewRulesetDefaultFacilityRules(ruleset.Id);
+            TaskList.Add(facilityRulesTask);
 
             await Task.WhenAll(TaskList);
 
@@ -504,6 +685,54 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 RulesetId = rulesetId,
                 ItemCategoryId = itemCategoryId,
                 Points = points
+            };
+        }
+
+        private async Task SeedNewRulesetDefaultFacilityRules(int rulesetId)
+        {
+            using (await _facilityRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeRulesCount = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == rulesetId).CountAsync();
+
+                    if (storeRulesCount > 0)
+                    {
+                        return;
+                    }
+
+                    var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+
+                    var defaultRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == defaultRulesetId).ToListAsync();
+
+                    if (defaultRules == null)
+                    {
+                        return;
+                    }
+
+                    dbContext.RulesetFacilityRules.AddRange(defaultRules.Select(r => BuildRulesetFacilityRule(rulesetId, r.FacilityId, r.MapRegionId)));
+
+                    await dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return;
+                }
+            }
+        }
+
+        private RulesetFacilityRule BuildRulesetFacilityRule(int rulesetId, int facilityId, int mapRegionId)
+        {
+            return new RulesetFacilityRule
+            {
+                RulesetId = rulesetId,
+                FacilityId = facilityId,
+                MapRegionId = mapRegionId
             };
         }
         #endregion SAVE / UPDATE methods

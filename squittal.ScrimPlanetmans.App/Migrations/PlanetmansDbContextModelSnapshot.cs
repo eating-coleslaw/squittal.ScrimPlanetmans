@@ -1109,6 +1109,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int>("FacilityId")
                         .HasColumnType("int");
 
+                    b.Property<int>("MapRegionId")
+                        .HasColumnType("int");
+
                     b.HasKey("RulesetId", "FacilityId");
 
                     b.HasIndex("FacilityId")

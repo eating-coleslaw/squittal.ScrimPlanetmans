@@ -294,7 +294,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 var createdFacilityRules = new List<RulesetFacilityRule>();
 
                 var allFacilityRules = new List<RulesetFacilityRule>(storeFacilityRules);
-                allFacilityRules.AddRange(defaultFacilityRules);
+                allFacilityRules.AddRange(defaultFacilityRules.Where(d => !allFacilityRules.Any(a => a.FacilityId == d.FacilityId)));
 
                 foreach (var facilityRule in allFacilityRules)
                 {
@@ -313,15 +313,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     }
                     else
                     {
-                        if (defaultEntity != null)
-                        {
-                            storeEntity.FacilityId = defaultEntity.FacilityId;
-                            dbContext.RulesetFacilityRules.Update(storeEntity);
-                        }
-                        else
+                        if (defaultEntity == null)
                         {
                             dbContext.RulesetFacilityRules.Remove(storeEntity);
                             allFacilityRules.Remove(storeEntity);
+                        }
+                        else
+                        {
+                            //storeEntity = defaultEntity;
+                            //dbContext.RulesetFacilityRules.Update(storeEntity);
                         }
                     }
                 }
@@ -400,31 +400,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return new RulesetFacilityRule[]
             {
                 /* Hossin */
-                BuildRulesetFacilityRule(266000), // Kessel's Crossing
-                BuildRulesetFacilityRule(272000), // Bridgewater Shipping
-                BuildRulesetFacilityRule(283000), // Nettlemire
-                BuildRulesetFacilityRule(286000), // Four Fingers
-                BuildRulesetFacilityRule(287070), // Fort Liberty
-                BuildRulesetFacilityRule(302030), // Acan South
-                BuildRulesetFacilityRule(303030), // Bitol Eastern
-                BuildRulesetFacilityRule(305010), // Ghanan South
-                BuildRulesetFacilityRule(307010), // Chac Fusion
+                BuildRulesetFacilityRule(266000, 4106), // Kessel's Crossing
+                BuildRulesetFacilityRule(272000, 4112), // Bridgewater Shipping
+                BuildRulesetFacilityRule(283000, 4123), // Nettlemire
+                BuildRulesetFacilityRule(286000, 4126), // Four Fingers
+                BuildRulesetFacilityRule(287070, 4266), // Fort Liberty
+                BuildRulesetFacilityRule(302030, 4173), // Acan South
+                BuildRulesetFacilityRule(303030, 4183), // Bitol Eastern
+                BuildRulesetFacilityRule(305010, 4201), // Ghanan South
+                BuildRulesetFacilityRule(307010, 4221), // Chac Fusion
                 
                 /* Esamir */
-                BuildRulesetFacilityRule(239000), // Pale Canyon
-                BuildRulesetFacilityRule(244610), // Rime Analtyics
-                BuildRulesetFacilityRule(244620), // The Rink
-                BuildRulesetFacilityRule(252020), // Elli Barracks
-                BuildRulesetFacilityRule(254010), // Eisa Mountain Pass
+                BuildRulesetFacilityRule(239000, 18010), // Pale Canyon
+                BuildRulesetFacilityRule(244610, 18067), // Rime Analtyics
+                BuildRulesetFacilityRule(244620, 18068), // The Rink
+                BuildRulesetFacilityRule(252020, 18050), // Elli Barracks
+                BuildRulesetFacilityRule(254010, 18055), // Eisa Mountain Pass
                 
                 /* Indar */
-                BuildRulesetFacilityRule(219), // Ceres
-                BuildRulesetFacilityRule(230), // Xenotech
-                BuildRulesetFacilityRule(3430), // Peris Eastern
-                BuildRulesetFacilityRule(3620), // Rashnu
+                BuildRulesetFacilityRule(219, 2420), // Ceres
+                BuildRulesetFacilityRule(230, 2431), // Xenotech
+                BuildRulesetFacilityRule(3430, 2456), // Peris Eastern
+                BuildRulesetFacilityRule(3620, 2466), // Rashnu
                 
                 /* Amerish */
-                BuildRulesetFacilityRule(210002) // Wokuk Shipping
+                BuildRulesetFacilityRule(210002, 6357) // Wokuk Shipping
             };
         }
 
@@ -470,19 +470,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        private RulesetFacilityRule BuildRulesetFacilityRule(int rulesetId, int facilityId)
+        private RulesetFacilityRule BuildRulesetFacilityRule(int rulesetId, int facilityId, int mapRegionId)
         {
             return new RulesetFacilityRule
             {
                 RulesetId = rulesetId,
-                FacilityId = facilityId
+                FacilityId = facilityId,
+                MapRegionId = mapRegionId
             };
         }
-        private RulesetFacilityRule BuildRulesetFacilityRule(int facilityId)
+        private RulesetFacilityRule BuildRulesetFacilityRule(int facilityId, int mapRegionId)
         {
             return new RulesetFacilityRule
             {
-                FacilityId = facilityId
+                FacilityId = facilityId,
+                MapRegionId = mapRegionId
             };
         }
 

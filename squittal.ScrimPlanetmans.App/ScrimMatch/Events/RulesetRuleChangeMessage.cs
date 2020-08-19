@@ -25,6 +25,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
     public enum RulesetRuleChangeType
     {
         ActionRule,
-        ItemCategoryRule
+        ItemCategoryRule,
+        FacilityRule
     }
 }
