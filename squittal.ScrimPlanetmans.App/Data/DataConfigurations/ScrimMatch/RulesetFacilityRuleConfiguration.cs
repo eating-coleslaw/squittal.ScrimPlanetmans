@@ -13,14 +13,10 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.HasKey(e => new { e.RulesetId, e.FacilityId });
 
-            //builder.Ignore(e => e.MapRegion);
-
             builder.HasOne(e => e.MapRegion)
                 .WithOne()
                 .HasPrincipalKey<MapRegion>(r => r.FacilityId)
                 .HasForeignKey<RulesetFacilityRule>(e => e.FacilityId);
-                //.HasPrincipalKey(typeof(int), "FacilityId")
-                //.HasForeignKey(typeof(int), "FacilityId");
 
             builder.HasOne(e => e.Ruleset)
                 .WithMany(r => r.RulesetFacilityRules)
