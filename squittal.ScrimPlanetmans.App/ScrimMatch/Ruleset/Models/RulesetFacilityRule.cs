@@ -14,8 +14,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int MapRegionId { get; set; }
 
         public Ruleset Ruleset { get; set; }
-
-        //[ForeignKey("MapRegionId, FacilityId")]
         public MapRegion MapRegion { get; set; }
     }
 }

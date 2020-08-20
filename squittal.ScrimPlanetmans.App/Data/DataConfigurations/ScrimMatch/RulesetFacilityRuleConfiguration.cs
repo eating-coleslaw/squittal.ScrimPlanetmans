@@ -20,22 +20,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
                 .HasPrincipalKey<MapRegion>(r => r.FacilityId)
                 .HasForeignKey<RulesetFacilityRule>(e => e.FacilityId);
 
-            //builder.Ignore(p => p.MapRegion);
-
-            //builder.HasOne(e => e.MapRegion)
-            //    .WithOne<MapRegion>(r =>);
-            //.HasPrincipalKey<MapRegion>(r => new { r.Id, r.FacilityId })
-            //.HasForeignKey<RulesetFacilityRule>(e => new { e.MapRegionId, e.FacilityId });
-
-            //builder.HasOne(e => e.MapRegion)
-            //    .WithOne()
-            //    .HasForeignKey<RulesetFacilityRule>(e => new { e.MapRegionId, e.FacilityId });
-
-            //builder.HasOne(e => e.MapRegion)
-            //    .WithOne()
-            //    .HasForeignKey(typeof(MapRegion), new string[] { "Id", "FacilityId" }); // r => new { r.MapRegionId, r.FacilityId });
-                //.HasForeignKey(typeof(RulesetFacilityRule), new string[] { "MapRegionId", "FacilityId" }); // r => new { r.MapRegionId, r.FacilityId });
-
             builder.HasOne(e => e.Ruleset)
                 .WithMany(r => r.RulesetFacilityRules)
                 .HasForeignKey(e => e.RulesetId);
