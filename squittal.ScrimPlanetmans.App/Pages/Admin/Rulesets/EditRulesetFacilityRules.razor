@@ -165,7 +165,12 @@
                         
                     <div style="max-height: 240px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
 
-                        @if (_availabledFacilityRules != null && _availabledFacilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
+                        @*@if (_availabledFacilityRules != null && _availabledFacilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))*@
+                        @if (_selectedZoneIdView == 0)
+                        {
+                            <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">Add facilities from the continent-specific views</p>
+                        }
+                        else if (_availabledFacilityRules != null && _availabledFacilityRules.Any(r => r.MapRegion.ZoneId == _selectedZoneIdView))
                         {
                             <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
                                 <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
@@ -201,16 +206,17 @@
                         }
                         else
                         {
-                            @if (_selectedZoneIdView == 0)
+                            <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available @(_zoneNames[_selectedZoneIdView]) facilities to add</p>
+                            @*@if (_selectedZoneIdView == 0)
                             {
                                 <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available facilities to add</p>
                             }
                             else
                             {
                                 <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available @(_zoneNames[_selectedZoneIdView]) facilities to add</p>
-                            } 
+                            }*@
                         }
-                </div>
+                    </div>
             </div>
         </EditForm>
     }
