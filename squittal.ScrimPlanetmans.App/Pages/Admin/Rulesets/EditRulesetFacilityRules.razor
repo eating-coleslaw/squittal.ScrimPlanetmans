@@ -67,28 +67,33 @@
                         <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(6)" @onclick="@(() => OnSelectNewView(6))">Amerish</button>
                     </div>
 
-                    @if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
+                    @*@if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))*@
+                    @if (_ruleChanges.Values.Any())
                     {
-                        <div style="padding-bottom: 8px; box-shadow: 0px 2px 3px -2px var(--sq-black-alpha-50);">
-                            <p class="sans-serif-font" style="margin-top: 8px; margin-bottom: 4px; font-weight: 700;">Changes</p>
+                        <p class="sans-serif-font" style="margin-top: 8px; margin-bottom: 4px; font-weight: 700;">Changes</p>
 
-                            <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                        @*<div style="padding-bottom: 8px; box-shadow: 0px 2px 3px -2px var(--sq-black-alpha-50); max-height: 240px; overflow-y: auto;">*@
+                        <div style="max-height: @(_selectedZoneIdView == 0 ? "480px" : "240px"); overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+
+                            <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;"> @*style="border-bottom: 1px solid var(--sq-black-alpha-50);">*@
                                 @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif;">*@
                                 <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                     <tr>
                                         <th style="padding-bottom: 2px; padding-left: 8px; width: 45px;">Type</th>
                                         @*<th style="padding-bottom: 2px;">ID</th>*@
                                         <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
-                                        @if (_selectedZoneIdView == 0)
+                                        <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
+                                        @*@if (_selectedZoneIdView == 0)
                                         {
                                             <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
-                                        }
-                                        <th></th>
+                                        }*@
+                                        <th style="width: 30px; padding-left: 8px;"></th>
                                     </tr>
                                 </thead>
 
                                 <tbody>
-                                    @foreach (var ruleChange in _ruleChanges.Values.Where(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0).OrderBy(r => r.ChangeType).ThenBy(r => r.RulesetFacilityRule.MapRegion.ZoneId).ThenBy(r => r.RulesetFacilityRule.MapRegion.FacilityName))
+                                    @*@foreach (var ruleChange in _ruleChanges.Values.Where(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0).OrderBy(r => r.ChangeType).ThenBy(r => r.RulesetFacilityRule.MapRegion.ZoneId).ThenBy(r => r.RulesetFacilityRule.MapRegion.FacilityName))*@
+                                    @foreach (var ruleChange in _ruleChanges.Values.OrderBy(r => r.ChangeType).ThenBy(r => r.RulesetFacilityRule.MapRegion.ZoneId).ThenBy(r => r.RulesetFacilityRule.MapRegion.FacilityName))
                                     {
                                         @*@if (facilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0)*@
                                         //{
@@ -105,10 +110,11 @@
                                             </td>
                                             @*<td class="mono-font" style="color: var(--sq-gray);">@ruleChange.RulesetFacilityRule.FacilityId</td>*@
                                             <td style="color: var(--sq-black); padding-left: 8px;">@ruleChange.RulesetFacilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@ruleChange.RulesetFacilityRule.FacilityId]</span></td>
-                                            @if (_selectedZoneIdView == 0)
+                                            <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(ruleChange.RulesetFacilityRule)</td>
+                                            @*@if (_selectedZoneIdView == 0)
                                             {
                                                 <td style="color: var(--sq-black);">@GetFacilityZoneName(ruleChange.RulesetFacilityRule)</td>
-                                            }
+                                            }*@
                                         <td>
                                             <button type="button" title="Undo this change" @onclick="(() => OnChangeFacilityRule(ruleChange.RulesetFacilityRule, RulesetFacilityRuleChangeType.Reset))" style="color: var(--sq-black); border: none; background-color: transparent; padding: 0; text-shadow: 0px 0px 0px black;">
                                                 @*<span class="oi oi-x" style="top: 2px;"></span>*@
@@ -123,20 +129,22 @@
                         </div>
                     }
 
-                    <div style="max-height: 498px; overflow-y: auto;">
+                    @*<div style="max-height: 498px; overflow-y: auto;">*@
+                    @*@if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))*@
+                    @if (_ruleChanges.Values.Any())
+                    {
+                        <p class="sans-serif-font" style="margin-top: 16px; margin-bottom: 4px; font-weight: 700;">Current Ruleset Facilities</p>
+                    }
+                    else
+                    {
+                        <p class="sans-serif-font" style="margin-top: 0; margin-bottom: 4px; font-weight: 700;">Current Ruleset Facilities</p>
+                    }
 
-                        @if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
-                        {
-                            <p class="sans-serif-font" style="margin-top: 16px; margin-bottom: 4px; font-weight: 700;">Current Ruleset Facilities</p>
-                        }
-                        else
-                        {
-                            <p class="sans-serif-font" style="margin-top: ; margin-bottom: 4px; font-weight: 700;">Current Ruleset Facilities</p>
-                        }
+                    <div style="max-height: @(_selectedZoneIdView == 0 ? "480px" : "240px"); overflow-y: auto; margin-bottom: 4px; border-bottom: 1px solid var(--sq-black-alpha-50);">
 
-                        @if (_facilityRules != null)
+                        @if (_facilityRules != null && _facilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
                         {
-                            <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                            <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;"> @*style="border-bottom: 1px solid var(--sq-black-alpha-50);">*@
                                 @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif;">*@
                                 <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                     <tr>
@@ -151,7 +159,7 @@
                                         {
                                             <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
                                         }
-                                        <th></th>
+                                        <th style="width: 30px; padding-left: 8px;"></th>
                                     </tr>
                                 </thead>
 
@@ -183,55 +191,82 @@
                                 </tbody>
                             </table>
                         }
-
+                        else
+                        {
+                            @if (_selectedZoneIdView == 0)
+                            {
+                                <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no facility rules for this ruleset</p>
+                            }
+                            else
+                            {
+                                <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no @(_zoneNames[_selectedZoneIdView]) facility rules for this ruleset</p>
+                            }
+                        }
+                        </div>
 
                         <p class="sans-serif-font" style="margin-top: 16px; margin-bottom: 4px; font-weight: 700;">Available Facilities</p>
+                        
+                        <div style="max-height: 240px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
 
-                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: 1px solid var(--sq-black-alpha-50);">
-                            @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif;">*@
-                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
-                                <tr>
-                                    @*@if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
-                                    {
-                                        <th style="padding-bottom: 2px; padding-left: 8px; width: 45px;"></th>
-                                    }*@
-                                    @*<th style="padding-bottom: 2px;">ID</th>*@
-                                    <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
-                                    @if (_selectedZoneIdView == 0)
-                                    {
-                                        <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
-                                    }
-                                    <th></th>
-                                </tr>
-                            </thead>
+                            @if (_availabledFacilityRules != null && _availabledFacilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
+                            {
+                                <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;"> @*style="border-bottom: 1px solid var(--sq-black-alpha-50);">*@
+                                    @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif;">*@
+                                    <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                        <tr>
+                                            @*@if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
+                                            {
+                                                <th style="padding-bottom: 2px; padding-left: 8px; width: 45px;"></th>
+                                            }*@
+                                            @*<th style="padding-bottom: 2px;">ID</th>*@
+                                            <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                            @if (_selectedZoneIdView == 0)
+                                            {
+                                                <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
+                                            }
+                                            <th style="width: 30px; padding-left: 8px;"></th>
+                                        </tr>
+                                    </thead>
 
-                            <tbody>
-                                @foreach (var facilityRule in _availabledFacilityRules.Where(r => r.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
-                                {
-                                    @*@if (facilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0)*@
-                                    //{
-                                    <tr class="sans-serif-font">
-                                        @*@if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
-                                        { 
-                                            <td style="padding-left: 8px; width: 45px;"></td>
-                                        }*@
-@*                                        <td class="mono-font" style="color: var(--sq-gray);">@facilityRule.FacilityId</td>*@
-  @*                                      <td style="color: var(--sq-black);">@facilityRule.MapRegion.FacilityName</td>*@
-                                        <td style="color: var(--sq-black); padding-left: 8px;">@facilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@facilityRule.FacilityId]</span></td>
-                                        @if (_selectedZoneIdView == 0)
+                                    <tbody>
+                                        @foreach (var facilityRule in _availabledFacilityRules.Where(r => r.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
                                         {
-                                            <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(facilityRule)</td>
+                                            @*@if (facilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0)*@
+                                            //{
+                                            <tr class="sans-serif-font">
+                                                @*@if (_ruleChanges.Values.Any(c => c.RulesetFacilityRule.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
+                                                { 
+                                                    <td style="padding-left: 8px; width: 45px;"></td>
+                                                }*@
+        @*                                        <td class="mono-font" style="color: var(--sq-gray);">@facilityRule.FacilityId</td>*@
+          @*                                      <td style="color: var(--sq-black);">@facilityRule.MapRegion.FacilityName</td>*@
+                                                <td style="color: var(--sq-black); padding-left: 8px;">@facilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@facilityRule.FacilityId]</span></td>
+                                                @if (_selectedZoneIdView == 0)
+                                                {
+                                                    <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(facilityRule)</td>
+                                                }
+                                                <td>
+                                                    <button type="button" title="Add facility to ruleset" @onclick="(() => OnChangeFacilityRule(facilityRule, RulesetFacilityRuleChangeType.Add))" style="color: var(--sq-ov-semantic-green); border: none; background-color: transparent; padding: 0; text-shadow: 0px 0px 0px black; padding-left: 8px;">
+                                                        <span class="oi oi-plus" style="top: 2px; color:var(--sq-)"></span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            @*}*@
                                         }
-                                        <td>
-                                            <button type="button" title="Add facility to ruleset" @onclick="(() => OnChangeFacilityRule(facilityRule, RulesetFacilityRuleChangeType.Add))" style="color: var(--sq-ov-semantic-green); border: none; background-color: transparent; padding: 0; text-shadow: 0px 0px 0px black; padding-left: 8px;">
-                                                <span class="oi oi-plus" style="top: 2px; color:var(--sq-)"></span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    @*}*@
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                @if (_selectedZoneIdView == 0)
+                                {
+                                    <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available facilities to add</p>
                                 }
-                            </tbody>
-                        </table>
+                                else
+                                {
+                                    <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available @(_zoneNames[_selectedZoneIdView]) facilities to add</p>
+                                } 
+                            }
                     </div>
                 </div>
             </EditForm>
