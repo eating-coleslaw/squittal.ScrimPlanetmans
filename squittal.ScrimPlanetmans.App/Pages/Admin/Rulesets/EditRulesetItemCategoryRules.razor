@@ -76,8 +76,8 @@
                             @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-black-alpha-50);">*@
                             <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                 <tr>
-                                    <th style="padding-bottom: 2px;">ID</th>
-                                    <th style="padding-bottom: 2px;">Item Category</th>
+                                    @*<th style="padding-bottom: 2px;">ID</th>*@
+                                    <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                     <th style="padding-bottom: 2px;">Domain</th>
                                     <th style="padding-bottom: 2px;">Points</th>
                                 </tr>
@@ -87,8 +87,8 @@
                                 @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
                                 {
                                     <tr class="sans-serif-font">
-                                        <td class="mono-font" style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>
-                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name</td>
+                                        @*<td class="mono-font" style="color: var(--sq-gray);">@itemCategoryRule.ItemCategory.Id</td>*@
+                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
                                         <td style="color: var(--sq-black);">@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
                                         <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
                                             <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />

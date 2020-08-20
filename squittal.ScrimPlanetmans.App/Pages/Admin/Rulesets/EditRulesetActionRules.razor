@@ -71,8 +71,8 @@
                             @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif;">*@
                             <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                 <tr>
-                                    <th style="padding-bottom: 2px;">ID</th>
-                                    <th style="padding-bottom: 2px;"></th>
+                                    @*<th style="padding-bottom: 2px;">ID</th>*@
+                                    <th style="padding-bottom: 2px;">Action Type <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                     <th style="padding-bottom: 2px;">Points</th>
                                     <th style="padding-bottom: 2px;">Defer to Item<br />Category Rules?</th>
                                 </tr>
@@ -84,8 +84,8 @@
                                     @if (CanShowActionRuleInSelectedDomain(actionRule))
                                     {
                                         <tr class="sans-serif-font">
-                                            <td class="mono-font" style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>
-                                            <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType)</td>
+                                            @*<td class="mono-font" style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>*@
+                                            <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType) <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@((int)actionRule.ScrimActionType)]</span></td>
                                             <td class="mono-font" style="opacity: @GetValueOpacity(actionRule.Points);">
                                                 <InputNumber Value="@actionRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(actionRule, p))" ValueExpression="@(() => actionRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
                                                 @*<InputNumber @bind-Value="actionRule.Points" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />*@
