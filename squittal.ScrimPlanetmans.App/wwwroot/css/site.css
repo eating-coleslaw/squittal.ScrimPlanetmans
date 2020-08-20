@@ -1306,6 +1306,7 @@ button.refresh {
 .sq-mini-card-12.default,
 .sq-mini-card-9.default,
 .sq-mini-card-6.default,
+.sq-mini-card-5.default,
 .sq-mini-card-4.default,
 .sq-mini-card-3.default {
 /*    background-color: var(--sq-bg-white-lit);*/
@@ -1317,6 +1318,7 @@ button.refresh {
 .sq-mini-card-12,
 .sq-mini-card-9,
 .sq-mini-card-6,
+.sq-mini-card-5,
 .sq-mini-card-4,
 .sq-mini-card-3 {
     line-height: 1rem;
@@ -1335,6 +1337,7 @@ button.refresh {
     .sq-mini-card-12 h5,
     .sq-mini-card-9 h5,
     .sq-mini-card-6 h5,
+    .sq-mini-card-5 h5,
     .sq-mini-card-4 h5,
     .sq-mini-card-3 h5 {
         font-size: 1rem;
@@ -1349,6 +1352,7 @@ button.refresh {
     .sq-mini-card-12 .sq-content,
     .sq-mini-card-9 .sq-content,
     .sq-mini-card-6 .sq-content,
+    .sq-mini-card-5 .sq-content,
     .sq-mini-card-4 .sq-content,
     .sq-mini-card-3 .sq-content {
         /*max-height: calc(360px - 1.5rem);*/
@@ -1372,6 +1376,7 @@ button.refresh {
         .sq-mini-card-12 .sq-content table,
         .sq-mini-card-9 .sq-content table
         .sq-mini-card-6 .sq-content table,
+        .sq-mini-card-5 .sq-content table,
         .sq-mini-card-4 .sq-content table,
         .sq-mini-card-3 .sq-content table {
 /*            max-width: calc(100% - 0.75rem);*/
@@ -1385,6 +1390,7 @@ button.refresh {
             .sq-mini-card-12 .sq-content table.sq-table-fit-content,
             .sq-mini-card-9 .sq-content table.sq-table-fit-content,
             .sq-mini-card-6 .sq-content table.sq-table-fit-content,
+            .sq-mini-card-5 .sq-content table.sq-table-fit-content,
             .sq-mini-card-4 .sq-content table.sq-table-fit-content,
             .sq-mini-card-3 .sq-content table.sq-table-fit-content {
                 width: auto;
@@ -1394,6 +1400,7 @@ button.refresh {
     .sq-mini-card-12.default .sq-content table,
     .sq-mini-card-9.default .sq-content table
     .sq-mini-card-6.default .sq-content table,
+    .sq-mini-card-5.default .sq-content table,
     .sq-mini-card-4.default .sq-content table,
     .sq-mini-card-3.default .sq-content table {
         /*max-width: calc(100% - 0.75rem);
@@ -1405,6 +1412,7 @@ button.refresh {
         .sq-mini-card-12 .sq-content thead,
         .sq-mini-card-9 .sq-content thead,
         .sq-mini-card-6 .sq-content thead,
+        .sq-mini-card-5 .sq-content thead,
         .sq-mini-card-4 .sq-content thead,
         .sq-mini-card-3 .sq-content thead {
             vertical-align: bottom;
@@ -1413,6 +1421,7 @@ button.refresh {
             .sq-mini-card-12 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-9 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-6 .sq-content thead.fit-stacked-labels,
+            .sq-mini-card-5 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-4 .sq-content thead.fit-stacked-labels,
             .sq-mini-card-3 .sq-content thead.fit-stacked-labels {
                 line-height: 0.5rem;
@@ -1421,6 +1430,7 @@ button.refresh {
     .sq-mini-card-12 .table-responsive-sm.table-striped-light,
     .sq-mini-card-9 .table-responsive-sm.table-striped-light,
     .sq-mini-card-6 .table-responsive-sm.table-striped-light,
+    .sq-mini-card-5 .table-responsive-sm.table-striped-light,
     .sq-mini-card-4 .table-responsive-sm.table-striped-light,
     .sq-mini-card-3 .table-responsive-sm.table-striped-light {
 /*        width: calc(100% - 0.75rem);*/
@@ -1432,6 +1442,7 @@ button.refresh {
         .sq-mini-card-12 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-9 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-6 .table-responsive-sm.table-striped-light th,
+        .sq-mini-card-5 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-4 .table-responsive-sm.table-striped-light th,
         .sq-mini-card-3 .table-responsive-sm.table-striped-light th {
             font-weight: 400;
@@ -1440,6 +1451,7 @@ button.refresh {
     .sq-mini-card-12.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-9.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-6.default .table-responsive-sm.table-striped-light,
+    .sq-mini-card-5.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-4.default .table-responsive-sm.table-striped-light,
     .sq-mini-card-3.default .table-responsive-sm.table-striped-light {
         /*width: calc(100% - 0.75rem);
@@ -1469,6 +1481,17 @@ button.refresh {
     .sq-mini-card-6:first-of-type {
         margin-right: 1rem;
     }
+    
+.sq-mini-card-5 {
+/*flex: 0 0 calc(41% - 0.5rem);*/
+/*max-width: 41%;*/
+flex: 0 0 calc(38% - 0.5rem);
+max-width: 38%;
+}
+
+    .sq-mini-card-5:first-of-type {
+        margin-right: 16px;
+    }
 
 .sq-mini-card-4 {
     flex: 0 0 calc(33% - 0.5rem);
@@ -1485,7 +1508,9 @@ button.refresh {
 
 
 .sq-mini-card-3 {
-    flex: 0 0 calc(30% - 0.5rem) !important;
+    /*flex: 0 0 calc(30% - 0.5rem) !important;*/
+    /*flex: 0 0 calc(25% - 0.5rem) !important;*/
+    flex: 0 0 calc(28% - 0.5rem) !important;
 }
 
     .sq-mini-card-3:first-child {
