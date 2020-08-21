@@ -31,76 +31,15 @@
         else
         {
             <div style="display: grid; grid-template-columns: 48% 8% 18% 8% 18%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
-                <!--<h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4>--> @*margin-bottom: 2px;*@
                 <h5 class="mono-font" style="margin-bottom: 0px;">
                     Ruleset Editor: @_renderedRuleset.Name <span style="font-size: small; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span>
-
-                    @*<span style="display: block; font-size: 1rem;">
-                            @if (!_showEditForm)
-                            {
-                                <button class="btn btn-link" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
-                            }
-                        </span>*@
                 </h5>
 
-                @*<span style="font-size: 1rem; text-align: right; color: var(--sq-gray);">Created: </span>*@
                 <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
-                @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@GetLocalizedDateString(_renderedRuleset.DateCreated) @GetLocalizedTimeString(_renderedRuleset.DateCreated)</p>*@
                 <p style="margin-bottom: 0px; text-align: left;">@_renderedRuleset.DateCreated.ToString("f")</p>
 
-
-                @*<span style="font-size: 1rem; text-align: right; color: var(--sq-gray); grid-column: 2;">Last Modified: </span>*@
                 <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
-                @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right ;grid-column: 3;">@(_renderedRuleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)_renderedRuleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)_renderedRuleset.DateLastModified)}" : "--")</p>*@
-                @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right ;grid-column: 3;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>*@
                 <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>
-
-                @*@if (!_showEditForm)
-                {
-                    <p class="sans-serif-font" style="margin: 0 0 4px 0;">
-                        <div>Is Active? @(_renderedRuleset.IsActive ? "Yes" : "No")</div>
-                        <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
-                    </p>
-                }
-                else
-                {
-                    <EditForm Model="@_editFormRuleset" style="margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-
-                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText id="inputRulesetName" @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <span class="oi oi-check"></span>Save
-                        </button>
-
-                        <button @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
-                            <span class="oi oi-x" style="top: 0;"></span>Cancel
-                        </button>
-
-                    </EditForm>
-                }*@
-
-
-                @*@if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
-                    {
-                        <p style="margin-bottom: 0px; font-size: 1rem;">
-                            <span>@_matchInfo.WorldName</span>
-                            <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
-                            <span style="font-style: italic;">No facility</span>
-                        </p>
-                    }
-                    else
-                    {
-                        <p style="margin-bottom: 0px; font-size: 1rem;">
-                            <span>@_matchInfo.WorldName</span>
-                            <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
-                            <span>@_matchInfo.FacilityName</span>
-                        </p>
-                    }*@
-                @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">Last Modified: @(_renderedRuleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)_renderedRuleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)_renderedRuleset.DateLastModified)}" : "--")</p>*@
-                @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds | Ruleset: @_matchInfo.RulesetName</p>*@
 
             </div>
 
@@ -133,19 +72,8 @@
 
                     </EditForm>
                 }
-
-                @*@if (!_showEditForm)
-                {
-                    <button class="btn btn-link" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
-                }*@
             </div>
         }
-
-        @*<h6>Ruleset Editor: @_renderedRuleset.Name <span style="font-size: smaller; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span></h6>*@
-
-        @*<p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_renderedRuleset.Name<span> [@(_renderedRuleset.Id)]</span></p>*@
-        @*<p style="margin: 0 0 0.1rem 0;">Created: @_renderedRuleset.DateCreated.ToLongDateString()</p>*@
-
 
         <div style="display: flex;">
 
@@ -308,7 +236,6 @@
 
                 cts.Token.ThrowIfCancellationRequested();
 
-                //_editFormRuleset = new Ruleset();
                 _editFormRuleset.Name = _renderedRuleset.Name;
                 _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
 
@@ -319,7 +246,7 @@
         }
         catch
         {
-            HandleEditTeamCancel();
+            //Ingore
         }
 
         // When the process is complete, signal that another process can proceed
@@ -334,7 +261,6 @@
 
     private void HandleEditTeamCancel()
     {
-        //_editFormRuleset = new Ruleset();
         _editFormRuleset.Name = _renderedRuleset.Name;
         _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
 
