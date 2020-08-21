@@ -12,6 +12,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,6 +35,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _facilityRulesLock = new KeyedSemaphoreSlim();
+
+        public static Regex RulesetNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_'.]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public RulesetDataService(IDbContextHelper dbContextHelper, IFacilityService facilityService, IScrimMessageBroadcastService messageService, ILogger<RulesetDataService> logger)
         {
@@ -314,6 +317,69 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
 
         #region SAVE / UPDATE methods
+        public async Task<bool> UpdateRulesetInfo(Ruleset rulesetUpdate, CancellationToken cancellationToken)
+        {
+            var updateId = rulesetUpdate.Id;
+            
+            if (updateId == _defaultRulesetId || rulesetUpdate.IsDefault)
+            {
+                return false;
+            }
+            
+            var updateName = rulesetUpdate.Name;
+            var updateRoundLength = rulesetUpdate.DefaultRoundLength;
+
+            if (!IsValidRulesetName(updateName))
+            {
+                _logger.LogError($"Error updating Ruleset {updateId} info: invalid ruleset name");
+                return false;
+            }
+
+            if (!IsValidRulesetDefaultRoundLength(updateRoundLength))
+            {
+                _logger.LogError($"Error updating Ruleset {updateId} info: invalid default round length");
+                return false;
+            }
+
+            using (await _rulesetLock.WaitAsync($"{updateId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeEntity = await GetRulesetFromIdAsync(updateId, cancellationToken, false);
+
+                    if (storeEntity == null)
+                    {
+                        return false;
+                    }
+
+                    var oldName = storeEntity.Name;
+                    var oldIsHidden = storeEntity.DefaultRoundLength;
+
+                    storeEntity.Name = updateName;
+                    storeEntity.DefaultRoundLength = updateRoundLength;
+                    storeEntity.DateLastModified = DateTime.UtcNow;
+
+                    dbContext.Rulesets.Update(storeEntity);
+
+                    await dbContext.SaveChangesAsync();
+
+                    await SetUpRulesetsMapAsync(cancellationToken);
+
+                    // TODO: broadcast Ruleset Info Change Message
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error updating Ruleset {updateId} info: {ex}");
+                    return false;
+                }
+            }
+        }
+
         /*
          * Upsert New or Modified RulesetActionRules for a specific ruleset.
          */
@@ -555,10 +621,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private async Task<Ruleset> CreateRulesetAsync(Ruleset ruleset)
         {
-            if (!IsValidRulesetName(ruleset.Name))
+            if (!IsValidRulesetName(ruleset.Name) || ruleset.IsDefault || !IsValidRulesetDefaultRoundLength(ruleset.DefaultRoundLength))
             {
                 return null;
             }
+
 
             using (await _rulesetLock.WaitAsync($"{ruleset.Id}"))
             {
@@ -820,15 +887,16 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         }
         #endregion Ruleset Activation / Defaulting / Favoriting
 
-        private bool IsValidRulesetName(string name)
+        public static bool IsValidRulesetName(string name)
         {
-            return true;
+            return RulesetNameRegex.Match(name).Success;
         }
 
-        private bool IsValidDefaultRoundSeconds(int seconds)
+        public static bool IsValidRulesetDefaultRoundLength(int seconds)
         {
-            return true;
+            return seconds > 0;
         }
+
 
         private bool IsValidDefaultRounds(int rounds)
         {
