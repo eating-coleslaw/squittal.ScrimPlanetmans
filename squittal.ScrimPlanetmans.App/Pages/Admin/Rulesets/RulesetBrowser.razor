@@ -125,7 +125,7 @@
                                     <td>ruleset.Author</td>
                                     <td>ruleset.Description</td>*@
                                     <td>
-                                        <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}") style="padding: 4px 8px;">View</NavLink>
+                                        <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}") style="padding: 4px 8px;">View</NavLink>
                                     </td>
                                     @if (ruleset.IsDefault)
                                     {
@@ -134,7 +134,7 @@
                                     else
                                     {
                                         <td>
-                                            <NavLink class="nav-link" href=@($"Ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
+                                            <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
                                         </td>
                                     }
                                     @*@if (ruleset.IsActive)
@@ -175,7 +175,7 @@
                     <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
                         @if (_renderedHasPreviousPage)
                         {
-                            <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
+                            <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/rulesets?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
                                 <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
                             </NavLink>
                         }
@@ -191,7 +191,7 @@
 
                         @if (_renderedHasNextPage)
                         {
-                            <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
+                            <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/rulesets?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
                                 <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
                             </NavLink>
                         }
