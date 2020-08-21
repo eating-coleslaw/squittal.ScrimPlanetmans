@@ -1,0 +1,223 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+
+@inject IRulesetDataService RulesetDataService
+
+<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+
+    <h5>Scrim Action Rules</h5>
+
+    @if (_isLoadingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        @if (_actionRules != null && _actionRules.Any())
+        {
+            <div class="sq-content" style="margin-top: 8px;">
+
+                <div class="tabbed-button-container" style="">
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Objective)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Objective))">Objective</button>
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Support)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Support))">Support</button>
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Infantry)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Infantry))">Infantry</button>
+                    <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.MAX)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.MAX))">MAX</button>
+                    <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Vehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Vehicle))">Vehicle</button>
+                </div>
+
+                <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                    <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                        <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                            <tr>
+                                <th style="padding-bottom: 2px;">Action Type <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                <th style="padding-bottom: 2px;">Points</th>
+                                <th style="padding-bottom: 2px;">Defer to Item<br />Category Rules?</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var actionRule in _actionRules)
+                            {
+                                @if (CanShowActionRuleInSelectedDomain(actionRule))
+                                {
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType) <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@((int)actionRule.ScrimActionType)]</span></td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(actionRule.Points); text-align: right; width: 50px; color: var(--sq-black); ">@actionRule.Points</td>
+                                        <td style="color: var(--sq-black); opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules)">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p>No scrim action rules...</p>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private IEnumerable<RulesetActionRule> _actionRules { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+    private ScrimActionTypeDomain _selectedDomainView { get; set; } = ScrimActionTypeDomain.Objective;
+
+    private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
+    {
+        ScrimActionType.None,
+        ScrimActionType.OutsideInterference,
+        ScrimActionType.Unknown
+    };
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedRulesetId = i_rulesetId;
+
+        await LoadRulesetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _actionRules = await RulesetDataService.GetRulesetActionRulesAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Form & UI Handling
+    private string GetViewTabStyle(ScrimActionTypeDomain thisView)
+    {
+        if (_selectedDomainView == thisView)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    private void OnSelectNewView(ScrimActionTypeDomain newView)
+    {
+        if (newView != _selectedDomainView)
+        {
+            _selectedDomainView = newView;
+        }
+    }
+
+    private bool CanShowActionRuleInSelectedDomain(RulesetActionRule rule)
+    {
+        if (_selectedDomainView == ScrimActionTypeDomain.Vehicle)
+        {
+            return (rule.ScrimActionTypeDomain == ScrimActionTypeDomain.Vehicle
+                        || rule.ScrimActionTypeDomain == ScrimActionTypeDomain.AirVehicle
+                        || rule.ScrimActionTypeDomain == ScrimActionTypeDomain.GroundVehicle) ? true : false;
+        }
+        else
+        {
+            return _selectedDomainView == rule.ScrimActionTypeDomain;
+        }
+    }
+    #endregion Form & UI Handling
+
+    private string GetActionRuleDescription(ScrimActionType actionType)
+    {
+        var name = Enum.GetName(typeof(ScrimActionType), actionType);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetDeferValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

@@ -1,0 +1,216 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using System.Threading;
+
+@inject IRulesetDataService RulesetDataService
+@inject IZoneService ZoneService
+
+@implements IDisposable
+
+<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+    <h5>Facility Rules</h5>
+
+    @if (_isLoadingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        <div class="sq-content" style="margin-top: 8px;">
+
+            <div class="tabbed-button-container" style="">
+                <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(0)" @onclick="@(() => OnSelectNewView(0))">All</button>
+                <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(4)" @onclick="@(() => OnSelectNewView(4))">Hossin</button>
+                <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(2)" @onclick="@(() => OnSelectNewView(2))">Indar</button>
+                <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(8)" @onclick="@(() => OnSelectNewView(8))">Esamir</button>
+                <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(6)" @onclick="@(() => OnSelectNewView(6))">Amerish</button>
+            </div>
+
+            <div style="max-height: 544px; overflow-y: auto; margin-bottom: 4px; border-bottom: 1px solid var(--sq-black-alpha-50);">
+
+                @if (_facilityRules != null && _facilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
+                {
+                    <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                        <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                            <tr>
+                                <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                @if (_selectedZoneIdView == 0)
+                                {
+                                    <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
+                                }
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var facilityRule in _facilityRules.Where(r => (r.MapRegion != null && r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
+                            {
+                                <tr class="sans-serif-font">
+                                    <td style="color: var(--sq-black); padding-left: 8px;">@facilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@facilityRule.FacilityId]</span></td>
+                                    @if (_selectedZoneIdView == 0)
+                                    {
+                                        <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(facilityRule)</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    @if (_selectedZoneIdView == 0)
+                    {
+                        <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no facility rules for this ruleset</p>
+                    }
+                    else
+                    {
+                        <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no @(_zoneNames[_selectedZoneIdView]) facility rules for this ruleset</p>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private List<RulesetFacilityRule> _facilityRules { get; set; }
+
+    private List<int> _mapZones { get; set; } = new List<int>();
+    private List<Zone> _zones { get; set; }
+    private Dictionary<int, string> _zoneNames { get; set; } = new Dictionary<int, string>();
+
+    private bool _isLoadingRules { get; set; } = false;
+
+    private int _selectedZoneIdView { get; set; } = 0; // All Zones
+
+    private CancellationTokenSource cts;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedRulesetId = i_rulesetId;
+
+        await LoadRulesetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var TaskList = new List<Task>();
+
+            var facilityRulesTask = RulesetDataService.GetRulesetFacilityRulesAsync(_renderedRulesetId, cts.Token);
+            TaskList.Add(facilityRulesTask);
+
+            var zonesTask = ZoneService.GetAllZones();
+            TaskList.Add(zonesTask);
+
+            await Task.WhenAll(TaskList);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _facilityRules = facilityRulesTask.Result.ToList();
+            _zones = zonesTask.Result.ToList();
+
+            _mapZones = _facilityRules.Select(f => f.MapRegion.ZoneId).Distinct().ToList();
+
+            _zoneNames = _zones.ToDictionary(z => z.Id, z => z.Name);
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Form & UI Handling
+    private string GetViewTabStyle(int thisZoneId)
+    {
+        if (_selectedZoneIdView == thisZoneId)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    private void OnSelectNewView(int newView)
+    {
+        if (newView != _selectedZoneIdView)
+        {
+            _selectedZoneIdView = newView;
+        }
+    }
+    #endregion Form & UI Handling
+
+    private string GetFacilityZoneName(RulesetFacilityRule rule)
+    {
+        return _zoneNames[rule.MapRegion.ZoneId];
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

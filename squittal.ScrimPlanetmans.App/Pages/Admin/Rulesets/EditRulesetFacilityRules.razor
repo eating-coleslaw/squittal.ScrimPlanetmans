@@ -8,9 +8,10 @@
 @using System.Threading;
 @using System.Collections.Concurrent;
 
-@inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
 @inject IZoneService ZoneService
+
+@implements IDisposable
 
 <div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
     @if (_changesCount > 0)
@@ -478,20 +479,6 @@
     private string GetFacilityZoneName(RulesetFacilityRule rule)
     {
         return _zoneNames[rule.MapRegion.ZoneId];
-    }
-
-    private double GetValueOpacity(int value)
-    {
-        return (value != 0)
-            ? 1.0
-            : 0.5;
-    }
-
-    private double GetDeferValueOpacity(bool value)
-    {
-        return (value == true)
-            ? 1.0
-            : 0.5;
     }
 
     private void InvokeAsyncStateHasChanged()

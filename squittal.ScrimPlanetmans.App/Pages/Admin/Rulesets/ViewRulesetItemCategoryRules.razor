@@ -1,0 +1,201 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+
+@inject IRulesetDataService RulesetDataService
+
+@implements IDisposable
+
+<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+    <h5>Item Category Rules</h5>
+
+    @if (_isLoadingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        @if (_itemCategoryRules != null && _itemCategoryRules.Any())
+        {
+                <div class="sq-content" style="margin-top: 8px;">
+
+                    <div class="tabbed-button-container" style="">
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
+                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
+                        <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
+                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
+                    </div>
+
+                    <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                <tr>
+                                    <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                    <th style="padding-bottom: 2px;">Points</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
+                                {
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points); text-align: right; width: 50px; color: var(--sq-black);">@itemCategoryRule.Points</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+        }
+        else
+        {
+            <p>No item category rules...</p>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private IEnumerable<RulesetItemCategoryRule> _itemCategoryRules { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+    private ItemCategoryDomain _selectedDomainView { get; set; } = ItemCategoryDomain.Infantry;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _renderedRulesetId = i_rulesetId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRulesAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _itemCategoryRules = await RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
+    {
+        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private string GetViewTabStyle(ItemCategoryDomain thisView)
+    {
+        if (_selectedDomainView == thisView)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    private void OnSelectNewView(ItemCategoryDomain newView)
+    {
+        if (newView != _selectedDomainView)
+        {
+            _selectedDomainView = newView;
+        }
+    }
+
+    #region Helpers
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetDeferValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion Helpers
+}
