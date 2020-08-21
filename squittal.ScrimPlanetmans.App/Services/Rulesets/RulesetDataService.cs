@@ -29,7 +29,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private readonly int _rulesetBrowserPageSize = 15;
 
-        private readonly int _defaultRulesetId = 1;
+        public int DefaultRulesetId { get; } = 1;
 
         private readonly KeyedSemaphoreSlim _rulesetLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
@@ -321,7 +321,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         {
             var updateId = rulesetUpdate.Id;
             
-            if (updateId == _defaultRulesetId || rulesetUpdate.IsDefault)
+            if (updateId == DefaultRulesetId || rulesetUpdate.IsDefault)
             {
                 return false;
             }
@@ -385,7 +385,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
          */
         public async Task SaveRulesetActionRules(int rulesetId, IEnumerable<RulesetActionRule> rules)
         {
-            if (rulesetId == _defaultRulesetId)
+            if (rulesetId == DefaultRulesetId)
             {
                 return;
             }
@@ -452,7 +452,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
          */
         public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules)
         {
-            if (rulesetId == _defaultRulesetId)
+            if (rulesetId == DefaultRulesetId)
             {
                 return;
             }
@@ -519,7 +519,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
          */
         public async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules)
         {
-            if (rulesetId == _defaultRulesetId)
+            if (rulesetId == DefaultRulesetId)
             {
                 return;
             }

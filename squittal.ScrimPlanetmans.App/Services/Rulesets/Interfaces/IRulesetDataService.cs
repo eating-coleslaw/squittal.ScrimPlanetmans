@@ -11,6 +11,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 {
     public interface IRulesetDataService
     {
+        int DefaultRulesetId { get; }
+
         Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
 
         Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true);
