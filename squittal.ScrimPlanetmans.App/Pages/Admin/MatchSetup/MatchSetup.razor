@@ -17,7 +17,7 @@
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
-@inject IScrimTeamsManager ScrimTeamsManager
+@*@inject IScrimTeamsManager ScrimTeamsManager*@
 @inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchScorer MatchScorer
 @inject IItemService ItemService
@@ -56,8 +56,13 @@
                     </div>
                 </div>
 
+                <p>_isLoading: @_isLoading</p>
+                <p>_isLoadingRulesets: @_isLoadingRulesets</p>
+                <p>_isChangingRuleset: @_isChangingRuleset;</p>
+                <p>_isLoadingActiveRulesetConfig: @_isLoadingActiveRulesetConfig</p>
+
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
-                @if (_isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isEndingRound)
+                @if (_isLoading || _isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isEndingRound || _isLoadingActiveRulesetConfig)
                 {
                     <span class="thin">
                         <SpinnerEllipsis />
@@ -118,7 +123,7 @@
                     </button>
                 }
 
-                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isLoadingRulesets))
+                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isLoading || _isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isLoadingRulesets || _isLoadingActiveRulesetConfig))
                 {
                     @if (_currentRound == 0 && _rulesets != null && _rulesets.Any() && _selectedRuleset != null)
                     {
@@ -161,20 +166,20 @@
                                 </InputSelect>
                             }
 
-                            @if (_mapZones != null && _mapRegions != null)
+                            @if (_mapZones != null && _mapRegions != null && _zones != null)
                             {
                                 <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
                                     <option value=@_noFacilitIdValue>No Base</option>
 
                                     @foreach (var zone in _mapZones)
-                                            {
+                                    {
                                         <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
 
                                         @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                                {
+                                        {
                                             <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                                }
-                                            }
+                                        }
+                                    }
                                 </InputSelect>
                             }
                         </div>
@@ -218,8 +223,10 @@
     private Ruleset _activeRuleset { get; set; }
     private Ruleset _selectedRuleset { get; set; }
 
+    private bool _isLoading { get; set; } = false;
     private bool _isLoadingRulesets { get; set; } = false;
     private bool _isChangingRuleset { get; set; } = false;
+    private bool _isLoadingActiveRulesetConfig { get; set; } = false;
 
     private string _debug = string.Empty;
     #endregion Ruleset Select List Variables
@@ -272,19 +279,49 @@
     {
         if (firstRender)
         {
-            await GetCensusStreamStatus();
+            _isLoading = true;
 
-            await SetUpRulesetsAsync();
+            var TaskList = new List<Task>();
 
-            _zones = await ZoneService.GetAllZones();
+            var censusStreamStatusTask = GetCensusStreamStatus();
+            TaskList.Add(censusStreamStatusTask);
 
-            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-            _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+            var zonesTask = ZoneService.GetAllZones();
+            TaskList.Add(zonesTask);
 
-            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            var worldsTask = WorldService.GetAllWorldsAsync();
+            TaskList.Add(worldsTask);
 
-            var worlds = await WorldService.GetAllWorldsAsync();
-            _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+            var rulesetsTask = SetUpRulesetsAsync();
+            TaskList.Add(rulesetsTask);
+
+            var activeRulesetConfigTask = SetUpActiveRulesetConfigAsync();
+            TaskList.Add(activeRulesetConfigTask);
+
+            await Task.WhenAll(TaskList);
+
+            _worlds = worldsTask.Result.OrderBy(worlds => worlds.Name).ToList();
+
+            _zones = zonesTask.Result;
+
+            //await GetCensusStreamStatus();
+
+            //_zones = await ZoneService.GetAllZones();
+
+            //var worlds = await WorldService.GetAllWorldsAsync();
+            //_worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+
+            //await SetUpRulesetsAsync();
+
+            //await SetUpActiveRulesetConfigAsync();
+
+
+            //var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+            //_mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+            //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            _isLoading = false;
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -321,19 +358,69 @@
 
         _rulesets = await RulesetManager.GetRulesetsAsync(CancellationToken.None);
 
-        if (_rulesets.Any())
+        //_activeRuleset = await RulesetManager.GetActiveRulesetAsync();
+
+        //if (_activeRuleset != null)
+        //{
+        //    _selectedRuleset = _activeRuleset;
+        //    _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
+
+        //    if (_matchConfiguration != null)
+        //    {
+        //        _matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
+        //    }
+        //}
+
+        //if (_rulesets.Any())
+        //{
+        //    _activeRuleset = _rulesets.Where(r => r.IsActive).FirstOrDefault();
+        //    _selectedRuleset = _activeRuleset;
+        //    _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
+
+        //    if (_matchConfiguration != null)
+        //    {
+        //        _matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
+        //    }
+        //}
+
+        _isLoadingRulesets = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async Task SetUpActiveRulesetConfigAsync()
+    {
+        _isLoadingActiveRulesetConfig = true;
+
+        _activeRuleset = await RulesetManager.GetActiveRulesetAsync();
+
+        if (_activeRuleset != null)
         {
-            _activeRuleset = _rulesets.Where(r => r.IsActive).FirstOrDefault();
             _selectedRuleset = _activeRuleset;
             _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
 
             if (_matchConfiguration != null)
             {
-                _matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
+                //_matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
+                _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
+            }
+
+            if (_activeRuleset.RulesetFacilityRules.Any())
+            {
+                var mapRegions = _activeRuleset.RulesetFacilityRules.Select(r => r.MapRegion).ToList();
+                _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+                _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            }
+            else
+            {
+                var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+
+                _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+                _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
             }
         }
 
-        _isLoadingRulesets = false;
+        _isLoadingActiveRulesetConfig = false;
         InvokeAsyncStateHasChanged();
     }
     #endregion Initialization Methods
@@ -367,6 +454,7 @@
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
 
+    #region Match Controls
     private async void StartMatch()
     {
         if (_isStartingRound)
@@ -503,6 +591,7 @@
             InvokeAsyncStateHasChanged();
         }
     }
+    #endregion Match Controls
 
     private void OnChangeMatchTitle(string newTitle)
     {
@@ -566,6 +655,15 @@
             return;
         }
 
+        if (rulesetId == _selectedRuleset.Id || rulesetId == _activeRuleset.Id)
+        {
+            _debug = $"{rulesetId} - no new active ruleset";
+
+            _isChangingRuleset = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
         var newActiveRuleset = await RulesetManager.ActivateRulesetAsync(rulesetId);
 
         if (newActiveRuleset == null || newActiveRuleset.Id == _activeRuleset.Id)
@@ -573,8 +671,12 @@
             _debug = $"{rulesetId} - no new active ruleset";
 
             _isChangingRuleset = false;
+            InvokeAsyncStateHasChanged();
             return;
         }
+
+        _rulesets.Where(r => r.Id == newActiveRuleset.Id).FirstOrDefault().IsActive = true;
+        _rulesets.Where(r => r.Id == _selectedRuleset.Id).FirstOrDefault().IsActive = false;
 
         _activeRuleset = newActiveRuleset;
         _selectedRuleset = newActiveRuleset;
@@ -582,11 +684,53 @@
 
         _debug = $"{_inputSelectRulesetStringId} - new selected ruleset ID";
 
-        await SetUpRulesetsAsync();
+        //await SetUpRulesetsAsync();
+        //await SetUpActiveRulesetConfigAsync();
+
+        await SetUpNewActiveRulesetConfigAsync();
 
         _isChangingRuleset = false;
         InvokeAsyncStateHasChanged();
 
+    }
+
+    private async Task SetUpNewActiveRulesetConfigAsync()
+    {
+        _isLoadingActiveRulesetConfig = true;
+
+        if (_activeRuleset == null)
+        {
+            _isLoadingActiveRulesetConfig = false;
+            return;
+        }
+
+        if (_activeRuleset.RulesetFacilityRules.Any())
+        {
+            var mapRegions = _activeRuleset.RulesetFacilityRules.Select(r => r.MapRegion).ToList();
+            _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+        }
+        else
+        {
+            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+
+            _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+        }
+
+        if (_matchConfiguration != null)
+        {
+            _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
+
+            if (!_mapRegions.Any(r => r.FacilityId == _matchConfiguration.FacilityId))
+            {
+                _matchConfiguration.FacilityIdString = _noFacilitIdValue;
+            }
+        }
+
+        _isLoadingActiveRulesetConfig = false;
+        InvokeAsyncStateHasChanged();
     }
     #endregion Ruleset Form Controls
 

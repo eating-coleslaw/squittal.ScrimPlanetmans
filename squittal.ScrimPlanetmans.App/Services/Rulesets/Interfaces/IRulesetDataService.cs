@@ -41,5 +41,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task<IEnumerable<RulesetFacilityRule>> GetRulesetFacilityRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task<IEnumerable<RulesetFacilityRule>> GetUnusedRulesetFacilityRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task<bool> UpdateRulesetInfo(Ruleset rulesetUpdate, CancellationToken cancellationToken);
+        Task<Ruleset> GetRulesetWithFacilityRules(int rulesetId, CancellationToken cancellationToken);
     }
 }
