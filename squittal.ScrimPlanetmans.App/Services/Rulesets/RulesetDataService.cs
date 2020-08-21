@@ -121,15 +121,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 if (includeCollections)
                 {
-                    //ruleset = await dbContext.Rulesets
-                    //                            .Where(r => r.Id == rulesetId)
-                    //                            .Include("RulesetItemCategoryRules")
-                    //                            .Include("RulesetActionRules")
-                    //                            .Include("RulesetItemCategoryRules.ItemCategory")
-                    //                            .Include("RulesetFacilityRules")
-                    //                            .Include("RulesetFacilityRules.MapRegion")
-                    //                            .FirstOrDefaultAsync(cancellationToken);
-
                     var TaskList = new List<Task>();
 
                     var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
@@ -150,12 +141,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     ruleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
                     ruleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
                 }
-                //else
-                //{
-                //    ruleset = await dbContext.Rulesets
-                //                               .Where(r => r.Id == rulesetId)
-                //                               .FirstOrDefaultAsync(cancellationToken);
-                //}
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -335,10 +320,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     return allFacilities?.Select(a => ConvertToFacilityRule(rulesetId, a)).ToList();
                 }
-                //else if (allFacilities == null)
-                //{
-                //    return usedFacilities;
-                //}
 
                 return allFacilities?.Where(a => !usedFacilities.Any(u => u.FacilityId == a.FacilityId))
                                         .Select(a => ConvertToFacilityRule(rulesetId, a))
@@ -956,10 +937,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 newActiveRuleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
                 newActiveRuleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
 
-                //await SetUpRulesetsMapAsync(CancellationToken.None);
-
                 return newActiveRuleset;
-                //return await GetRulesetFromIdAsync(rulesetId, CancellationToken.None);
             }
             catch (Exception ex)
             {
