@@ -2,7 +2,6 @@
 @page "/Admin"
 @page "/MatchSetup"
 
-@using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup.MatchTeamComposer;
 @using squittal.ScrimPlanetmans.CensusStream;
@@ -17,7 +16,6 @@
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
-@*@inject IScrimTeamsManager ScrimTeamsManager*@
 @inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchScorer MatchScorer
 @inject IItemService ItemService
@@ -55,11 +53,6 @@
                         <MatchTimer Debug=false />
                     </div>
                 </div>
-
-                <p>_isLoading: @_isLoading</p>
-                <p>_isLoadingRulesets: @_isLoadingRulesets</p>
-                <p>_isChangingRuleset: @_isChangingRuleset;</p>
-                <p>_isLoadingActiveRulesetConfig: @_isLoadingActiveRulesetConfig</p>
 
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
                 @if (_isLoading || _isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isEndingRound || _isLoadingActiveRulesetConfig)
@@ -131,8 +124,6 @@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-                            @*<div style=" display: inline-block;">*@
-
                                 Ruleset: <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputSelectRulesetStringId" ValueChanged="@((string s) => OnChangeRulesetSelection(s))" ValueExpression="@(() => _inputSelectRulesetStringId)">
 
                                     <option value=@_selectedRuleset.Id.ToString() label="@($"{_selectedRuleset.Name} [{_selectedRuleset.Id}]")">@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</option>
@@ -142,14 +133,12 @@
                                         <option value=@ruleset.Id.ToString() label="@($"{ruleset.Name} [{ruleset.Id}]")">@ruleset.Name [@ruleset.Id.ToString()]</option>
                                     }
                                 </InputSelect>
-                            @*</div>*@
                         </EditForm>
                     }
 
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
                         <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" /></p>
-                        @*<p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>*@
                         <p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => _matchConfiguration.TrySetRoundLength(s, true))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /></p>
 
                         <div style="margin-bottom: 0.2rem;">
@@ -258,23 +247,6 @@
     private string _matchId = string.Empty;
 
     #region Initialization Methods
-    //protected override async Task OnInitializedAsync()
-    //{
-    //    await GetCensusStreamStatus();
-
-    //    await SetUpRulesetsAsync();
-
-    //    _zones = await ZoneService.GetAllZones();
-
-    //    var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-    //    _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
-
-    //    _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-
-    //    var worlds = await WorldService.GetAllWorldsAsync();
-    //    _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
-    //}
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -304,22 +276,6 @@
 
             _zones = zonesTask.Result;
 
-            //await GetCensusStreamStatus();
-
-            //_zones = await ZoneService.GetAllZones();
-
-            //var worlds = await WorldService.GetAllWorldsAsync();
-            //_worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
-
-            //await SetUpRulesetsAsync();
-
-            //await SetUpActiveRulesetConfigAsync();
-
-
-            //var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-            //_mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
-
-            //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
             _isLoading = false;
             InvokeAsyncStateHasChanged();
         }
@@ -358,31 +314,6 @@
 
         _rulesets = await RulesetManager.GetRulesetsAsync(CancellationToken.None);
 
-        //_activeRuleset = await RulesetManager.GetActiveRulesetAsync();
-
-        //if (_activeRuleset != null)
-        //{
-        //    _selectedRuleset = _activeRuleset;
-        //    _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
-
-        //    if (_matchConfiguration != null)
-        //    {
-        //        _matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
-        //    }
-        //}
-
-        //if (_rulesets.Any())
-        //{
-        //    _activeRuleset = _rulesets.Where(r => r.IsActive).FirstOrDefault();
-        //    _selectedRuleset = _activeRuleset;
-        //    _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
-
-        //    if (_matchConfiguration != null)
-        //    {
-        //        _matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
-        //    }
-        //}
-
         _isLoadingRulesets = false;
         InvokeAsyncStateHasChanged();
     }
@@ -400,7 +331,6 @@
 
             if (_matchConfiguration != null)
             {
-                //_matchConfiguration.TrySetRoundLength(_selectedRuleset.DefaultRoundLength, false);
                 _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
             }
 
@@ -560,6 +490,8 @@
 
             _matchConfiguration = new MatchConfiguration();
 
+            _matchConfiguration.RoundSecondsTotal = _activeRuleset.DefaultRoundLength;
+
             _isClearingMatch = false;
 
             InvokeAsyncStateHasChanged();
@@ -684,53 +616,11 @@
 
         _debug = $"{_inputSelectRulesetStringId} - new selected ruleset ID";
 
-        //await SetUpRulesetsAsync();
         await SetUpActiveRulesetConfigAsync();
-
-        //await SetUpNewActiveRulesetConfigAsync();
 
         _isChangingRuleset = false;
         InvokeAsyncStateHasChanged();
 
-    }
-
-    private async Task SetUpNewActiveRulesetConfigAsync()
-    {
-        _isLoadingActiveRulesetConfig = true;
-
-        if (_activeRuleset == null)
-        {
-            _isLoadingActiveRulesetConfig = false;
-            return;
-        }
-
-        if (_activeRuleset.RulesetFacilityRules.Any())
-        {
-            var mapRegions = _activeRuleset.RulesetFacilityRules.Select(r => r.MapRegion).ToList();
-            _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
-
-            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-        }
-        else
-        {
-            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-
-            _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
-            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-        }
-
-        if (_matchConfiguration != null)
-        {
-            _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
-
-            if (!_mapRegions.Any(r => r.FacilityId == _matchConfiguration.FacilityId))
-            {
-                _matchConfiguration.FacilityIdString = _noFacilitIdValue;
-            }
-        }
-
-        _isLoadingActiveRulesetConfig = false;
-        InvokeAsyncStateHasChanged();
     }
     #endregion Ruleset Form Controls
 
