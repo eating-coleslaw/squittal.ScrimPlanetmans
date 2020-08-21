@@ -6,11 +6,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddUniqueConstraint(
-                name: "AK_MapRegion_FacilityId",
-                table: "MapRegion",
-                column: "FacilityId");
-
             migrationBuilder.CreateTable(
                 name: "RulesetFacilityRule",
                 columns: table => new
@@ -23,23 +18,23 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                 {
                     table.PrimaryKey("PK_RulesetFacilityRule", x => new { x.RulesetId, x.FacilityId });
                     table.ForeignKey(
-                        name: "FK_RulesetFacilityRule_MapRegion_FacilityId",
-                        column: x => x.FacilityId,
-                        principalTable: "MapRegion",
-                        principalColumn: "FacilityId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_RulesetFacilityRule_Ruleset_RulesetId",
                         column: x => x.RulesetId,
                         principalTable: "Ruleset",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RulesetFacilityRule_MapRegion_MapRegionId_FacilityId",
+                        columns: x => new { x.MapRegionId, x.FacilityId },
+                        principalTable: "MapRegion",
+                        principalColumns: new[] { "Id", "FacilityId" },
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_RulesetFacilityRule_FacilityId",
+                name: "IX_RulesetFacilityRule_MapRegionId_FacilityId",
                 table: "RulesetFacilityRule",
-                column: "FacilityId",
+                columns: new[] { "MapRegionId", "FacilityId" },
                 unique: false);
         }
 
@@ -47,10 +42,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
         {
             migrationBuilder.DropTable(
                 name: "RulesetFacilityRule");
-
-            migrationBuilder.DropUniqueConstraint(
-                name: "AK_MapRegion_FacilityId",
-                table: "MapRegion");
         }
     }
 }

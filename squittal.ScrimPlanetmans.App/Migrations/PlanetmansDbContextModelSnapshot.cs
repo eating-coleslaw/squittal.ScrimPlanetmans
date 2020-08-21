@@ -1114,7 +1114,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.HasKey("RulesetId", "FacilityId");
 
-                    b.HasIndex("FacilityId")
+                    b.HasIndex("MapRegionId", "FacilityId")
                         .IsUnique();
 
                     b.ToTable("RulesetFacilityRule");
@@ -1216,16 +1216,15 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetFacilityRule", b =>
                 {
-                    b.HasOne("squittal.ScrimPlanetmans.Models.Planetside.MapRegion", "MapRegion")
-                        .WithOne()
-                        .HasForeignKey("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetFacilityRule", "FacilityId")
-                        .HasPrincipalKey("squittal.ScrimPlanetmans.Models.Planetside.MapRegion", "FacilityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
                         .WithMany("RulesetFacilityRules")
                         .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("squittal.ScrimPlanetmans.Models.Planetside.MapRegion", "MapRegion")
+                        .WithOne()
+                        .HasForeignKey("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetFacilityRule", "MapRegionId", "FacilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -71,6 +71,8 @@
     <Compile Remove="Migrations\20200819215851_AddRulesetFacilityRuleModel.Designer.cs" />
     <Compile Remove="Migrations\20200819220816_AddRulesetFacilityRuleModel.cs" />
     <Compile Remove="Migrations\20200819220816_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819221228_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819221228_AddRulesetFacilityRuleModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
