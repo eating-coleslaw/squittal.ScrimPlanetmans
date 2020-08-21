@@ -115,23 +115,47 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 Ruleset ruleset;
 
-                if (includeCollections)
-                {
-                    ruleset = await dbContext.Rulesets
-                                                .Where(r => r.Id == rulesetId)
-                                                .Include("RulesetItemCategoryRules")
-                                                .Include("RulesetActionRules")
-                                                .Include("RulesetItemCategoryRules.ItemCategory")
-                                                .Include("RulesetFacilityRules")
-                                                .Include("RulesetFacilityRules.MapRegion")
-                                                .FirstOrDefaultAsync(cancellationToken);
-                }
-                else
-                {
-                    ruleset = await dbContext.Rulesets
+                ruleset = await dbContext.Rulesets
                                                .Where(r => r.Id == rulesetId)
                                                .FirstOrDefaultAsync(cancellationToken);
+
+                if (includeCollections)
+                {
+                    //ruleset = await dbContext.Rulesets
+                    //                            .Where(r => r.Id == rulesetId)
+                    //                            .Include("RulesetItemCategoryRules")
+                    //                            .Include("RulesetActionRules")
+                    //                            .Include("RulesetItemCategoryRules.ItemCategory")
+                    //                            .Include("RulesetFacilityRules")
+                    //                            .Include("RulesetFacilityRules.MapRegion")
+                    //                            .FirstOrDefaultAsync(cancellationToken);
+
+                    var TaskList = new List<Task>();
+
+                    var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
+                    TaskList.Add(actionRulesTask);
+
+                    var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
+                    TaskList.Add(itemCategoryRulesTask);
+
+                    var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
+                    TaskList.Add(facilityRulesTask);
+
+                    var rulesetsMapTask = SetUpRulesetsMapAsync(CancellationToken.None);
+                    TaskList.Add(rulesetsMapTask);
+
+                    await Task.WhenAll(TaskList);
+
+                    ruleset.RulesetActionRules = actionRulesTask.Result.ToList();
+                    ruleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
+                    ruleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
                 }
+                //else
+                //{
+                //    ruleset = await dbContext.Rulesets
+                //                               .Where(r => r.Id == rulesetId)
+                //                               .FirstOrDefaultAsync(cancellationToken);
+                //}
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -886,7 +910,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
 
-                var newActiveRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None);
+                var newActiveRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
 
                 if (newActiveRuleset == null)
                 {
@@ -912,9 +936,30 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 await dbContext.SaveChangesAsync();
 
-                await SetUpRulesetsMapAsync(CancellationToken.None);
+                var TaskList = new List<Task>();
+
+                var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
+                TaskList.Add(actionRulesTask);
+
+                var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
+                TaskList.Add(itemCategoryRulesTask);
+
+                var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
+                TaskList.Add(facilityRulesTask);
+
+                var rulesetsMapTask = SetUpRulesetsMapAsync(CancellationToken.None);
+                TaskList.Add(rulesetsMapTask);
+
+                await Task.WhenAll(TaskList);
+
+                newActiveRuleset.RulesetActionRules = actionRulesTask.Result.ToList();
+                newActiveRuleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
+                newActiveRuleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
+
+                //await SetUpRulesetsMapAsync(CancellationToken.None);
 
                 return newActiveRuleset;
+                //return await GetRulesetFromIdAsync(rulesetId, CancellationToken.None);
             }
             catch (Exception ex)
             {
