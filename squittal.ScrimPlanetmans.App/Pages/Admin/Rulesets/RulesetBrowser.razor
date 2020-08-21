@@ -43,7 +43,7 @@
                                 Team Creation Form
                             </h5>*@
 
-                            <div class="sq-content"style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
                                 
                                 <div style="font-weight: 500; font-size: 1rem; margin-bottom: 8px;">New Ruleset</div>
                                 
@@ -101,7 +101,7 @@
 
                     @if (_storeRulesetList != null)
                     {
-                        <tbody style="@(_isLoadingRulesetList ? "opacity: 0.5;" : string.Empty)">
+                        <tbody  class="sans-serif-font" style="@(_isLoadingRulesetList ? "opacity: 0.5;" : string.Empty)">
                             @foreach (var ruleset in _storeRulesetList)
                             {
                                 <tr>
@@ -119,8 +119,10 @@
                                     @*<td>@ruleset.IsDefault</td>*@
                                     @*<td>@ruleset.Id</td>*@
                                     <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
-                                    <td>@GetLocalizedDateString(ruleset.DateCreated) @GetLocalizedTimeString(ruleset.DateCreated)</td>
-                                    <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)ruleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
+                                    @*<td>@GetLocalizedDateString(ruleset.DateCreated) @GetLocalizedTimeString(ruleset.DateCreated)</td>*@
+                                    <td>@ruleset.DateCreated.ToString("f")</td>
+                                    <td>@(ruleset.DateLastModified != null ? $"{((DateTime)ruleset.DateLastModified).ToString("f")}" : "--")</td>
+                                    @*<td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)ruleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>*@
                                     @*<td>ruleset.SourceFile</td>
                                     <td>ruleset.Author</td>
                                     <td>ruleset.Description</td>*@
