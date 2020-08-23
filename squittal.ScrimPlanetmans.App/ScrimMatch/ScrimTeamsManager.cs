@@ -2588,6 +2588,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             //player.IsParticipating = true;
+
+            var maxPointsChanged = MaxPlayerPointsTracker.TryUpdateMaxPoints(player.EventAggregate.Points, player.Id);
+
+            var overlayMessageData = new OverlayMessageData
+            {
+                RedrawPointGraph = maxPointsChanged,
+                MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
+            };
+
             await SetPlayerParticipatingStatus(characterId, true);
 
             //if (!_participatingPlayers.Any(p => p.Id == player.Id))
@@ -2604,13 +2613,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //    team.ParticipatingPlayers.Add(player);
             //}
 
-            var maxPointsChanged = MaxPlayerPointsTracker.TryUpdateMaxPoints(player.EventAggregate.Points, player.Id);
+            //var maxPointsChanged = MaxPlayerPointsTracker.TryUpdateMaxPoints(player.EventAggregate.Points, player.Id);
 
-            var overlayMessageData = new OverlayMessageData
-            {
-                RedrawPointGraph = maxPointsChanged,
-                MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
-            };
+            //var overlayMessageData = new OverlayMessageData
+            //{
+            //    RedrawPointGraph = maxPointsChanged,
+            //    MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
+            //};
 
             SendPlayerStatUpdateMessage(player, overlayMessageData);
 
@@ -2894,12 +2903,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             GetTeam(player.TeamOrdinal).UpdateParticipatingPlayer(player);
             
-            SendPlayerStatUpdateMessage(player);
+            //SendPlayerStatUpdateMessage(player);
 
             if (wasAlreadyParticipating == isParticipating)
             {
                 return;
             }
+
+            SendPlayerStatUpdateMessage(player);
 
             if (!isParticipating)
             {

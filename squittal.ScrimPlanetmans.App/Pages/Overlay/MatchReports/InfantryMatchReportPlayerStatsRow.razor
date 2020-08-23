@@ -17,6 +17,7 @@
             <TeamPlayerStatusRowLoadout i_player=@_player/><span>@_player.NameDisplay</span>
         </div>
         <div id="@($"{_player.NameDisplay}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_renderedEventAggregate.Points</div>
+        @*<div id="@($"{_player.NameDisplay}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_currentMaxPoints | @_renderedEventAggregate.Points</div>*@
         <div id="@($"{_player.NameDisplay}-graph")" class="graph">
             <div id="@($"{_player.NameDisplay}-graph-bar")" class="graph-bar" style="width: @($"{_pointGraphWidth}%")"></div>
         </div>
@@ -125,21 +126,21 @@
         var player = e.Message.Player;
         var overlayData = e.Message.OverlayMessageData;
 
-        if (overlayData.RedrawPointGraph)
+        if (overlayData.RedrawPointGraph && player != _player)
         {
-            if (player == _player)
-            {
-                _renderedEventAggregate = new ScrimEventAggregate();
-                _renderedEventAggregate.Add(_player.EventAggregate);
-            }
+            //if (player == _player)
+            //{
+            //    _renderedEventAggregate = new ScrimEventAggregate();
+            //    _renderedEventAggregate.Add(_player.EventAggregate);
+            //}
 
-            _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+            //_currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+            _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints(); //MatchMaxPlayerPoints;
 
             UpdatePointGraphWidth();
 
             InvokeAsyncStateHasChanged();
-
-            return;
+            //return;
         }
 
         if (player == _player)
@@ -149,7 +150,8 @@
                 _renderedEventAggregate = new ScrimEventAggregate();
                 _renderedEventAggregate.Add(_player.EventAggregate);
 
-                _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+                //_currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+                _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
 
                 if (redrawGraph)
                 {
@@ -206,6 +208,7 @@
         }
         else if (_renderedEventAggregate.NetScore != newAggregate.NetScore)
         {
+            redrawGraph = true;
             return true;
         }
         else if (_renderedEventAggregate.Kills != newAggregate.Kills)
@@ -236,7 +239,7 @@
 
         var playerPoints = _renderedEventAggregate.Points;
 
-        _pointGraphWidth = (playerPoints > 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
+        _pointGraphWidth = (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
     }
 
     private double GetStatOpacity(int value)
