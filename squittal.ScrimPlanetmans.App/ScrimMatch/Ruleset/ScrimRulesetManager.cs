@@ -46,11 +46,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             if (ActiveRuleset == null)
             {
-                return await GetDefaultRuleset();
+                //return await GetDefaultRuleset();
+                return await ActivateDefaultRulesetAsync();
             }
             else if (forceRefresh || ActiveRuleset.RulesetActionRules == null || !ActiveRuleset.RulesetActionRules.Any() || ActiveRuleset.RulesetItemCategoryRules == null || !ActiveRuleset.RulesetItemCategoryRules.Any())
             {
-                await SetupActiveRuleset();
+                await SetUpActiveRulesetAsync();
                 return ActiveRuleset;
             }
             else
@@ -67,9 +68,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+                //var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+                var currentActiveRuleset = ActiveRuleset;
 
-                var newActiveRuleset = await _rulesetDataService.ActivateRulesetAsync(rulesetId);
+                if (rulesetId == currentActiveRuleset.Id)
+                {
+                    return currentActiveRuleset;
+                }
+
+                //var newActiveRuleset = await _rulesetDataService.ActivateRulesetAsync(rulesetId);
+                var newActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(rulesetId, CancellationToken.None);
 
                 if (newActiveRuleset == null)
                 {
@@ -90,17 +98,42 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-
-        public async Task SetupActiveRuleset()
+        public async Task<Ruleset> ActivateDefaultRulesetAsync()
         {
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+            var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsCustomDefault);
 
             if (ruleset == null)
             {
-                _logger.LogError($"Failed to setup active ruleset: no ruleset found");
+                ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsDefault);
+            }
+
+            if (ruleset == null)
+            {
+                _logger.LogError($"Failed to activate default ruleset: no ruleset found");
+                return null;
+            }
+
+            ActiveRuleset = await ActivateRulesetAsync(ruleset.Id);
+
+            _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
+
+            return ActiveRuleset;
+        }
+
+        public async Task SetUpActiveRulesetAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            //var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+            var ruleset = ActiveRuleset;
+
+            if (ruleset == null)
+            {
+                _logger.LogError($"Failed to set up active ruleset: no ruleset found");
                 return;
             }
 
@@ -109,12 +142,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
         }
 
-        public async Task<Ruleset> GetDefaultRuleset()
+        public async Task<Ruleset> GetDefaultRulesetAsync()
         {
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == _defaultRulesetId);
+            //var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == _defaultRulesetId);
+            var ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsDefault);
 
             if (ruleset == null)
             {
@@ -128,231 +162,231 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task SeedDefaultRuleset()
         {
-            using (var factory = _dbContextHelper.GetFactory())
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var defaultRulesetId = _defaultRulesetId;
+
+            var storeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == defaultRulesetId);
+
+            bool rulesetExistsInDb = false;
+
+            var storeActionRules = new List<RulesetActionRule>();
+            var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
+            var storeFacilityRules = new List<RulesetFacilityRule>();
+
+            if (storeRuleset != null)
             {
-                var dbContext = factory.GetDbContext();
+                storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
-                var defaultRulesetId = _defaultRulesetId;
+                storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
-                var storeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.Id == defaultRulesetId);
+                storeFacilityRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
-                bool rulesetExistsInDb = false;
-
-                var storeActionRules = new List<RulesetActionRule>();
-                var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
-                var storeFacilityRules = new List<RulesetFacilityRule>();
-
-                if (storeRuleset != null)
-                {
-                    storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                    
-                    storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-
-                    storeFacilityRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-
-                    rulesetExistsInDb = true;
-                }
-                else
-                {
-                    var utcNow = DateTime.UtcNow;
-                    var newRuleset = new Ruleset
-                    {
-                        Name = "Default",
-                        DateCreated = utcNow
-                    };
-
-                    storeRuleset = newRuleset;
-                }
-
-
-                storeRuleset.IsDefault = true;
-
-                var activeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
-                if (activeRuleset == null || activeRuleset.Id == defaultRulesetId)
-                {
-                    storeRuleset.IsActive = true;
-                }
-
-
-                #region Action rules
-                var defaultActionRules = GetDefaultActionRules();
-                var createdActionRules = new List<RulesetActionRule>();
-                var allActionRules = new List<RulesetActionRule>();
-
-                var allActionEnumValues = GetScrimActionTypes().Where(a => a != ScrimActionType.None && a != ScrimActionType.Login && a != ScrimActionType.Logout);
-
-                var allActionValues = new List<ScrimActionType>();
-                allActionValues.AddRange(allActionEnumValues);
-                allActionValues.AddRange(storeActionRules.Select(ar => ar.ScrimActionType).Where(a => !allActionValues.Contains(a)).ToList());
-
-                foreach (var actionType in allActionValues)
-                {
-                    var storeEntity = storeActionRules?.FirstOrDefault(r => r.ScrimActionType == actionType);
-                    var defaultEntity = defaultActionRules.FirstOrDefault(r => r.ScrimActionType == actionType);
-
-                    var isValidAction = storeEntity == null || allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType);
-
-                    if (storeEntity == null)
-                    {
-                        if (defaultEntity != null) {
-                            defaultEntity.RulesetId = defaultRulesetId;
-                            createdActionRules.Add(defaultEntity);
-                            allActionRules.Add(defaultEntity);
-                        }
-                        else
-                        {
-                            var newEntity = BuildRulesetActionRule(defaultRulesetId, actionType, 0);
-                            createdActionRules.Add(newEntity);
-                            allActionRules.Add(newEntity);
-                        }
-                    }
-                    else if (isValidAction)
-                    {
-                        if (defaultEntity != null)
-                        {
-                            storeEntity.Points = defaultEntity.Points;
-                            storeEntity.DeferToItemCategoryRules = defaultEntity.DeferToItemCategoryRules;
-                            storeEntity.ScrimActionTypeDomain = defaultEntity.ScrimActionTypeDomain;
-                        }
-                        else
-                        {
-                            storeEntity.Points = 0;
-                            storeEntity.ScrimActionTypeDomain = ScrimAction.GetDomainFromActionType(storeEntity.ScrimActionType);
-                        }
-
-                        dbContext.RulesetActionRules.Update(storeEntity);
-                        allActionRules.Add(storeEntity);
-                    }
-                    else
-                    {
-                        dbContext.RulesetActionRules.Remove(storeEntity);
-                    }
-                }
-
-                if (createdActionRules.Any())
-                {
-                    await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
-                }
-                #endregion Action rules
-
-                #region Item Category Rules
-                var defaultItemCategoryRules = GetDefaultItemCategoryRules();
-                var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
-                var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
-                var allWeaponItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
-
-                var allItemCategoryRules = new List<RulesetItemCategoryRule>();
-
-                foreach (var categoryId in allItemCategoryIds)
-                {
-                    var isWeaponItemCategoryId = (allWeaponItemCategoryIds.Contains(categoryId)); 
-                    
-                    var storeEntity = storeItemCategoryRules?.FirstOrDefault(r => r.ItemCategoryId == categoryId);
-                    var defaultEntity = defaultItemCategoryRules.FirstOrDefault(r => r.ItemCategoryId == categoryId);
-
-                    if (storeEntity == null)
-                    {
-                        if (defaultEntity != null) {
-                            defaultEntity.RulesetId = defaultRulesetId;
-                            
-                            createdItemCategoryRules.Add(defaultEntity);
-                            allItemCategoryRules.Add(defaultEntity);
-                        }
-                        else if (isWeaponItemCategoryId)
-                        {
-                            var newEntity = BuildRulesetItemCategoryRule(defaultRulesetId, categoryId, 0);
-                            createdItemCategoryRules.Add(newEntity);
-                            allItemCategoryRules.Add(newEntity);
-
-                        }
-                    }
-                    else
-                    {
-                        if (isWeaponItemCategoryId)
-                        {
-                            storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
-
-                            dbContext.RulesetItemCategoryRules.Update(storeEntity);
-                            allItemCategoryRules.Add(storeEntity);
-                        }
-                        else
-                        {
-                            dbContext.RulesetItemCategoryRules.Remove(storeEntity);
-                        }
-                    }
-                }
-
-                if (createdItemCategoryRules.Any())
-                {
-                    await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
-                }
-                #endregion Item Category Rules
-
-                #region Facility Rules
-                var defaultFacilityRules = GetDefaultFacilityRules();
-
-                var createdFacilityRules = new List<RulesetFacilityRule>();
-
-                var allFacilityRules = new List<RulesetFacilityRule>(storeFacilityRules);
-                allFacilityRules.AddRange(defaultFacilityRules.Where(d => !allFacilityRules.Any(a => a.FacilityId == d.FacilityId)));
-
-                foreach (var facilityRule in allFacilityRules)
-                {
-                    var storeEntity = storeFacilityRules?.FirstOrDefault(r => r.FacilityId == facilityRule.FacilityId);
-                    var defaultEntity = defaultFacilityRules.FirstOrDefault(r => r.FacilityId == facilityRule.FacilityId);
-
-                    if (storeEntity == null)
-                    {
-                        if (defaultEntity != null)
-                        {
-                            defaultEntity.RulesetId = defaultRulesetId;
-
-                            createdFacilityRules.Add(defaultEntity);
-                            
-                        }
-                    }
-                    else
-                    {
-                        if (defaultEntity == null)
-                        {
-                            dbContext.RulesetFacilityRules.Remove(storeEntity);
-                            allFacilityRules.Remove(storeEntity);
-                        }
-                        else
-                        {
-                            //storeEntity = defaultEntity;
-                            //dbContext.RulesetFacilityRules.Update(storeEntity);
-                        }
-                    }
-                }
-
-                if (createdFacilityRules.Any())
-                {
-                    await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
-                }
-                #endregion Facility Rules
-
-
-                storeRuleset.RulesetActionRules = allActionRules;
-                storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
-                storeRuleset.RulesetFacilityRules = allFacilityRules;
-
-                if (rulesetExistsInDb)
-                {
-                    dbContext.Rulesets.Update(storeRuleset);
-                }
-                else
-                {
-                    dbContext.Rulesets.Add(storeRuleset);
-                }
-
-                await dbContext.SaveChangesAsync();
-
-                ActiveRuleset = storeRuleset;
-                ActiveRuleset.RulesetActionRules = allActionRules.ToList();
-                ActiveRuleset.RulesetItemCategoryRules = allItemCategoryRules.ToList();
-                ActiveRuleset.RulesetFacilityRules = allFacilityRules.ToList();
+                rulesetExistsInDb = true;
             }
+            else
+            {
+                var utcNow = DateTime.UtcNow;
+                var newRuleset = new Ruleset
+                {
+                    Name = "Default",
+                    DateCreated = utcNow
+                };
+
+                storeRuleset = newRuleset;
+            }
+
+
+            storeRuleset.IsDefault = true;
+
+            var activeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
+            if (activeRuleset == null || activeRuleset.Id == defaultRulesetId)
+            {
+                storeRuleset.IsActive = true;
+            }
+
+
+            #region Action rules
+            var defaultActionRules = GetDefaultActionRules();
+            var createdActionRules = new List<RulesetActionRule>();
+            var allActionRules = new List<RulesetActionRule>();
+
+            var allActionEnumValues = GetScrimActionTypes().Where(a => a != ScrimActionType.None && a != ScrimActionType.Login && a != ScrimActionType.Logout);
+
+            var allActionValues = new List<ScrimActionType>();
+            allActionValues.AddRange(allActionEnumValues);
+            allActionValues.AddRange(storeActionRules.Select(ar => ar.ScrimActionType).Where(a => !allActionValues.Contains(a)).ToList());
+
+            foreach (var actionType in allActionValues)
+            {
+                var storeEntity = storeActionRules?.FirstOrDefault(r => r.ScrimActionType == actionType);
+                var defaultEntity = defaultActionRules.FirstOrDefault(r => r.ScrimActionType == actionType);
+
+                var isValidAction = storeEntity == null || allActionEnumValues.Any(enumValue => enumValue == storeEntity.ScrimActionType);
+
+                if (storeEntity == null)
+                {
+                    if (defaultEntity != null)
+                    {
+                        defaultEntity.RulesetId = defaultRulesetId;
+                        createdActionRules.Add(defaultEntity);
+                        allActionRules.Add(defaultEntity);
+                    }
+                    else
+                    {
+                        var newEntity = BuildRulesetActionRule(defaultRulesetId, actionType, 0);
+                        createdActionRules.Add(newEntity);
+                        allActionRules.Add(newEntity);
+                    }
+                }
+                else if (isValidAction)
+                {
+                    if (defaultEntity != null)
+                    {
+                        storeEntity.Points = defaultEntity.Points;
+                        storeEntity.DeferToItemCategoryRules = defaultEntity.DeferToItemCategoryRules;
+                        storeEntity.ScrimActionTypeDomain = defaultEntity.ScrimActionTypeDomain;
+                    }
+                    else
+                    {
+                        storeEntity.Points = 0;
+                        storeEntity.ScrimActionTypeDomain = ScrimAction.GetDomainFromActionType(storeEntity.ScrimActionType);
+                    }
+
+                    dbContext.RulesetActionRules.Update(storeEntity);
+                    allActionRules.Add(storeEntity);
+                }
+                else
+                {
+                    dbContext.RulesetActionRules.Remove(storeEntity);
+                }
+            }
+
+            if (createdActionRules.Any())
+            {
+                await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
+            }
+            #endregion Action rules
+
+            #region Item Category Rules
+            var defaultItemCategoryRules = GetDefaultItemCategoryRules();
+            var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
+            var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
+            var allWeaponItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
+
+            var allItemCategoryRules = new List<RulesetItemCategoryRule>();
+
+            foreach (var categoryId in allItemCategoryIds)
+            {
+                var isWeaponItemCategoryId = (allWeaponItemCategoryIds.Contains(categoryId));
+
+                var storeEntity = storeItemCategoryRules?.FirstOrDefault(r => r.ItemCategoryId == categoryId);
+                var defaultEntity = defaultItemCategoryRules.FirstOrDefault(r => r.ItemCategoryId == categoryId);
+
+                if (storeEntity == null)
+                {
+                    if (defaultEntity != null)
+                    {
+                        defaultEntity.RulesetId = defaultRulesetId;
+
+                        createdItemCategoryRules.Add(defaultEntity);
+                        allItemCategoryRules.Add(defaultEntity);
+                    }
+                    else if (isWeaponItemCategoryId)
+                    {
+                        var newEntity = BuildRulesetItemCategoryRule(defaultRulesetId, categoryId, 0);
+                        createdItemCategoryRules.Add(newEntity);
+                        allItemCategoryRules.Add(newEntity);
+
+                    }
+                }
+                else
+                {
+                    if (isWeaponItemCategoryId)
+                    {
+                        storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
+
+                        dbContext.RulesetItemCategoryRules.Update(storeEntity);
+                        allItemCategoryRules.Add(storeEntity);
+                    }
+                    else
+                    {
+                        dbContext.RulesetItemCategoryRules.Remove(storeEntity);
+                    }
+                }
+            }
+
+            if (createdItemCategoryRules.Any())
+            {
+                await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
+            }
+            #endregion Item Category Rules
+
+            #region Facility Rules
+            var defaultFacilityRules = GetDefaultFacilityRules();
+
+            var createdFacilityRules = new List<RulesetFacilityRule>();
+
+            var allFacilityRules = new List<RulesetFacilityRule>(storeFacilityRules);
+            allFacilityRules.AddRange(defaultFacilityRules.Where(d => !allFacilityRules.Any(a => a.FacilityId == d.FacilityId)));
+
+            foreach (var facilityRule in allFacilityRules)
+            {
+                var storeEntity = storeFacilityRules?.FirstOrDefault(r => r.FacilityId == facilityRule.FacilityId);
+                var defaultEntity = defaultFacilityRules.FirstOrDefault(r => r.FacilityId == facilityRule.FacilityId);
+
+                if (storeEntity == null)
+                {
+                    if (defaultEntity != null)
+                    {
+                        defaultEntity.RulesetId = defaultRulesetId;
+
+                        createdFacilityRules.Add(defaultEntity);
+
+                    }
+                }
+                else
+                {
+                    if (defaultEntity == null)
+                    {
+                        dbContext.RulesetFacilityRules.Remove(storeEntity);
+                        allFacilityRules.Remove(storeEntity);
+                    }
+                    else
+                    {
+                        //storeEntity = defaultEntity;
+                        //dbContext.RulesetFacilityRules.Update(storeEntity);
+                    }
+                }
+            }
+
+            if (createdFacilityRules.Any())
+            {
+                await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
+            }
+            #endregion Facility Rules
+
+
+            storeRuleset.RulesetActionRules = allActionRules;
+            storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
+            storeRuleset.RulesetFacilityRules = allFacilityRules;
+
+            if (rulesetExistsInDb)
+            {
+                dbContext.Rulesets.Update(storeRuleset);
+            }
+            else
+            {
+                dbContext.Rulesets.Add(storeRuleset);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            ActiveRuleset = storeRuleset;
+            ActiveRuleset.RulesetActionRules = allActionRules.ToList();
+            ActiveRuleset.RulesetItemCategoryRules = allItemCategoryRules.ToList();
+            ActiveRuleset.RulesetFacilityRules = allFacilityRules.ToList();
         }
 
         private IEnumerable<RulesetItemCategoryRule> GetDefaultItemCategoryRules()

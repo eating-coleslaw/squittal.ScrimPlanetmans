@@ -43,7 +43,7 @@ namespace squittal.ScrimPlanetmans.Data
             var weaponCategoriesListTask = _itemCategoryService.SetUpWeaponCategoriesListAsync();
             TaskList.Add(weaponCategoriesListTask);
 
-            var activeRulesetTask = _rulesetManager.SetupActiveRuleset();
+            var activeRulesetTask = _rulesetManager.SetUpActiveRulesetAsync();
             TaskList.Add(activeRulesetTask);
 
             var scrimmableMapRegionsTask = _facilityService.SetUpScrimmableMapRegionsAsync();

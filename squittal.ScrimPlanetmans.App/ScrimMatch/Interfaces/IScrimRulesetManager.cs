@@ -12,13 +12,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Ruleset ActiveRuleset { get; }
 
         Task<Ruleset> GetActiveRulesetAsync(bool forceRefresh = false);
-        Task<Ruleset> GetDefaultRuleset();
+        Task<Ruleset> GetDefaultRulesetAsync();
 
         Task<Ruleset> ActivateRulesetAsync(int rulesetId);
-        Task SetupActiveRuleset();
+        Task SetUpActiveRulesetAsync();
 
         Task SeedDefaultRuleset();
         Task SeedScrimActionModels();
         Task<IEnumerable<Ruleset>> GetRulesetsAsync(CancellationToken cancellationToken);
+        Task<Ruleset> ActivateDefaultRulesetAsync();
     }
 }
