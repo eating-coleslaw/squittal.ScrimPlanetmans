@@ -46,8 +46,9 @@
                     <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
                     
                     <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
-                        <div>Is Active? @(_renderedRuleset.IsActive ? "Yes" : "No")</div>
+                        <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                         <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
+                        <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
                     </p>
                 }
                 else
@@ -56,8 +57,9 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText id="inputRulesetName" @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
                         <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
                         <button type="submit" class="btn btn-primary">
                             <span class="oi oi-check"></span>Save
@@ -180,6 +182,7 @@
 
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+            _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
         }
         catch
         {
@@ -242,6 +245,7 @@
 
                 _editFormRuleset.Name = _renderedRuleset.Name;
                 _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+                _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
 
                 _showEditForm = false;
 
@@ -267,6 +271,7 @@
     {
         _editFormRuleset.Name = _renderedRuleset.Name;
         _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+        _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
 
         _showEditForm = false;
     }
@@ -279,6 +284,7 @@
         {
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+            _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
         }
     }
     #endregion Form Handling
@@ -314,6 +320,11 @@
         }
 
         return stateChanged;
+    }
+
+    private bool IsActiveRuleset(int rulesetId)
+    {
+        return RulesetDataService.ActiveRulesetId == rulesetId;
     }
 
     private string GetLocalizedDateTimeString(DateTime dateTime)

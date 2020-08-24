@@ -18,16 +18,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public DateTime? DateLastModified { get; set; }
 
         //TODO: Actually set these values
-        public bool IsActive { get; set; }
-        public bool IsCustomDefault { get; set; }
+        //public bool IsActive { get; set; }
         public bool IsDefault { get; set; }
+        public bool IsCustomDefault { get; set; }
 
         //public string FileName { get; set; }
         // public string SourceFileName { get; set; }
 
         //public bool IsFavorite { get; set; }
 
-        //public string DefaultMatchTitle { get; set; }
+        public string DefaultMatchTitle { get; set; } = string.Empty;
         public int DefaultRoundLength { get; set; } = 900;
         //public int DefaultRounds { get; set; } == 2
 

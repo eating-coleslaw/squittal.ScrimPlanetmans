@@ -217,7 +217,6 @@
     private bool _isChangingRuleset { get; set; } = false;
     private bool _isLoadingActiveRulesetConfig { get; set; } = false;
 
-    private string _debug = string.Empty;
     #endregion Ruleset Select List Variables
 
     #region Facility & World Select List Variables
@@ -396,8 +395,6 @@
 
         InvokeAsyncStateHasChanged();
 
-        //SubscribeToCensus();
-
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
         await Task.Run(() => ScrimMatchEngine.Start());
@@ -445,10 +442,6 @@
 
             _isDeleteDataEnabled = false;
 
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
             InvokeAsyncStateHasChanged();
         }
     }
@@ -465,10 +458,6 @@
 
             _isDeleteDataEnabled = false;
 
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
             InvokeAsyncStateHasChanged();
         }
     }
@@ -576,12 +565,8 @@
         _isChangingRuleset = true;
         InvokeAsyncStateHasChanged();
 
-        _debug = rulesetStringId;
-
         if (!int.TryParse(rulesetStringId, out var rulesetId))
         {
-            _debug = $"{rulesetStringId} - failed to parse";
-
             _isChangingRuleset = false;
             InvokeAsyncStateHasChanged();
             return;
@@ -589,8 +574,6 @@
 
         if (rulesetId == _selectedRuleset.Id || rulesetId == _activeRuleset.Id)
         {
-            _debug = $"{rulesetId} - no new active ruleset";
-
             _isChangingRuleset = false;
             InvokeAsyncStateHasChanged();
             return;
@@ -600,21 +583,14 @@
 
         if (newActiveRuleset == null || newActiveRuleset.Id == _activeRuleset.Id)
         {
-            _debug = $"{rulesetId} - no new active ruleset";
-
             _isChangingRuleset = false;
             InvokeAsyncStateHasChanged();
             return;
         }
 
-        _rulesets.Where(r => r.Id == newActiveRuleset.Id).FirstOrDefault().IsActive = true;
-        _rulesets.Where(r => r.Id == _selectedRuleset.Id).FirstOrDefault().IsActive = false;
-
         _activeRuleset = newActiveRuleset;
         _selectedRuleset = newActiveRuleset;
         _inputSelectRulesetStringId = newActiveRuleset.Id.ToString();
-
-        _debug = $"{_inputSelectRulesetStringId} - new selected ruleset ID";
 
         await SetUpActiveRulesetConfigAsync();
 

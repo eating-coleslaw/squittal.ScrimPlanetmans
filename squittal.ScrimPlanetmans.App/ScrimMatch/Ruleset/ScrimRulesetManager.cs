@@ -205,15 +205,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 storeRuleset = newRuleset;
             }
 
-
+            storeRuleset.DefaultMatchTitle = "PS2 Scrims";
             storeRuleset.IsDefault = true;
-
-            var activeRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
-            if (activeRuleset == null || activeRuleset.Id == defaultRulesetId)
-            {
-                storeRuleset.IsActive = true;
-            }
-
 
             #region Action rules
             var defaultActionRules = GetDefaultActionRules();

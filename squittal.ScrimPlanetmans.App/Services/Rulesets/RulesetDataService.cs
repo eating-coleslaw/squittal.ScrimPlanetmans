@@ -43,6 +43,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public AutoResetEvent _defaultRulesetAutoEvent = new AutoResetEvent(true);
 
         public static Regex RulesetNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_'.]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public static Regex RulesetDefaultMatchTitleRegex => RulesetNameRegex;
 
         public RulesetDataService(IDbContextHelper dbContextHelper, IFacilityService facilityService, IScrimMessageBroadcastService messageService, ILogger<RulesetDataService> logger)
         {
@@ -61,14 +62,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rulesetsQuery = dbContext.Rulesets
-                                                    .AsQueryable()
-                                                    .AsNoTracking()
-                                                    //.OrderByDescending(r => r.IsActive)
-                                                    //.ThenByDescending(r => r.IsCustomDefault)
-                                                    .OrderByDescending(r => r.Id == ActiveRulesetId)
-                                                    .ThenByDescending(r => r.IsCustomDefault)
-                                                    .ThenByDescending(r => r.IsDefault)
-                                                    .ThenBy(r => r.Name);
+                                                .AsQueryable()
+                                                .AsNoTracking()
+                                                .OrderByDescending(r => r.Id == ActiveRulesetId)
+                                                .ThenByDescending(r => r.IsCustomDefault)
+                                                .ThenByDescending(r => r.IsDefault)
+                                                .ThenBy(r => r.Name);
 
                 var paginatedList = await PaginatedList<Ruleset>.CreateAsync(rulesetsQuery, pageIndex ?? 1, _rulesetBrowserPageSize, cancellationToken);
 
@@ -139,9 +138,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
                     TaskList.Add(facilityRulesTask);
-
-                    //var rulesetsMapTask = SetUpRulesetsMapAsync(CancellationToken.None);
-                    //TaskList.Add(rulesetsMapTask);
 
                     await Task.WhenAll(TaskList);
 
@@ -378,6 +374,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             
             var updateName = rulesetUpdate.Name;
             var updateRoundLength = rulesetUpdate.DefaultRoundLength;
+            var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
 
             if (!IsValidRulesetName(updateName))
             {
@@ -389,6 +386,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 _logger.LogError($"Error updating Ruleset {updateId} info: invalid default round length");
                 return false;
+            }
+
+            if (!IsValidRulesetDefaultMatchTitle(updateMatchTitle))
+            {
+                _logger.LogError($"Error updating Ruleset {updateId} info: invalid default match title");
             }
 
             using (await _rulesetLock.WaitAsync($"{updateId}"))
@@ -410,6 +412,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     storeEntity.Name = updateName;
                     storeEntity.DefaultRoundLength = updateRoundLength;
+                    storeEntity.DefaultMatchTitle = updateMatchTitle;
                     storeEntity.DateLastModified = DateTime.UtcNow;
 
                     dbContext.Rulesets.Update(storeEntity);
@@ -671,7 +674,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private async Task<Ruleset> CreateRulesetAsync(Ruleset ruleset)
         {
-            if (!IsValidRulesetName(ruleset.Name) || ruleset.IsDefault || !IsValidRulesetDefaultRoundLength(ruleset.DefaultRoundLength))
+            if (!IsValidRulesetName(ruleset.Name) || ruleset.IsDefault
+                || !IsValidRulesetDefaultRoundLength(ruleset.DefaultRoundLength) || !IsValidRulesetDefaultMatchTitle(ruleset.DefaultMatchTitle))
             {
                 return null;
             }
@@ -897,70 +901,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             ActiveRulesetId = rulesetId;
         }
 
-        public async Task<Ruleset> ActivateRulesetAsync(int rulesetId)
-        {
-            try
-            {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
-
-                var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
-
-                var newActiveRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
-
-                if (newActiveRuleset == null)
-                {
-                    return null;
-                }
-
-                if (currentActiveRuleset != null && currentActiveRuleset.Id != rulesetId)
-                {
-                    currentActiveRuleset.IsActive = false;
-                    dbContext.Rulesets.Update(currentActiveRuleset);
-                 
-                    newActiveRuleset.IsActive = true;
-                    dbContext.Rulesets.Update(newActiveRuleset);
-                }
-                else if (currentActiveRuleset != null)
-                {
-                    return currentActiveRuleset;
-                }
-                else
-                {
-                    return null;
-                }
-
-                await dbContext.SaveChangesAsync();
-
-                var TaskList = new List<Task>();
-
-                var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
-                TaskList.Add(actionRulesTask);
-
-                var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
-                TaskList.Add(itemCategoryRulesTask);
-
-                var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
-                TaskList.Add(facilityRulesTask);
-
-                var rulesetsMapTask = SetUpRulesetsMapAsync(CancellationToken.None);
-                TaskList.Add(rulesetsMapTask);
-
-                await Task.WhenAll(TaskList);
-
-                newActiveRuleset.RulesetActionRules = actionRulesTask.Result.ToList();
-                newActiveRuleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
-                newActiveRuleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
-
-                return newActiveRuleset;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed activating ruleset: {ex}");
-                return null;
-            }
-        }
-
         public async Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId)
         {
             _defaultRulesetAutoEvent.WaitOne();
@@ -1039,6 +979,10 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             return seconds > 0;
         }
 
+        public static bool IsValidRulesetDefaultMatchTitle(string title)
+        {
+            return RulesetDefaultMatchTitleRegex.Match(title).Success;
+        }
 
         private bool IsValidDefaultRounds(int rounds)
         {

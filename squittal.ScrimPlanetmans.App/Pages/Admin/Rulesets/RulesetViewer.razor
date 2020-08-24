@@ -38,8 +38,9 @@
             <NavLink class="nav-link" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; margin-bottom: 4px;">Open in Editor</NavLink>
 
             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
-                <div>Is Active? @(_renderedRuleset.IsActive ? "Yes" : "No")</div>
+                <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                 <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
+                <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
             </p>
         </div>
 
@@ -196,6 +197,11 @@
         }
 
         return stateChanged;
+    }
+
+    private bool IsActiveRuleset(int rulesetId)
+    {
+        return RulesetDataService.ActiveRulesetId == rulesetId;
     }
 
     private void InvokeAsyncStateHasChanged()
