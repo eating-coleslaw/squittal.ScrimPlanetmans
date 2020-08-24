@@ -41,6 +41,12 @@
     <Compile Remove="Migrations\20200617163549_AddMoreScrimMatchDataModels.Designer.cs" />
     <Compile Remove="Migrations\20200619184306_AddActionTypeToScrimFacilityControl.cs" />
     <Compile Remove="Migrations\20200619184306_AddActionTypeToScrimFacilityControl.Designer.cs" />
+    <Compile Remove="Migrations\20200731192358_AddScrimMatchInfoView.cs" />
+    <Compile Remove="Migrations\20200731192358_AddScrimMatchInfoView.Designer.cs" />
+    <Compile Remove="Migrations\20200803205259_AddInfantryPlayerStatsReportView.cs" />
+    <Compile Remove="Migrations\20200803205259_AddInfantryPlayerStatsReportView.Designer.cs" />
+    <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.cs" />
+    <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +63,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="150.18208.0" />
+    <PackageReference Include="Websocket.Client" Version="4.3.21" />
   </ItemGroup>
 
   <ItemGroup>
@@ -94,6 +101,21 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetActionRuleDeferToItemCategoryRules.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchInfo.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryDeaths.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerDeaths.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryTeamStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

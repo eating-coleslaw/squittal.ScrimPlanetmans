@@ -359,7 +359,35 @@ app {
         box-shadow: 0 0 0 .2rem var(--sq-pink-lighter-alpha-50);
     }*/
 
+/****************************
+    Match Report
+*****************************/
+.net-score-icon {
+    padding-left: 4px;
+    font-size: 1rem;
+    color: var(--sq-ov-semantic-green);
+}
 
+    .net-score-icon.neutral {
+        color: var(--sq-ov-semantic-orange);
+        display: inline-block;
+        font-weight: 700;
+        position: relative;
+        top: 2px;
+        height: 20px;
+    }
+
+    .net-score-icon.negative {
+        color: var(--sq-ov-semantic-red);
+        display: inline-block;
+        transform-origin: center;
+/*        transform: rotateZ(180deg);*/
+        transform: rotateZ(180deg) translateY(-3px);
+        padding: 0 4px 0 0;
+/*        position: relative;*/
+/*        top: 6px;*/
+/*        height: 20px;*/
+    }
 
 
 /****************************
@@ -496,14 +524,17 @@ No-Link Brand Header
     font-size: small;
     /*color: var(--sq-ps2-primary);*/
     margin-bottom: 0px;
-/*    padding: 5px 10px;*/
-/*    padding: 8px 8px;*/
+    /*    padding: 5px 10px;*/
+    /*    padding: 8px 8px;*/
     padding: 8px 16px;
-    border: 2px solid var(--sq-light-blue-gray-alpha);
+    /*    border: 2px solid var(--sq-light-blue-gray-alpha);*/
+    border: 1px solid var(--sq-light-blue-gray-alpha-80);
     border-top: 2px solid var(--sq-ps2-primary);
     border-radius: 0.2rem;
-    background-color: var(--sq-bg-white-lit);
-    box-shadow: 2px 2px 5px -1px var(--sq-light-blue-gray);
+/*    background-color: var(--sq-bg-white-lit);*/
+/*    box-shadow: 2px 2px 5px -1px var(--sq-light-blue-gray);*/
+    background-color: transparent;
+    box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);
 }
     .header-card-container h4 {
         color: var(--sq-ps2-primary);
@@ -822,89 +853,118 @@ No-Link Brand Header
 
 
 /*
-    Killfeed Table
+    report-killfeed Table
 */
 .sq-view-fill table {
     width: 100%;
     margin-bottom: 1rem;
 }
 
-table.killfeed tbody {
-    font-size: small;
+table.report-killfeed {
+    width: 100%;
+    /*border-top: 1px solid var(--sq-gray);
+    border-bottom: 1px solid var(--sq-gray);*/
 }
 
-    table.killfeed tbody tr {
+table.report-killfeed tbody {
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+    table.report-killfeed tbody tr {
         color: var(--sq-ps2-primary);
         background-color: transparent;
         border-top: 1px solid var(--sq-light-blue-gray-alpha-a0);
     }
 
-        table.killfeed tbody tr.death {
+        table.report-killfeed tbody tr.death {
             background-color: var(--sq-bg-red-alpha-80);
             border-top-color: var(--sq-pale-purple);
         }
 
-        table.killfeed tbody tr.teamkill {
+        table.report-killfeed tbody tr.teamkill {
             background-color: var(--sq-bg-yellow-alpha-a0);
         }
 
-    table.killfeed tbody td {
+    table.report-killfeed tbody td {
         padding-top: 0.1rem;
         padding-bottom: 0.1rem;
         border: inherit;
     }
 
-        table.killfeed tbody td.timestamp {
+        table.report-killfeed tbody td.points {
+            padding-left: 8px;
+        }
+
+        table.report-killfeed tbody td.team-fill {
+            width: 8px;
+            background-color: var(--sq-ps2-primary);
+        }
+
+        table.report-killfeed tbody td.player {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        table.report-killfeed tbody td.weapon {
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        table.report-killfeed tbody td.timestamp {
             min-width: 105px;
             max-width: 110px;
             width: 7rem;
         }
 
-        table.killfeed tbody td.loadout-enemy {
+        table.report-killfeed tbody td.loadout-enemy {
             padding-left: 0.5rem;
             max-width: 30px;
             width: 1rem;
         }
 
-        table.killfeed tbody td.loadout-player {
+        table.report-killfeed tbody td.loadout-player {
             padding-left: 0.5rem;
             max-width: 30px;
             width: 1rem;
         }
 
-        table.killfeed tbody td.outfit {
+        table.report-killfeed tbody td.outfit {
             padding: 0.1rem 0.3125rem 0.1rem 0;
             max-width: 55px;
             width: 1rem;
         }
 
-        table.killfeed tbody td.player {
+        table.report-killfeed tbody td.player {
             padding: 0.1rem 0.75rem 0.1rem 0;
         }
 
-            table.killfeed tbody td.player button.inline-player-br {
+            table.report-killfeed tbody td.player button.inline-player-br {
                 font-size: 0.8rem;
                 padding: 0rem;
                 vertical-align: text-bottom;
             }
 
-        table.killfeed tbody td.headshot {
+        table.report-killfeed tbody td.headshot {
             padding-left: 0.5rem;
             max-width: 30px;
             width: 1rem;
         }
 
-            table.killfeed tbody td.headshot .oi {
+            table.report-killfeed tbody td.headshot .oi {
                 padding-left: 0.3125rem;
                 padding-right: 0.3125rem;
             }
 
-        table.killfeed tbody td .emoji {
+        table.report-killfeed tbody td .emoji {
             opacity: 0.65;
         }
 
-table.killfeed td {
-    padding: 0.75rem;
+table.report-killfeed td {
+/*    padding: 0.75rem;*/
+    padding: 0.2rem;
     vertical-align: top;
 }
 
@@ -1257,12 +1317,13 @@ button.refresh {
     /*margin: 0.3125rem 0;*/
     margin: 0.5rem 0;
     padding: 0;
-    background-color: var(--sq-ps2-primary-light-alpha-30);
+/*    background-color: var(--sq-ps2-primary-light-alpha-30);*/
     border: 1px solid var(--sq-ps2-primary-light-alpha-80);
     border-top: 2px solid var(--sq-ps2-primary-light);
     border-radius: 0.2rem;
     box-shadow: 2px 2px 5px -1px var(--sq-light-blue-gray);
     max-width: 100%;
+    background-color: var(--sq-ps2-primary-light-alpha-15);
 }
 
     .sq-mini-card-12 h5,
@@ -1271,11 +1332,12 @@ button.refresh {
     .sq-mini-card-4 h5,
     .sq-mini-card-3 h5 {
         font-size: 1rem;
-/*        margin-bottom: 0.25rem;*/
+        /*        margin-bottom: 0.25rem;*/
         margin-bottom: 8px;
-/*        padding: 0.5rem 0 0 0.5rem;*/
+        /*        padding: 0.5rem 0 0 0.5rem;*/
         width: 100%;
         font-weight: 400;
+        padding: 8px 0 0 16px;
     }
 
     .sq-mini-card-12 .sq-content,

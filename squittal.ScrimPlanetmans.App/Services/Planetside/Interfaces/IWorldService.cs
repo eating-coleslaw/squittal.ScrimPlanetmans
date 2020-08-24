@@ -7,9 +7,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     public interface IWorldService : ILocallyBackedCensusStore
     {
         Task<IEnumerable<World>> GetAllWorldsAsync();
-        IEnumerable<World> GetAllWorlds();
         Task<World> GetWorldAsync(int worldId);
-        World GetWorld(int worldId);
-        Task SetupWorldsList();
+        Task SetUpWorldsMap();
     }
 }

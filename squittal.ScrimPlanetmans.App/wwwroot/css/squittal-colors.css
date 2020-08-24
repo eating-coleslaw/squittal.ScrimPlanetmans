@@ -15,9 +15,12 @@
     --sq-light-blue-gray-alpha-5a: #d4d4ff5a;
     --sq-light-blue-gray-alpha-80: #d4d4ff80;
     --sq-light-blue-gray-alpha-a0: #d4d4ffa0;
-    --sq-bg-white-lit: #fcf6ff;
+    --sq-bg-white-lit: #fcf6ff; /* #fdfaff */
+    --sq-bg-white: #fdfaff; /* #fcf6ff; */
     --sq-bg-white-lit-alpha-30: rgba(252, 246, 255, 0.3);
-    --sq-bg-white-unlit: #f6f0ff;
+    /*    --sq-bg-white-unlit: #fcf6ff;*/
+    --sq-bg-white-unlit: #f6f0ff; /* #f0e6ff */
+    /*    --sq-bg-white-unlit: #f6f0ff;*/
     --sq-black: #27273A;
     --sq-black-alpha-50: #27273A50;
     --sq-gray: #79839C;
@@ -69,6 +72,8 @@
     --sq-ps2-primary: #652fdc;
     --sq-ps2-primary-light: #CABCFF;
     --sq-ps2-primary-light-alpha-10: #CABCFF10;
+    --sq-ps2-primary-light-alpha-15: #CABCFF15;
+    --sq-ps2-primary-light-alpha-20: #CABCFF20;
     --sq-ps2-primary-light-alpha-30: #CABCFF30;
     --sq-ps2-primary-light-alpha-40: #CABCFF40;
     --sq-ps2-primary-light-alpha-80: #CABCFF80;
@@ -91,6 +96,8 @@
     --sq-ps2-primary: #1e62fc;
     --sq-ps2-primary-light: #B6DDFD;
     --sq-ps2-primary-light-alpha-10: #B6DDFD10;
+    --sq-ps2-primary-light-alpha-15: #B6DDFD15;
+    --sq-ps2-primary-light-alpha-20: #B6DDFD20;
     --sq-ps2-primary-light-alpha-30: #B6DDFD30;
     --sq-ps2-primary-light-alpha-40: #B6DDFD40;
     --sq-ps2-primary-light-alpha-80: #B6DDFD80;
@@ -111,6 +118,8 @@
     --sq-ps2-primary: #e04c70;
     --sq-ps2-primary-light: #FFD2D3;
     --sq-ps2-primary-light-alpha-10: #FFD2D310;
+    --sq-ps2-primary-light-alpha-15: #FFD2D315;
+    --sq-ps2-primary-light-alpha-20: #FFD2D320;
     --sq-ps2-primary-light-alpha-30: #FFD2D330;
     --sq-ps2-primary-light-alpha-40: #FFD2D340;
     --sq-ps2-primary-light-alpha-80: #FFD2D380;
@@ -135,6 +144,8 @@
     --sq-ps2-primary: #27273A;
     --sq-ps2-primary-light: #a4a4c2;
     --sq-ps2-primary-light-alpha-10: #a4a4c210;
+    --sq-ps2-primary-light-alpha-15: #a4a4c215;
+    --sq-ps2-primary-light-alpha-20: #a4a4c220;
     --sq-ps2-primary-light-alpha-30: #a4a4c230;
     --sq-ps2-primary-light-alpha-40: #a4a4c240;
     --sq-ps2-primary-light-alpha-80: #a4a4c280;

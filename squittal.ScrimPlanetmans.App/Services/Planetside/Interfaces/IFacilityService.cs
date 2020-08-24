@@ -12,8 +12,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         Task<MapRegion> GetMapRegionsByFacilityTypeAsync(int facilityTypeId);
 
-        IEnumerable<MapRegion> GetScrimmableMapRegions();
-        MapRegion GetScrimmableMapRegionFromFacilityId(int facilityId);
         Task SetUpScrimmableMapRegionsAsync();
+        Task<MapRegion> GetScrimmableMapRegionFromFacilityIdAsync(int facilityId);
+        Task<IEnumerable<MapRegion>> GetScrimmableMapRegionsAsync();
     }
 }

@@ -347,7 +347,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var storeConstructedTeams = await ConstructedTeamsService.GetConstructedTeams(true);
+        var storeConstructedTeams = await ConstructedTeamsService.GetConstructedTeams();
         _availableConstructedTeams.AddRange(storeConstructedTeams);
     }
 
@@ -481,7 +481,7 @@
 
         try
         {
-            var success = await TeamsManager.TryAddCharacterToTeam(i_teamOrdinal, input);
+            var success = await TeamsManager.TryAddFreeTextInputCharacterToTeam(i_teamOrdinal, input);
 
             if (success)
             {
@@ -523,7 +523,7 @@
             return;
         }
 
-        if (TeamsManager.IsConstructedTeamAvailable(newSelection.ConstructedTeamId) && !_constructedTeamsLoading.Any(t => t.ConstructedTeamId == newSelection.ConstructedTeamId && t.FactionId == newSelection.FactionId))
+        if (TeamsManager.IsConstructedTeamFactionAvailable(newSelection.ConstructedTeamId, factionId) && !_constructedTeamsLoading.Any(t => t.ConstructedTeamId == newSelection.ConstructedTeamId && t.FactionId == newSelection.FactionId))
         {
             _constructedTeamsLoading.Add(newSelection);
 

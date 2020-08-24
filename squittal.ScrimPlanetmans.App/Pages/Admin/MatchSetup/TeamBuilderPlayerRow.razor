@@ -107,6 +107,8 @@
     public Player Player { get; set; }
     private Player _renderedPlayer { get; set; }
 
+    private int _renderedWorldId { get; set; } = 0;
+    private string _renderedWorldName { get; set; } = string.Empty;
 
     [Parameter]
     public bool ShowRemovalControls { get; set; }
@@ -133,11 +135,27 @@
         MessageService.RaisePlayerNameDisplayChangeEvent -= ReceivePlayerNameDisplayChangeMessageEvent;
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Player != null && Player.WorldId != _renderedWorldId)
+        {
+            _renderedWorldId = Player.WorldId;
+
+            var renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
+
+            _renderedWorldName = renderedWorld == null ? "Unknown World" : renderedWorld.Name;
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
     protected override void OnParametersSet()
     {
         var paramsChanged = false;
 
-        //base.OnParametersSet();
         if (_renderedPlayer != Player)
         {
             _renderedPlayer = Player;
@@ -266,8 +284,8 @@
     private string GetPlayerNameElementTitle()
     {
         return !Player.IsOutfitless
-                    ? $"{Player.NameDisplay} [{Player.Id}]\nIs Participating: {Player.IsParticipating.ToString()}"
-                    : $"{Player.NameDisplay} [{Player.Id}\nServer: {WorldService.GetWorld(Player.WorldId)?.Name}\nIs Participating: {Player.IsParticipating.ToString()}";
+                    ? $"{Player.NameDisplay} [{Player.Id}]"
+                    : $"{Player.NameDisplay} [{Player.Id}\nServer: {_renderedWorldName}";
     }
 
     private double GetStatOpacity(int value)
