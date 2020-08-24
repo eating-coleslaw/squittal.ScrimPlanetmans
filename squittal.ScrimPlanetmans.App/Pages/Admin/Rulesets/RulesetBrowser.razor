@@ -2,24 +2,14 @@
 @page "/Rulesets"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
-@using squittal.ScrimPlanetmans.Models;
-@using squittal.ScrimPlanetmans.Models.Forms;
-@using squittal.ScrimPlanetmans.Models.Planetside;
-@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.ScrimMatch; 
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Rulesets;
-@using squittal.ScrimPlanetmans.Services.Planetside;
-@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IRulesetDataService RulesetDataService 
 @inject IScrimRulesetManager RulesetManager
-@*@inject IScrimMatchReportDataService ReportDataService*@
-@*@inject IFacilityService FacilityService*@
-@*@inject IZoneService ZoneService*@
-@*@inject IWorldService WorldService*@
 @inject NavigationManager NavManager
 
 @implements IDisposable
@@ -35,43 +25,33 @@
 
                 @if (_showNewRulesetForm)
                 {
-                    @*<div class="col-lg-4">
-
-                        <div class="header-card-container default">
-
-                            <h5 class="default" style="margin-bottom: 0.1rem;">
-                                Team Creation Form
-                            </h5>*@
-
-                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
                                 
-                                <div style="font-weight: 500; font-size: 1rem; margin-bottom: 8px;">New Ruleset</div>
+                        <div style="font-weight: 500; font-size: 1rem; margin-bottom: 8px;">New Ruleset</div>
                                 
-                                <EditForm Model="@_newRuleset" OnValidSubmit="OnCreateNewRulesetSubmit" style="">
-                                    <DataAnnotationsValidator />
-                                    <ValidationSummary />
+                        <EditForm Model="@_newRuleset" OnValidSubmit="OnCreateNewRulesetSubmit" style="">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
 
-                                    <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText id="inputRulesetName" @bind-Value=@_newRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                                    <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1"  type="text" @bind-Value=@_newRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText id="inputRulesetName" @bind-Value=@_newRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1"  type="text" @bind-Value=@_newRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
 
-                                    <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>@*@($"{(_openNewRulesetOnSave ? " Yes" : " No")}")*@
+                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>@*@($"{(_openNewRulesetOnSave ? " Yes" : " No")}")*@
 
-                                    <div style="text-align: right; margin-top: 12px;">
+                            <div style="text-align: right; margin-top: 12px;">
 
-                                        <button type="submit" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Create new ruleset">
-                                            <span class="oi oi-check"></span>Save
-                                        </button>
+                                <button type="submit" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Create new ruleset">
+                                    <span class="oi oi-check"></span>Save
+                                </button>
 
-                                        <button @onclick="OnCreateNewRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel creating new ruleset">
-                                            <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                        </button>
+                                <button @onclick="OnCreateNewRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel creating new ruleset">
+                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                </button>
 
-                                    </div>
-
-                                </EditForm>
                             </div>
-                        @*</div>
-                    </div>*@
+
+                        </EditForm>
+                    </div>
                 }
                 else
                 {
@@ -84,46 +64,21 @@
                 <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
                     <thead>
                         <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
-                            @*<th style="font-weight: 300;">Is Default?</th>*@
-                            
-                            @*@if (_containsActiveRuleset)
-                            {
-                                @if (_isDefaultRulesetActive)
-                                {
-                                    <th style="width: 20px; padding-left: 8px;"></th>
-                                    <th style="width: 20px; padding-left: 8px;"></th>
-                                }
-                                else
-                                {
-                                    <th style="width: 20px; padding-left: 8px;"></th>
-                                }
-                            }
-                            else if (_containsRealDefaultRuleset)
-                            {
-                                <th style="width: 20px; padding-left: 8px;"></th>
-                            }*@
-
                             @if (_containsActiveRuleset)
                             {
                                 <th style="width: 20px; padding-left: 8px;"></th>
                             }
 
-                            @*@if ((_containsActiveRuleset && _isDefaultRulesetActive) || _containsRealDefaultRuleset)*@
                             @if ((_containsActiveRuleset && _isDefaultRulesetActive) || (!_containsActiveRuleset && _containsRealDefaultRuleset))
                             {
                                 <th style="width: 20px; padding-left: 8px;"></th>
                             }
 
-                            @*<th style="font-weight: 300;">ID</th>*@
                             <th style="font-weight: 300;">Name <span style="color: var(--sq-gray);">[ID]</span></th>
                             <th style="font-weight: 300;">Created</th>
                             <th style="font-weight: 300;">Edited</th>
-                            @*<th style="font-weight: 300;">Source File</th>*@
-                            @*<th style="font-weight: 300;">Author</th>*@
-                            @*<th style="font-weight: 300;">Description</th>*@
                             <th style="font-weight: 300;"></th>
                             <th style="font-weight: 300;"></th>
-                            @*<th style="font-weight: 300;"></th>*@
                         </tr>
                     </thead>
 
@@ -146,22 +101,8 @@
                                     {
                                         <td></td>
                                     }
-                                    @*else if (!_isDefaultRulesetActive)
-                                    {
-                                        @if (IsDefaultRuleset(ruleset.Id))
-                                        {
-                                            <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
-                                                <span class="oi oi-pin" style=""></span>
-                                            </td>
-                                        }
-                                        else
-                                        {
-                                            <td></td>
-                                        }
-                                    }*@
                                 }
 
-                                @*@if ((_containsActiveRuleset && _isDefaultRulesetActive) || (!_containsActiveRuleset && _containsRealDefaultRuleset))*@
                                 @if ((_containsActiveRuleset && _isDefaultRulesetActive) || (_containsRealDefaultRuleset && !IsActiveRuleset(ruleset.Id)))
                                 {
                                     @if (IsDefaultRuleset(ruleset.Id))
@@ -176,77 +117,9 @@
                                     }
                                 }
 
-
-                                @*@if (_containsActiveRuleset)
-                                {
-                                    @if (IsActiveRuleset(ruleset.Id))
-                                    {
-                                        <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
-                                            <span class="oi oi-target" style=""></span>
-                                        </td>
-
-                                    }
-                                    @if (!_isDefaultRulesetActive)
-                                    {
-                                        <td></td>
-                                    }
-                                }
-                                else if (_containsRealDefaultRuleset)
-                                {
-                                    <th style="width: 20px; padding-left: 8px;"></th>
-                                }*@
-
-
-                                @*@if (ruleset.IsActive)*@
-                                @*@if (_containsActiveRuleset)
-                                {
-                                    @if (IsActiveRuleset(ruleset.Id))
-                                    {
-                                        <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
-                                            <span class="oi oi-target" style=""></span>
-                                        </td>
-
-                                    }
-                                    else if (!_isDefaultRulesetActive && IsDefaultRuleset(ruleset.Id))
-                                    {
-                                        <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
-                                            <span class="oi oi-pin" style=""></span>
-                                        </td>
-                                    }
-                                    else if (_containsDefaultRuleset || _containsCustomDefaultRuleset)
-                                    {
-                                        <td></td>
-                                    }
-                                }
-                                @if (_isDefaultRulesetActive)
-                                {
-                                    @if (IsDefaultRuleset(ruleset.Id))
-                                    {
-                                        <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
-                                            <span class="oi oi-pin" style=""></span>
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td></td>
-                                    }
-                                }*@
-
-                                @*<td>@ruleset.IsActive</td>*@
-                                @*<td>@ruleset.IsDefault</td>*@
-                                @*<td>@ruleset.Id</td>*@
                                 <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
-                                @*<td>@GetLocalizedDateString(ruleset.DateCreated) @GetLocalizedTimeString(ruleset.DateCreated)</td>*@
-                                @*<td>@ruleset.DateCreated.ToString("f")</td>*@
-                                @*<td>@ruleset.DateCreated.ToString("g")</td>*@
                                 <td>@GetLocalizedDateTimeString(ruleset.DateCreated)</td>
-                                @*<td>@(ruleset.DateLastModified != null ? $"{((DateTime)ruleset.DateLastModified).ToString("f")}" : "--")</td>*@
-                                @*<td>@(ruleset.DateLastModified != null ? $"{((DateTime)ruleset.DateLastModified).ToString("g")}" : "--")</td>*@
                                 <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
-                                @*<td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)ruleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>*@
-                                @*<td>ruleset.SourceFile</td>
-                                <td>ruleset.Author</td>
-                                <td>ruleset.Description</td>*@
                                 <td>
                                     <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}") target="_blank" style="padding: 4px 8px;">View<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
                                 </td>
@@ -329,19 +202,6 @@
                     </div>
                 }
 
-                @*
-        <p>@_storeRulesetList.Count()</p>
-        <p>Search Terms: @_debug</p>
-        @foreach (var term in _searchFilter.SearchTermsList)
-        {
-            <p style="margin: 0;">@term</p>
-        }
-        <p>Is Filtered: @_isFilteredResults</p>
-        <p>Is Default: @_searchFilter.IsDefaultFilter</p>
-
-        <p>Start: @(_searchFilter.SearchStartDate.ToString())</p>
-        <p>  End: @(_searchFilter.SearchEndDate.ToString())</p>
-                *@
             </div>
 
         </div>
@@ -369,11 +229,7 @@
     private bool _isLoadingRulesetList { get; set; } = true;
     private bool _isDefaultingRuleset { get; set; } = false;
 
-    private bool _isActivatingRuleset { get; set; } = false;
-
     private bool _containsActiveRuleset { get; set; } = false;
-    private bool _containsDefaultRuleset { get; set; } = false;
-    private bool _containsCustomDefaultRuleset { get; set; } = false;
     private bool _containsRealDefaultRuleset { get; set; } = false;
     private bool _isDefaultRulesetActive { get; set; } = false;
 
@@ -461,25 +317,6 @@
             _renderedHasNextPage = paginatedList.HasNextPage;
             _renderedHasPreviousPage = paginatedList.HasPreviousPage;
 
-            //var defaultRuleset = _storeRulesetList.Where(r => r.IsDefault).FirstOrDefault();
-            //_containsDefaultRuleset = (defaultRuleset != null);
-
-            //var customDefaultRuleset = _storeRulesetList.Where(r => r.IsCustomDefault).FirstOrDefault();
-            //_containsCustomDefaultRuleset = (customDefaultRuleset != null);
-
-            //if (_containsCustomDefaultRuleset)
-            //{
-            //    _isDefaultRulesetActive = IsActiveRuleset(customDefaultRuleset.Id);
-            //}
-            //else if (_containsDefaultRuleset)
-            //{
-            //    _isDefaultRulesetActive = IsActiveRuleset(defaultRuleset.Id);
-            //}
-            //else
-            //{
-            //    _isDefaultRulesetActive = false;
-            //}
-
             var realDefaultRuleset = _storeRulesetList.Where(r => IsDefaultRuleset(r.Id)).FirstOrDefault();
             _containsRealDefaultRuleset = (realDefaultRuleset != null);
 
@@ -487,12 +324,6 @@
             _containsActiveRuleset = (activeRuleset != null);
 
             _isDefaultRulesetActive = (_containsRealDefaultRuleset && _containsActiveRuleset && (realDefaultRuleset.Id == activeRuleset.Id));
-
-            //_containsRealDefaultRuleset = _storeRulesetList.Any(r => IsDefaultRuleset(r.Id));
-            //_containsActiveRuleset = _storeRulesetList.Any(r => IsActiveRuleset(r.Id));
-
-            //_containsDefaultRuleset = _storeRulesetList.Any(r => r.IsDefault);
-            //_containsCustomDefaultRuleset = _storeRulesetList.Any(r => r.IsCustomDefault);
         }
         catch
         {
@@ -522,23 +353,9 @@
     #endregion Event Handling
 
     #region Form Controls
-    private async void OnSetActiveClick(int rulesetId)
-    {
-        _isActivatingRuleset = true;
-        //InvokeAsyncStateHasChanged();
-
-        await RulesetManager.ActivateRulesetAsync(rulesetId);
-
-        await LoadRulesetListAsync();
-
-        _isActivatingRuleset = false;
-        InvokeAsyncStateHasChanged();
-    }
-
     private async void OnSetAsDefaultClick(int rulesetId)
     {
         _isDefaultingRuleset = true;
-        //InvokeAsyncStateHasChanged();
 
         await RulesetDataService.SetCustomDefaultRulesetAsync(rulesetId);
 
@@ -557,18 +374,6 @@
             return;
         }
 
-        //Regex nameRegex = new Regex("^([A-Za-z0-9()\\[\\]\\-_][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //if (!nameRegex.Match(newTeam.Name).Success)
-        //{
-        //    return;
-        //}
-
-        //Regex aliasRegex = new Regex("^[A-Za-z0-9]{1,4}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        //if (!aliasRegex.Match(newTeam.Alias).Success)
-        //{
-        //    return;
-        //}
-
         var newRulesetEntity = await RulesetDataService.SaveNewRulesetAsync(newRuleset);
 
         _newRuleset = new Ruleset();
@@ -577,15 +382,12 @@
 
         if (_openNewRulesetOnSave && newRulesetEntity != null)
         {
-            //HandleOnSelectTeamChange(newTeamEntity.Id.ToString());
             NavManager.NavigateTo($"/Ruleset/{newRulesetEntity.Id}?edit=true");
         }
         else
         {
             await LoadRulesetListAsync();
         }
-
-        //_storeRulesetList = await TeamService.GetConstructedTeams(true);
 
         InvokeAsyncStateHasChanged();
     }
@@ -641,13 +443,6 @@
         return RulesetDataService.ActiveRulesetId == rulesetId;
     }
 
-    private bool IsDefaultRuleset(Ruleset ruleset)
-    {
-        return _containsCustomDefaultRuleset
-                    ? ruleset.IsCustomDefault
-                    : ruleset.IsDefault;
-    }
-
     private bool IsDefaultRuleset(int rulesetId)
     {
         return rulesetId == RulesetDataService.CustomDefaultRulesetId;
@@ -659,26 +454,7 @@
 
         var dateTimeLocal = dateTime.ToLocalTime();
 
-        //return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
         return $"{dateTimeLocal.ToString("g")}";
-    }
-
-    private string GetLocalizedDateString(DateTime dateTime)
-    {
-        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-
-        var dateTimeLocal = dateTime.ToLocalTime();
-
-        return $"{dateTimeLocal.ToString("ddd")} {dateTime.ToShortDateString()}";
-    }
-
-    private string GetLocalizedTimeString(DateTime dateTime)
-    {
-        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-
-        var dateTimeLocal = dateTime.ToLocalTime();
-
-        return $"{dateTimeLocal.ToShortTimeString()}";
     }
 
     private void InvokeAsyncStateHasChanged()
