@@ -85,7 +85,35 @@
                     <thead>
                         <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
                             @*<th style="font-weight: 300;">Is Default?</th>*@
-                            <th style="width: 20px; padding-left: 8px;"></th>
+                            
+                            @*@if (_containsActiveRuleset)
+                            {
+                                @if (_isDefaultRulesetActive)
+                                {
+                                    <th style="width: 20px; padding-left: 8px;"></th>
+                                    <th style="width: 20px; padding-left: 8px;"></th>
+                                }
+                                else
+                                {
+                                    <th style="width: 20px; padding-left: 8px;"></th>
+                                }
+                            }
+                            else if (_containsRealDefaultRuleset)
+                            {
+                                <th style="width: 20px; padding-left: 8px;"></th>
+                            }*@
+
+                            @if (_containsActiveRuleset)
+                            {
+                                <th style="width: 20px; padding-left: 8px;"></th>
+                            }
+
+                            @*@if ((_containsActiveRuleset && _isDefaultRulesetActive) || _containsRealDefaultRuleset)*@
+                            @if ((_containsActiveRuleset && _isDefaultRulesetActive) || (!_containsActiveRuleset && _containsRealDefaultRuleset))
+                            {
+                                <th style="width: 20px; padding-left: 8px;"></th>
+                            }
+
                             @*<th style="font-weight: 300;">ID</th>*@
                             <th style="font-weight: 300;">Name <span style="color: var(--sq-gray);">[ID]</span></th>
                             <th style="font-weight: 300;">Created</th>
@@ -104,63 +132,156 @@
                         <tbody  class="sans-serif-font" style="@(_isLoadingRulesetList ? "opacity: 0.5;" : string.Empty)">
                             @foreach (var ruleset in _storeRulesetList)
                             {
-                                <tr>
-                                    @*@if (ruleset.IsActive)*@
+                            <tr>
+                                @if (_containsActiveRuleset)
+                                {
                                     @if (IsActiveRuleset(ruleset.Id))
                                     {
                                         <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
                                             <span class="oi oi-target" style=""></span>
-                                        </td> 
+                                        </td>
+
                                     }
-                                    else
+                                    else if (_isDefaultRulesetActive)
                                     {
                                         <td></td>
                                     }
-                                    @*<td>@ruleset.IsActive</td>*@
-                                    @*<td>@ruleset.IsDefault</td>*@
-                                    @*<td>@ruleset.Id</td>*@
-                                    <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
-                                    @*<td>@GetLocalizedDateString(ruleset.DateCreated) @GetLocalizedTimeString(ruleset.DateCreated)</td>*@
-                                    <td>@ruleset.DateCreated.ToString("f")</td>
-                                    <td>@(ruleset.DateLastModified != null ? $"{((DateTime)ruleset.DateLastModified).ToString("f")}" : "--")</td>
-                                    @*<td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)ruleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>*@
-                                    @*<td>ruleset.SourceFile</td>
-                                    <td>ruleset.Author</td>
-                                    <td>ruleset.Description</td>*@
-                                    <td>
-                                        <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}") style="padding: 4px 8px;">View</NavLink>
-                                    </td>
-                                    @if (ruleset.IsDefault)
+                                    @*else if (!_isDefaultRulesetActive)
                                     {
-                                        <td></td>
-                                    }
-                                    else
-                                    {
-                                        <td>
-                                            <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}?edit=true") style="padding: 4px 8px;">Edit</NavLink>
-                                        </td>
-                                    }
-                                    @*@if (ruleset.IsActive)
-                                    {
-                                        <td>Active</td>
-                                    }
-                                    else if (_isActivatingRuleset)
-                                    {
-                                        <td style="min-width: 60px;">
-                                            <div class="btn btn-icon-primary" style="margin-left: calc(50% - 10px); padding-top: 0.375rem; padding-bottom: 0.375rem; margin-top: 0.2rem; margin-bottom: 0.2rem;">
-                                                <span class="oi oi-reload spin"></span>
-                                            </div>
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td>
-                                            <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetActiveClick(ruleset.Id))">
-                                                <span class="oi oi-target" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set Active
-                                            </div>
-                                        </td>
+                                        @if (IsDefaultRuleset(ruleset.Id))
+                                        {
+                                            <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
+                                                <span class="oi oi-pin" style=""></span>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td></td>
+                                        }
                                     }*@
-                                </tr>
+                                }
+
+                                @*@if ((_containsActiveRuleset && _isDefaultRulesetActive) || (!_containsActiveRuleset && _containsRealDefaultRuleset))*@
+                                @if ((_containsActiveRuleset && _isDefaultRulesetActive) || (_containsRealDefaultRuleset && !IsActiveRuleset(ruleset.Id)))
+                                {
+                                    @if (IsDefaultRuleset(ruleset.Id))
+                                    {
+                                        <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
+                                            <span class="oi oi-pin" style=""></span>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
+                                }
+
+
+                                @*@if (_containsActiveRuleset)
+                                {
+                                    @if (IsActiveRuleset(ruleset.Id))
+                                    {
+                                        <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
+                                            <span class="oi oi-target" style=""></span>
+                                        </td>
+
+                                    }
+                                    @if (!_isDefaultRulesetActive)
+                                    {
+                                        <td></td>
+                                    }
+                                }
+                                else if (_containsRealDefaultRuleset)
+                                {
+                                    <th style="width: 20px; padding-left: 8px;"></th>
+                                }*@
+
+
+                                @*@if (ruleset.IsActive)*@
+                                @*@if (_containsActiveRuleset)
+                                {
+                                    @if (IsActiveRuleset(ruleset.Id))
+                                    {
+                                        <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
+                                            <span class="oi oi-target" style=""></span>
+                                        </td>
+
+                                    }
+                                    else if (!_isDefaultRulesetActive && IsDefaultRuleset(ruleset.Id))
+                                    {
+                                        <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
+                                            <span class="oi oi-pin" style=""></span>
+                                        </td>
+                                    }
+                                    else if (_containsDefaultRuleset || _containsCustomDefaultRuleset)
+                                    {
+                                        <td></td>
+                                    }
+                                }
+                                @if (_isDefaultRulesetActive)
+                                {
+                                    @if (IsDefaultRuleset(ruleset.Id))
+                                    {
+                                        <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
+                                            <span class="oi oi-pin" style=""></span>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
+                                }*@
+
+                                @*<td>@ruleset.IsActive</td>*@
+                                @*<td>@ruleset.IsDefault</td>*@
+                                @*<td>@ruleset.Id</td>*@
+                                <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
+                                @*<td>@GetLocalizedDateString(ruleset.DateCreated) @GetLocalizedTimeString(ruleset.DateCreated)</td>*@
+                                @*<td>@ruleset.DateCreated.ToString("f")</td>*@
+                                @*<td>@ruleset.DateCreated.ToString("g")</td>*@
+                                <td>@GetLocalizedDateTimeString(ruleset.DateCreated)</td>
+                                @*<td>@(ruleset.DateLastModified != null ? $"{((DateTime)ruleset.DateLastModified).ToString("f")}" : "--")</td>*@
+                                @*<td>@(ruleset.DateLastModified != null ? $"{((DateTime)ruleset.DateLastModified).ToString("g")}" : "--")</td>*@
+                                <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
+                                @*<td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateString((DateTime)ruleset.DateLastModified)}  {GetLocalizedTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>*@
+                                @*<td>ruleset.SourceFile</td>
+                                <td>ruleset.Author</td>
+                                <td>ruleset.Description</td>*@
+                                <td>
+                                    <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}") target="_blank" style="padding: 4px 8px;">View<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
+                                </td>
+                                @if (ruleset.IsDefault)
+                                {
+                                    <td></td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}?edit=true") target="_blank" style="padding: 4px 8px;">Edit<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
+                                    </td>
+                                }
+
+                                @if (IsDefaultRuleset(ruleset.Id))
+                                {
+                                    <td></td>
+                                }
+                                else if (_isDefaultingRuleset)
+                                {
+                                    <td style="min-width: 60px; width: 132px; text-align: center;">
+                                        <div class="btn btn-icon-primary" style="margin-left: calc(50% - 10px); padding-top: 0.375rem; padding-bottom: 0.375rem; margin-top: 0.2rem; margin-bottom: 0.2rem;">
+                                            <span class="oi oi-reload spin"></span>
+                                        </div>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td style="width: 132px;">
+                                        <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetAsDefaultClick(ruleset.Id))">
+                                            <span class="oi oi-pin" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set as Default
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
                             }
                         </tbody>
                     }
@@ -246,7 +367,15 @@
     private bool _renderedHasPreviousPage { get; set; } = false;
 
     private bool _isLoadingRulesetList { get; set; } = true;
+    private bool _isDefaultingRuleset { get; set; } = false;
+
     private bool _isActivatingRuleset { get; set; } = false;
+
+    private bool _containsActiveRuleset { get; set; } = false;
+    private bool _containsDefaultRuleset { get; set; } = false;
+    private bool _containsCustomDefaultRuleset { get; set; } = false;
+    private bool _containsRealDefaultRuleset { get; set; } = false;
+    private bool _isDefaultRulesetActive { get; set; } = false;
 
     private CancellationTokenSource ctsRulesets;
 
@@ -331,6 +460,39 @@
             _renderedPageCount = paginatedList.PageCount;
             _renderedHasNextPage = paginatedList.HasNextPage;
             _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+
+            //var defaultRuleset = _storeRulesetList.Where(r => r.IsDefault).FirstOrDefault();
+            //_containsDefaultRuleset = (defaultRuleset != null);
+
+            //var customDefaultRuleset = _storeRulesetList.Where(r => r.IsCustomDefault).FirstOrDefault();
+            //_containsCustomDefaultRuleset = (customDefaultRuleset != null);
+
+            //if (_containsCustomDefaultRuleset)
+            //{
+            //    _isDefaultRulesetActive = IsActiveRuleset(customDefaultRuleset.Id);
+            //}
+            //else if (_containsDefaultRuleset)
+            //{
+            //    _isDefaultRulesetActive = IsActiveRuleset(defaultRuleset.Id);
+            //}
+            //else
+            //{
+            //    _isDefaultRulesetActive = false;
+            //}
+
+            var realDefaultRuleset = _storeRulesetList.Where(r => IsDefaultRuleset(r.Id)).FirstOrDefault();
+            _containsRealDefaultRuleset = (realDefaultRuleset != null);
+
+            var activeRuleset = _storeRulesetList.Where(r => IsActiveRuleset(r.Id)).FirstOrDefault();
+            _containsActiveRuleset = (activeRuleset != null);
+
+            _isDefaultRulesetActive = (_containsRealDefaultRuleset && _containsActiveRuleset && (realDefaultRuleset.Id == activeRuleset.Id));
+
+            //_containsRealDefaultRuleset = _storeRulesetList.Any(r => IsDefaultRuleset(r.Id));
+            //_containsActiveRuleset = _storeRulesetList.Any(r => IsActiveRuleset(r.Id));
+
+            //_containsDefaultRuleset = _storeRulesetList.Any(r => r.IsDefault);
+            //_containsCustomDefaultRuleset = _storeRulesetList.Any(r => r.IsCustomDefault);
         }
         catch
         {
@@ -370,6 +532,19 @@
         await LoadRulesetListAsync();
 
         _isActivatingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async void OnSetAsDefaultClick(int rulesetId)
+    {
+        _isDefaultingRuleset = true;
+        //InvokeAsyncStateHasChanged();
+
+        await RulesetDataService.SetCustomDefaultRulesetAsync(rulesetId);
+
+        await LoadRulesetListAsync();
+
+        _isDefaultingRuleset = false;
         InvokeAsyncStateHasChanged();
     }
 
@@ -466,13 +641,26 @@
         return RulesetDataService.ActiveRulesetId == rulesetId;
     }
 
+    private bool IsDefaultRuleset(Ruleset ruleset)
+    {
+        return _containsCustomDefaultRuleset
+                    ? ruleset.IsCustomDefault
+                    : ruleset.IsDefault;
+    }
+
+    private bool IsDefaultRuleset(int rulesetId)
+    {
+        return rulesetId == RulesetDataService.CustomDefaultRulesetId;
+    }
+
     private string GetLocalizedDateTimeString(DateTime dateTime)
     {
         dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
 
         var dateTimeLocal = dateTime.ToLocalTime();
 
-        return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+        //return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+        return $"{dateTimeLocal.ToString("g")}";
     }
 
     private string GetLocalizedDateString(DateTime dateTime)

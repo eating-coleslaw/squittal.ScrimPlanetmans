@@ -13,6 +13,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
     {
         int DefaultRulesetId { get; }
         int ActiveRulesetId { get; }
+        int CustomDefaultRulesetId { get; }
 
         Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
 

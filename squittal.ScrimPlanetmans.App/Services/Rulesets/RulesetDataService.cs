@@ -29,7 +29,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         public int ActiveRulesetId { get; private set; }
 
-        private readonly int _rulesetBrowserPageSize = 15;
+        public int CustomDefaultRulesetId { get; private set; }
+
+        private readonly int _rulesetBrowserPageSize = 2;
 
         public int DefaultRulesetId { get; } = 1;
 
@@ -38,7 +40,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _facilityRulesLock = new KeyedSemaphoreSlim();
 
-        public AutoResetEvent _defaultAutoEvent = new AutoResetEvent(true);
+        public AutoResetEvent _defaultRulesetAutoEvent = new AutoResetEvent(true);
 
         public static Regex RulesetNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_'.]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -61,9 +63,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var rulesetsQuery = dbContext.Rulesets
                                                     .AsQueryable()
                                                     .AsNoTracking()
-                                                    .OrderByDescending(r => r.IsActive)
-                                                    .ThenByDescending(r => r.IsDefault)
+                                                    //.OrderByDescending(r => r.IsActive)
+                                                    //.ThenByDescending(r => r.IsCustomDefault)
+                                                    .OrderByDescending(r => r.Id == ActiveRulesetId)
                                                     .ThenByDescending(r => r.IsCustomDefault)
+                                                    .ThenByDescending(r => r.IsDefault)
                                                     .ThenBy(r => r.Name);
 
                 var paginatedList = await PaginatedList<Ruleset>.CreateAsync(rulesetsQuery, pageIndex ?? 1, _rulesetBrowserPageSize, cancellationToken);
@@ -878,6 +882,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     RulesetsMap.AddOrUpdate(ruleset.Id, ruleset, (key, oldValue) => ruleset);
                 }
+
+                var customDefaultRuleset = rulesets.Where(r => r.IsCustomDefault).FirstOrDefault();
+                CustomDefaultRulesetId = customDefaultRuleset != null ? customDefaultRuleset.Id : DefaultRulesetId;
             }
             catch (Exception ex)
             {
@@ -957,7 +964,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         public async Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId)
         {
-            _defaultAutoEvent.WaitOne();
+            _defaultRulesetAutoEvent.WaitOne();
 
             try
             {
@@ -970,12 +977,18 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 if (newDefaultRuleset == null)
                 {
-                    _defaultAutoEvent.Set();
-
+                    _defaultRulesetAutoEvent.Set();
                     return null;
                 }
-
-                if (currentDefaultRuleset != null && currentDefaultRuleset.Id != rulesetId)
+                
+                
+                if (currentDefaultRuleset == null)
+                {
+                    newDefaultRuleset.IsCustomDefault = true;
+                    dbContext.Rulesets.Update(newDefaultRuleset);
+                }
+                //else if (currentDefaultRuleset != null && currentDefaultRuleset.Id != rulesetId)
+                else if (currentDefaultRuleset.Id != rulesetId)
                 {
                     currentDefaultRuleset.IsCustomDefault = false;
                     dbContext.Rulesets.Update(currentDefaultRuleset);
@@ -983,30 +996,34 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     newDefaultRuleset.IsCustomDefault = true;
                     dbContext.Rulesets.Update(newDefaultRuleset);
                 }
-                else if (currentDefaultRuleset != null)
-                {
-                    _defaultAutoEvent.Set();
-
-                    return currentDefaultRuleset;
-                }
+                //else if (currentDefaultRuleset != null)
                 else
                 {
-                    _defaultAutoEvent.Set();
-
-                    return null;
+                    _defaultRulesetAutoEvent.Set();
+                    return currentDefaultRuleset;
                 }
+                //else
+                //{
+                //    _defaultAutoEvent.Set();
+
+                //    return null;
+                //}
 
                 await dbContext.SaveChangesAsync();
 
-                _defaultAutoEvent.Set();
+                _defaultRulesetAutoEvent.Set();
+
+                _logger.LogInformation("Set ruleset {rulesetId} as new custom default ruleset");
+
+                CustomDefaultRulesetId = newDefaultRuleset.Id;
 
                 return newDefaultRuleset;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed setting ruleset {rulesetId} as new custom default: {ex}");
+                _logger.LogError($"Failed setting ruleset {rulesetId} as new custom default ruleset: {ex}");
 
-                _defaultAutoEvent.Set();
+                _defaultRulesetAutoEvent.Set();
 
                 return null;
             }

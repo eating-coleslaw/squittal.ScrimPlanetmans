@@ -27,6 +27,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         //public bool IsFavorite { get; set; }
 
+        //public string DefaultMatchTitle { get; set; }
         public int DefaultRoundLength { get; set; } = 900;
         //public int DefaultRounds { get; set; } == 2
 
