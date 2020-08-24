@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Data
 {
-    public interface IDbSeeder : IDisposable
+    public interface IDbSeeder
     {
         Task SeedDatabase(CancellationToken cancellationToken);
     }
