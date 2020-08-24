@@ -1,4 +1,5 @@
-﻿using System;
+﻿using squittal.ScrimPlanetmans.Services.Rulesets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,9 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
     public class MatchConfiguration
     {
         public string Title { get; set; } = "PS2 Scrims";
+
+        public bool IsManualTitle { get; private set; } = false;
+
         public int RoundSecondsTotal { get; set; } = 900;
         public bool IsManualRoundSecondsTotal { get; private set; } = false;
 
@@ -24,10 +28,44 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEventRoundSeconds = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoEventMatchTitle = new AutoResetEvent(true);
 
         public bool SaveLogFiles { get; set; } = true;
         public bool SaveEventsToDatabase { get; set; } = true;
 
+        public bool TrySetTitle(string title, bool isManualValue)
+        {
+            if (!RulesetDataService.IsValidRulesetDefaultMatchTitle(title))
+            {
+                return false;
+            }
+
+            _autoEventMatchTitle.WaitOne();
+
+            if (isManualValue)
+            {
+                Title = title;
+                IsManualTitle = true;
+
+                _autoEventMatchTitle.Set();
+
+                return true;
+            }
+            else if (!IsManualWorldId)
+            {
+                Title = title;
+
+                _autoEventMatchTitle.Set();
+
+                return true;
+            }
+            else
+            {
+                _autoEventMatchTitle.Set();
+
+                return false;
+            }
+        }
 
         public bool TrySetRoundLength(int seconds, bool isManualValue)
         {

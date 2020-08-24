@@ -13,7 +13,8 @@ namespace squittal.ScrimPlanetmans.App.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "DefaultMatchTitle",
                 table: "Ruleset",
-                nullable: true);
+                nullable: true,
+                defaultValue: "");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -1045,7 +1045,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DefaultMatchTitle")
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
 
                     b.Property<int>("DefaultRoundLength")
                         .ValueGeneratedOnAdd()

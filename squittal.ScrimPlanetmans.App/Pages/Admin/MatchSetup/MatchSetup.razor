@@ -48,7 +48,14 @@
             <div class="header-card-container default">
 
                 <div style="display: grid; grid-template-columns: 1fr 115px;">
-                    <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    @if (string.IsNullOrWhiteSpace(_matchConfiguration.Title))
+                    {
+                        <h5>@(_currentRound == 0 ? string.Empty : $"Round {_currentRound}:") @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    }
+                    else
+                    {
+                        <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    }
                     <div class="mono-font" style="font-size: 18px; text-align: right;">
                         <MatchTimer Debug=false />
                     </div>
@@ -138,7 +145,7 @@
 
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
-                        <p style="margin-bottom: 0.5rem;"><div style="width: 110px; padding-right: 4px; display: inline-block;">Match Title:</div><InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" style="width: 250px;" /></p>
+                        <p style="margin-bottom: 0.5rem;"><div style="width: 110px; padding-right: 4px; display: inline-block;">Match Title:</div><InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" style="width: 250px;" maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" /></p>
                         <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Round Length:</span><InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => _matchConfiguration.TrySetRoundLength(s, true))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
 
                         <div style="margin-bottom: 0.2rem;">
@@ -331,6 +338,25 @@
             if (_matchConfiguration != null)
             {
                 _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
+
+                var oldTitle = _matchConfiguration.Title;
+                var newTitle = _activeRuleset.DefaultMatchTitle;
+
+                if (newTitle == null)
+                {
+                    newTitle = string.Empty;
+                }
+
+                if (_matchConfiguration.TrySetTitle(newTitle, true))
+                {
+                    if (newTitle != oldTitle)
+                    {
+                        _matchConfiguration.Title = newTitle;
+                        MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+                    }
+
+                }
+
             }
 
             if (_activeRuleset.RulesetFacilityRules.Any())
@@ -480,6 +506,7 @@
             _matchConfiguration = new MatchConfiguration();
 
             _matchConfiguration.RoundSecondsTotal = _activeRuleset.DefaultRoundLength;
+            _matchConfiguration.Title = (_activeRuleset.DefaultMatchTitle == null) ? string.Empty : _activeRuleset.DefaultMatchTitle;
 
             _isClearingMatch = false;
 
@@ -517,11 +544,17 @@
     private void OnChangeMatchTitle(string newTitle)
     {
         var oldTitle = _matchConfiguration.Title;
-        if (newTitle != oldTitle)
+
+        if (_matchConfiguration.TrySetTitle(newTitle, true))
         {
-            _matchConfiguration.Title = newTitle;
-            MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+            if (newTitle != oldTitle)
+            {
+                _matchConfiguration.Title = newTitle;
+                MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+            }
+
         }
+
     }
     #endregion Match & Subscription State Buttons
 

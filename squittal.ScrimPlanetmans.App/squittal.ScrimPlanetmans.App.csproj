@@ -75,6 +75,8 @@
     <Compile Remove="Migrations\20200819221228_AddRulesetFacilityRuleModel.Designer.cs" />
     <Compile Remove="Migrations\20200824191359_AddRulesetMatchTitleRemoveIsActive.cs" />
     <Compile Remove="Migrations\20200824191359_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
+    <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.cs" />
+    <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

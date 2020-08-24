@@ -43,7 +43,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public AutoResetEvent _defaultRulesetAutoEvent = new AutoResetEvent(true);
 
         public static Regex RulesetNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_'.]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        public static Regex RulesetDefaultMatchTitleRegex => RulesetNameRegex;
+        public static Regex RulesetDefaultMatchTitleRegex => RulesetNameRegex; //(^(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$)
 
         public RulesetDataService(IDbContextHelper dbContextHelper, IFacilityService facilityService, IScrimMessageBroadcastService messageService, ILogger<RulesetDataService> logger)
         {
@@ -981,7 +981,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         public static bool IsValidRulesetDefaultMatchTitle(string title)
         {
-            return RulesetDefaultMatchTitleRegex.Match(title).Success;
+            return RulesetDefaultMatchTitleRegex.Match(title).Success || string.IsNullOrWhiteSpace(title);
         }
 
         private bool IsValidDefaultRounds(int rounds)

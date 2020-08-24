@@ -10,7 +10,7 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20200824191632_AddRulesetMatchTitleRemoveIsActive")]
+    [Migration("20200824195641_AddRulesetMatchTitleRemoveIsActive")]
     partial class AddRulesetMatchTitleRemoveIsActive
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1047,7 +1047,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DefaultMatchTitle")
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
 
                     b.Property<int>("DefaultRoundLength")
                         .ValueGeneratedOnAdd()
