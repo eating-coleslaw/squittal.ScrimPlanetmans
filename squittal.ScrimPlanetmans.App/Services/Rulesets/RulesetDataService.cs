@@ -947,7 +947,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 _defaultRulesetAutoEvent.Set();
 
-                _logger.LogInformation("Set ruleset {rulesetId} as new custom default ruleset");
+                _logger.LogInformation($"Set ruleset {rulesetId} as new custom default ruleset");
 
                 CustomDefaultRulesetId = newDefaultRuleset.Id;
 
