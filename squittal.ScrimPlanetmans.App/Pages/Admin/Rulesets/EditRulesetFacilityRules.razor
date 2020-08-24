@@ -65,7 +65,7 @@
 
                     <div style="max-height: @(_selectedZoneIdView == 0 ? "480px" : "240px"); overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
 
-                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;"> @*style="border-bottom: 1px solid var(--sq-black-alpha-50);">*@
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
                             <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                 <tr>
                                     <th style="padding-bottom: 2px; padding-left: 8px; width: 45px;">Type</th>
@@ -166,7 +166,6 @@
                         
                     <div style="max-height: 240px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
 
-                        @*@if (_availabledFacilityRules != null && _availabledFacilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))*@
                         @if (_selectedZoneIdView == 0)
                         {
                             <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">Add facilities from the continent-specific views</p>
@@ -208,14 +207,6 @@
                         else
                         {
                             <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available @(_zoneNames[_selectedZoneIdView]) facilities to add</p>
-                            @*@if (_selectedZoneIdView == 0)
-                            {
-                                <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available facilities to add</p>
-                            }
-                            else
-                            {
-                                <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available @(_zoneNames[_selectedZoneIdView]) facilities to add</p>
-                            }*@
                         }
                     </div>
             </div>
@@ -451,8 +442,6 @@
         _changesCount = 0;
 
         _isClearingRules = false;
-        //InvokeAsyncStateHasChanged();
-
     }
 
     private string GetViewTabStyle(int thisZoneId)

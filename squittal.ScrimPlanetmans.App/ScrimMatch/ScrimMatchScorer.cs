@@ -26,7 +26,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
             _messageService.RaiseRulesetRuleChangeEvent += OnRulesetRuleChangeEvent;
-
         }
 
         private async void OnActiveRulesetChangeEvent(object sender, ActiveRulesetChangeEventArgs e)

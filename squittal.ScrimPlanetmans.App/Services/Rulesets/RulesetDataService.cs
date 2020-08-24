@@ -926,7 +926,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     newDefaultRuleset.IsCustomDefault = true;
                     dbContext.Rulesets.Update(newDefaultRuleset);
                 }
-                //else if (currentDefaultRuleset != null && currentDefaultRuleset.Id != rulesetId)
                 else if (currentDefaultRuleset.Id != rulesetId)
                 {
                     currentDefaultRuleset.IsCustomDefault = false;
@@ -935,18 +934,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     newDefaultRuleset.IsCustomDefault = true;
                     dbContext.Rulesets.Update(newDefaultRuleset);
                 }
-                //else if (currentDefaultRuleset != null)
                 else
                 {
                     _defaultRulesetAutoEvent.Set();
                     return currentDefaultRuleset;
                 }
-                //else
-                //{
-                //    _defaultAutoEvent.Set();
-
-                //    return null;
-                //}
 
                 await dbContext.SaveChangesAsync();
 
@@ -982,58 +974,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public static bool IsValidRulesetDefaultMatchTitle(string title)
         {
             return RulesetDefaultMatchTitleRegex.Match(title).Success || string.IsNullOrWhiteSpace(title);
-        }
-
-        private bool IsValidDefaultRounds(int rounds)
-        {
-            return true;
-        }
-
-        public Task<IEnumerable<int>> GetAllRulesetIdsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<string>> GetAllRulesetNamesAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Ruleset> GetDefaultRulesetAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Ruleset> GetLatestRulesetAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        
-
-        public Task<Ruleset> GetRulesetFromNameAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RefreshStoreAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SaveActionRuleAsync(RulesetActionRule rule)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SaveItemCategoryRuleAsync(RulesetItemCategoryRule rule)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SaveRulesetAsync(Ruleset ruleset)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -11,8 +11,6 @@
 @implements IDisposable
 
 <div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
-    @*<h5>Scrim Action Rules</h5>*@
-
     @if (_changesCount > 0)
     {
         <h5>Scrim Action Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
@@ -32,7 +30,6 @@
         {
             <EditForm Model="@_actionRules" OnValidSubmit="(() => OnSaveScrimActionRulesEditSubmit(false))" style="margin-top: 8px;">
                 <DataAnnotationsValidator />
-                @*<ValidationSummary />*@
             
                 <div class="sq-content">
                         
@@ -59,16 +56,12 @@
                         <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Infantry)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Infantry))">Infantry</button>
                         <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.MAX)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.MAX))">MAX</button>
                         <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.Vehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.Vehicle))">Vehicle</button>
-                        @*<button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.GroundVehicle))">Ground</button>
-                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ScrimActionTypeDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ScrimActionTypeDomain.AirVehicle))">Air</button>*@
                     </div>
 
                     <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
                         <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
-                            @*<thead style="font-family: Roboto, 'Segoe UI', sans-serif;">*@
                             <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
                                 <tr>
-                                    @*<th style="padding-bottom: 2px;">ID</th>*@
                                     <th style="padding-bottom: 2px;">Action Type <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                     <th style="padding-bottom: 2px;">Points</th>
                                     <th style="padding-bottom: 2px;">Defer to Item<br />Category Rules?</th>
@@ -81,18 +74,13 @@
                                     @if (CanShowActionRuleInSelectedDomain(actionRule))
                                     {
                                         <tr class="sans-serif-font">
-                                            @*<td class="mono-font" style="color: var(--sq-gray);">@((int)actionRule.ScrimActionType)</td>*@
                                             <td style="color: var(--sq-black);">@GetActionRuleDescription(actionRule.ScrimActionType) <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@((int)actionRule.ScrimActionType)]</span></td>
                                             <td class="mono-font" style="opacity: @GetValueOpacity(actionRule.Points);">
                                                 <InputNumber Value="@actionRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(actionRule, p))" ValueExpression="@(() => actionRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
-                                                @*<InputNumber @bind-Value="actionRule.Points" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />*@
                                             </td>
-                                            @*<td style="color: var(--sq-gray);">@(actionRule.Points)</td>*@
                                             <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules);">
                                                 <InputCheckbox Value="@actionRule.DeferToItemCategoryRules" ValueChanged="@((bool d) => OnChangeRuleDefer(actionRule, d))" ValueExpression="@(() => actionRule.DeferToItemCategoryRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>
-                                                @*<InputCheckbox @bind-Value="actionRule.DeferToItemCategoryRules" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(actionRule.DeferToItemCategoryRules ? "Yes" : "No")</span>*@
                                             </td>
-                                            @*<td style="color: var(--sq-gray);">@(actionRule.DeferToItemCategoryRules)</td>*@
                                         </tr>
                                     }
                                 }
@@ -130,13 +118,6 @@
     private int _changesCount { get; set; } = 0;
 
     private ScrimActionTypeDomain _selectedDomainView { get; set; } = ScrimActionTypeDomain.Objective;
-
-    private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
-{
-        ScrimActionType.None,
-        ScrimActionType.OutsideInterference,
-        ScrimActionType.Unknown
-    };
 
 
     #region Initializtion Methods
@@ -324,7 +305,6 @@
         }
 
         _isClearingRules = true;
-        //InvokeAsyncStateHasChanged();
 
         foreach (var idPointsPair in _originalRulePoints)
         {
@@ -341,8 +321,6 @@
         _changesCount = 0;
 
         _isClearingRules = false;
-        //InvokeAsyncStateHasChanged();
-
     }
 
     private string GetViewTabStyle(ScrimActionTypeDomain thisView)

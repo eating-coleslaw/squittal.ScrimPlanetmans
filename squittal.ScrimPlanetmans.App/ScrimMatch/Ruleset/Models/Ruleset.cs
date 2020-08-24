@@ -13,12 +13,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string Name { get; set; }
 
         [Required]
-        public DateTime DateCreated { get; set; } // TODO: Date of first save (?)
+        public DateTime DateCreated { get; set; }
 
         public DateTime? DateLastModified { get; set; }
 
-        //TODO: Actually set these values
-        //public bool IsActive { get; set; }
         public bool IsDefault { get; set; }
         public bool IsCustomDefault { get; set; }
 

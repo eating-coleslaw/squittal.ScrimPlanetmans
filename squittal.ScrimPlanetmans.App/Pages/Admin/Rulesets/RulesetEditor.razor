@@ -138,8 +138,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //_renderedRulesetId = i_rulesetId;
-
         await LoadRulesetAsync();
     }
 
@@ -325,33 +323,6 @@
     private bool IsActiveRuleset(int rulesetId)
     {
         return RulesetDataService.ActiveRulesetId == rulesetId;
-    }
-
-    private string GetLocalizedDateTimeString(DateTime dateTime)
-    {
-        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-
-        var dateTimeLocal = dateTime.ToLocalTime();
-
-        return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
-    }
-
-    private string GetLocalizedDateString(DateTime dateTime)
-    {
-        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-
-        var dateTimeLocal = dateTime.ToLocalTime();
-
-        return $"{dateTimeLocal.ToString("ddd")} {dateTime.ToShortDateString()}";
-    }
-
-    private string GetLocalizedTimeString(DateTime dateTime)
-    {
-        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-
-        var dateTimeLocal = dateTime.ToLocalTime();
-
-        return $"{dateTimeLocal.ToShortTimeString()}";
     }
 
     private void InvokeAsyncStateHasChanged()

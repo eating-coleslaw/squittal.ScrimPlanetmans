@@ -53,8 +53,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
 
             _messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
-
-            //_messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
         }
 
 
@@ -425,13 +423,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await EndRound();
             }
         }
-
-        //private void OnActiveRulesetChangeEvent(object sender, ActiveRulesetChangeEventArgs e)
-        //{
-        //    var newActiveRuleset = e.Message.ActiveRuleset;
-
-        //    TrySetMatchRuleset(newActiveRuleset);
-        //}
 
         private void SendMatchStateUpdateMessage()
         {
