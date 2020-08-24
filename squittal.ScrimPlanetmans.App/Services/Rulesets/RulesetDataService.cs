@@ -937,6 +937,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 else
                 {
                     _defaultRulesetAutoEvent.Set();
+
+                    CustomDefaultRulesetId = currentDefaultRuleset.Id;
+
                     return currentDefaultRuleset;
                 }
 
