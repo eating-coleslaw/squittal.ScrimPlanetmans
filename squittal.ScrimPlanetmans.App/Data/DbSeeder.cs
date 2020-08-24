@@ -110,8 +110,6 @@ namespace squittal.ScrimPlanetmans.Data
 
                 await Task.WhenAll(TaskList);
 
-                //await _rulesetManager.SeedDefaultRuleset();
-
                 _sqlScriptRunner.RunSqlDirectoryScripts("Views");
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -126,60 +124,5 @@ namespace squittal.ScrimPlanetmans.Data
         {
             this.Dispose();
         }
-
-        //public async Task OnApplicationStartup(CancellationToken cancellationToken)
-        //{
-        //    //List<Task> TaskList = new List<Task>();
-
-        //    //Task worldsTask = _worldService.RefreshStore(true, true);
-        //    //TaskList.Add(worldsTask);
-
-        //    //Task factionsTask = _factionService.RefreshStore(true, true);
-        //    //TaskList.Add(factionsTask);
-
-        //    //Task itemsTask = _itemService.RefreshStore(true, true);
-        //    //TaskList.Add(itemsTask);
-            
-        //    //Task itemCategoriesTask = _itemCategoryService.RefreshStore(true, true);
-        //    //TaskList.Add(itemCategoriesTask);
-
-        //    //Task zoneTask = _zoneService.RefreshStore(true, true);
-        //    //TaskList.Add(zoneTask);
-
-        //    //Task profileTask = _profileService.RefreshStore(true, true);
-        //    //TaskList.Add(profileTask);
-
-        //    //Task loadoutsTask = _loadoutService.RefreshStore(true, true);
-        //    //TaskList.Add(loadoutsTask);
-
-        //    //Task scrimActionTask = _rulesetManager.SeedScrimActionModels();
-        //    //TaskList.Add(scrimActionTask);
-
-        //    //Task facilitiesTask = _facilityService.RefreshStore(true, true);
-        //    //TaskList.Add(facilitiesTask);
-            
-        //    //Task facilityTypesTask = _facilityTypeService.RefreshStore(true, true);
-        //    //TaskList.Add(facilityTypesTask);
-
-        //    //Task vehicleTask = _vehicleService.RefreshStore(true, false);
-        //    //TaskList.Add(vehicleTask);
-
-        //    //Task vehicleTypeTask = _vehicleTypeService.SeedVehicleClasses();
-        //    //TaskList.Add(vehicleTypeTask);
-
-        //    //Task deathTypeTask = _deathTypeService.SeedDeathTypes();
-        //    //TaskList.Add(deathTypeTask);
-
-        //    //await Task.WhenAll(TaskList);
-
-        //    //await _rulesetManager.SeedDefaultRuleset();
-
-        //    _sqlScriptRunner.RunSqlDirectoryScripts("Views");
-        //}
-
-        //public async Task OnApplicationShutdown(CancellationToken cancellationToken)
-        //{
-        //    await Task.CompletedTask;
-        //}
     }
 }

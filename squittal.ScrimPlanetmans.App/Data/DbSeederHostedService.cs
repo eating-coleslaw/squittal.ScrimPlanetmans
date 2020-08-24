@@ -12,15 +12,5 @@ namespace squittal.ScrimPlanetmans.Data
         {
             _service = service;
         }
-
-        //public Task StartAsync(CancellationToken cancellationToken)
-        //{
-        //    return _service.OnApplicationStartup(cancellationToken);
-        //}
-
-        //public Task StopAsync(CancellationToken cancellationToken)
-        //{
-        //    return _service.OnApplicationShutdown(cancellationToken);
-        //}
     }
 }
