@@ -15,9 +15,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             PreviousActiveRuleset = previousActiveRuleset;
 
             var newNameDisplay = !string.IsNullOrWhiteSpace(ActiveRuleset.Name) ? ActiveRuleset.Name : "null";
-            var oldNameDisplay = !string.IsNullOrWhiteSpace(PreviousActiveRuleset.Name) ? PreviousActiveRuleset.Name : "null";
+            var oldNameDisplay = !string.IsNullOrWhiteSpace(PreviousActiveRuleset?.Name) ? PreviousActiveRuleset.Name : "null";
 
             Info = $"Active Ruleset Changed: {oldNameDisplay} [{PreviousActiveRuleset?.Id} => {newNameDisplay} [{ActiveRuleset.Id}]";
+        }
+
+        public ActiveRulesetChangeMessage(Ruleset activeRuleset)
+        {
+            ActiveRuleset = activeRuleset;
+
+            var newNameDisplay = !string.IsNullOrWhiteSpace(ActiveRuleset.Name) ? ActiveRuleset.Name : "null";
+
+            Info = $"Active Ruleset Changed: none => {newNameDisplay} [{ActiveRuleset.Id}]";
         }
     }
 }

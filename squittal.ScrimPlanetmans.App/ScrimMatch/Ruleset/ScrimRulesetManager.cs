@@ -69,11 +69,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 var dbContext = factory.GetDbContext();
 
                 //var currentActiveRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsActive == true);
-                var currentActiveRuleset = ActiveRuleset;
-
-                if (rulesetId == currentActiveRuleset.Id)
+                
+                Ruleset currentActiveRuleset =null;
+                
+                if (ActiveRuleset != null)
                 {
-                    return currentActiveRuleset;
+                    currentActiveRuleset = ActiveRuleset;
+                
+                    if (rulesetId == currentActiveRuleset.Id)
+                    {
+                        return currentActiveRuleset;
+                    }
                 }
 
                 //var newActiveRuleset = await _rulesetDataService.ActivateRulesetAsync(rulesetId);
@@ -88,7 +94,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 ActiveRuleset = newActiveRuleset;
 
-                var message = new ActiveRulesetChangeMessage(ActiveRuleset, currentActiveRuleset);
+                var message = currentActiveRuleset == null
+                                    ? new ActiveRulesetChangeMessage(ActiveRuleset)
+                                    : new ActiveRulesetChangeMessage(ActiveRuleset, currentActiveRuleset);
+
                 _messageService.BroadcastActiveRulesetChangeMessage(message);
 
                 return ActiveRuleset;
@@ -109,6 +118,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (ruleset == null)
             {
+                _logger.LogError($"No custom default ruleset found. Loading default ruleset...");
                 ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsDefault);
             }
 
@@ -143,7 +153,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _rulesetDataService.SetActiveRulesetId(ActiveRuleset.Id);
 
-            _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
+            _logger.LogInformation($"Active ruleset collections loaded: {ActiveRuleset.Name}");
         }
 
         public async Task<Ruleset> GetDefaultRulesetAsync()
@@ -387,10 +397,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await dbContext.SaveChangesAsync();
 
-            ActiveRuleset = storeRuleset;
-            ActiveRuleset.RulesetActionRules = allActionRules.ToList();
-            ActiveRuleset.RulesetItemCategoryRules = allItemCategoryRules.ToList();
-            ActiveRuleset.RulesetFacilityRules = allFacilityRules.ToList();
+            //ActiveRuleset = storeRuleset;
+            //ActiveRuleset.RulesetActionRules = allActionRules.ToList();
+            //ActiveRuleset.RulesetItemCategoryRules = allItemCategoryRules.ToList();
+            //ActiveRuleset.RulesetFacilityRules = allFacilityRules.ToList();
         }
 
         private IEnumerable<RulesetItemCategoryRule> GetDefaultItemCategoryRules()

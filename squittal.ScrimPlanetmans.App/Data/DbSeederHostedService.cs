@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Data
 {
-    public class DbSeederHostedService : IHostedService
+    public class DbSeederHostedService //: IHostedService
     {
         private readonly IDbSeeder _service;
 
@@ -13,14 +13,14 @@ namespace squittal.ScrimPlanetmans.Data
             _service = service;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            return _service.OnApplicationStartup(cancellationToken);
-        }
+        //public Task StartAsync(CancellationToken cancellationToken)
+        //{
+        //    return _service.OnApplicationStartup(cancellationToken);
+        //}
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return _service.OnApplicationShutdown(cancellationToken);
-        }
+        //public Task StopAsync(CancellationToken cancellationToken)
+        //{
+        //    return _service.OnApplicationShutdown(cancellationToken);
+        //}
     }
 }

@@ -89,7 +89,6 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 
-            services.AddSingleton<IApplicationDataLoader, ApplicationDataLoader>();
 
             services.AddTransient<IStreamClient, StreamClient>();
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
@@ -97,8 +96,9 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IWebsocketHealthMonitor, WebsocketHealthMonitor>();
 
             services.AddHostedService<WebsocketMonitorHostedService>();
-            services.AddHostedService<DbSeederHostedService>();
+            //services.AddHostedService<DbSeederHostedService>();
 
+            services.AddSingleton<IApplicationDataLoader, ApplicationDataLoader>();
             services.AddHostedService<ApplicationDataLoaderHostedService>();
 
             services.AddTransient<ISqlScriptRunner, SqlScriptRunner>();
