@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
+namespace squittal.ScrimPlanetmans.Models
 {
     public class PaginatedList<T>
     {

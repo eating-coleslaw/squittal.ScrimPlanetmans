@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using squittal.ScrimPlanetmans.Services.Rulesets;
 using System.Threading;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimEngine
@@ -9,7 +6,11 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
     public class MatchConfiguration
     {
         public string Title { get; set; } = "PS2 Scrims";
+
+        public bool IsManualTitle { get; private set; } = false;
+
         public int RoundSecondsTotal { get; set; } = 900;
+        public bool IsManualRoundSecondsTotal { get; private set; } = false;
 
         // Target Base Configuration
         public bool IsManualWorldId { get; private set; } = false;
@@ -22,9 +23,79 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public bool EndRoundOnFacilityCapture { get; set; } = false; // TODO: move this setting to the Ruleset model
 
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoEventRoundSeconds = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoEventMatchTitle = new AutoResetEvent(true);
 
         public bool SaveLogFiles { get; set; } = true;
         public bool SaveEventsToDatabase { get; set; } = true;
+
+        public bool TrySetTitle(string title, bool isManualValue)
+        {
+            if (!RulesetDataService.IsValidRulesetDefaultMatchTitle(title))
+            {
+                return false;
+            }
+
+            _autoEventMatchTitle.WaitOne();
+
+            if (isManualValue)
+            {
+                Title = title;
+                IsManualTitle = true;
+
+                _autoEventMatchTitle.Set();
+
+                return true;
+            }
+            else if (!IsManualWorldId)
+            {
+                Title = title;
+
+                _autoEventMatchTitle.Set();
+
+                return true;
+            }
+            else
+            {
+                _autoEventMatchTitle.Set();
+
+                return false;
+            }
+        }
+
+        public bool TrySetRoundLength(int seconds, bool isManualValue)
+        {
+            if (seconds <= 0)
+            {
+                return false;
+            }
+
+            _autoEventRoundSeconds.WaitOne();
+
+            if (isManualValue)
+            {
+                RoundSecondsTotal = seconds;
+                IsManualRoundSecondsTotal = true;
+
+                _autoEventRoundSeconds.Set();
+
+                return true;
+            }
+            else if (!IsManualWorldId)
+            {
+                RoundSecondsTotal = seconds;
+
+                _autoEventRoundSeconds.Set();
+
+                return true;
+            }
+            else
+            {
+                _autoEventRoundSeconds.Set();
+
+                return false;
+            }
+        }
 
         public void ResetWorldId()
         {

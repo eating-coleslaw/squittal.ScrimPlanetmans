@@ -42,18 +42,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Status.State = MatchTimerState.Initialized;
         }
 
-        //public StatefulTimer(TimeSpan timeSpan)
-        //{
-        //    _secondsMax = (int)Math.Round((decimal)timeSpan.TotalSeconds, 0);
-
-        //    _status.SecondsMax = _secondsMax;
-
-        //    _status.State = MatchTimerState.Initialized;
-
-        //    // TODO: move Timer instantiation to the Start() method?
-        //    _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, 1000);
-        //}
-
         public void Configure(TimeSpan timeSpan)
         {
             _logger.LogInformation($"Configuring Timer");

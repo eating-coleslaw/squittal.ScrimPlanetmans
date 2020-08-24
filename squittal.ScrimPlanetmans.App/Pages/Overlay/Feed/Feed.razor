@@ -18,7 +18,6 @@
 
 @implements IDisposable
 
-@*<div class="killfeed @(_legacyUi ? "legacy" : string.Empty)" id="killfeedContainer">*@
 <div class="killfeed" id="killfeedContainer">
     <table>
         <tbody id="killfeed" class="killfeedBody">
@@ -37,8 +36,6 @@
     [Parameter]
     public bool i_legacyUi { get; set; } = false;
 
-    private int _maxKillfeedRows = 4;
-
     private ScrimKillfeedEvent[] _renderedEvents { get; set; } = new ScrimKillfeedEvent[4];
 
     private bool _legacyUi { get; set; } = false;
@@ -51,7 +48,6 @@
     {
         MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
-        //MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
     }
 
     public void Dispose()
@@ -100,10 +96,6 @@
     private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
     {
         var objectiveTickEvent = e.Message.ObjectiveTickEvent;
-
-        //var killfeedEvent = ConvertToKillfeedEvent(objectiveTickEvent);
-
-        //_eventsQueue.Enqueue(killfeedEvent);
 
         UpdateRenderedEvents();
     }

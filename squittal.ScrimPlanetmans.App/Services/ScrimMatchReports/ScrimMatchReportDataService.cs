@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Models.Forms;
 using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,6 +108,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 Expression<Func<ScrimMatchInfo, bool>> endDateExpression = m => m.StartTime <= searchFilter.SearchEndDate;
 
                 whereExpression = whereExpression == null ? endDateExpression : whereExpression.And(endDateExpression);
+            }
+
+            if (searchFilter.RulesetId != 0)
+            {
+                Expression<Func<ScrimMatchInfo, bool>> rulesetExpression = m => m.RulesetId == searchFilter.RulesetId;
+
+                whereExpression = whereExpression == null ? rulesetExpression : whereExpression.And(rulesetExpression);
             }
 
             if (searchFilter.FacilityId != -1)
@@ -230,6 +238,61 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
 
                 return null;
             }
+        }
+
+        public async Task<IEnumerable<Ruleset>> GetScrimMatchBrowseRulesetIdsListAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var distinctRulesetIds = await dbContext.ScrimMatchInfo
+                                                            .Select(m => m.RulesetId)
+                                                            .Distinct()
+                                                            .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!distinctRulesetIds.Any())
+                {
+                    return null;
+                }
+
+                var distinctRulesets = await dbContext.Rulesets
+                                                            .Where(r => distinctRulesetIds.Contains(r.Id))
+                                                            .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return distinctRulesets;
+                
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetScrimMatchBrowserFacilityIdsListAsync");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetScrimMatchBrowserFacilityIdsListAsync");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        private Ruleset ConvertToRulesetModel(ScrimMatchInfo scrimMatchInfo)
+        {
+            return new Ruleset
+            {
+                Id = scrimMatchInfo.RulesetId,
+                Name = scrimMatchInfo.RulesetName
+            };
         }
 
         public async Task<IEnumerable<ScrimMatchReportInfantryPlayerStats>>  GetHistoricalScrimMatchInfantryPlayerStatsAsync(string scrimMatchId, CancellationToken cancellationToken)

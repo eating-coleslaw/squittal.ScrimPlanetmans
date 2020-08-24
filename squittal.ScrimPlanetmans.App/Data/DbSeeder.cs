@@ -1,7 +1,9 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch;
+﻿using Microsoft.Extensions.Logging;
+using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +26,7 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IVehicleTypeService _vehicleTypeService;
         private readonly IDeathEventTypeService _deathTypeService;
         private readonly ISqlScriptRunner _sqlScriptRunner;
+        private readonly ILogger<DbSeeder> _logger;
 
         public DbSeeder(
             IWorldService worldService,
@@ -39,7 +42,8 @@ namespace squittal.ScrimPlanetmans.Data
             IVehicleService vehicleService,
             IVehicleTypeService vehicleTypeService,
             IDeathEventTypeService deathTypeService,
-            ISqlScriptRunner sqlScriptRunner
+            ISqlScriptRunner sqlScriptRunner,
+            ILogger<DbSeeder> logger
         )
         {
             _worldService = worldService;
@@ -56,61 +60,69 @@ namespace squittal.ScrimPlanetmans.Data
             _vehicleTypeService = vehicleTypeService;
             _deathTypeService = deathTypeService;
             _sqlScriptRunner = sqlScriptRunner;
+            _logger = logger;
         }
 
-        public async Task OnApplicationStartup(CancellationToken cancellationToken)
+        public async Task SeedDatabase(CancellationToken cancellationToken)
         {
-            List<Task> TaskList = new List<Task>();
+            try
+            {
+                List<Task> TaskList = new List<Task>();
 
-            Task worldsTask = _worldService.RefreshStore(true, true);
-            TaskList.Add(worldsTask);
+                Task worldsTask = _worldService.RefreshStore(true, true);
+                TaskList.Add(worldsTask);
 
-            Task factionsTask = _factionService.RefreshStore(true, true);
-            TaskList.Add(factionsTask);
+                Task factionsTask = _factionService.RefreshStore(true, true);
+                TaskList.Add(factionsTask);
 
-            Task itemsTask = _itemService.RefreshStore(true, true);
-            TaskList.Add(itemsTask);
-            
-            Task itemCategoriesTask = _itemCategoryService.RefreshStore(true, true);
-            TaskList.Add(itemCategoriesTask);
+                Task itemsTask = _itemService.RefreshStore(true, true);
+                TaskList.Add(itemsTask);
 
-            Task zoneTask = _zoneService.RefreshStore(true, true);
-            TaskList.Add(zoneTask);
+                Task itemCategoriesTask = _itemCategoryService.RefreshStore(true, true);
+                TaskList.Add(itemCategoriesTask);
 
-            Task profileTask = _profileService.RefreshStore(true, true);
-            TaskList.Add(profileTask);
+                Task zoneTask = _zoneService.RefreshStore(true, true);
+                TaskList.Add(zoneTask);
 
-            Task loadoutsTask = _loadoutService.RefreshStore(true, true);
-            TaskList.Add(loadoutsTask);
+                Task profileTask = _profileService.RefreshStore(true, true);
+                TaskList.Add(profileTask);
 
-            Task scrimActionTask = _rulesetManager.SeedScrimActionModels();
-            TaskList.Add(scrimActionTask);
+                Task loadoutsTask = _loadoutService.RefreshStore(true, true);
+                TaskList.Add(loadoutsTask);
 
-            Task facilitiesTask = _facilityService.RefreshStore(true, true);
-            TaskList.Add(facilitiesTask);
-            
-            Task facilityTypesTask = _facilityTypeService.RefreshStore(true, true);
-            TaskList.Add(facilityTypesTask);
+                Task scrimActionTask = _rulesetManager.SeedScrimActionModels();
+                TaskList.Add(scrimActionTask);
 
-            Task vehicleTask = _vehicleService.RefreshStore(true, false);
-            TaskList.Add(vehicleTask);
+                Task facilitiesTask = _facilityService.RefreshStore(true, true);
+                TaskList.Add(facilitiesTask);
 
-            Task vehicleTypeTask = _vehicleTypeService.SeedVehicleClasses();
-            TaskList.Add(vehicleTypeTask);
+                Task facilityTypesTask = _facilityTypeService.RefreshStore(true, true);
+                TaskList.Add(facilityTypesTask);
 
-            Task deathTypeTask = _deathTypeService.SeedDeathTypes();
-            TaskList.Add(deathTypeTask);
+                Task vehicleTask = _vehicleService.RefreshStore(true, false);
+                TaskList.Add(vehicleTask);
 
-            await Task.WhenAll(TaskList);
+                Task vehicleTypeTask = _vehicleTypeService.SeedVehicleClasses();
+                TaskList.Add(vehicleTypeTask);
 
-            await _rulesetManager.SeedDefaultRuleset();
+                Task deathTypeTask = _deathTypeService.SeedDeathTypes();
+                TaskList.Add(deathTypeTask);
 
-            _sqlScriptRunner.RunSqlDirectoryScripts("Views");
+                await Task.WhenAll(TaskList);
+
+                _sqlScriptRunner.RunSqlDirectoryScripts("Views");
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to seed database: {ex}");
+            }
         }
 
-        public async Task OnApplicationShutdown(CancellationToken cancellationToken)
+        public void Dispose()
         {
-            await Task.CompletedTask;
+            this.Dispose();
         }
     }
 }

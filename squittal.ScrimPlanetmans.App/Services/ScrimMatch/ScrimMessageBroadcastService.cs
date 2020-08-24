@@ -84,6 +84,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
         public delegate void ConstructedTeamInfoChangeEventHandler(object sender, ConstructedTeamInfoChangeEventArgs e);
 
+
+        public event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
+        public delegate void ActiveRulesetChangeMessageEventHandler(object sender, ActiveRulesetChangeEventArgs e);
+        
+        public event EventHandler<RulesetRuleChangeEventArgs> RaiseRulesetRuleChangeEvent;
+        public delegate void ActiveRulesetRuleChangeEventHandler(object sender, RulesetRuleChangeEventArgs e);
+
         #endregion Handler Events & Delegates
 
         public ScrimMessageBroadcastService(ILogger<ScrimMessageBroadcastService> logger)
@@ -386,5 +393,25 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         }
 
         #endregion Constructed Team Messages
+
+        #region Ruleset Messages
+        public void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message)
+        {
+            OnRaiseActiveRulesetChangeEvent(new ActiveRulesetChangeEventArgs(message));
+        }
+        protected virtual void OnRaiseActiveRulesetChangeEvent(ActiveRulesetChangeEventArgs e)
+        {
+            RaiseActiveRulesetChangeEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message)
+        {
+            OnRaiseRulesetRuleChangeEvent(new RulesetRuleChangeEventArgs(message));
+        }
+        protected virtual void OnRaiseRulesetRuleChangeEvent(RulesetRuleChangeEventArgs e)
+        {
+            RaiseRulesetRuleChangeEvent?.Invoke(this, e);
+        }
+        #endregion Ruleset Messages
     }
 }

@@ -1,0 +1,327 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+@using System.Collections.Concurrent;
+
+@inject IRulesetDataService RulesetDataService
+
+@implements IDisposable
+
+<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+    @if (_changesCount > 0)
+    {
+        <h5>Item Category Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
+    }
+    else
+    {
+        <h5>Item Category Rules</h5>
+    }
+
+    @if (_isLoadingRules || _isSavingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        @if (_itemCategoryRules != null && _itemCategoryRules.Any())
+        {
+            <EditForm Model="@_itemCategoryRules" OnValidSubmit="(() => OnSaveScrimActionRulesEditSubmit(false))" style="margin-top: 8px;" >
+                <DataAnnotationsValidator />
+        
+                <div class="sq-content">
+
+                    @if (_changesCount > 0 && !_isClearingRules)
+                    {
+                        <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimActionRulesEditSubmit(true))">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+
+                        <button type="button" title="Reset changes to original values"class="btn btn-outline-primary" @onclick="OnClearRuleChanges">
+                            <span class="oi oi-x" style="top: 0px;"></span>Clear
+                        </button>
+                    }
+                    else
+                    {
+                        <button title="There are no changes to save" disabled class="btn btn-primary disabled">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+                    }
+
+                    <div class="tabbed-button-container" style="">
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
+                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
+                        <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
+                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
+                    </div>
+
+                    <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                <tr>
+                                    <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                    <th style="padding-bottom: 2px;">Points</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
+                                {
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
+                                            <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <p>No item category rules...</p>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private IEnumerable<RulesetItemCategoryRule> _itemCategoryRules { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+    bool _isSavingRules { get; set; } = false;
+    bool _isClearingRules { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+    private ConcurrentDictionary<int, RulesetItemCategoryRule> _changedRules { get; set; } = new ConcurrentDictionary<int, RulesetItemCategoryRule>();
+    private ConcurrentDictionary<int, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<int, int>();
+
+    private int _changesCount { get; set; } = 0;
+
+    private ItemCategoryDomain _selectedDomainView { get; set; } = ItemCategoryDomain.Infantry;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _renderedRulesetId = i_rulesetId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRulesAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _itemCategoryRules = await RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _originalRulePoints.Clear();
+            _changedRules.Clear();
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private void OnChangeRulePoints(RulesetItemCategoryRule rule, int newPoints)
+    {
+        var categoryId = rule.ItemCategory.Id;
+        var currentPoints = rule.Points;
+
+        var hasAlreadyChanged = _originalRulePoints.ContainsKey(categoryId);
+
+        if (_originalRulePoints.TryGetValue(categoryId, out int originalPoints))
+        {
+            rule.Points = newPoints;
+
+            if (newPoints == originalPoints)
+            {
+                _changedRules.TryRemove(categoryId, out var removedRule);
+            }
+            else
+            {
+                _changedRules.AddOrUpdate(categoryId, rule, (key, oldValue) => rule);
+            }
+        }
+        else
+        {
+            if (!_originalRulePoints.TryAdd(categoryId, currentPoints))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            rule.Points = newPoints;
+
+            _changedRules.AddOrUpdate(categoryId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+    }
+    #endregion Event Handling
+
+    #region Form Handling
+    private async void OnSaveScrimActionRulesEditSubmit(bool isManualClick)
+    {
+        if (!isManualClick)
+        {
+            return;
+        }
+
+        if (_changedRules.Any())
+        {
+            _isSavingRules = true;
+            InvokeAsyncStateHasChanged();
+
+            await RulesetDataService.SaveRulesetItemCategoryRules(_renderedRulesetId, _changedRules.Values.AsEnumerable());
+
+            foreach (var idRulePair in _changedRules)
+            {
+                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
+
+            }
+
+            _originalRulePoints.Clear();
+            _changedRules.Clear();
+            _changesCount = 0;
+            
+            _isSavingRules = false;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void OnClearRuleChanges()
+    {
+        if (!_changedRules.Any() || !_itemCategoryRules.Any())
+        {
+            return;
+        }
+
+        _isClearingRules = true;
+
+        foreach (var idPointsPair in _originalRulePoints)
+        {
+            _itemCategoryRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
+        }
+
+        _originalRulePoints.Clear();
+        _changedRules.Clear();
+        _changesCount = 0;
+
+        _isClearingRules = false;
+    }
+    #endregion Form Handling
+
+    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
+    {
+        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    private string GetViewTabStyle(ItemCategoryDomain thisView)
+    {
+        if (_selectedDomainView == thisView)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    private void OnSelectNewView(ItemCategoryDomain newView)
+    {
+        if (newView != _selectedDomainView)
+        {
+            _selectedDomainView = newView;
+        }
+    }
+
+    #region Helpers
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion Helpers
+}

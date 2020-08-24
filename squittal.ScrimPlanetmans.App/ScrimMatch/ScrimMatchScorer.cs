@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.Models.Planetside.Events;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System.Linq;
 using System.Threading.Tasks;
+using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -22,11 +23,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _teamsManager = teamsManager;
             _messageService = messageService;
             _logger = logger;
+
+            _messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
+            _messageService.RaiseRulesetRuleChangeEvent += OnRulesetRuleChangeEvent;
         }
 
-        public async Task SetActiveRuleset()
+        private async void OnActiveRulesetChangeEvent(object sender, ActiveRulesetChangeEventArgs e)
         {
-            _activeRuleset = await _rulesets.GetActiveRuleset();
+            await SetActiveRulesetAsync();
+        }
+
+        private async void OnRulesetRuleChangeEvent(object sender, RulesetRuleChangeEventArgs e)
+        {
+            if (_activeRuleset.Id == e.Message.Ruleset.Id)
+            {
+                await SetActiveRulesetAsync();
+            }
+
+            // TODO: specific methods for only updating Rule Type that changed (Action Rules or Item Category Rules)
+        }
+
+        public async Task SetActiveRulesetAsync()
+        {
+            _activeRuleset = await _rulesets.GetActiveRulesetAsync();
         }
 
         #region Death Events
@@ -58,7 +77,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (categoryId != null)
                 {
-                    points = _activeRuleset.ItemCategoryRules
+                    points = _activeRuleset.RulesetItemCategoryRules
                                                 .Where(rule => rule.ItemCategoryId == categoryId)
                                                 .Select(rule => rule.Points)
                                                 .FirstOrDefault();
@@ -161,7 +180,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (categoryId != null)
                 {
-                    points = _activeRuleset.ItemCategoryRules
+                    points = _activeRuleset.RulesetItemCategoryRules
                                                 .Where(rule => rule.ItemCategoryId == categoryId)
                                                 .Select(rule => rule.Points)
                                                 .FirstOrDefault();
@@ -207,7 +226,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             if (GetDeferToItemCategoryPoints(destruction.ActionType))
             {
                 var categoryId = destruction.Weapon.ItemCategoryId;
-                points = _activeRuleset.ItemCategoryRules
+                points = _activeRuleset.RulesetItemCategoryRules
                                             .Where(rule => rule.ItemCategoryId == categoryId)
                                             .Select(rule => rule.Points)
                                             .FirstOrDefault();
@@ -239,7 +258,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             if (GetDeferToItemCategoryPoints(destruction.ActionType))
             {
                 var categoryId = destruction.Weapon.ItemCategoryId;
-                points = _activeRuleset.ItemCategoryRules
+                points = _activeRuleset.RulesetItemCategoryRules
                                             .Where(rule => rule.ItemCategoryId == categoryId)
                                             .Select(rule => rule.Points)
                                             .FirstOrDefault();
@@ -411,7 +430,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public async Task<int> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective)
         {
             var actionType = objective.ActionType;
-            var points = _activeRuleset.ActionRules
+            var points = _activeRuleset.RulesetActionRules
                                         .Where(rule => rule.ScrimActionType == actionType)
                                         .Select(rule => rule.Points)
                                         .FirstOrDefault();
@@ -481,7 +500,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     
         private int GetActionRulePoints(ScrimActionType actionType)
         {
-            return _activeRuleset.ActionRules
+            return _activeRuleset.RulesetActionRules
                                     .Where(rule => rule.ScrimActionType == actionType)
                                     .Select(rule => rule.Points)
                                     .FirstOrDefault();
@@ -489,7 +508,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool GetDeferToItemCategoryPoints(ScrimActionType actionType)
         {
-            return _activeRuleset.ActionRules
+            return _activeRuleset.RulesetActionRules
                                     .Where(rule => rule.ScrimActionType == actionType)
                                     .Select(rule => rule.DeferToItemCategoryRules)
                                     .FirstOrDefault();

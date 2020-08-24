@@ -11,14 +11,88 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string Name { get; set; }
         
         public string Description { get; set; }
+        public ScrimActionTypeDomain Domain { get; set; }
 
+        public static ScrimActionTypeDomain GetDomainFromActionType(ScrimActionType action)
+        {
+            if ((int)action >= 10 && (int)action < 100)
+            {
+                return ScrimActionTypeDomain.Objective;
+            }
+            else if ((int)action >= 300 && (int)action < 399)
+            {
+                return ScrimActionTypeDomain.Support;
+            }
+            else if ((int)action >= 100 && (int)action < 200)
+            {
+                return ScrimActionTypeDomain.Infantry;
+            }
+            else if ((int)action >= 200 && (int)action < 300)
+            {
+                return ScrimActionTypeDomain.MAX;
+            }
+            else if ((int)action >= 400 && (int)action < 500)
+            {
+                return ScrimActionTypeDomain.Vehicle;
+            }
+            else if ((int)action >= 500 && (int)action < 1999)
+            {
+                return ScrimActionTypeDomain.AirVehicle;
+            }
+            else if ((int)action >= 2000 && (int)action < 2999)
+            {
+                return ScrimActionTypeDomain.GroundVehicle;
+            }
+            else
+            {
+                return ScrimActionTypeDomain.Other;
+            }
+        }
+        
+        public ScrimActionTypeDomain SetDomain()
+        {
+            if ((int)Action >= 10 && (int)Action < 100)
+            {
+                Domain = ScrimActionTypeDomain.Objective;
+            }
+            else if ((int)Action >= 300 && (int)Action < 399)
+            {
+                Domain = ScrimActionTypeDomain.Support;
+            }
+            else if ((int)Action >= 100 && (int)Action < 200)
+            {
+                Domain = ScrimActionTypeDomain.Infantry;
+            }
+            else if ((int)Action >= 200 && (int)Action < 300)
+            {
+                Domain = ScrimActionTypeDomain.MAX;
+            }
+            else if ((int)Action >= 400 && (int)Action < 500)
+            {
+                Domain = ScrimActionTypeDomain.Vehicle;
+            }
+            else if ((int)Action >= 500 && (int)Action < 1999)
+            {
+                Domain = ScrimActionTypeDomain.AirVehicle;
+            }
+            else if ((int)Action >= 2000 && (int)Action < 2999)
+            {
+                Domain = ScrimActionTypeDomain.GroundVehicle;
+            }
+            else
+            {
+                Domain = ScrimActionTypeDomain.Other;
+            }
+            
+            return Domain;
+        }
     }
 
     public enum ScrimActionType
     {
         None = 0,
-        
-        // Objectives: 10-99
+
+        #region Objectives: 10-99
         FirstBaseCapture        = 10,
         SubsequentBaseCapture   = 11,
         PointControl            = 12,
@@ -26,8 +100,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         ConvertCapturePoint     = 14,
         ObjectiveCapturePulse   = 15,
         ObjectiveDefensePulse   = 16,
+        #endregion Objectives: 10-99
 
-        // Infantry: 100 - 199
+
+        #region Infantry: 100 - 199
         InfantryKillInfantry         = 100,
         InfantryKillMax              = 101,
         InfantryTeamkillInfantry     = 102,
@@ -65,8 +141,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         InfantryDestroyMbt              = 128,
         InfantryTeamDestroyMbt          = 129,
 
-        // Maxes: 200 - 299
-        MaxKillInfantry                = 200,
+        InfantryDestroyColossus         = 130, 
+        InfantryTeamDestroyColossus     = 131, 
+        #endregion Infantry: 100 - 199
+
+
+        #region Maxes: 200 - 299
+        MaxKillInfantry = 200,
         MaxKillMax                     = 201,
         MaxTeamkillMax                 = 202,
         MaxTeamkillInfantry            = 203,
@@ -103,7 +184,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         MaxDestroyMbt                   = 228,
         MaxTeamDestroyMbt               = 229,
 
-        // Support: 300 - 399
+        MaxDestroyColossus              = 230,
+        MaxTeamDestroyColossus          = 231,
+        #endregion Maxes: 200 - 299
+
+
+        #region Support: 300 - 399
         ReviveInfantry              = 300,
         ReviveMax                   = 301,
         //InfantryTakeRevive          = 302,
@@ -118,9 +204,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         GrenadeTeamAssist           = 311,
         DamageSelfAssist            = 312,
         GrenadeSelfAssist           = 313,
+        #endregion Support: 300 - 399
 
-
-        // Vehicles: 400 - 499        
+        #region Vehicles: 400 - 499        
         VehicleKillInfantry                = 400,
         VehicleKillMax                     = 401,
         VehicleKillVehicle                 = 402,
@@ -156,8 +242,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         VehicleDestroyMbt                   = 428,
         VehicleTeamDestroyMbt               = 429,
 
+        VehicleSuicide                      = 430,
 
-        // Interceptor: 500 - 599
+        VehicleDestroyColossus              = 431,
+        VehicleTeamDestroyColossus          = 432,
+        #endregion Vehicles: 400 - 499        
+
+        #region Interceptor: 500 - 599
+        /*
         InterceptorKillInfantry         = 500,
         InterceptorKillMax              = 501,
         InterceptorTeamkillInfantry     = 502,
@@ -189,9 +281,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         InterceptorTeamkillLiberator    = 526,
         InterceptorTeamkillGalaxy       = 527,
         InterceptorTeamkillBastion      = 528,
+        */
+        InterceptorSuicide = 529,
+        #endregion Interceptor: 500 - 599
 
-        // ESF: 600 - 699
-        EsfKillInfantry         = 600,
+        #region ESF: 600 - 699
+        /*
+        EsfKillInfantry = 600,
         EsfKillMax              = 601,
         EsfTeamkillInfantry     = 602,
         EsfTeamkillMax          = 603,
@@ -222,9 +318,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         EsfTeamkillLiberator    = 626,
         EsfTeamkillGalaxy       = 627,
         EsfTeamkillBastion      = 628,
+        */
+        EsfSuicide              = 629,
+        #endregion ESF: 600 - 699
 
-        // Valkyrie: 700 - 799
-        ValkyrieKillInfantry        = 700,
+        #region Valkyrie: 700 - 799
+        /*
+        ValkyrieKillInfantry = 700,
         ValkyrieKillMax             = 701,
         ValkyrieTeamkillInfantry    = 702,
         ValkyrieTeamkillMax         = 703,
@@ -255,8 +355,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         ValkyrieTeamkillLiberator   = 726,
         ValkyrieTeamkillGalaxy      = 727,
         ValkyrieTeamkillBastion     = 728,
+        */
+        ValkyrieSuicide             = 729,
+        #endregion Valkyrie: 700 - 799
 
-        // Liberator: 800 - 899
+        #region Liberator: 800 - 899
+        /*
         LiberatorKillInfantry        = 800,
         LiberatorKillMax             = 801,
         LiberatorTeamkillInfantry    = 802,
@@ -288,9 +392,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         LiberatorTeamkillLiberator   = 826,
         LiberatorTeamkillGalaxy      = 827,
         LiberatorTeamkillBastion     = 828,
+        */
+        LiberatorSuicide             = 829,
+        #endregion Liberator: 800 - 899
 
-        // Galaxy: 900 - 999
-        GalaxyKillInfantry          = 900,
+        #region Galaxy: 900 - 999
+        /*
+        GalaxyKillInfantry = 900,
         GalaxyKillMax               = 901,
         GalaxyTeamkillInfantry      = 902,
         GalaxyTeamkillMax           = 903,
@@ -321,9 +429,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         GalaxyTeamkillLiberator     = 926,
         GalaxyTeamkillGalaxy        = 927,
         GalaxyTeamkillBastion       = 928,
+        */
+        GalaxySuicide               = 929,
+        #endregion Galaxy: 900 - 999
 
-        // Bastion: 1000 - 1099
-        BastionKillInfantry         = 1000,
+        #region Bastion: 1000 - 1099
+        /*
+        BastionKillInfantry = 1000,
         BastionKillMax              = 1001,
         BastionTeamkillInfantry     = 1002,
         BastionTeamkillMax          = 1003,
@@ -354,31 +466,46 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         BastionTeamkillLiberator    = 1026,
         BastionTeamkillGalaxy       = 1027,
         BastionTeamkillBastion      = 1028,
+        */
+        BastionSuicide              = 1029,
+        #endregion Bastion: 1000 - 1099
 
-        // Flash: 1100 - 1199
-        FlashSuicide = 1104,
+        #region Flash: 2000 - 2099
+        FlashSuicide = 2029,
+        #endregion Flash: 2000 - 2099
 
-        // Harasser: 1200 - 1299
-        HarasserSuicide = 1204,
+        #region Harasser: 2100 - 2199
+        HarasserSuicide = 2129,
+        #endregion Harasser: 2100 - 2199
 
-        // ANT: 1300 - 1399
-        AntSuicide = 1304,
+        #region ANT: 2200 - 2299
+        AntSuicide = 2229,
+        #endregion ANT: 2200 - 2299
 
-        // Sunderer: 1400 - 1499
-        SundererSuicide = 1404,
+        #region Sunderer: 2300 - 2399
+        SundererSuicide = 2329,
+        #endregion Sunderer: 2300 - 2399
 
-        // Lightning: 1500 - 1599
-        LightningSuicide = 1504,
+        #region Lightning: 2400 - 2499
+        LightningSuicide = 2429,
+        #endregion Lightning: 2400 - 2499
 
-        // MBT: 1600 - 1699
-        MbtSuicide = 1604,
+        #region MBT: 2500 - 2599
+        MbtSuicide = 2529,
+        #endregion MBT: 2500 - 2599
 
-        // Miscellaneous: 5000 - 6099
-        Login   = 5000,
+        #region Colossus: 2600 - 2699
+        ColossusSuicide = 2629,
+        #endregion Colossus: 2600 - 2699
+
+        #region Miscellaneous: 5000 - 6099
+        Login = 5000,
         Logout  = 5001,
+        #endregion Miscellaneous: 5000 - 6099
 
-        // Warnings & Errors: 9000+
+        #region Warnings & Errors: 9000+
         OutsideInterference = 9000,
         Unknown             = 9001
+        #endregion Warnings & Errors: 9000+
     };
 }

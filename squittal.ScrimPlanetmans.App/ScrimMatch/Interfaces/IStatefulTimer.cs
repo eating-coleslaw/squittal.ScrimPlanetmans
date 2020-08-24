@@ -8,8 +8,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
 
-        //MatchTimerStatus Status { get; }
-
         void Configure(TimeSpan timeSpan);
         void Start();
         void Pause();

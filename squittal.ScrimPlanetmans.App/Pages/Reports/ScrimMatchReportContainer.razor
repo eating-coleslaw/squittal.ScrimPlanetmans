@@ -31,7 +31,6 @@
                 {
                     <div style="display: grid; grid-template-columns: 60% 40%; grid-template-rows: 1.75rem 1rem; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 24px;">
                         <h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4> @*margin-bottom: 2px;*@
-                        @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>*@
                         <p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
                         @if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
                         {
@@ -49,7 +48,7 @@
                                 <span>@_matchInfo.FacilityName</span>
                             </p>
                         }
-                        <p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds</p>
+                        <p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds | Ruleset: @_matchInfo.RulesetName</p>
 
                     </div>
 
@@ -94,7 +93,6 @@
                                     </tr>
 
                                     <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right;">
-                                        @*border-top: @((team.TeamOrdinal > 1) ? "8px" : "0px") solid transparent;">*@
                                         <td style="padding-left: 10px;"></td>
                                         <td style="text-align: left;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                         <td>@team.Points</td>

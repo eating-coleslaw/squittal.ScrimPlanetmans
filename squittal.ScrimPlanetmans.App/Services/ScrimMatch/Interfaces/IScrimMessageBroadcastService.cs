@@ -44,6 +44,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
         event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
 
+        event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
+        event EventHandler<RulesetRuleChangeEventArgs> RaiseRulesetRuleChangeEvent;
+
+
         void BroadcastSimpleMessage(string message);
 
         void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message);
@@ -75,5 +79,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message);
         void BroadcastConstructedTeamInfoChangeMessage(ConstructedTeamInfoChangeMessage message);
+
+        void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message);
+        void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message);
     }
 }
