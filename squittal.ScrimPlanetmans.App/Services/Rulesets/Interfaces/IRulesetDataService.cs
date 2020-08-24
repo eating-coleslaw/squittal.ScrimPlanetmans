@@ -12,6 +12,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
     public interface IRulesetDataService
     {
         int DefaultRulesetId { get; }
+        int ActiveRulesetId { get; }
 
         Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
 
@@ -42,5 +43,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task<IEnumerable<RulesetFacilityRule>> GetUnusedRulesetFacilityRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task<bool> UpdateRulesetInfo(Ruleset rulesetUpdate, CancellationToken cancellationToken);
         Task<Ruleset> GetRulesetWithFacilityRules(int rulesetId, CancellationToken cancellationToken);
+        void SetActiveRulesetId(int rulesetId);
+        Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId);
     }
 }

@@ -27,6 +27,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private ConcurrentDictionary<int, Ruleset> RulesetsMap { get; set; } = new ConcurrentDictionary<int, Ruleset>();
 
+        public int ActiveRulesetId { get; private set; }
+
         private readonly int _rulesetBrowserPageSize = 15;
 
         public int DefaultRulesetId { get; } = 1;
@@ -35,6 +37,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _facilityRulesLock = new KeyedSemaphoreSlim();
+
+        public AutoResetEvent _defaultAutoEvent = new AutoResetEvent(true);
 
         public static Regex RulesetNameRegex { get; } = new Regex("^([A-Za-z0-9()\\[\\]\\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\\[\\]\\-_'.]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -882,6 +886,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         }
         #endregion Helper Methods
 
+        public void SetActiveRulesetId(int rulesetId)
+        {
+            ActiveRulesetId = rulesetId;
+        }
+
         public async Task<Ruleset> ActivateRulesetAsync(int rulesetId)
         {
             try
@@ -942,6 +951,63 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             catch (Exception ex)
             {
                 _logger.LogError($"Failed activating ruleset: {ex}");
+                return null;
+            }
+        }
+
+        public async Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId)
+        {
+            _defaultAutoEvent.WaitOne();
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var currentDefaultRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsCustomDefault);
+
+                var newDefaultRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+
+                if (newDefaultRuleset == null)
+                {
+                    _defaultAutoEvent.Set();
+
+                    return null;
+                }
+
+                if (currentDefaultRuleset != null && currentDefaultRuleset.Id != rulesetId)
+                {
+                    currentDefaultRuleset.IsCustomDefault = false;
+                    dbContext.Rulesets.Update(currentDefaultRuleset);
+
+                    newDefaultRuleset.IsCustomDefault = true;
+                    dbContext.Rulesets.Update(newDefaultRuleset);
+                }
+                else if (currentDefaultRuleset != null)
+                {
+                    _defaultAutoEvent.Set();
+
+                    return currentDefaultRuleset;
+                }
+                else
+                {
+                    _defaultAutoEvent.Set();
+
+                    return null;
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                _defaultAutoEvent.Set();
+
+                return newDefaultRuleset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed setting ruleset {rulesetId} as new custom default: {ex}");
+
+                _defaultAutoEvent.Set();
+
                 return null;
             }
         }

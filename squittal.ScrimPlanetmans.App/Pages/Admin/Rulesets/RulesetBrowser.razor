@@ -105,7 +105,8 @@
                             @foreach (var ruleset in _storeRulesetList)
                             {
                                 <tr>
-                                    @if (ruleset.IsActive)
+                                    @*@if (ruleset.IsActive)*@
+                                    @if (IsActiveRuleset(ruleset.Id))
                                     {
                                         <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
                                             <span class="oi oi-target" style=""></span>
@@ -458,6 +459,11 @@
         }
 
         return stateChanged;
+    }
+
+    private bool IsActiveRuleset(int rulesetId)
+    {
+        return RulesetDataService.ActiveRulesetId == rulesetId;
     }
 
     private string GetLocalizedDateTimeString(DateTime dateTime)

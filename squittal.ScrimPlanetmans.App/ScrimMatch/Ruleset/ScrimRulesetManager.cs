@@ -84,6 +84,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     return null;
                 }
 
+                _rulesetDataService.SetActiveRulesetId(rulesetId);
+
                 ActiveRuleset = newActiveRuleset;
 
                 var message = new ActiveRulesetChangeMessage(ActiveRuleset, currentActiveRuleset);
@@ -138,6 +140,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             ActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(ruleset.Id, CancellationToken.None);
+
+            _rulesetDataService.SetActiveRulesetId(ActiveRuleset.Id);
 
             _logger.LogInformation($"Active ruleset loaded: {ActiveRuleset.Name}");
         }
