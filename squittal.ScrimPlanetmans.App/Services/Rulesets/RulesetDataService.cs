@@ -693,8 +693,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     dbContext.Rulesets.Add(ruleset);
 
                     await dbContext.SaveChangesAsync();
-                    
-                    // TODO: Set Up default Action Type, Item Category, and Facility values
+
+                    await SetUpRulesetsMapAsync(CancellationToken.None);
 
                     return ruleset;
                 }
