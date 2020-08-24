@@ -114,7 +114,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (ruleset == null)
             {
-                _logger.LogError($"No custom default ruleset found. Loading default ruleset...");
+                _logger.LogInformation($"No custom default ruleset found. Loading default ruleset...");
                 ruleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsDefault);
             }
 

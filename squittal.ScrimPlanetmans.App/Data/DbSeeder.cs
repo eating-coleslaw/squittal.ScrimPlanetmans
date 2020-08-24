@@ -119,10 +119,5 @@ namespace squittal.ScrimPlanetmans.Data
                 _logger.LogError($"Failed to seed database: {ex}");
             }
         }
-
-        public void Dispose()
-        {
-            this.Dispose();
-        }
     }
 }
