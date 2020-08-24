@@ -1,0 +1,547 @@
+﻿@page "/Reports"
+@page "/MatchReport"
+@page "/ReportBrowser"
+@page "/ScrimMatches"
+
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using System.Threading;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject IFacilityService FacilityService
+@inject IZoneService ZoneService
+@inject IWorldService WorldService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+<div class="container-fluid" style="margin-top: 16px;">
+
+    <div class="row">
+
+        <div class="col-lg-8" style="margin-left: auto; margin-right: auto;">
+
+            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+                <h4>Scrim Match Browser</h4>
+
+                @if (!_isLoadingSearchFilterData)
+                {
+                    <EditForm Model="@_searchFilter" OnValidSubmit="OnSearchFilterSubmit" style="display: inline; font-size: 0.9rem; color: inherit; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 8px;">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div style="display: inline-block; margin-bottom: 8px;">Search: <InputText id="inputTeamAlias" @bind-Value=@_searchFilter.InputSearchTerms maxlength="50" style="display: inline-block; width: 250px; margin-left: 4px;" /></div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <span class="oi oi-magnifying-glass"></span>Search
+                        </button>
+                
+                        @if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
+                        {
+                            <button class="btn btn-outline-primary" @onclick="OnClearSearchFilters">
+                                <span class="oi oi-x" style="top: 0px;"></span>Clear
+                            </button>
+                        }
+
+                        <div style="margin-bottom: 8px; display: block;">
+                            @if (_worlds != null)
+                            { 
+                                <InputSelect TValue="string" style="margin-left: 55px; margin-right: 4px; width: 125px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.WorldIdString" ValueChanged="@((string s) => _searchFilter.SetWorldId(s))" ValueExpression="@(() => _searchFilter.WorldIdString)">
+                                    <option value=@_anyWorldIdValue>All Servers</option>
+
+                                    @foreach (var world in _worlds)
+                                    {
+                                        <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
+                                    }
+                                </InputSelect>
+                            }
+
+                            <InputSelect TValue="string" style="width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.FacilityIdString" ValueChanged="@((string s) => _searchFilter.SetFacilityId(s))" ValueExpression="@(() => _searchFilter.FacilityIdString)">
+                                <option value=@_anyFacilityIdValue>Any Facility</option>
+                                <option value=@_noFacilitIdFilterValue>No Filter</option>
+
+                                @if (_mapZones != null && _mapRegions != null)
+                                { 
+                                    @foreach (var zone in _mapZones)
+                                    {
+                                        <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                                        @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                        {
+                                            <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                        }
+                                    }
+                                }
+                            </InputSelect>
+                    
+                            <div style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block;">From: <InputDate style="" @bind-Value="_searchFilter.SearchStartDate" /></div>
+                            <div style="margin-left: 8px; margin-bottom: 0.5rem; display: inline-block;">To: <InputDate style="" @bind-Value="_searchFilter.SearchEndDate" /></div>
+
+                            <div title="Minimum match rounds played (inclusive)" style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block; vertical-align: top;">Min. Rounds: <InputNumber style="width: 50px;" min="1" type="text" id="roundSecondsTotal" @bind-Value="_searchFilter.MinimumRoundCount" /></div>
+                        </div>
+                    </EditForm>
+                }
+
+                <table style="width: 100%; border-bottom: 1px solid var(--sq-gray);" class="table-responsive-sm table-striped-light">
+                    <thead>
+                        <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; border-bottom: 1px solid var(--sq-gray);">
+                            <th style="font-weight: 300;">Date</th>
+                            <th style="font-weight: 300;">Start Time</th>
+                            <th style="font-weight: 300;">Team 1</th>
+                            <th style="font-weight: 300;">Team 2</th>
+                            <th style="font-weight: 300;">Title</th>
+                            <th style="font-weight: 300;">Server</th>
+                            <th style="font-weight: 300;">Facility</th>
+                            <th style="font-weight: 300;">Rounds</th>
+                            <th style="font-weight: 300;"></th>
+                        </tr>
+                    </thead>
+
+                    @if (_storeScrimMatchList != null)
+                    {
+                        <tbody style="@(_isLoadingScrimMatchList ? "opacity: 0.5;" : string.Empty)">
+                            @foreach (var match in _storeScrimMatchList)
+                            {
+                                <tr>
+                                    <td>@GetLocalizedDateString(match.StartTime)</td>
+                                    <td>@GetLocalizedTimeString(match.StartTime)</td>
+                                    @if (match.TeamOneFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[1]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamOneFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[1]</td>
+                                    }
+                                    @if (match.TeamTwoFactionId <= 0)
+                                    {
+                                        <td style="color: var(--sq-black);">@match.TeamAliases[2]</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="@SqCssHelper.GetFactionClassFromId(match.TeamTwoFactionId)" style="color: var(--sq-ps2-primary);">@match.TeamAliases[2]</td>
+                                    }
+                                    <td>@match.Title</td>
+                                    <td>@match.WorldName</td>
+                                    @if (match.FacilityId != null)
+                                    {
+                                        <td>@match.FacilityName</td>
+                                    }
+                                    else
+                                    {
+                                        <td style="font-style: italic;">None</td>
+                                    }
+                                    <td>@match.RoundCount</td>
+                                    <td>
+                                        <NavLink class="nav-link" target="_blank" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+
+                @if (_isLoadingScrimMatchList)
+                {
+                    <div class="thin">
+                        <SpinnerEllipsis />
+                    </div>
+                }
+                else
+                {
+
+                    <div style="margin: 8px auto 1px auto; width: 200px; text-align: center;">
+                        @if (_renderedHasPreviousPage)
+                        {
+                            <NavLink title="Go to previous page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex - 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-left" style="padding-right: 0.1rem;"></span>
+                            </div>
+                        }
+
+
+                        <div style="padding: 4px 8px; display: inline-block;"><span style="font-size: 1.1rem; padding-right: 8px; color: var(--sq-pink);">@_renderedPageIndex</span><span style="color: var(--sq-gray);">/ @_renderedPageCount</span></div>
+
+                        @if (_renderedHasNextPage)
+                        {
+                            <NavLink title="Go to next page" class="nav-link btn btn-outline-primary" href=@($"/reports?page={_renderedPageIndex + 1}") style="padding: 4px 8px; display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>
+                            </NavLink>
+                        }
+                        else
+                        {
+                            <div class="btn btn-outline-primary disabled" style="padding: 4px 8px; color: var(--sq-gray); display: inline-block;">
+                                <span class="oi oi-caret-right" style="padding-right: 0rem; padding-left: 0.1rem;"></span>@*Next*@
+                            </div>
+                        }
+
+                    </div>
+                }
+
+                @*
+                <p>@_storeScrimMatchList.Count()</p>
+                <p>Search Terms: @_debug</p>
+                @foreach (var term in _searchFilter.SearchTermsList)
+                {
+                    <p style="margin: 0;">@term</p>
+                }
+                <p>Is Filtered: @_isFilteredResults</p>
+                <p>Is Default: @_searchFilter.IsDefaultFilter</p>
+                    
+                <p>Start: @(_searchFilter.SearchStartDate.ToString())</p>
+                <p>  End: @(_searchFilter.SearchEndDate.ToString())</p>
+                 *@
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_pageIndex { get; set; } = 1;
+    public int _renderedPageIndex { get; set; } = 1;
+
+    [Parameter]
+    public int? _uriPageIndex { get; set; }
+
+    private int _defaultPageIndex { get; set; } = 1;
+
+    private List<ScrimMatchInfo> _storeScrimMatchList { get; set; } = new List<ScrimMatchInfo>();
+
+    private int _renderedPageCount { get; set; } = 0;
+    private bool _renderedHasNextPage { get; set; } = false;
+    private bool _renderedHasPreviousPage { get; set; } = false;
+
+    private bool _isLoadingScrimMatchList { get; set; } = true;
+
+    private CancellationTokenSource ctsMatches;
+    private CancellationTokenSource ctsFilters;
+
+    #region Search Filter Variables
+    private ScrimMatchReportBrowserSearchFilter _searchFilter { get; set; } = new ScrimMatchReportBrowserSearchFilter();
+
+    private IEnumerable<MapRegion> _mapRegions { get; set; }
+    private List<int> _mapZones { get; set; } = new List<int>();
+    private IEnumerable<Zone> _zones { get; set; }
+    private string _noFacilitIdFilterValue { get; set; } = "-1";
+    private string _anyFacilityIdValue { get; set; } = "0";
+    private IEnumerable<World> _worlds { get; set; }
+    private string _anyWorldIdValue { get; set; } = "0";
+
+    private bool _isLoadingSearchFilterData { get; set; } = true;
+
+    private bool _isFilteredResults { get; set; } = false;
+    #endregion Search Filter Variables
+
+    private string _debug { get; set; } = string.Empty;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+
+        if (_searchFilter == null)
+        {
+            _searchFilter = new ScrimMatchReportBrowserSearchFilter();
+        }
+
+        _isFilteredResults = false;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+
+        if (ctsMatches != null)
+        {
+            ctsMatches.Cancel();
+            ctsMatches.Dispose();
+        }
+
+        if (ctsFilters != null)
+        {
+            ctsFilters.Cancel();
+            ctsFilters.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedPageIndex = i_pageIndex;
+
+        _isLoadingSearchFilterData = true;
+
+        await LoadScrimMatchListAsync();
+
+        await LoadPlayedFacilitiesListAsync();
+
+        var worlds = await WorldService.GetAllWorldsAsync();
+        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+
+        _isLoadingSearchFilterData = false;
+
+        if (_searchFilter.IsDefaultFilter)
+        {
+            _isFilteredResults = false;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        UpdateUriParameters();
+
+        _renderedPageIndex = i_pageIndex;
+        await LoadScrimMatchListAsync();
+
+        if (_searchFilter.IsDefaultFilter)
+        {
+            _isFilteredResults = false;
+        }
+
+        paramsChanged = true;
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadScrimMatchListAsync()
+    {
+        _isLoadingScrimMatchList = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (ctsMatches != null)
+        {
+            ctsMatches.Cancel();
+        }
+
+        // Set ctsMatches to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        ctsMatches = newCTS;
+
+        try
+        {
+
+            var paginatedList = await ReportDataService.GetHistoricalScrimMatchesListAsync(_renderedPageIndex, _searchFilter, ctsMatches.Token);
+
+            ctsMatches.Token.ThrowIfCancellationRequested();
+
+            _storeScrimMatchList = new List<ScrimMatchInfo>();
+
+            _storeScrimMatchList.AddRange(paginatedList.Contents);
+
+            _renderedPageCount = paginatedList.PageCount;
+            _renderedHasNextPage = paginatedList.HasNextPage;
+            _renderedHasPreviousPage = paginatedList.HasPreviousPage;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (ctsMatches == newCTS)
+        {
+            ctsMatches = null;
+        }
+
+        _isLoadingScrimMatchList = false;
+    }
+
+    private async Task LoadPlayedFacilitiesListAsync()
+    {
+        // If a process is already underway, cancel it
+        if (ctsFilters != null)
+        {
+            ctsFilters.Cancel();
+        }
+
+        // Set ctsMatches to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        ctsFilters = newCTS;
+
+        try
+        {
+
+            var playedFacilities = await ReportDataService.GetScrimMatchBrowserFacilityIdsListAsync(CancellationToken.None);
+
+            ctsFilters.Token.ThrowIfCancellationRequested();
+
+            var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+
+            _mapRegions = mapRegions.Where(r => playedFacilities.Contains(r.FacilityId)).OrderBy(r => r.FacilityName).ToList();
+
+            _zones = await ZoneService.GetAllZones();
+
+            _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (ctsFilters == newCTS)
+        {
+            ctsFilters = null;
+        }
+    }
+
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            await LoadScrimMatchListAsync();
+
+            if (_searchFilter.IsDefaultFilter)
+            {
+                _isFilteredResults = false;
+            }
+
+            StateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    #region Form Controls
+    private async Task OnSearchFilterSubmit()
+    {
+        _searchFilter.ParseSearchTermsString();
+
+        _debug = _searchFilter.SearchTermsList.Count().ToString();
+
+
+        if (!_searchFilter.IsDefaultFilter || _isFilteredResults)
+        {
+            await LoadScrimMatchListAsync();
+            _isFilteredResults = true;
+        }
+        
+        if (_searchFilter.IsDefaultFilter || !_isFilteredResults)
+        {
+            _isFilteredResults = false;
+        }
+
+        NavManager.NavigateTo($"/reports?page=1");
+    }
+
+    private async void OnClearSearchFilters()
+    {
+        _searchFilter = new ScrimMatchReportBrowserSearchFilter();
+
+        if (_isFilteredResults)
+        {
+            await LoadScrimMatchListAsync();
+        }
+
+        _isFilteredResults = false;
+
+        NavManager.NavigateTo($"/reports?page=1");
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    #endregion Form Controls
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("page", out var qPage))
+        {
+            if (int.TryParse(qPage, out int page))
+            {
+                if (_uriPageIndex != page)
+                {
+                    _uriPageIndex = page;
+                    i_pageIndex = page;
+                    _renderedPageIndex = page;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                if (_uriPageIndex != null)
+                {
+                    stateChanged = true;
+                }
+
+                _uriPageIndex = null;
+                i_pageIndex = _defaultPageIndex;
+                _renderedPageIndex = _defaultPageIndex;
+            }
+        }
+
+        return stateChanged;
+    }
+
+    private int GetTeamIdFromStringId(string stringId)
+    {
+        if (int.TryParse(stringId, out int intId))
+        {
+            return intId;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    private string GetLocalizedDateTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("ddd")} {dateTimeLocal.ToString("g")}";
+    }
+
+    private string GetLocalizedDateString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("ddd")} {dateTime.ToShortDateString()}";
+    }
+
+    private string GetLocalizedTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToShortTimeString()}";
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

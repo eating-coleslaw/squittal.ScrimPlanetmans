@@ -50,6 +50,7 @@
                             <thead>
                                 <tr>
                                     <th style="padding-right: 5px; width: 15px;"></th>
+                                    <th style="padding-right: 0px; padding-left: 0px; width: 7px;"></th>
                                     <th></th>
                                     <th>K</th>
                                     <th>D</th>
@@ -66,7 +67,7 @@
                             <tbody>
                                 @foreach (var member in _renderedPlayers.Where(p => !p.IsBenched).ToList())
                                 {
-                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                    <TeamComposerPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
                                 }
                             </tbody>
                         </table>
@@ -80,7 +81,8 @@
                                 <tr style="border-bottom: 1px solid var(--sq-pink-lighter-alpha-50)">
                                     @if (!_renderedPlayers.Any(p => !p.IsBenched))
                                     {
-                                        <th colspan="2" style="font-weight: 400;">Benched Players</th>
+                                        @*<th colspan="2" style="font-weight: 400;">Benched Players</th>*@
+                                        <th colspan="3" style="font-weight: 400;">Benched Players</th>
                                         <th>K</th>
                                         <th>D</th>
                                         <th>P</th>
@@ -88,7 +90,8 @@
                                     }
                                     else
                                     {
-                                        <td colspan="6" style="font-weight: 400;">Benched Players</td>
+                                        @*<td colspan="6" style="font-weight: 400;">Benched Players</td>*@
+                                        <td colspan="7" style="font-weight: 400;">Benched Players</td>
                                     }
 
                                     <th style="padding-right: 5px; width: 15px;"></th>
@@ -104,7 +107,7 @@
                             <tbody>
                                 @foreach (var member in _renderedPlayers.Where(p => p.IsBenched).ToList())
                                 {
-                                    <TeamBuilderPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
+                                    <TeamComposerPlayerRow Player=@member ShowRemovalControls=@_renderedShowRemovals />
                                 }
                             </tbody>
                         </table>
@@ -146,6 +149,11 @@
 
 
     #region Initialization Methods
+    protected override async Task OnInitializedAsync()
+    {
+        _worlds = await WorldService.GetAllWorldsAsync();
+    }
+
     protected override void OnInitialized()
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
@@ -154,8 +162,6 @@
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
-
-        _worlds = WorldService.GetAllWorlds();
     }
 
     public void Dispose()

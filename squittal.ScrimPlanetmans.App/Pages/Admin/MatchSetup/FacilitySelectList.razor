@@ -48,28 +48,15 @@ else
 
     private string _noFacilitIdValue { get; set; } = "-1";
 
-    protected override void OnInitialized()
-    {
-        _mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
-
-        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
-    }
-
     protected override async Task OnInitializedAsync()
     {
         var zones = await ZoneService.GetAllZonesAsync();
         _zones = zones.ToList();
 
-        Debug.Write($"Loaded Zones");
+        var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+        var _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
 
-        foreach (var zone in _zones)
-        {
-            Debug.Write($"Loaded Zone {zone}: {zone.Name} ");
-        }
-
-        //_mapRegions = FacilityService.GetScrimmableMapRegions().OrderBy(r => r.FacilityName).ToList();
-
-        //_mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
     }
 
     void OnFacilityIdChange()

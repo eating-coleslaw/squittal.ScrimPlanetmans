@@ -136,7 +136,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task InitializeNewMatch()
         {
-            _matchStartTime = DateTime.Now;
+            _matchStartTime = DateTime.UtcNow;
 
             if (MatchConfiguration.SaveLogFiles == true)
             {

@@ -1,4 +1,5 @@
-﻿using DaybreakGames.Census.Stream;
+﻿// Credit to Lampjaw @ Voidwell.DaybreakGames for everything except player, world, & facility filtering
+using DaybreakGames.Census.Stream;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using squittal.ScrimPlanetmans.CensusStream.Models;
@@ -11,17 +12,20 @@ using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using Websocket.Client;
 
 namespace squittal.ScrimPlanetmans.CensusStream
 {
     public class WebsocketMonitor : StatefulHostedService, IWebsocketMonitor, IDisposable
     {
-        private readonly ICensusStreamClient _client;
+        private readonly IStreamClient _client;
+        private readonly IWebsocketHealthMonitor _healthMonitor;
         private readonly IWebsocketEventHandler _handler;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<WebsocketMonitor> _logger;
 
-        private CensusHeartbeat _lastHeartbeat;
+        private StreamState _lastStateChange;
+        private Timer _timer;
 
         public override string ServiceName => "CensusMonitor";
 
@@ -31,15 +35,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public int? SubscribedWorldId;
 
 
-        public WebsocketMonitor(ICensusStreamClient censusStreamClient, IWebsocketEventHandler handler, IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
+        public WebsocketMonitor(IStreamClient client, IWebsocketHealthMonitor healthMonitor, IWebsocketEventHandler handler,
+            IScrimMessageBroadcastService messageService, ILogger<WebsocketMonitor> logger)
         {
-            _client = censusStreamClient;
+            _client = client;
+            _healthMonitor = healthMonitor;
             _handler = handler;
             _messageService = messageService;
             _logger = logger;
 
-            _client.Subscribe(CreateSubscription())
-                    .OnMessage(OnMessage)
+            _client.OnMessage(OnMessage)
                    .OnDisconnect(OnDisconnect);
 
             _messageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
@@ -47,18 +52,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
 
-        public async Task Subscribe(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Starting census stream subscription");
-
-            _client.Subscribe(CreateSubscription())
-                   .OnMessage(OnMessage)
-                   .OnDisconnect(OnDisconnect);
-
-
-            await _client?.ConnectAsync();
-        }
-
+        #region Subscription Setup
         private CensusStreamSubscription CreateSubscription()
         {
             var eventNames = new List<string>
@@ -138,14 +132,138 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             SubscribedWorldId = worldId;
         }
+        #endregion Subscription Setup
 
-        public void EnableScoring() => _handler.EnabledScoring();
 
-        public void DisableScoring() => _handler.DisableScoring();
+        #region Stateful Hosted Service
+        public override async Task StartInternalAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Starting census stream monitor");
 
-        public void EnableEventStoring() => _handler.EnabledEventStoring();
+            await _client.ConnectAsync(CreateSubscription());
 
-        public void DisableEventStoring() => _handler.DisableEventStoring();
+            _timer = new Timer(CheckDataHealth, null, 0, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+        }
+
+        public override async Task StopInternalAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Stopping census stream monitor");
+
+            if (_client == null)
+            {
+                return;
+            }
+
+            await _client?.DisconnectAsync();
+            _timer?.Dispose();
+        }
+
+        public override async Task OnApplicationShutdown(CancellationToken cancellationToken)
+        {
+            await _client?.DisconnectAsync();
+        }
+
+        protected override Task<object> GetStatusAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult((object)_lastStateChange);
+        }
+
+        public async Task<ServiceState> GetStatus()
+        {
+            var status = await GetStateAsync(CancellationToken.None);
+
+            if (status == null)
+            {
+                return null;
+            }
+
+            return status;
+        }
+        #endregion Stateful Hosted Service
+
+        #region Message Payload Handling
+
+        #pragma warning disable CS1998
+        private async Task OnMessage(string message)
+        {
+            if (message == null)
+            {
+                return;
+            }
+
+            JToken jMsg;
+
+            try
+            {
+                jMsg = JToken.Parse(message);
+            }
+            catch (Exception)
+            {
+                _logger.LogError(91097, "Failed to parse message: {0}", message);
+                return;
+            }
+
+            if (jMsg.Value<string>("type") == "heartbeat")
+            {
+                UpdateStateDetails(jMsg.ToObject<object>());
+
+                return;
+            }
+
+            if (PayloadContainsSubscribedCharacter(jMsg) || PayloadContainsSubscribedFacility(jMsg))
+            {
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    _handler.Process(jMsg);
+
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
+            }
+        }
+        #pragma warning restore CS1998
+
+        private Task OnDisconnect(DisconnectionInfo info)
+        {
+            UpdateStateDetails(info.Exception?.Message ?? info.Type.ToString());
+            _healthMonitor.ClearAllWorlds();
+            return Task.CompletedTask;
+        }
+
+        private void UpdateStateDetails(object contents)
+        {
+            _lastStateChange = new Models.StreamState
+            {
+                LastStateChangeTime = DateTime.UtcNow,
+                Contents = contents
+            };
+        }
+
+        private async void CheckDataHealth(object state)
+        {
+            if (!_isRunning)
+            {
+                _healthMonitor.ClearAllWorlds();
+                _timer?.Dispose();
+                return;
+            }
+
+            if (!_healthMonitor.IsHealthy())
+            {
+                _logger.LogError(45234, "Census stream has failed health checks. Attempting resetting connection.");
+
+                try
+                {
+                    await _client?.ReconnectAsync();
+                }
+                catch (Exception ex)
+                {
+                    UpdateStateDetails(ex.Message);
+
+                    _logger.LogError(45235, ex, "Failed to reestablish connection to Census");
+                }
+            }
+        }
 
         private bool PayloadContainsSubscribedCharacter(JToken message)
         {
@@ -217,113 +335,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             return (matchesFacility && matchesWorld);
         }
 
-        public override async Task StartInternalAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Starting census stream monitor");
+        #endregion Message Payload Handling
 
-            try
-            {
-                await _client.ConnectAsync();
-            }
-            catch (Exception ex)
-            {
-                await _client?.DisconnectAsync();
-                await UpdateStateAsync(false);
-
-                _logger.LogError(91435, ex, "Failed to establish initial connection to Census. Will not attempt to reconnect.");
-            }
-        }
-
-        public override async Task StopInternalAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Stopping census stream monitor");
-
-            if (_client == null)
-            {
-                return;
-            }
-
-            await _client.DisconnectAsync();
-        }
-
-        public override async Task OnApplicationShutdown(CancellationToken cancellationToken)
-        {
-            await _client?.DisconnectAsync();
-        }
-
-        protected override Task<object> GetStatusAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult((object)_lastHeartbeat);
-        }
-
-        #pragma warning disable CS1998
-        private async Task OnMessage(string message)
-        {
-            if (message == null)
-            {
-                return;
-            }
-
-            JToken jMsg;
-
-            try
-            {
-                jMsg = JToken.Parse(message);
-            }
-            catch (Exception)
-            {
-                _logger.LogError(91097, "Failed to parse message: {0}", message);
-                return;
-            }
-
-            if (jMsg.Value<string>("type") == "heartbeat")
-            {
-                _lastHeartbeat = new CensusHeartbeat
-                {
-                    LastHeartbeat = DateTime.UtcNow,
-                    Contents = jMsg.ToObject<object>()
-                };
-
-                return;
-            }
-
-            if (PayloadContainsSubscribedCharacter(jMsg) || PayloadContainsSubscribedFacility(jMsg))
-            {
-                #pragma warning disable CS4014
-                Task.Run(() =>
-                {
-                    _handler.Process(jMsg);
-
-                }).ConfigureAwait(false);
-                #pragma warning restore CS4014
-            }
-        }
-        #pragma warning restore CS1998
-
-        private Task OnDisconnect(string error)
-        {
-            _logger.LogInformation("Websocket Client Disconnected!");
-
-            return Task.CompletedTask;
-        }
-
-        public async Task<ServiceState> GetStatus()
-        {
-            var status = await GetStateAsync(CancellationToken.None);
-
-            if (status == null)
-            {
-                return null;
-            }
-
-            return status;
-        }
-
-        private void SendSimpleMessage(string s)
-        {
-            _messageService.BroadcastSimpleMessage(s);
-        }
-
+        #region Send/Receive Broadcast Events
         private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
         {
             var message = e.Message;
@@ -358,10 +372,25 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 DisableEventStoring();
             }
         }
+        #endregion Send/Receive Broadcast Events
+
+        #region Scoring Toggles
+        public void EnableScoring() => _handler.EnabledScoring();
+
+        public void DisableScoring() => _handler.DisableScoring();
+
+        public void EnableEventStoring() => _handler.EnabledEventStoring();
+
+        public void DisableEventStoring() => _handler.DisableEventStoring();
+        #endregion Scoring Toggles
 
         public void Dispose()
         {
             _client?.Dispose();
+            _timer?.Dispose();
+
+            _messageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+            _messageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateEvent;
         }
     }
 }
