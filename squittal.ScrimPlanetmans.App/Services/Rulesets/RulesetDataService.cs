@@ -31,7 +31,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         public int CustomDefaultRulesetId { get; private set; }
 
-        private readonly int _rulesetBrowserPageSize = 2;
+        private readonly int _rulesetBrowserPageSize = 15;
 
         public int DefaultRulesetId { get; } = 1;
 
@@ -140,8 +140,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
                     TaskList.Add(facilityRulesTask);
 
-                    var rulesetsMapTask = SetUpRulesetsMapAsync(CancellationToken.None);
-                    TaskList.Add(rulesetsMapTask);
+                    //var rulesetsMapTask = SetUpRulesetsMapAsync(CancellationToken.None);
+                    //TaskList.Add(rulesetsMapTask);
 
                     await Task.WhenAll(TaskList);
 
@@ -854,8 +854,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         }
         #endregion SAVE / UPDATE methods
 
-        #region Ruleset Activation / Defaulting / Favoriting
-
         #region Helper Methods
         private async Task SetUpRulesetsMapAsync(CancellationToken cancellationToken)
         {
@@ -893,6 +891,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         }
         #endregion Helper Methods
 
+        #region Ruleset Activation / Defaulting / Favoriting
         public void SetActiveRulesetId(int rulesetId)
         {
             ActiveRulesetId = rulesetId;
