@@ -1333,7 +1333,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     await Task.WhenAll(TaskList);
                 }
 
-                _logger.LogWarning($"Created ruleset {ruleset.Id} from file {fileName}");
+                _logger.LogInformation($"Created ruleset {ruleset.Id} from file {fileName}");
 
                 if (returnCollections)
                 {
