@@ -950,7 +950,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
 
-                    if (storeRuleset == null)
+                    if (storeRuleset == null || storeRuleset.IsDefault || storeRuleset.IsCustomDefault)
+                    {
+                        return false;
+                    }
+
+                    if (!(await CanDeleteRuleset(rulesetId, CancellationToken.None)))
                     {
                         return false;
                     }
@@ -961,6 +966,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     dbContext.Rulesets.Remove(storeRuleset);
 
                     await dbContext.SaveChangesAsync();
+
+                    await SetUpRulesetsMapAsync(CancellationToken.None);
 
                     return true;
                 }
@@ -1123,7 +1130,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         public async Task<bool> CanDeleteRuleset(int rulesetId, CancellationToken cancellationToken)
         {
-            if (rulesetId == ActiveRulesetId || rulesetId == DefaultRulesetId)
+            if (rulesetId == CustomDefaultRulesetId || rulesetId == ActiveRulesetId || rulesetId == DefaultRulesetId)
             {
                 return false;
             }
