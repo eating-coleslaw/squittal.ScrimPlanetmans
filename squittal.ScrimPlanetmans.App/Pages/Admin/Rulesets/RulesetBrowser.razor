@@ -37,7 +37,7 @@
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_newRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_newRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
-                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>
+                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
 
                             <div style="text-align: right; margin-top: 12px;">
 
@@ -83,7 +83,7 @@
                                     }
                             </InputSelect>
 
-                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openImportedRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>
+                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openImportedRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
 
                             <div style="text-align: right; margin-top: 12px;">
 
@@ -278,6 +278,7 @@
 
     private bool _isLoadingRulesetList { get; set; } = true;
     private bool _isDefaultingRuleset { get; set; } = false;
+    private bool _isImportingRuleset { get; set; } = false;
 
     private bool _containsActiveRuleset { get; set; } = false;
     private bool _containsRealDefaultRuleset { get; set; } = false;
@@ -440,7 +441,7 @@
 
         if (_openNewRulesetOnSave && newRulesetEntity != null)
         {
-            NavManager.NavigateTo($"/Ruleset/{newRulesetEntity.Id}?edit=true");
+            NavManager.NavigateTo($"/ruleset/{newRulesetEntity.Id}?edit=true");
         }
         else
         {
@@ -486,11 +487,14 @@
             return;
         }
 
+        _isImportingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
         var importedRulesetEntity = await RulesetDataService.ImportNewRulesetFromJsonFile(_selectedImportRulesetFileName, false);
 
         if (_openImportedRulesetOnSave && importedRulesetEntity != null)
         {
-            NavManager.NavigateTo($"/Ruleset/{importedRulesetEntity.Id}?edit=true");
+            NavManager.NavigateTo($"/ruleset/{importedRulesetEntity.Id}?edit=true");
         }
         else
         {
@@ -499,6 +503,7 @@
             _showImportRulesetForm = false;
         }
 
+        _isImportingRuleset = false;
         InvokeAsyncStateHasChanged();
     }
 

@@ -761,7 +761,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 return null;
             }
 
-
             using (await _rulesetLock.WaitAsync($"{ruleset.Id}"))
             {
                 try
@@ -941,6 +940,150 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             };
         }
         #endregion SAVE / UPDATE methods
+
+        #region DELETE methods
+        public async Task<bool> DeleteRulesetAsync(int rulesetId)
+        {
+            using (await _rulesetLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+
+                    if (storeRuleset == null)
+                    {
+                        return false;
+                    }
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    dbContext.Rulesets.Remove(storeRuleset);
+
+                    await dbContext.SaveChangesAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error deleting ruleset {rulesetId}: {ex}");
+
+                    return false;
+                }
+            }
+        }
+
+        private async Task<bool> DeleteRulesetActionRulesAsync(int rulesetId)
+        {
+            using (await _actionRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    var storeRules = await GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
+
+                    if (storeRules == null || !storeRules.Any())
+                    {
+                        return true;
+                    }
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    foreach (var rule in storeRules)
+                    {
+                        rule.Ruleset = null;
+                    }
+
+                    dbContext.RulesetActionRules.RemoveRange(storeRules);
+
+                    await dbContext.SaveChangesAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error deleting Action Rules for ruleset {rulesetId}: {ex}");
+
+                    return false;
+                }
+            }
+        }
+
+        private async Task<bool> DeleteRulesetItemCategoryRulesAsync(int rulesetId)
+        {
+            using (await _itemCategoryRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    var storeRules = await GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
+
+                    if (storeRules == null || !storeRules.Any())
+                    {
+                        return true;
+                    }
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    foreach (var rule in storeRules)
+                    {
+                        rule.Ruleset = null;
+                        rule.ItemCategory = null;
+                    }
+
+                    dbContext.RulesetItemCategoryRules.RemoveRange(storeRules);
+
+                    await dbContext.SaveChangesAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error deleting Item Category Rules for ruleset {rulesetId}: {ex}");
+
+                    return false;
+                }
+            }
+        }
+
+        private async Task<bool> DeleteRulesetFacilityRulesAsync(int rulesetId)
+        {
+            using (await _facilityRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    var storeRules = await GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
+
+                    if (storeRules == null || !storeRules.Any())
+                    {
+                        return true;
+                    }
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    foreach (var rule in storeRules)
+                    {
+                        rule.Ruleset = null;
+                        rule.MapRegion = null;
+                    }
+
+                    dbContext.RulesetFacilityRules.RemoveRange(storeRules);
+
+                    await dbContext.SaveChangesAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error deleting Facility Rules for ruleset {rulesetId}: {ex}");
+
+                    return false;
+                }
+            }
+        }
+
+        #endregion DELETE methods
 
         #region Helper Methods
         private async Task SetUpRulesetsMapAsync(CancellationToken cancellationToken)
@@ -1197,7 +1340,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     return ruleset;
                 }
-
             }
             catch (Exception ex)
             {

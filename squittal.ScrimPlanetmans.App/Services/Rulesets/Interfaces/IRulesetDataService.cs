@@ -35,5 +35,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         IEnumerable<string> GetJsonRulesetFileNames();
         Task<bool> CanDeleteRuleset(int rulesetId, CancellationToken cancellationToken);
         Task<bool> HasRulesetBeenUsedAsync(int rulesetId, CancellationToken cancellationToken);
+        Task<bool> DeleteRulesetAsync(int rulesetId);
     }
 }

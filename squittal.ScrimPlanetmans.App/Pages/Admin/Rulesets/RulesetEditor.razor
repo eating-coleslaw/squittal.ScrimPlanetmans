@@ -27,6 +27,11 @@
             <h5>Saving changes...</h5>
             <SpinnerEllipsis />
         }
+        else if (_isDeletingRuleset)
+        {
+            <h5>Deleting ruleset...</h5>
+            <SpinnerEllipsis />
+        }
         else
         {
             <div style="display: grid; grid-template-columns: 48% 8% 18% 8% 18%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
@@ -49,8 +54,28 @@
 
                     @if (!_isExportingRuleset)
                     {
-                        <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
-                        <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ExportRulesetToJsonFile">Export to File</button>
+                        @if (!_showExportConfirmationForm)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                            <button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to export this ruleset? This action may overwrite an existing file.</p>
+
+                                <div style="text-align: right; margin-top: 12px;">
+                                    <button title ="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetToJsonFileSubmit">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
+
+                                    <button title="Export this ruleset" class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleExportRulesetCancel">
+                                        <span class="oi oi-data-transfer-download"></span>Export
+                                    </button>
+                                </div>
+
+                            </div>
+                        }
                     }
 
                     @if (_canDeleteRuleset)
@@ -64,7 +89,7 @@
                         {
                             <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
                                 <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to permanently delete this ruleset? This action cannot be undone.</p>
-                                
+
                                 <div style="text-align: right; margin-top: 12px;">
                                     <button class="btn btn-primary sans-serif-font" style="" @onclick="HandleDeleteRulesetCancel">
                                         <span class="oi oi-x" style="top: 0;"></span>Cancel
@@ -74,7 +99,7 @@
                                         <span class="oi oi-trash"></span>Delete
                                     </button>
                                 </div>
-                            
+
                             </div>
                         }
                     }
@@ -85,7 +110,7 @@
                         <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
                         @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
                         {
-                            <div>Source File: @_renderedRuleset.DefaultMatchTitle</div>
+                            <div>Source File: @_renderedRuleset.SourceFile</div>
                         }
                     </p>
                 }
@@ -114,15 +139,18 @@
             </div>
         }
 
-        <div style="display: flex;">
+        @if (!_isDeletingRuleset)
+        {
+            <div style="display: flex;">
 
-            <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
+                <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
 
-            <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+                <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
 
-            <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
+                <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
 
-        </div>
+            </div>
+        }
     }
 </div>
 
@@ -153,6 +181,8 @@
 
     private bool _canDeleteRuleset { get; set; } = false;
     private bool _showDeleteConfirmationForm { get; set; } = false;
+
+    private bool _showExportConfirmationForm { get; set; } = false;
 
     private CancellationTokenSource cts;
 
@@ -344,7 +374,12 @@
         }
     }
 
-    private async void ExportRulesetToJsonFile()
+    private void HandleShowExportRulesetConfirmationForm()
+    {
+        _showExportConfirmationForm = true;
+    }
+
+    private async void HandleExportRulesetToJsonFileSubmit()
     {
         _isExportingRuleset = true;
 
@@ -367,6 +402,11 @@
         //await RulesetFileHandler.WriteToJsonFile(fileName, ruleset);
     }
 
+    private void HandleExportRulesetCancel()
+    {
+        _showExportConfirmationForm = false;
+    }
+
     private void HandleShowDeleteRulesetConfirmationForm()
     {
         if (_canDeleteRuleset)
@@ -378,6 +418,23 @@
     private async void HandleDeleteRulesetSubmit()
     {
         // TODO: implement ruleset deletion
+        if (!_canDeleteRuleset)
+        {
+            return;
+        }
+
+        _isDeletingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.DeleteRulesetAsync(_renderedRulesetId))
+        {
+            NavManager.NavigateTo($"/rulesets");
+
+            _showDeleteConfirmationForm = false;
+        }
+
+        _isDeletingRuleset = false;
+        InvokeAsyncStateHasChanged();
     }
 
     private void HandleDeleteRulesetCancel()
