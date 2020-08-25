@@ -1307,21 +1307,21 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var TaskList = new List<Task>();
 
-                if (jsonRuleset.RulesetActionRules.Any())
+                if (jsonRuleset.RulesetActionRules != null && jsonRuleset.RulesetActionRules.Any())
                 {
                     ruleset.RulesetActionRules = jsonRuleset.RulesetActionRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
                     var actionRulesTask = SaveRulesetActionRules(ruleset.Id, ruleset.RulesetActionRules);
                     TaskList.Add(actionRulesTask);
                 }
                 
-                if (jsonRuleset.RulesetItemCategoryRules.Any())
+                if (jsonRuleset.RulesetItemCategoryRules != null && jsonRuleset.RulesetItemCategoryRules.Any())
                 {
                     ruleset.RulesetItemCategoryRules = jsonRuleset.RulesetItemCategoryRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
                     var itemCategoryRulesTask = SaveRulesetItemCategoryRules(ruleset.Id, ruleset.RulesetItemCategoryRules);
                     TaskList.Add(itemCategoryRulesTask);
                 }
                 
-                if (jsonRuleset.RulesetFacilityRules.Any())
+                if (jsonRuleset.RulesetFacilityRules != null && jsonRuleset.RulesetFacilityRules.Any())
                 {
                     ruleset.RulesetFacilityRules = jsonRuleset.RulesetFacilityRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
                     var facilityRulesTask = SaveRulesetFacilityRules(ruleset.Id, ruleset.RulesetFacilityRules);
@@ -1341,9 +1341,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 }
                 else
                 {
-                    ruleset.RulesetActionRules.Clear();
-                    ruleset.RulesetItemCategoryRules.Clear();
-                    ruleset.RulesetFacilityRules.Clear();
+                    ruleset.RulesetActionRules?.Clear();
+                    ruleset.RulesetItemCategoryRules?.Clear();
+                    ruleset.RulesetFacilityRules?.Clear();
 
                     return ruleset;
                 }
