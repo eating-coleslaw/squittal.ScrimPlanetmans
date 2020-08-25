@@ -977,6 +977,50 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 _logger.LogError($"Failed setting up RulesetsMap: {ex}");
             }
         }
+
+        public async Task<bool> CanDeleteRuleset(int rulesetId, CancellationToken cancellationToken)
+        {
+            if (rulesetId == ActiveRulesetId || rulesetId == DefaultRulesetId)
+            {
+                return false;
+            }
+            
+            try
+            {
+                var hasBeenUsed = await HasRulesetBeenUsedAsync(rulesetId, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return !hasBeenUsed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return false;
+            }
+        }
+
+        public async Task<bool> HasRulesetBeenUsedAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var result = await dbContext.ScrimMatches.AnyAsync(m => m.RulesetId == rulesetId, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+
+                return false;
+            }
+        }
         #endregion Helper Methods
 
         #region Ruleset Activation / Defaulting / Favoriting
@@ -1102,9 +1146,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     return null;
                 }
 
-                //var ruleset = ConvertToDbModel(jsonRuleset);
-
-                var ruleset = await CreateRulesetAsync(ConvertToDbModel(jsonRuleset));
+                var ruleset = await CreateRulesetAsync(ConvertToDbModel(jsonRuleset, fileName));
 
                 if (ruleset == null)
                 {
@@ -1181,7 +1223,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             return new string(characters);
         }
 
-        private Ruleset ConvertToDbModel(JsonRuleset jsonRuleset)
+        private Ruleset ConvertToDbModel(JsonRuleset jsonRuleset, string sourceFileName)
         {
             return new Ruleset
             {
@@ -1192,7 +1234,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 IsDefault = jsonRuleset.IsDefault,
                 IsCustomDefault = false,
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
-                DefaultRoundLength = jsonRuleset.DefaultRoundLength
+                DefaultRoundLength = jsonRuleset.DefaultRoundLength,
+                SourceFile = sourceFileName
             };
         }
 

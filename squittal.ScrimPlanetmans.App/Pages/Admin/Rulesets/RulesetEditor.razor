@@ -53,10 +53,40 @@
                         <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ExportRulesetToJsonFile">Export to File</button>
                     }
 
+                    @if (_canDeleteRuleset)
+                    {
+                        @if (!_showDeleteConfirmationForm)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                            <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowDeleteRulesetConfirmationForm">Delete Ruleset</button>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to permanently delete this ruleset? This action cannot be undone.</p>
+                                
+                                <div style="text-align: right; margin-top: 12px;">
+                                    <button class="btn btn-primary sans-serif-font" style="" @onclick="HandleDeleteRulesetCancel">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
+
+                                    <button class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleDeleteRulesetSubmit">
+                                        <span class="oi oi-trash"></span>Delete
+                                    </button>
+                                </div>
+                            
+                            </div>
+                        }
+                    }
+
                     <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
                         <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                         <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
                         <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
+                        @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
+                        {
+                            <div>Source File: @_renderedRuleset.DefaultMatchTitle</div>
+                        }
                     </p>
                 }
                 else
@@ -69,13 +99,15 @@
                         <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
                         <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <span class="oi oi-check"></span>Save
-                        </button>
+                        <div style="text-align: right; margin-top: 12px;">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="oi oi-check"></span>Save
+                            </button>
 
-                        <button type="reset" @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
-                            <span class="oi oi-x" style="top: 0;"></span>Cancel
-                        </button>
+                            <button type="reset" @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                                <span class="oi oi-x" style="top: 0;"></span>Cancel
+                            </button>
+                        </div>
 
                     </EditForm>
                 }
@@ -114,10 +146,13 @@
     private bool _isLoadingRuleset { get; set; } = false;
     private bool _isSavingRuleset { get; set; } = false;
     private bool _isExportingRuleset { get; set; } = false;
-
+    private bool _isDeletingRuleset { get; set; } = false;
 
     private bool _showEditForm { get; set; } = false;
     private Ruleset _editFormRuleset { get; set; } = new Ruleset();
+
+    private bool _canDeleteRuleset { get; set; } = false;
+    private bool _showDeleteConfirmationForm { get; set; } = false;
 
     private CancellationTokenSource cts;
 
@@ -184,9 +219,22 @@
 
         try
         {
-            _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            var TaskList = new List<Task>();
+
+            //_renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            var rulesetTask = RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            TaskList.Add(rulesetTask);
 
             cts.Token.ThrowIfCancellationRequested();
+
+            //_canDeleteRuleset = await RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            var canDeleteTask = RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            TaskList.Add(canDeleteTask);
+
+            await Task.WhenAll(TaskList);
+
+            _renderedRuleset = rulesetTask.Result;
+            _canDeleteRuleset = canDeleteTask.Result;
 
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
@@ -317,6 +365,24 @@
         //var fileName = new string(characters);
 
         //await RulesetFileHandler.WriteToJsonFile(fileName, ruleset);
+    }
+
+    private void HandleShowDeleteRulesetConfirmationForm()
+    {
+        if (_canDeleteRuleset)
+        {
+            _showDeleteConfirmationForm = true;
+        }
+    }
+
+    private async void HandleDeleteRulesetSubmit()
+    {
+        // TODO: implement ruleset deletion
+    }
+
+    private void HandleDeleteRulesetCancel()
+    {
+        _showDeleteConfirmationForm = false;
     }
 
     #endregion Form Handling
