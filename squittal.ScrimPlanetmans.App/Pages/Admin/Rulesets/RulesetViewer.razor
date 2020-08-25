@@ -35,12 +35,19 @@
 
         <div style="display: block; font-size: 1rem; margin-top: 4px; margin-bottom: 12px;">
             
-            <NavLink class="nav-link" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; margin-bottom: 4px;">Open in Editor</NavLink>
+            @if (!_renderedRuleset.IsDefault)
+            {
+                <NavLink class="nav-link" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; margin-bottom: 4px;">Open in Editor</NavLink>
+            }
 
             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
                 <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                 <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
                 <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
+                @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
+                {
+                    <div>Source File: @_renderedRuleset.SourceFile</div>
+                }
             </p>
         </div>
 

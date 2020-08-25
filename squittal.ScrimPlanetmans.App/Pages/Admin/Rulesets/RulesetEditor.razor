@@ -5,6 +5,8 @@
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
+@using squittal.ScrimPlanetmans.Logging;
+
 @inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
 @inject NavigationManager NavManager
@@ -25,6 +27,11 @@
             <h5>Saving changes...</h5>
             <SpinnerEllipsis />
         }
+        else if (_isDeletingRuleset)
+        {
+            <h5>Deleting ruleset...</h5>
+            <SpinnerEllipsis />
+        }
         else
         {
             <div style="display: grid; grid-template-columns: 48% 8% 18% 8% 18%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
@@ -43,46 +50,114 @@
             <div style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
                 @if (!_showEditForm)
                 {
-                    <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
-                    
+                    @if (!_showExportConfirmationForm && !_showDeleteConfirmationForm)
+                    {
+                        <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
+                    }
+
+                    @if (!_isExportingRuleset && !_showDeleteConfirmationForm && !_showEditForm)
+                    {
+                        @if (!_showExportConfirmationForm)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                            <button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to export this ruleset? This action may overwrite an existing file.</p>
+
+                                <div style="text-align: right; margin-top: 12px;">
+                                    <button title ="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetCancel">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
+
+                                    <button title="Export this ruleset" class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleExportRulesetToJsonFileSubmit">
+                                        <span class="oi oi-data-transfer-download"></span>Export
+                                    </button>
+                                </div>
+
+                            </div>
+                        }
+                    }
+
+                    @if (_canDeleteRuleset && !_showEditForm && !_showExportConfirmationForm)
+                    {
+                        @if (!_showDeleteConfirmationForm)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                            <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowDeleteRulesetConfirmationForm">Delete Ruleset</button>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to permanently delete this ruleset? This action cannot be undone.</p>
+
+                                <div style="text-align: right; margin-top: 12px;">
+                                    <button class="btn btn-primary sans-serif-font" style="" @onclick="HandleDeleteRulesetCancel">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
+
+                                    <button class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleDeleteRulesetSubmit">
+                                        <span class="oi oi-trash"></span>Delete
+                                    </button>
+                                </div>
+
+                            </div>
+                        }
+                    }
+
                     <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
-                        <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
-                        <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
-                        <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                        @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
+                        {
+                            <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
+                        }
                     </p>
                 }
                 else
                 {
-                    <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: smaller; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
+                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                    
+                        <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: smaller; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
 
-                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
-                        <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <span class="oi oi-check"></span>Save
-                        </button>
+                            <div style="text-align: right; margin-top: 12px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="oi oi-check"></span>Save
+                                </button>
 
-                        <button type="reset" @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
-                            <span class="oi oi-x" style="top: 0;"></span>Cancel
-                        </button>
+                                <button type="reset" @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                </button>
+                            </div>
 
-                    </EditForm>
+                        </EditForm>
+
+                    </div>
                 }
             </div>
         }
 
-        <div style="display: flex;">
+        @if (!_isDeletingRuleset)
+        {
+            <div style="display: flex;">
 
-            <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
+                <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
 
-            <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+                <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
 
-            <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
+                <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
 
-        </div>
+            </div>
+        }
     }
 </div>
 
@@ -104,10 +179,17 @@
     private bool _defaultEditMode = false;
 
     private bool _isLoadingRuleset { get; set; } = false;
-    private bool _isSavingRuleset { get; set; }= false;
+    private bool _isSavingRuleset { get; set; } = false;
+    private bool _isExportingRuleset { get; set; } = false;
+    private bool _isDeletingRuleset { get; set; } = false;
 
     private bool _showEditForm { get; set; } = false;
     private Ruleset _editFormRuleset { get; set; } = new Ruleset();
+
+    private bool _canDeleteRuleset { get; set; } = false;
+    private bool _showDeleteConfirmationForm { get; set; } = false;
+
+    private bool _showExportConfirmationForm { get; set; } = false;
 
     private CancellationTokenSource cts;
 
@@ -174,9 +256,22 @@
 
         try
         {
-            _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            var TaskList = new List<Task>();
+
+            //_renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            var rulesetTask = RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            TaskList.Add(rulesetTask);
 
             cts.Token.ThrowIfCancellationRequested();
+
+            //_canDeleteRuleset = await RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            var canDeleteTask = RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            TaskList.Add(canDeleteTask);
+
+            await Task.WhenAll(TaskList);
+
+            _renderedRuleset = rulesetTask.Result;
+            _canDeleteRuleset = canDeleteTask.Result;
 
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
@@ -285,6 +380,66 @@
             _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
         }
     }
+
+    private void HandleShowExportRulesetConfirmationForm()
+    {
+        _showExportConfirmationForm = true;
+    }
+
+    private async void HandleExportRulesetToJsonFileSubmit()
+    {
+        _isExportingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.ExportRulesetToJsonFile(_renderedRulesetId, CancellationToken.None))
+        {
+            _showExportConfirmationForm = false;
+        }
+
+        _isExportingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleExportRulesetCancel()
+    {
+        _showExportConfirmationForm = false;
+    }
+
+    private void HandleShowDeleteRulesetConfirmationForm()
+    {
+        if (_canDeleteRuleset)
+        {
+            _showDeleteConfirmationForm = true;
+        }
+    }
+
+    private async void HandleDeleteRulesetSubmit()
+    {
+        // TODO: implement ruleset deletion
+        if (!_canDeleteRuleset)
+        {
+            return;
+        }
+
+        _isDeletingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.DeleteRulesetAsync(_renderedRulesetId))
+        {
+            NavManager.NavigateTo($"/rulesets");
+
+            _showDeleteConfirmationForm = false;
+        }
+
+        _isDeletingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleDeleteRulesetCancel()
+    {
+        _showDeleteConfirmationForm = false;
+    }
+
     #endregion Form Handling
 
     private bool UpdateUriParameters()

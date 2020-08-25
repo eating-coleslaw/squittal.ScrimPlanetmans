@@ -26,18 +26,18 @@
                 @if (_showNewRulesetForm)
                 {
                     <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
-                                
+
                         <div style="font-weight: 500; font-size: 1rem; margin-bottom: 8px;">New Ruleset</div>
-                                
+
                         <EditForm Model="@_newRuleset" OnValidSubmit="OnCreateNewRulesetSubmit" style="">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_newRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1"  type="text" @bind-Value=@_newRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_newRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_newRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
-                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Team On Save?</span></div>
+                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openNewRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
 
                             <div style="text-align: right; margin-top: 12px;">
 
@@ -54,10 +54,59 @@
                         </EditForm>
                     </div>
                 }
+                else if (_showImportRulesetForm)
+                {
+                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 8px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+
+                        <div style="font-weight: 500; font-size: 1rem; margin-bottom: 0;">Import Ruleset</div>
+                    
+                        <p style="margin: 0 0 4px 0; padding: 0; font-size: smaller;">Create a new ruleset from a ruleset JSON file.</p>
+
+                        <EditForm Model="@_selectedImportRulesetFileName" OnValidSubmit="(() => OnImportNewRulesetFormSubmit(false))" style="display: inline-block; margin-top: 8px;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value="@_selectedImportRulesetFileName">
+
+                                @if (string.IsNullOrWhiteSpace(_selectedImportRulesetFileName))
+                                    {
+                                    <option value=@_selectedImportRulesetFileName label="Select a ruleset to import" style="font-style: italic;">Select a ruleset to import</option>
+                                    }
+                                    else
+                                    {
+                                    <option value=@_selectedImportRulesetFileName label="@_selectedImportRulesetFileName">@_selectedImportRulesetFileName</option>
+                                    }
+
+                                @foreach (var fileName in _rulesetFileNames.Where(r => r != _selectedImportRulesetFileName))
+                                    {
+                                    <option value=@fileName label="@fileName">@fileName</option>
+                                    }
+                            </InputSelect>
+
+                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openImportedRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
+
+                            <div style="text-align: right; margin-top: 12px;">
+
+                                <button type="submit" @onclick="(() => OnImportNewRulesetFormSubmit(true))" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Import rileset file as new ruleset">
+                                    <span class="oi oi-data-transfer-upload"></span>Import
+                                </button>
+
+                                <button @onclick="OnImportRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel importing ruleset file">
+                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                </button>
+
+                            </div>
+                        </EditForm>
+                    </div>
+                }
                 else
                 {
                     <button class="btn btn-outline-primary" @onclick="ToggleCreateNewRulesetFormVisibility" style="display: inline-block; margin: 4px 0 24px 0; font-size: small;">
                         <span class="oi oi-plus"></span>New Ruleset
+                    </button>
+
+                    <button class="btn btn-outline-primary" @onclick="OnShowImportRulesetForm" style="display: inline-block; margin: 4px 0 24px 0; font-size: small;">
+                        <span class="oi oi-data-transfer-upload"></span>Import Ruleset
                     </button>
                 }
 
@@ -85,77 +134,77 @@
 
                     @if (_storeRulesetList != null)
                     {
-                        <tbody  class="sans-serif-font" style="@(_isLoadingRulesetList ? "opacity: 0.5;" : string.Empty)">
+                        <tbody class="sans-serif-font" style="@(_isLoadingRulesetList ? "opacity: 0.5;" : string.Empty)">
                             @foreach (var ruleset in _storeRulesetList)
                             {
-                            <tr>
-                                @if (_containsActiveRuleset)
-                                {
-                                    @if (IsActiveRuleset(ruleset.Id))
+                                <tr>
+                                    @if (_containsActiveRuleset)
                                     {
-                                        <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
-                                            <span class="oi oi-target" style=""></span>
-                                        </td>
+                                        @if (IsActiveRuleset(ruleset.Id))
+                                        {
+                                            <td title="Active Ruleset" style="width: 20px; padding-left: 8px;">
+                                                <span class="oi oi-target" style=""></span>
+                                            </td>
 
+                                        }
+                                        else if (_isDefaultRulesetActive)
+                                        {
+                                            <td></td>
+                                        }
                                     }
-                                    else if (_isDefaultRulesetActive)
+
+                                    @if ((_containsActiveRuleset && _isDefaultRulesetActive) || (_containsRealDefaultRuleset && !IsActiveRuleset(ruleset.Id)))
+                                    {
+                                        @if (IsDefaultRuleset(ruleset.Id))
+                                        {
+                                            <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
+                                                <span class="oi oi-pin" style=""></span>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td></td>
+                                        }
+                                    }
+
+                                    <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
+                                    <td>@GetLocalizedDateTimeString(ruleset.DateCreated)</td>
+                                    <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
+                                    <td>
+                                        <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}") target="_blank" style="padding: 4px 8px;">View<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
+                                    </td>
+                                    @if (ruleset.IsDefault)
                                     {
                                         <td></td>
                                     }
-                                }
+                                    else
+                                    {
+                                        <td>
+                                            <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}?edit=true") target="_blank" style="padding: 4px 8px;">Edit<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
+                                        </td>
+                                    }
 
-                                @if ((_containsActiveRuleset && _isDefaultRulesetActive) || (_containsRealDefaultRuleset && !IsActiveRuleset(ruleset.Id)))
-                                {
                                     @if (IsDefaultRuleset(ruleset.Id))
                                     {
-                                        <td title="Default Ruleset" style="width: 20px; padding-left: 8px;">
-                                            <span class="oi oi-pin" style=""></span>
+                                        <td></td>
+                                    }
+                                    else if (_isDefaultingRuleset)
+                                    {
+                                        <td style="min-width: 60px; width: 132px; text-align: center;">
+                                            <div class="btn btn-icon-primary" style="margin-left: calc(50% - 10px); padding-top: 0.375rem; padding-bottom: 0.375rem; margin-top: 0.2rem; margin-bottom: 0.2rem;">
+                                                <span class="oi oi-reload spin"></span>
+                                            </div>
                                         </td>
                                     }
                                     else
                                     {
-                                        <td></td>
+                                        <td style="width: 132px;">
+                                            <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetAsDefaultClick(ruleset.Id))">
+                                                <span class="oi oi-pin" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set as Default
+                                            </div>
+                                        </td>
                                     }
-                                }
-
-                                <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
-                                <td>@GetLocalizedDateTimeString(ruleset.DateCreated)</td>
-                                <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
-                                <td>
-                                    <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}") target="_blank" style="padding: 4px 8px;">View<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
-                                </td>
-                                @if (ruleset.IsDefault)
-                                {
-                                    <td></td>
-                                }
-                                else
-                                {
-                                    <td>
-                                        <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}?edit=true") target="_blank" style="padding: 4px 8px;">Edit<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
-                                    </td>
-                                }
-
-                                @if (IsDefaultRuleset(ruleset.Id))
-                                {
-                                    <td></td>
-                                }
-                                else if (_isDefaultingRuleset)
-                                {
-                                    <td style="min-width: 60px; width: 132px; text-align: center;">
-                                        <div class="btn btn-icon-primary" style="margin-left: calc(50% - 10px); padding-top: 0.375rem; padding-bottom: 0.375rem; margin-top: 0.2rem; margin-bottom: 0.2rem;">
-                                            <span class="oi oi-reload spin"></span>
-                                        </div>
-                                    </td>
-                                }
-                                else
-                                {
-                                    <td style="width: 132px;">
-                                        <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetAsDefaultClick(ruleset.Id))">
-                                            <span class="oi oi-pin" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set as Default
-                                        </div>
-                                    </td>
-                                }
-                            </tr>
+                                </tr>
                             }
                         </tbody>
                     }
@@ -221,7 +270,7 @@
 
     private int _defaultPageIndex { get; set; } = 1;
 
-    private List<Ruleset> _storeRulesetList { get; set; } = new List<Ruleset>();
+    private List<Ruleset> _storeRulesetList { get; set; }
 
     private int _renderedPageCount { get; set; } = 0;
     private bool _renderedHasNextPage { get; set; } = false;
@@ -229,6 +278,7 @@
 
     private bool _isLoadingRulesetList { get; set; } = true;
     private bool _isDefaultingRuleset { get; set; } = false;
+    private bool _isImportingRuleset { get; set; } = false;
 
     private bool _containsActiveRuleset { get; set; } = false;
     private bool _containsRealDefaultRuleset { get; set; } = false;
@@ -241,8 +291,16 @@
 
     private bool _showNewRulesetForm { get; set; } = false;
     private bool _openNewRulesetOnSave { get; set; } = true;
-
     #endregion New Ruleset Form
+
+    #region Import Ruleset Form
+    private List<string> _rulesetFileNames { get; set; } = new List<string>();
+
+    private string _selectedImportRulesetFileName { get; set; } = string.Empty;
+
+    private bool _showImportRulesetForm { get; set; } = false;
+    private bool _openImportedRulesetOnSave { get; set; } = true;
+    #endregion
 
     private string _debug { get; set; } = string.Empty;
 
@@ -383,7 +441,7 @@
 
         if (_openNewRulesetOnSave && newRulesetEntity != null)
         {
-            NavManager.NavigateTo($"/Ruleset/{newRulesetEntity.Id}?edit=true");
+            NavManager.NavigateTo($"/ruleset/{newRulesetEntity.Id}?edit=true");
         }
         else
         {
@@ -403,6 +461,60 @@
     private void ToggleCreateNewRulesetFormVisibility()
     {
         _showNewRulesetForm = !_showNewRulesetForm;
+    }
+
+
+    private void OnShowImportRulesetForm()
+    {
+        _showImportRulesetForm = true;
+
+        _rulesetFileNames = new List<string>();
+
+        var fileNames = RulesetDataService.GetJsonRulesetFileNames();
+
+        if (fileNames != null)
+        {
+            _rulesetFileNames.AddRange(fileNames);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async void OnImportNewRulesetFormSubmit(bool isManualClick)
+    {
+        if (string.IsNullOrWhiteSpace(_selectedImportRulesetFileName) || !isManualClick)
+        {
+            return;
+        }
+
+        _isImportingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        var importedRulesetEntity = await RulesetDataService.ImportNewRulesetFromJsonFile(_selectedImportRulesetFileName, false);
+
+        if (_openImportedRulesetOnSave && importedRulesetEntity != null)
+        {
+            NavManager.NavigateTo($"/ruleset/{importedRulesetEntity.Id}?edit=true");
+        }
+        else
+        {
+            await LoadRulesetListAsync();
+
+            _showImportRulesetForm = false;
+        }
+
+        _isImportingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnImportRulesetCancel()
+    {
+        _showImportRulesetForm = false;
+    }
+
+    private void ToggleImportNewRulesetFormVisibility()
+    {
+        _showImportRulesetForm = !_showImportRulesetForm;
     }
     #endregion Form Controls
 

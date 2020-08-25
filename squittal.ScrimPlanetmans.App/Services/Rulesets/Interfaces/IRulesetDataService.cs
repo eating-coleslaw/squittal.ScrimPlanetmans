@@ -30,5 +30,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         
         void SetActiveRulesetId(int rulesetId);
         Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId);
+        Task<bool> ExportRulesetToJsonFile(int rulesetId, CancellationToken cancellationToken);
+        Task<Ruleset> ImportNewRulesetFromJsonFile(string fileName, bool returnCollections = false);
+        IEnumerable<string> GetJsonRulesetFileNames();
+        Task<bool> CanDeleteRuleset(int rulesetId, CancellationToken cancellationToken);
+        Task<bool> HasRulesetBeenUsedAsync(int rulesetId, CancellationToken cancellationToken);
+        Task<bool> DeleteRulesetAsync(int rulesetId);
     }
 }

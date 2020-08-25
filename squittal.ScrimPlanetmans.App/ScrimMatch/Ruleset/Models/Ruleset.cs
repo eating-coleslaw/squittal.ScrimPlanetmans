@@ -21,7 +21,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsCustomDefault { get; set; }
 
         //public string FileName { get; set; }
-        // public string SourceFileName { get; set; }
+        public string SourceFile { get; set; }
 
         //public bool IsFavorite { get; set; }
 
