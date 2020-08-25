@@ -1,6 +1,5 @@
 ﻿using squittal.ScrimPlanetmans.Models.Planetside;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {

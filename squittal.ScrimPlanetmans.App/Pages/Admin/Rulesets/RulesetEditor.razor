@@ -5,6 +5,8 @@
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
+@using squittal.ScrimPlanetmans.Logging;
+
 @inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
 @inject NavigationManager NavManager
@@ -44,7 +46,13 @@
                 @if (!_showEditForm)
                 {
                     <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
-                    
+
+                    @if (!_isExportingRuleset)
+                    {
+                        <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                        <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ExportRulesetToJsonFile">Export to File</button>
+                    }
+
                     <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
                         <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                         <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
@@ -104,7 +112,9 @@
     private bool _defaultEditMode = false;
 
     private bool _isLoadingRuleset { get; set; } = false;
-    private bool _isSavingRuleset { get; set; }= false;
+    private bool _isSavingRuleset { get; set; } = false;
+    private bool _isExportingRuleset { get; set; } = false;
+
 
     private bool _showEditForm { get; set; } = false;
     private Ruleset _editFormRuleset { get; set; } = new Ruleset();
@@ -285,6 +295,30 @@
             _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
         }
     }
+
+    private async void ExportRulesetToJsonFile()
+    {
+        _isExportingRuleset = true;
+
+        await RulesetDataService.ExportRulesetToJsonFile(_renderedRulesetId, CancellationToken.None);
+
+        _isExportingRuleset = false;
+
+        InvokeAsyncStateHasChanged();
+
+        //var ruleset = _renderedRuleset;
+
+        //char[] characters = ruleset.Name.ToCharArray();
+
+        //characters = Array.FindAll<char>(characters, (c => (char.IsLetterOrDigit(c)
+        //                                                    || char.IsWhiteSpace(c)
+        //                                                    || c == '-'
+        //                                                    || c == '_')));
+        //var fileName = new string(characters);
+
+        //await RulesetFileHandler.WriteToJsonFile(fileName, ruleset);
+    }
+
     #endregion Form Handling
 
     private bool UpdateUriParameters()
