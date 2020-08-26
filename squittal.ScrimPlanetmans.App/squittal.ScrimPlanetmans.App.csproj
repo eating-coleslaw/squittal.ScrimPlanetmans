@@ -47,6 +47,36 @@
     <Compile Remove="Migrations\20200803205259_AddInfantryPlayerStatsReportView.Designer.cs" />
     <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.cs" />
     <Compile Remove="Migrations\20200804204221_AddInfantryTeamStatsReportView.Designer.cs" />
+    <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.cs" />
+    <Compile Remove="Migrations\20200811164854_AddRulesetNavPropertyConfigs.Designer.cs" />
+    <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.cs" />
+    <Compile Remove="Migrations\20200818161834_AddRulesetIdToScrimMatchModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819145208_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819145208_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819145319_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819145319_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819155817_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819155817_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819160924_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819160924_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819161916_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819161916_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819205340_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819205340_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819210420_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819210420_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819210812_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819210812_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819215851_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819215851_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819220816_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819220816_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200819221228_AddRulesetFacilityRuleModel.cs" />
+    <Compile Remove="Migrations\20200819221228_AddRulesetFacilityRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20200824191359_AddRulesetMatchTitleRemoveIsActive.cs" />
+    <Compile Remove="Migrations\20200824191359_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
+    <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.cs" />
+    <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -101,6 +131,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetActionRuleDeferToItemCategoryRules.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_ScrimMatchRulesetId.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\Views\View_ScrimMatchInfo.sql">

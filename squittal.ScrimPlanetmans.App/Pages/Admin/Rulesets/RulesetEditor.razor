@@ -1,217 +1,490 @@
-﻿@page "/Rulesets"
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Threading;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
-@using squittal.ScrimPlanetmans.App.Pages.Shared;
-@using squittal.ScrimPlanetmans.Models.Planetside
-@using squittal.ScrimPlanetmans.ScrimMatch
-@using squittal.ScrimPlanetmans.ScrimMatch.Models
-@using System.Text.RegularExpressions
+@using squittal.ScrimPlanetmans.Logging;
+
 @inject IScrimRulesetManager RulesetManager
+@inject IRulesetDataService RulesetDataService
+@inject NavigationManager NavManager
 
-<div class="container-fluid">
-    <div class="row">
+@implements IDisposable
 
-        <div class="col-lg-8">
+<div class="header-card-container default">
 
+    @if (_renderedRuleset == null)
+    {
+        <h5>Ruleset Editor</h5>
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        @if (_isSavingRuleset)
+        {
+            <h5>Saving changes...</h5>
+            <SpinnerEllipsis />
+        }
+        else if (_isDeletingRuleset)
+        {
+            <h5>Deleting ruleset...</h5>
+            <SpinnerEllipsis />
+        }
+        else
+        {
+            <div style="display: grid; grid-template-columns: 48% 8% 18% 8% 18%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
+                <h5 class="mono-font" style="margin-bottom: 0px;">
+                    Ruleset Editor: @_renderedRuleset.Name <span style="font-size: small; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span>
+                </h5>
 
-            @if (_activeRuleset == null)
-            {
-                <SpinnerEllipsis />
-            }
-            else
-            {
-                <div class="header-card-container default">
-                    <h4>Ruleset Editor</h4>
+                <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
+                <p style="margin-bottom: 0px; text-align: left;">@_renderedRuleset.DateCreated.ToString("f")</p>
 
-                    @*<h4>@_activeRuleset.Name</h4><span> [@(_activeRuleset.Id)]</span>*@
-                    <p style="margin: 0 0 0.1rem 0;">Active Ruleset: @_activeRuleset.Name<span> [@(_activeRuleset.Id)]</span></p>
-                    <p style="margin: 0 0 0.1rem 0;">Created: @_activeRuleset.DateCreated.ToLongDateString()</p>
+                <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
+                <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>
 
-                </div>
+            </div>
 
-                <div style="display: flex;">
+            <div style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
+                @if (!_showEditForm)
+                {
+                    @if (!_showExportConfirmationForm && !_showDeleteConfirmationForm)
+                    {
+                        <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
+                    }
 
-                    <div class="sq-mini-card-6 default">
-                        <h5>Item Category Rules</h5>
+                    @if (!_isExportingRuleset && !_showDeleteConfirmationForm && !_showEditForm)
+                    {
+                        @if (!_showExportConfirmationForm)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                            <button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to export this ruleset? This action may overwrite an existing file.</p>
 
-                        <div class="sq-content">
-                            @if (_activeRuleset.ItemCategoryRules != null && _activeRuleset.ItemCategoryRules.Any())
-                            {
-                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Infantry item categories">
-                                    <EditForm Model="@_showInfantry">
-                                        <DataAnnotationsValidator />
-                                        <ValidationSummary />
+                                <div style="text-align: right; margin-top: 12px;">
+                                    <button title ="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetCancel">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
 
-                                        Infantry <InputCheckbox id="showInfantryCheckBox" @bind-Value="_showInfantry" />
-                                    </EditForm>
+                                    <button title="Export this ruleset" class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleExportRulesetToJsonFileSubmit">
+                                        <span class="oi oi-data-transfer-download"></span>Export
+                                    </button>
                                 </div>
 
-                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display MAX item categories">
-                                    <EditForm Model="@_showMax">
-                                        <DataAnnotationsValidator />
-                                        <ValidationSummary />
+                            </div>
+                        }
+                    }
 
-                                        MAX <InputCheckbox id="showMaxCheckBox" @bind-Value="_showMax" />
-                                    </EditForm>
+                    @if (_canDeleteRuleset && !_showEditForm && !_showExportConfirmationForm)
+                    {
+                        @if (!_showDeleteConfirmationForm)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                            <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowDeleteRulesetConfirmationForm">Delete Ruleset</button>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to permanently delete this ruleset? This action cannot be undone.</p>
+
+                                <div style="text-align: right; margin-top: 12px;">
+                                    <button class="btn btn-primary sans-serif-font" style="" @onclick="HandleDeleteRulesetCancel">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
+
+                                    <button class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleDeleteRulesetSubmit">
+                                        <span class="oi oi-trash"></span>Delete
+                                    </button>
                                 </div>
 
-                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Ground Vehicle item categories">
-                                    <EditForm Model="@_showGroundVehicle">
-                                        <DataAnnotationsValidator />
-                                        <ValidationSummary />
+                            </div>
+                        }
+                    }
 
-                                        Ground <InputCheckbox id="showMaxCheckBox" @bind-Value="_showGroundVehicle" />
-                                    </EditForm>
-                                </div>
+                    <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                        @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
+                        {
+                            <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
+                        }
+                    </p>
+                }
+                else
+                {
+                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                    
+                        <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: smaller; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
 
-                                <div style="margin: 0.2rem 0; width: 20%; display: inline-block;" title="Display Air Vehicle item categories">
-                                    <EditForm Model="@_showAirVehicle">
-                                        <DataAnnotationsValidator />
-                                        <ValidationSummary />
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
-                                        Air <InputCheckbox id="showMaxCheckBox" @bind-Value="_showAirVehicle" />
-                                    </EditForm>
-                                </div>
+                            <div style="text-align: right; margin-top: 12px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="oi oi-check"></span>Save
+                                </button>
 
-                                <table class="table-responsive-sm table-striped-light default">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: right;">ID</th>
-                                            <th>Domain</th>
-                                            <th style="text-align: right;">Points</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var itemCategoryRule in _activeRuleset.ItemCategoryRules.OrderBy(icr => icr.ItemCategory.Domain).ToList())
-                                        {
-                                            if (itemCategoryRule.ItemCategory != null && CanDisplayItemCategory(itemCategoryRule.ItemCategory))
-                                            {
-                                                <tr>
-                                                    <td>@itemCategoryRule.ItemCategory.Name</td>
-                                                    <td style="text-align: right;">@itemCategoryRule.ItemCategory.Id</td>
-                                                    <td>@GetItemCategoryDomainDescription(itemCategoryRule.ItemCategory.Domain)</td>
-                                                    <td style="text-align: right; opacity: @GetValueOpacity(itemCategoryRule.Points);">@itemCategoryRule.Points</td>
-                                                </tr>
-                                            }
-                                        }
-                                    </tbody>
-                                </table>
-                            }
-                            else
-                            {
-                                <p>No item category rules...</p>
-                            }
-                        </div>
+                                <button type="reset" @onclick="HandleEditTeamCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                </button>
+                            </div>
+
+                        </EditForm>
+
                     </div>
+                }
+            </div>
+        }
 
+        @if (!_isDeletingRuleset)
+        {
+            <div style="display: flex;">
 
-                    <div class="sq-mini-card-6 default">
-                        <h5>Scrim Action Rules</h5>
+                <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
 
-                        <div class="sq-content">
-                            @if (_activeRuleset.ActionRules != null && _activeRuleset.ActionRules.Any())
-                            {
-                                <table class="table-responsive-sm table-striped-light default">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: right;">ID</th>
-                                            <th style="text-align: right;">Points</th>
-                                            <th>Defer to Item<br/>Category Rules?</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var actionRule in _activeRuleset.ActionRules)
-                                        {
-                                            @if (!_hiddenActionTypes.Contains(actionRule.ScrimActionType))
-                                            {
-                                                <tr>
-                                                    <td>@GetActionRuleDescription(actionRule.ScrimActionType)</td>
-                                                    <td style="text-align: right;">@((int)actionRule.ScrimActionType)</td>
-                                                    <td style="text-align: right; opacity: @GetValueOpacity(actionRule.Points);">@actionRule.Points</td>
-                                                    <td style="opacity: @GetDeferValueOpacity(actionRule.DeferToItemCategoryRules);">@actionRule.DeferToItemCategoryRules</td>
-                                                </tr>
-                                            }
-                                        }
-                                    </tbody>
-                                </table>
-                            }
-                            else
-                            {
-                                <p>No scrim action rules...</p>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
+                <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
 
-        </div>
-    </div>
+                <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
+
+            </div>
+        }
+    }
 </div>
 
 
 @code {
-    private Ruleset _activeRuleset { get; set; }
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
 
-    private bool _showInfantry = true;
-    private bool _showMax = false;
-    private bool _showGroundVehicle = false;
-    private bool _showAirVehicle = false;
+    private Ruleset _renderedRuleset { get; set; }
 
-    private List<ScrimActionType> _hiddenActionTypes = new List<ScrimActionType>()
-{
-        ScrimActionType.None,
-        ScrimActionType.OutsideInterference,
-        ScrimActionType.Unknown
-    };
+    [Parameter]
+    public bool i_editMode { get; set; } = false;
+    private bool _renderedEditMode { get; set; } = false;
+
+    [Parameter]
+    public bool? _uriEditMode { get; set; }
+
+    private bool _defaultEditMode = false;
+
+    private bool _isLoadingRuleset { get; set; } = false;
+    private bool _isSavingRuleset { get; set; } = false;
+    private bool _isExportingRuleset { get; set; } = false;
+    private bool _isDeletingRuleset { get; set; } = false;
+
+    private bool _showEditForm { get; set; } = false;
+    private Ruleset _editFormRuleset { get; set; } = new Ruleset();
+
+    private bool _canDeleteRuleset { get; set; } = false;
+    private bool _showDeleteConfirmationForm { get; set; } = false;
+
+    private bool _showExportConfirmationForm { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+
+    #region Initializtion Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+
+        _renderedRulesetId = i_rulesetId;
+
+        if (_renderedRulesetId == RulesetDataService.DefaultRulesetId)
+        {
+            NavManager.NavigateTo($"ruleset/{_renderedRulesetId}?edit=false");
+        }
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        _activeRuleset = await RulesetManager.GetActiveRuleset(true);
-
-        _showInfantry = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Infantry && r.Points != 0);
-        _showMax = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.Max && r.Points != 0);
-        _showGroundVehicle = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.GroundVehicle && r.Points != 0);
-        _showAirVehicle = _activeRuleset.ItemCategoryRules.Any(r => r.ItemCategory.Domain == ItemCategoryDomain.AirVehicle && r.Points != 0);
+        await LoadRulesetAsync();
     }
 
-    private string GetActionRuleDescription(ScrimActionType actionType)
+    protected override async Task OnParametersSetAsync()
     {
-        var name = Enum.GetName(typeof(ScrimActionType), actionType);
+        var paramsChanged = false;
 
-        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
-    }
-
-    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
-    {
-        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
-
-        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
-    }
-
-    private bool CanDisplayItemCategory(ItemCategory category)
-    {
-        return category.Domain switch
+        if (UpdateUriParameters())
         {
-            ItemCategoryDomain.Infantry => _showInfantry,
-            ItemCategoryDomain.Max => _showMax,
-            ItemCategoryDomain.GroundVehicle => _showGroundVehicle,
-            ItemCategoryDomain.AirVehicle => _showAirVehicle,
-            _ => false
-        };
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
     }
 
-    private double GetValueOpacity(int value)
+    private async Task LoadRulesetAsync()
     {
-        return (value != 0)
-            ? 1.0
-            : 0.5;
+        _isLoadingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var TaskList = new List<Task>();
+
+            //_renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            var rulesetTask = RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            TaskList.Add(rulesetTask);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            //_canDeleteRuleset = await RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            var canDeleteTask = RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            TaskList.Add(canDeleteTask);
+
+            await Task.WhenAll(TaskList);
+
+            _renderedRuleset = rulesetTask.Result;
+            _canDeleteRuleset = canDeleteTask.Result;
+
+            _editFormRuleset.Name = _renderedRuleset.Name;
+            _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+            _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRuleset = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            await LoadRulesetAsync();
+
+            StateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    #region Form Handling
+    private async void HandleEditRulesetSubmit()
+    {
+        var updateRuleset = _editFormRuleset;
+        updateRuleset.Id = _renderedRulesetId;
+
+        _isSavingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+
+            var success = await RulesetDataService.UpdateRulesetInfo(updateRuleset, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            if (success)
+            {
+                _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+
+                cts.Token.ThrowIfCancellationRequested();
+
+                _editFormRuleset.Name = _renderedRuleset.Name;
+                _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+                _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+
+                _showEditForm = false;
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+        catch
+        {
+            //Ingore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isSavingRuleset = false;
+        InvokeAsyncStateHasChanged();
     }
 
-    private double GetDeferValueOpacity(bool value)
+    private void HandleEditTeamCancel()
     {
-        return (value == true)
-            ? 1.0
-            : 0.5;
+        _editFormRuleset.Name = _renderedRuleset.Name;
+        _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+        _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+
+        _showEditForm = false;
+    }
+
+    private void ToggleEditRulesetFormVisibility()
+    {
+        _showEditForm = !_showEditForm;
+
+        if (_showEditForm)
+        {
+            _editFormRuleset.Name = _renderedRuleset.Name;
+            _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+            _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+        }
+    }
+
+    private void HandleShowExportRulesetConfirmationForm()
+    {
+        _showExportConfirmationForm = true;
+    }
+
+    private async void HandleExportRulesetToJsonFileSubmit()
+    {
+        _isExportingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.ExportRulesetToJsonFile(_renderedRulesetId, CancellationToken.None))
+        {
+            _showExportConfirmationForm = false;
+        }
+
+        _isExportingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleExportRulesetCancel()
+    {
+        _showExportConfirmationForm = false;
+    }
+
+    private void HandleShowDeleteRulesetConfirmationForm()
+    {
+        if (_canDeleteRuleset)
+        {
+            _showDeleteConfirmationForm = true;
+        }
+    }
+
+    private async void HandleDeleteRulesetSubmit()
+    {
+        // TODO: implement ruleset deletion
+        if (!_canDeleteRuleset)
+        {
+            return;
+        }
+
+        _isDeletingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.DeleteRulesetAsync(_renderedRulesetId))
+        {
+            NavManager.NavigateTo($"/rulesets");
+
+            _showDeleteConfirmationForm = false;
+        }
+
+        _isDeletingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleDeleteRulesetCancel()
+    {
+        _showDeleteConfirmationForm = false;
+    }
+
+    #endregion Form Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("edit", out var qEdit))
+        {
+            if (bool.TryParse(qEdit, out bool edit))
+            {
+                if (_uriEditMode != edit)
+                {
+                    _uriEditMode = edit;
+                    i_editMode = edit;
+                    _renderedEditMode = edit;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                if (_uriEditMode != null)
+                {
+                    stateChanged = true;
+                }
+
+                _uriEditMode = null;
+                i_editMode = _defaultEditMode;
+                _renderedEditMode = _defaultEditMode;
+            }
+        }
+
+        return stateChanged;
+    }
+
+    private bool IsActiveRuleset(int rulesetId)
+    {
+        return RulesetDataService.ActiveRulesetId == rulesetId;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 }

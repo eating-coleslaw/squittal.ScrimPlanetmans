@@ -13,9 +13,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int Points { get; set; }
         public bool DeferToItemCategoryRules { get; set; }
 
+        public ScrimActionTypeDomain ScrimActionTypeDomain { get; set; }
+
 
         public Ruleset Ruleset { get; set; }
-
-        //public ScrimAction ActionModel { get; set; }
     }
 }

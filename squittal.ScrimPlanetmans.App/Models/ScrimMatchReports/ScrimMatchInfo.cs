@@ -28,6 +28,10 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int TeamOneFactionId { get; set; }
         public int TeamTwoFactionId { get; set; }
 
+        public int RulesetId { get; set; }
+        public string RulesetName { get; set; }
+
+
         public ScrimMatchInfo()
         {
 

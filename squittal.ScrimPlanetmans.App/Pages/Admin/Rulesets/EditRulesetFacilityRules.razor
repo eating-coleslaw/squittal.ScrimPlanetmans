@@ -1,0 +1,480 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using squittal.ScrimPlanetmans.Services.Planetside; 
+@using System.Threading;
+@using System.Collections.Concurrent;
+
+@inject IRulesetDataService RulesetDataService
+@inject IZoneService ZoneService
+
+@implements IDisposable
+
+<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray);">
+    @if (_changesCount > 0)
+    {
+        <h5>Facility Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
+    }
+    else
+    {
+        <h5>Facility Rules</h5>
+    }
+
+    @if (_isLoadingRules || _isSavingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        <EditForm Model="@_facilityRules" OnValidSubmit="(() => OnSaveFacilityRulesEditSubmit(false))" style="margin-top: 8px;">
+            <DataAnnotationsValidator />
+
+            <div class="sq-content">
+
+                @if (_changesCount > 0 && !_isClearingRules)
+                {
+                    <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveFacilityRulesEditSubmit(true))">
+                        <span class="oi oi-data-transfer-upload"></span>Save
+                    </button>
+
+                    <button type="button" title="Reset changes to original values" class="btn btn-outline-primary" @onclick="OnClearRuleChanges">
+                        <span class="oi oi-action-undo" style="top: 0px;"></span>Clear
+                    </button>
+                }
+                else
+                {
+                    <button title="There are no changes to save" disabled class="btn btn-primary disabled">
+                        <span class="oi oi-data-transfer-upload"></span>Save
+                    </button>
+                }
+
+                <div class="tabbed-button-container" style="">
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(0)" @onclick="@(() => OnSelectNewView(0))">All</button>
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(4)" @onclick="@(() => OnSelectNewView(4))">Hossin</button>
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(2)" @onclick="@(() => OnSelectNewView(2))">Indar</button>
+                    <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(8)" @onclick="@(() => OnSelectNewView(8))">Esamir</button>
+                    <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(6)" @onclick="@(() => OnSelectNewView(6))">Amerish</button>
+                </div>
+
+                @if (_ruleChanges.Values.Any())
+                {
+                    <p class="sans-serif-font" style="margin-top: 8px; margin-bottom: 4px; font-weight: 700;">Changes</p>
+
+                    <div style="max-height: @(_selectedZoneIdView == 0 ? "480px" : "240px"); overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                <tr>
+                                    <th style="padding-bottom: 2px; padding-left: 8px; width: 45px;">Type</th>
+                                    <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                    <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
+                                    <th style="width: 30px; padding-left: 8px;"></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var ruleChange in _ruleChanges.Values.OrderBy(r => r.ChangeType).ThenBy(r => r.RulesetFacilityRule.MapRegion.ZoneId).ThenBy(r => r.RulesetFacilityRule.MapRegion.FacilityName))
+                                {
+                                    <tr class="sans-serif-font">
+                                        <td title="@(ruleChange.ChangeType == RulesetFacilityRuleChangeType.Add ? "Add" : "Remove")" style="padding-left: 8px;">
+                                            @if (ruleChange.ChangeType == RulesetFacilityRuleChangeType.Add)
+                                            {
+                                                <span class="oi oi-plus" style="top: 2px; color: var(--sq-ov-semantic-green); padding-left: 8px; width: 30px;"></span>
+                                            }
+                                            else
+                                            {
+                                                <span class="oi oi-minus" style="top: 2px; color: var(--sq-ov-semantic-red); padding-left: 8px; width: 30px;"></span>
+                                            }
+                                        </td>
+                                        <td style="color: var(--sq-black); padding-left: 8px;">@ruleChange.RulesetFacilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@ruleChange.RulesetFacilityRule.FacilityId]</span></td>
+                                        <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(ruleChange.RulesetFacilityRule)</td>
+                                    <td>
+                                        <button type="button" title="Undo this change" @onclick="(() => OnChangeFacilityRule(ruleChange.RulesetFacilityRule, RulesetFacilityRuleChangeType.Reset))" style="color: var(--sq-black); border: none; background-color: transparent; padding: 0; text-shadow: 0px 0px 0px black;">
+                                            <span class="oi oi-action-undo" style="top: 2px;"></span>
+                                        </button>
+                                    </td>
+                                    </tr>
+                                    @*}*@
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                @if (_ruleChanges.Values.Any())
+                {
+                    <p class="sans-serif-font" style="margin-top: 16px; margin-bottom: 4px; font-weight: 700;">Current Ruleset Facilities</p>
+                }
+                else
+                {
+                    <p class="sans-serif-font" style="margin-top: 0; margin-bottom: 4px; font-weight: 700;">Current Ruleset Facilities</p>
+                }
+
+                <div style="max-height: @(_selectedZoneIdView == 0 ? "480px" : "240px"); overflow-y: auto; margin-bottom: 4px; border-bottom: 1px solid var(--sq-black-alpha-50);">
+
+                    @if (_facilityRules != null && _facilityRules.Any(r => (r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
+                    {
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                <tr>
+                                    <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                    @if (_selectedZoneIdView == 0)
+                                    {
+                                        <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
+                                    }
+                                    <th style="width: 30px; padding-left: 8px;"></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var facilityRule in _facilityRules.Where(r => (r.MapRegion != null && r.MapRegion.ZoneId == _selectedZoneIdView) || _selectedZoneIdView == 0))
+                                {
+                                <tr class="sans-serif-font">
+                                    <td style="color: var(--sq-black); padding-left: 8px;">@facilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@facilityRule.FacilityId]</span></td>
+                                    @if (_selectedZoneIdView == 0)
+                                    {
+                                        <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(facilityRule)</td>
+                                    }
+                                    <td style="padding-left: 8px;">
+                                        <button type="button" title="Remove this facility from the ruleset" @onclick="(() => OnChangeFacilityRule(facilityRule, RulesetFacilityRuleChangeType.Remove))" style="color: var(--sq-ov-semantic-red); border: none; background-color: transparent; padding: 0; text-shadow: 0px 0px 0px black;">
+                                            <span class="oi oi-minus" style="top: 2px;"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                    @*}*@
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        @if (_selectedZoneIdView == 0)
+                        {
+                            <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no facility rules for this ruleset</p>
+                        }
+                        else
+                        {
+                            <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no @(_zoneNames[_selectedZoneIdView]) facility rules for this ruleset</p>
+                        }
+                    }
+                </div>
+
+                    <p class="sans-serif-font" style="margin-top: 16px; margin-bottom: 4px; font-weight: 700;">Available Facilities</p>
+                        
+                    <div style="max-height: 240px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+
+                        @if (_selectedZoneIdView == 0)
+                        {
+                            <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">Add facilities from the continent-specific views</p>
+                        }
+                        else if (_availabledFacilityRules != null && _availabledFacilityRules.Any(r => r.MapRegion.ZoneId == _selectedZoneIdView))
+                        {
+                            <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                                <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                    <tr>
+                                        <th style="padding-bottom: 2px; padding-left: 8px;">Facility <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                        @if (_selectedZoneIdView == 0)
+                                        {
+                                            <th style="padding-bottom: 2px; padding-left: 8px;">Continent</th>
+                                        }
+                                        <th style="width: 30px; padding-left: 8px;"></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var facilityRule in _availabledFacilityRules.Where(r => r.MapRegion.ZoneId == _selectedZoneIdView || _selectedZoneIdView == 0))
+                                    {
+                                        <tr class="sans-serif-font">
+                                            <td style="color: var(--sq-black); padding-left: 8px;">@facilityRule.MapRegion.FacilityName <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@facilityRule.FacilityId]</span></td>
+                                            @if (_selectedZoneIdView == 0)
+                                            {
+                                                <td style="color: var(--sq-black); padding-left: 8px;">@GetFacilityZoneName(facilityRule)</td>
+                                            }
+                                            <td>
+                                                <button type="button" title="Add facility to ruleset" @onclick="(() => OnChangeFacilityRule(facilityRule, RulesetFacilityRuleChangeType.Add))" style="color: var(--sq-ov-semantic-green); border: none; background-color: transparent; padding: 0; text-shadow: 0px 0px 0px black; padding-left: 8px;">
+                                                    <span class="oi oi-plus" style="top: 2px; color:var(--sq-)"></span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        @*}*@
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="sans-serif-font" style="margin-top: 4px; margin-bottom: 4px; font-weight: 400; font-style: italic">There are no available @(_zoneNames[_selectedZoneIdView]) facilities to add</p>
+                        }
+                    </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private List<RulesetFacilityRule> _facilityRules { get; set; }
+    private List<RulesetFacilityRule> _availabledFacilityRules { get; set; }
+
+    private List<int> _mapZones { get; set; } = new List<int>();
+    private List<Zone> _zones { get; set; }
+    private Dictionary<int, string> _zoneNames { get; set; } = new Dictionary<int, string>();
+
+    private bool _isLoadingRules { get; set; } = false;
+    private bool _isSavingRules { get; set; } = false;
+    private bool _isClearingRules { get; set; } = false;
+
+    private int _selectedZoneIdView { get; set; } = 0; // All Zones
+
+    private CancellationTokenSource cts;
+
+    private ConcurrentDictionary<int, RulesetFacilityRuleChange> _ruleChanges { get; set; } = new ConcurrentDictionary<int, RulesetFacilityRuleChange>();
+
+    private ConcurrentQueue<RulesetFacilityRuleChange> _ruleChangesQueue { get; set; } = new ConcurrentQueue<RulesetFacilityRuleChange>();
+
+    private int _changesCount { get; set; } = 0;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderedRulesetId = i_rulesetId;
+
+        await LoadRulesetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var TaskList = new List<Task>();
+
+            var facilityRulesTask = RulesetDataService.GetRulesetFacilityRulesAsync(_renderedRulesetId, cts.Token);
+            TaskList.Add(facilityRulesTask);
+
+            var unusedRulesTask = RulesetDataService.GetUnusedRulesetFacilityRulesAsync(_renderedRulesetId, cts.Token);
+            TaskList.Add(unusedRulesTask);
+
+            var zonesTask = ZoneService.GetAllZones();
+            TaskList.Add(zonesTask);
+
+            await Task.WhenAll(TaskList);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _facilityRules = facilityRulesTask.Result.ToList();
+            _availabledFacilityRules = unusedRulesTask.Result.ToList();
+            _zones = zonesTask.Result.ToList();
+
+            _mapZones = _facilityRules.Select(f => f.MapRegion.ZoneId).Distinct().ToList();
+
+            _zoneNames = _zones.ToDictionary(z => z.Id, z => z.Name);
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Form & UI Handling
+    private void OnChangeFacilityRule(RulesetFacilityRule rule, RulesetFacilityRuleChangeType changeType)
+    {
+        var ruleChange = new RulesetFacilityRuleChange(rule, changeType);
+
+        _ruleChangesQueue.Enqueue(ruleChange);
+
+        UpdateRenderedFacilityRules();
+    }
+
+    private void UpdateRenderedFacilityRules()
+    {
+        InvokeAsync(() =>
+        {
+            lock (_facilityRules)
+            {
+                lock (_availabledFacilityRules)
+                {
+                    while (_ruleChangesQueue.TryDequeue(out RulesetFacilityRuleChange ruleChange))
+                    {
+                        var changeType = ruleChange.ChangeType;
+                        var rule = ruleChange.RulesetFacilityRule;
+
+                        if (changeType == RulesetFacilityRuleChangeType.Remove)
+                        {
+                            _facilityRules.RemoveAll(c => c.FacilityId == rule.FacilityId);
+
+                            _ruleChanges.AddOrUpdate(rule.FacilityId, ruleChange, (key, oldValue) => ruleChange);
+                        }
+                        else if (changeType == RulesetFacilityRuleChangeType.Add)
+                        {
+                            if (_availabledFacilityRules.Any(a => a.FacilityId == rule.FacilityId))
+                            {
+                                _availabledFacilityRules.Remove(rule);
+                            }
+
+                            _ruleChanges.AddOrUpdate(rule.FacilityId, ruleChange, (key, oldValue) => ruleChange);
+                        }
+                        else if (changeType == RulesetFacilityRuleChangeType.Reset)
+                        {
+                            if (_ruleChanges.TryRemove(rule.FacilityId, out var originalRuleChange))
+                            {
+                                if (originalRuleChange.ChangeType == RulesetFacilityRuleChangeType.Add)
+                                {
+                                    _availabledFacilityRules.Add(originalRuleChange.RulesetFacilityRule);
+                                }
+                                else if (originalRuleChange.ChangeType == RulesetFacilityRuleChangeType.Remove)
+                                {
+                                    _facilityRules.Add(originalRuleChange.RulesetFacilityRule);
+                                }
+                            }
+                        }
+                    }
+
+                    _availabledFacilityRules = _availabledFacilityRules
+                                                    .OrderBy(r => r.MapRegion.ZoneId)
+                                                    .ThenBy(r => r.MapRegion.FacilityName)
+                                                    .ToList();
+
+                    _facilityRules = _facilityRules
+                                            .OrderBy(r => r.MapRegion.ZoneId)
+                                            .ThenBy(r => r.MapRegion.FacilityName)
+                                            .ToList();
+
+                    _changesCount = _ruleChanges.Count();
+
+                    StateHasChanged();
+                }
+            }
+        });
+    }
+
+    private async void OnSaveFacilityRulesEditSubmit(bool isManualClick)
+    {
+        if (!isManualClick)
+        {
+            return;
+        }
+
+        if (_ruleChanges.Any())
+        {
+            _isSavingRules = true;
+            InvokeAsyncStateHasChanged();
+
+            await RulesetDataService.SaveRulesetFacilityRules(_renderedRulesetId, _ruleChanges.Values.AsEnumerable());
+
+            await LoadRulesetAsync();
+
+            _ruleChanges.Clear();
+            _changesCount = 0;
+
+            _isSavingRules = false;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void OnClearRuleChanges()
+    {
+        if (!_ruleChanges.Any() || !_facilityRules.Any())
+        {
+            return;
+        }
+
+        _isClearingRules = true;
+
+        _ruleChanges.Clear();
+        _changesCount = 0;
+
+        _isClearingRules = false;
+    }
+
+    private string GetViewTabStyle(int thisZoneId)
+    {
+        if (_selectedZoneIdView == thisZoneId)
+        {
+            return $"view-visible";
+        }
+        else
+        {
+            return $"view-hidden";
+        }
+    }
+
+    private void OnSelectNewView(int newView)
+    {
+        if (newView != _selectedZoneIdView)
+        {
+            _selectedZoneIdView = newView;
+        }
+    }
+    #endregion Form & UI Handling
+
+    private string GetFacilityZoneName(RulesetFacilityRule rule)
+    {
+        return _zoneNames[rule.MapRegion.ZoneId];
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}
