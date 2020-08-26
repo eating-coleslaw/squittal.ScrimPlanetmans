@@ -41,12 +41,12 @@
             }
 
             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
-                <div>Is Active? @(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
-                <div>Default Round Length: @_renderedRuleset.DefaultRoundLength seconds</div>
-                <div>Default Match Title: @_renderedRuleset.DefaultMatchTitle</div>
+                <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
+                <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
+                <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
                 @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
                 {
-                    <div>Source File: @_renderedRuleset.SourceFile</div>
+                    <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
                 }
             </p>
         </div>
