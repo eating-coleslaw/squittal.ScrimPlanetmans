@@ -95,7 +95,7 @@
     </div>
 
     <div style="margin: 0.2rem 0;">
-        <EditForm Model="@_inputPlayer" OnValidSubmit="HandleAddPlayerSubmit">
+        <EditForm Model="@_inputPlayer" OnValidSubmit="HandleAddPlayerSubmit" title="Add a player to this team by name or character ID. Enter a comma-delimited list of names or character IDs to add multiple players">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -110,14 +110,12 @@
     @if (_availableConstructedTeams.Any())
     {
         <EditForm Model="@_inputConstructedTeamFactionSelection" style="display: inline-block;">
-            @*OnValidSubmit="HandleAddConstructedTeamFactionSubmit" >*@
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div style="margin-bottom: 0.2rem; display: inline-block;">
                 <p style="margin-bottom: 0.2rem;">Add Premade Team: </p>
 
-                @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_inputConstructedTeamFactionSelection.ConstructedTeamStringId>*@
                 <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputConstructedTeamFactionSelection.ConstructedTeamStringId" ValueChanged="@((string s) => HandleOnChangeConstructedTeamSelection(s))" ValueExpression="@(() => _inputConstructedTeamFactionSelection.ConstructedTeamStringId)">
                     <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
 
@@ -513,31 +511,6 @@
         {
             _inputPlayer = string.Empty;
         }
-
-        //foreach (var characterInput in inputsList)
-        //{
-        //    //var inputTask = TryAddInputCharacterToTeam(characterInput);
-        //    //TaskList.Add(inputTask);
-        //}
-
-
-        //try
-        //{
-        //    var success = await TeamsManager.TryAddFreeTextInputCharacterToTeam(i_teamOrdinal, input);
-
-        //    if (success)
-        //    {
-        //        _inputPlayer = string.Empty;
-        //    }
-        //}
-        //catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
-        //{
-        //    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>. The Census API Character service may be broken: {ex}</span>");
-        //}
-        //catch (Exception ex)
-        //{
-        //    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>: {ex}</span>");
-        //}
 
         InvokeAsyncStateHasChanged();
     }
