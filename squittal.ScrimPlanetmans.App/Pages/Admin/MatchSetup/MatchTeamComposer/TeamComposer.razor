@@ -479,25 +479,97 @@
             return;
         }
 
+        var Tasks = new Dictionary<string, Task>();
+
+        var cleanedInput = GetCleanedInputPlayersString(input, out var isList);
+        var inputsDict = cleanedInput.Split(',').Distinct().Where(i => !string.IsNullOrWhiteSpace(i)).ToDictionary(i => i, i => TryAddInputCharacterToTeam(i));
+
+        await Task.WhenAll(inputsDict.Values);
+
+        var anySuccesses = false;
+        var failedInputs = new List<string>();
+
+        foreach (var inputTaskPair in inputsDict)
+        {
+            var result = inputTaskPair.Value.Result;
+
+            anySuccesses = (anySuccesses || result);
+
+            if (!result)
+            {
+                failedInputs.Add(inputTaskPair.Key);
+            }
+        }
+
+        if (failedInputs.Any())
+        {
+            var failedInputsStringList = string.Join(",", failedInputs);
+
+            LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add characters {failedInputsStringList}</span>.");
+
+            _inputPlayer = failedInputsStringList;
+        }
+        else
+        {
+            _inputPlayer = string.Empty;
+        }
+
+        //foreach (var characterInput in inputsList)
+        //{
+        //    //var inputTask = TryAddInputCharacterToTeam(characterInput);
+        //    //TaskList.Add(inputTask);
+        //}
+
+
+        //try
+        //{
+        //    var success = await TeamsManager.TryAddFreeTextInputCharacterToTeam(i_teamOrdinal, input);
+
+        //    if (success)
+        //    {
+        //        _inputPlayer = string.Empty;
+        //    }
+        //}
+        //catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+        //{
+        //    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>. The Census API Character service may be broken: {ex}</span>");
+        //}
+        //catch (Exception ex)
+        //{
+        //    LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>: {ex}</span>");
+        //}
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async Task<bool> TryAddInputCharacterToTeam(string input)
+    {
         try
         {
-            var success = await TeamsManager.TryAddFreeTextInputCharacterToTeam(i_teamOrdinal, input);
-
-            if (success)
-            {
-                _inputPlayer = string.Empty;
-            }
+            return await TeamsManager.TryAddFreeTextInputCharacterToTeam(i_teamOrdinal, input);
         }
         catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
         {
             LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>. The Census API Character service may be broken: {ex}</span>");
+            return false;
         }
         catch (Exception ex)
         {
             LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add character {input}</span>: {ex}</span>");
+            return false;
         }
+    }
 
-        InvokeAsyncStateHasChanged();
+    private string GetCleanedInputPlayersString(string input, out bool isList)
+    {
+        char[] characters = input.ToCharArray();
+
+        characters = Array.FindAll(characters, (c => (char.IsLetterOrDigit(c)
+                                                            || c == ',')));
+
+        isList = characters.Contains(',');
+
+        return new string(characters);
     }
 
     private void HandleOnChangeConstructedTeamSelection(string constructedTeamStringId)
