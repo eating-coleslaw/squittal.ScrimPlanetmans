@@ -30,7 +30,7 @@
     {
         <h4>Team @i_teamOrdinal</h4>
     }
-    else if (!_teamOutfits.Any() && !_teamNonOutfitPlayers.Any() && !_teamConstructedTeams.Any())
+    else if (!_teamOutfits.Any() && !_teamNonOutfitPlayers.Any() && !_anyPlayersOnTeam && !_teamConstructedTeams.Any())
     {
         <h4>
             Team @(i_teamOrdinal):
@@ -151,7 +151,7 @@
     }
 
 
-    @if (_teamOutfits.Any() || _teamConstructedTeams.Any() || _teamNonOutfitPlayers.Any())
+    @if (_teamOutfits.Any() || _teamConstructedTeams.Any() || _teamNonOutfitPlayers.Any() || _anyPlayersOnTeam)
     {
         <div style="margin: 0.2rem 0;" title="Unlock to show buttons for removing outfits and players from this team">
             <EditForm Model="@_showRemovals">
@@ -303,6 +303,8 @@
     private bool _showPointAdjustmentForm = false;
 
     private bool _extendPointAdjustments = true;
+
+    private bool _anyPlayersOnTeam = false;
     #endregion
 
     #region Constructed Team Selection Variables
@@ -390,6 +392,9 @@
 
         _teamConstructedTeams = new List<ConstructedTeamMatchInfo>();
         _teamConstructedTeams.AddRange(_team.ConstructedTeamsMatchInfo);
+
+        //_anyNonOutfitPlayersOnTeam = _team.GetNonOutfitPlayers().Any();
+        _anyPlayersOnTeam = (_team.Players.Count > 0);
 
         _validOutfitAliasHistory = _team.Outfits.Select(o => o.AliasLower).ToList();
 
@@ -803,6 +808,9 @@
         if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamNonOutfitPlayers.Add(player);
+
+            //_anyNonOutfitPlayersOnTeam = _teamNonOutfitPlayers.Any();
+            _anyPlayersOnTeam = (_team.Players.Count > 0);
         }
     }
 
@@ -813,6 +821,9 @@
         if (player.IsOutfitless)
         {
             _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
+
+            //_anyNonOutfitPlayersOnTeam = _teamNonOutfitPlayers.Any();
+            _anyPlayersOnTeam = (_team.Players.Count > 0);
         }
     }
 
@@ -829,7 +840,11 @@
         if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamNonOutfitPlayers.Add(player);
+
+            //_anyNonOutfitPlayersOnTeam = _teamNonOutfitPlayers.Any();
+            _anyPlayersOnTeam = (_team.Players.Count > 0);
         }
+
 
         InvokeAsyncStateHasChanged();
     }
