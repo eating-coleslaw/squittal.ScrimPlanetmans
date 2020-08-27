@@ -65,6 +65,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public void ResetAlias(string alias)
+        {
+            Alias = alias;
+            HasCustomAlias = false;
+        }
+
         public bool ContainsPlayer(string characterId)
         {
             return PlayersMap.ContainsKey(characterId);
@@ -201,6 +207,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
 
             return true;
+        }
+
+        public void ResetMatchData()
+        {
+            ClearEventAggregateHistory();
+
+            ParticipatingPlayers.Clear();
+            ParticipatingPlayersMap.Clear();
         }
 
         public bool UpdateParticipatingPlayer(Player player)

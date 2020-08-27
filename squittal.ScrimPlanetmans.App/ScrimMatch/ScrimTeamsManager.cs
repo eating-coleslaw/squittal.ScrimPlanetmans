@@ -2111,9 +2111,56 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             team.ClearEventAggregateHistory();
+
+            var oldAlias = team.Alias;
+            team.ResetAlias($"{_defaultAliasPreText}{teamOrdinal}");
+
+            _messageService.BroadcastTeamAliasChangeMessage(new TeamAliasChangeMessage(teamOrdinal, team.Alias, oldAlias));
             // TODO: broadcast "Finished Clearing Team" message
         }
         #endregion Clear Teams
+
+        #region Reset Teams' Match Data (for Rematch)
+        public void ResetAllTeamsMatchData()
+        {
+            MaxPlayerPointsTracker = new MaxPlayerPointsTracker();
+            
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                //team.ResetMatchData();
+                ResetTeamMatchData(teamOrdinal);
+            }
+        }
+
+        private void ResetTeamMatchData(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            var overlayMessageData = new OverlayMessageData
+            {
+                RedrawPointGraph = true,
+                MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
+            };
+
+            team.ResetMatchData();
+            SendTeamStatUpdateMessage(team, overlayMessageData);
+
+            var allPlayers = team.Players.ToList();
+            foreach (var player in allPlayers)
+            {
+                player.ResetMatchData();
+
+                SendPlayerStatUpdateMessage(player, overlayMessageData);
+            }
+        }
+        
+
+        #endregion Reset Teams' Match Data (for Rematch)
 
         #region Roll Back Round
         public async Task RollBackAllTeamStats(int currentRound)

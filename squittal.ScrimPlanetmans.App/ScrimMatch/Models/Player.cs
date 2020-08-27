@@ -95,6 +95,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NameTrimmed = GetTrimmedPlayerName(NameFull, WorldId);
         }
 
+        #region Temporary Alias
         public static string GetTrimmedPlayerName(string name, int worldId)
         {
             var isPil2NameFormat = false;
@@ -172,7 +173,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             NameAlias = string.Empty;
             NameTrimmed = string.Empty;
         }
+        #endregion Temporary Alias
 
+        #region Event Aggregate & Stat Updates
         public void AddStatsUpdate(ScrimEventAggregate update)
         {
             EventAggregateTracker.AddToCurrent(update);
@@ -183,7 +186,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             EventAggregateTracker.SubtractFromCurrent(update);
         }
 
+        public void ClearEventAggregateHistory()
+        {
+            EventAggregateTracker = new ScrimEventAggregateRoundTracker();
+        }
+        #endregion Event Aggregate & Stat Updates
 
+        public void ResetMatchData()
+        {
+            ClearEventAggregateHistory();
+
+            LoadoutId = null;
+            Status = PlayerStatus.Unknown;
+            IsActive = false;
+            IsParticipating = false;
+        }
+
+        #region Eqaulity
         public override bool Equals(object obj)
         {
             return this.Equals(obj as Player); 
@@ -232,6 +251,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             return Id.GetHashCode();
         }
+        #endregion Eqaulity
     }
 
 

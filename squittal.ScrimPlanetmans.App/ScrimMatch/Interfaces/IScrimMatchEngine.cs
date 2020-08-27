@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void ResumeRound();
         Task EndRound();
         Task ResetRound();
-        Task ClearMatch();
+        Task ClearMatch(bool isRematch);
         MatchTimerTickMessage GetLatestTimerTickMessage();
         bool IsRunning();
         int GetCurrentRound();

@@ -74,7 +74,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
 
-        public async Task ClearMatch()
+        public async Task ClearMatch(bool isRematch)
         {
             if (_isRunning)
             {
@@ -82,7 +82,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             _wsMonitor.DisableScoring();
-            _wsMonitor.RemoveAllCharacterSubscriptions();
+            if (!isRematch)
+            {
+                _wsMonitor.RemoveAllCharacterSubscriptions();
+            }
             _messageService.DisableLogging();
 
             MatchConfiguration = new MatchConfiguration();
@@ -97,11 +100,47 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _latestTimerTickMessage = null;
 
-            _teamsManager.ClearAllTeams();
+            if (isRematch)
+            {
+                _teamsManager.ResetAllTeamsMatchData();
+            }
+            else
+            {
+                _teamsManager.ClearAllTeams();
+            }
 
             SendMatchStateUpdateMessage();
             SendMatchConfigurationUpdateMessage();
         }
+
+        //public async Task ClearMatchForRematch()
+        //{
+        //    if (_isRunning)
+        //    {
+        //        await EndRound();
+        //    }
+
+        //    _wsMonitor.DisableScoring();
+        //    _wsMonitor.RemoveAllCharacterSubscriptions();
+        //    _messageService.DisableLogging();
+
+        //    MatchConfiguration = new MatchConfiguration();
+
+        //    _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
+
+        //    _matchState = MatchState.Uninitialized;
+        //    _currentRound = 0;
+
+        //    _matchDataService.CurrentMatchRound = _currentRound;
+        //    _matchDataService.CurrentMatchId = string.Empty;
+
+        //    _latestTimerTickMessage = null;
+
+        //    _teamsManager.ResetAllTeamsMatchData();
+
+        //    SendMatchStateUpdateMessage();
+        //    SendMatchConfigurationUpdateMessage();
+        //}
 
         public void ConfigureMatch(MatchConfiguration configuration)
         {
