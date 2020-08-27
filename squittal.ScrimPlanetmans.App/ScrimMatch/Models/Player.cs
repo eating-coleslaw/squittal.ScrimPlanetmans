@@ -68,6 +68,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsParticipating { get; set; } = false;
         public bool IsBenched { get; set; } = false;
 
+        public bool IsVisibleInTeamComposer => GetIsVisibleInTeamComposer();
+
+        public bool IsAdHocPlayer => GetIsAdHocPlayer();
+
         private static readonly Regex _nameRegex = new Regex("^[A-Za-z0-9]{1,32}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
         // Format for Planetside Infantry League: Season 2 => Namex##
@@ -202,6 +206,42 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             IsParticipating = false;
         }
 
+        private bool GetIsVisibleInTeamComposer()
+        {
+            if (IsParticipating || IsOnline)
+            {
+                return true;
+            }
+            else if (IsAdHocPlayer)
+            {
+                return true;
+            }
+            else if (IsFromConstructedTeam)
+            {
+                return true;
+            }
+            else if (!IsOutfitless)
+            {
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        private bool GetIsAdHocPlayer()
+        {
+            if (IsFromConstructedTeam || !IsOutfitless)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
         #region Eqaulity
         public override bool Equals(object obj)
         {

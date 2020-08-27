@@ -15,6 +15,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
 
+        public bool IsLocked { get; set; } = false;
+
         public ScrimEventAggregate EventAggregate
         {
             get

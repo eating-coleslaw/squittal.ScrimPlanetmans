@@ -154,10 +154,10 @@
 .default {
     --sq-ps2-primary: var(--sq-pink-darker);
     --sq-ps2-primary-light: var(--sq-pink-lighter);
-    --sq-ps2-primary-ligh-alpha-10: var(--sq-pink-lighter-alpha-10);
-    --sq-ps2-primary-ligh-alpha-30: var(--sq-pink-lighter-alpha-30);
-    --sq-ps2-primary-ligh-alpha-40: var(--sq-pink-lighter-alpha-40);
-    --sq-ps2-primary-ligh-alpha-80: var(--sq-pink-lighter-alpha-80);
+    --sq-ps2-primary-light-alpha-10: var(--sq-pink-lighter-alpha-10);
+    --sq-ps2-primary-light-alpha-30: var(--sq-pink-lighter-alpha-30);
+    --sq-ps2-primary-light-alpha-40: var(--sq-pink-lighter-alpha-40);
+    --sq-ps2-primary-light-alpha-80: var(--sq-pink-lighter-alpha-80);
     /* Overlay Colors */
     /*--sq-ov-ps2-primary: var(--sq-pink);*/
     /*--sq-ov-ps2-primary: rgb(10, 0, 25, 0.8);*/
@@ -173,7 +173,8 @@
     /*--sq-ov-ps2-primary-dark-alpha-70: rgba(101, 47, 220, 0.7);*/
     --sq-ov-ps2-primary-dark-alpha-80: rgba(0, 0, 15, 0.8);
     --sq-ov-ps2-primary-dark-alpha-70: rgba(0, 0, 15, 0.7);
-    --sq-ov-ps2-primary-light: var(--sq-pink-lighter);
+    /*--sq-ov-ps2-primary-light: var(--sq-pink-lighter);*/
+    --sq-ov-ps2-primary-light: rgb(248,214,229);
     --sq-ov-ps2-primary-lightest: var(--sq-pink-lightest);
     --sq-ov-ps2-flavor: #d4d4ff;
     --sq-ov-ps2-flavor-alpha-50: rgba(212, 212, 255, 0.5);

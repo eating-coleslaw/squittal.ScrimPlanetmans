@@ -81,90 +81,116 @@
         </h4>
     }
 
-    <div style="margin: 0.2rem 0;">
-        <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            Add Outfit: <InputAlias id="addOutfitInput" @bind-Value="_inputAlias" />
-
-            <button type="submit" class="btn btn-primary">
-                <span class="oi oi-people"></span>Add
-            </button>
-        </EditForm>
-    </div>
-
-    <div style="margin: 0.2rem 0;">
-        <EditForm Model="@_inputPlayer" OnValidSubmit="HandleAddPlayerSubmit" title="Add a player to this team by name or character ID. Enter a comma-delimited list of names or character IDs to add multiple players">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            Add Player: <InputText id="addPlayerInput" @bind-Value="_inputPlayer" />
-
-            <button type="submit" class="btn btn-primary">
-                <span class="oi oi-person"></span>Add
-            </button>
-        </EditForm>
-    </div>
-
-    @if (_availableConstructedTeams.Any())
+    @if (!_isTeamLocked && !_isLockingTeam)
     {
-        <EditForm Model="@_inputConstructedTeamFactionSelection" style="display: inline-block;">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <div style="margin: 0.2rem 0;">
+            <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-            <div style="margin-bottom: 0.2rem; display: inline-block;">
-                <p style="margin-bottom: 0.2rem;">Add Premade Team: </p>
+                Add Outfit: <InputAlias id="addOutfitInput" @bind-Value="_inputAlias" />
 
-                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputConstructedTeamFactionSelection.ConstructedTeamStringId" ValueChanged="@((string s) => HandleOnChangeConstructedTeamSelection(s))" ValueExpression="@(() => _inputConstructedTeamFactionSelection.ConstructedTeamStringId)">
-                    <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
-
-                    @foreach (var team in _availableConstructedTeams)
-                    {
-                        <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
-                    }
-                </InputSelect>
-            </div>
-
-            @if (_isConstructedTeamVsAvailable)
-            {
-                <button type="submit" class="btn btn-outline-primary vs" @onclick="(() => HandleAddConstructedTeamFactionSubmit(1))" style="display: inline-block;">
-                    @*<span class="oi oi-people"></span>*@VS
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-people"></span>Add
                 </button>
-            }
+            </EditForm>
+        </div>
 
-            @if (_isConstructedTeamNcAvailable)
-            {
-                <button type="submit" class="btn btn-outline-primary nc" @onclick="(() => HandleAddConstructedTeamFactionSubmit(2))" style="display: inline-block;">
-                    @*<span class="oi oi-people"></span>*@NC
+        <div style="margin: 0.2rem 0;">
+            <EditForm Model="@_inputPlayer" OnValidSubmit="HandleAddPlayerSubmit" title="Add a player to this team by name or character ID. Enter a comma-delimited list of names or character IDs to add multiple players">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                Add Player: <InputText id="addPlayerInput" @bind-Value="_inputPlayer" />
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="oi oi-person"></span>Add
                 </button>
-            }
+            </EditForm>
+        </div>
 
-            @if (_isConstructedTeamTrAvailable)
-            {
-                <button type="submit" class="btn btn-outline-primary tr" @onclick="(() => HandleAddConstructedTeamFactionSubmit(3))" style="display: inline-block;">
-                    @*<span class="oi oi-people"></span>*@TR
-                </button>
-            }
+        @if (_availableConstructedTeams.Any())
+        {
+            <EditForm Model="@_inputConstructedTeamFactionSelection" style="display: inline-block;">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-        </EditForm>
+                <div style="margin-bottom: 0.2rem; display: inline-block;">
+                    <p style="margin-bottom: 0.2rem;">Add Premade Team: </p>
+
+                    <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem; margin-bottom: 0.2rem;" Value="@_inputConstructedTeamFactionSelection.ConstructedTeamStringId" ValueChanged="@((string s) => HandleOnChangeConstructedTeamSelection(s))" ValueExpression="@(() => _inputConstructedTeamFactionSelection.ConstructedTeamStringId)">
+                        <option value=@_noTeamSelectedStringId style="font-style: italic;">No Team Selected</option>
+
+                        @foreach (var team in _availableConstructedTeams)
+                        {
+                            <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                @if (_isConstructedTeamVsAvailable)
+                {
+                    <button type="submit" class="btn btn-outline-primary vs" @onclick="(() => HandleAddConstructedTeamFactionSubmit(1))" style="display: inline-block;">
+                        @*<span class="oi oi-people"></span>*@VS
+                    </button>
+                }
+
+                @if (_isConstructedTeamNcAvailable)
+                {
+                    <button type="submit" class="btn btn-outline-primary nc" @onclick="(() => HandleAddConstructedTeamFactionSubmit(2))" style="display: inline-block;">
+                        @*<span class="oi oi-people"></span>*@NC
+                    </button>
+                }
+
+                @if (_isConstructedTeamTrAvailable)
+                {
+                    <button type="submit" class="btn btn-outline-primary tr" @onclick="(() => HandleAddConstructedTeamFactionSubmit(3))" style="display: inline-block;">
+                        @*<span class="oi oi-people"></span>*@TR
+                    </button>
+                }
+
+            </EditForm>
+        }
     }
 
-
-    @if (_teamOutfits.Any() || _teamConstructedTeams.Any() || _teamNonOutfitPlayers.Any() || _anyPlayersOnTeam)
+    @if (!_isLockingTeam && (_teamOutfits.Any() || _teamConstructedTeams.Any() || _teamNonOutfitPlayers.Any() || _anyPlayersOnTeam))
     {
         <div style="margin: 0.2rem 0;" title="Unlock to show buttons for removing outfits and players from this team">
             <EditForm Model="@_showRemovals">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                Show Removal Controls: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" />
+                @*Show Removal Controls: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" />*@
+                <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" style="position: relative; top: 1px;"/> Show Removal Controls
             </EditForm>
         </div>
     }
 
+    @if (!_isTeamLocked && !_isLockingTeam && (_teamOutfits.Any() || _teamNonOutfitPlayers.Any() || _anyPlayersOnTeam || _teamConstructedTeams.Any()))
+    {
+        <div style="margin: 8px 0;">
+            <button type="button" class="btn btn-outline-primary" @onclick="HandleLockTeamClick" style="display: inline-block;" title="Lock this team's players. Players not currently visible will be removed">
+                <span class="oi oi-lock-locked"></span>Lock Team
+            </button>
+        </div>
+    }
+    else if (_isTeamLocked && !_isLockingTeam)
+    {
+        <div style="margin: 8px 0;">
+            <button type="button" class="btn btn-outline-primary" @onclick="HandleUnlockTeamClick" style="display: inline-block;" title="Unlock this team's players">
+                <span class="oi oi-lock-unlocked"></span>Unlock Team
+            </button>
+        </div>
+    }
 
-    <div style="margin: 0.4rem 0 0.2rem 0;">
+
+
+    @if (_isLockingTeam)
+    {
+        <SpinnerEllipsis />
+    }
+
+    <div class="@SqCssHelper.GetFactionClassFromId(_team?.FactionId)" style="margin: 0.4rem 0 0.2rem 0; padding-top: 8px; border-top: 1px solid var(--sq-ov-ps2-primary-light);">
         <div>
             <div style="display: inline-block; font-size: 0.9rem;">Point Adjustments</div>
             <button class="btn btn-link" style="padding: 0 0 0 0.5rem; font-size: smaller; vertical-align: baseline;" @onclick="TogglePointAdjustmentsVisibility">@(_extendPointAdjustments ? "Hide" : "Show")</button>
@@ -266,9 +292,6 @@
 
 <TeamComposerNonOutfitPlayers i_showRemovals=@_showRemovals i_teamOrdinal=@i_teamOrdinal />
 
-@*<p style="width: 95%; margin: 1rem 0; border-bottom: 1px solid gray;"></p>*@
-
-
 
 @code {
     [Parameter]
@@ -305,6 +328,9 @@
     private bool _extendPointAdjustments = true;
 
     private bool _anyPlayersOnTeam = false;
+
+    private bool _isTeamLocked = false;
+    private bool _isLockingTeam = false;
     #endregion
 
     #region Constructed Team Selection Variables
@@ -387,13 +413,14 @@
 
         _displayAlias.Alias = TeamsManager.GetTeamAliasDisplay(i_teamOrdinal);
 
+        _isTeamLocked = _team.IsLocked;
+
         _teamOutfits = new List<Outfit>();
         _teamOutfits.AddRange(_team.Outfits);
 
         _teamConstructedTeams = new List<ConstructedTeamMatchInfo>();
         _teamConstructedTeams.AddRange(_team.ConstructedTeamsMatchInfo);
 
-        //_anyNonOutfitPlayersOnTeam = _team.GetNonOutfitPlayers().Any();
         _anyPlayersOnTeam = (_team.Players.Count > 0);
 
         _validOutfitAliasHistory = _team.Outfits.Select(o => o.AliasLower).ToList();
@@ -637,6 +664,34 @@
         TeamsManager.RemoveTeamPointAdjustment(i_teamOrdinal, adjustment);
     }
 
+
+    private async void HandleLockTeamClick()
+    {
+        _isLockingTeam = true;
+        InvokeAsyncStateHasChanged();
+
+        try
+        {
+            //await TeamsManager.LockTeamPlayers(_renderedTeamOrdinal);
+            await Task.Run(() => TeamsManager.LockTeamPlayers(_renderedTeamOrdinal));
+            _isTeamLocked = true;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        _isLockingTeam = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleUnlockTeamClick()
+    {
+        TeamsManager.UnlockTeamPlayers(_renderedTeamOrdinal);
+        _isTeamLocked = false;
+
+        InvokeAsyncStateHasChanged();
+    }
     #endregion Form Submission & Validation
 
     #region UI & Layout Controls
@@ -809,8 +864,9 @@
         {
             _teamNonOutfitPlayers.Add(player);
 
-            //_anyNonOutfitPlayersOnTeam = _teamNonOutfitPlayers.Any();
             _anyPlayersOnTeam = (_team.Players.Count > 0);
+
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -822,8 +878,9 @@
         {
             _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
 
-            //_anyNonOutfitPlayersOnTeam = _teamNonOutfitPlayers.Any();
             _anyPlayersOnTeam = (_team.Players.Count > 0);
+
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -841,10 +898,8 @@
         {
             _teamNonOutfitPlayers.Add(player);
 
-            //_anyNonOutfitPlayersOnTeam = _teamNonOutfitPlayers.Any();
             _anyPlayersOnTeam = (_team.Players.Count > 0);
         }
-
 
         InvokeAsyncStateHasChanged();
     }

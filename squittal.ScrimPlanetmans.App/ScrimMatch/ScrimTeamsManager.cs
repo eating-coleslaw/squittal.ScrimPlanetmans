@@ -2158,9 +2158,66 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 SendPlayerStatUpdateMessage(player, overlayMessageData);
             }
         }
-        
+
 
         #endregion Reset Teams' Match Data (for Rematch)
+
+        #region Lock Team
+        public async Task LockTeamPlayers(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            try
+            {
+                team.IsLocked = true;
+                
+                // TODO: broadcast "Team Lock Status Change" message 
+
+                var playersToRemove = team.Players.Where(p => !p.IsVisibleInTeamComposer).ToList();
+
+                var removeTasks = playersToRemove.ToDictionary(p => p, p => RemoveCharacterFromTeamAndDb(p.Id));
+
+                await Task.WhenAll(removeTasks.Values);
+
+                foreach (var outfit in team.Outfits)
+                {
+                    outfit.MemberCount = team.Players.Where(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless).Count();
+
+                    var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+                    _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
+                }
+
+                //var outfit = outfitTeam.Outfits.Where(o => o.AliasLower == aliasLower).FirstOrDefault();
+                //var newMemberCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
+
+                // TODO: broadcast some other "Team Lock Status Change" message here, too?
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed locking team {teamOrdinal} players: {ex}");
+            }
+        }
+
+        public void UnlockTeamPlayers(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            team.IsLocked = true;
+
+            // TODO: broadcast "Team Lock Status Change" message;
+        }
+
+        #endregion Lock Team
 
         #region Roll Back Round
         public async Task RollBackAllTeamStats(int currentRound)
