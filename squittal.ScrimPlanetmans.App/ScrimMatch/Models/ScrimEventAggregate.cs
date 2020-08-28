@@ -30,7 +30,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int FirstCapturePoints { get; set; } = 0;
         public int SubsequentCapturePoints { get; set; } = 0;
 
-        public int CapturePoints { get; set; } = 0;
+        public int CapturePoints
+        {
+            get
+            {
+                return FirstCapturePoints + SubsequentCapturePoints;
+            }
+        }
 
         public int Kills { get; set; } = 0;
         public int Deaths { get; set; } = 0;

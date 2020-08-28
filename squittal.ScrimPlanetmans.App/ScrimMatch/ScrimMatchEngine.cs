@@ -88,7 +88,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             _messageService.DisableLogging();
 
+            var previousWorldId = MatchConfiguration.WorldIdString;
+            var previousIsManualWorldId = MatchConfiguration.IsManualWorldId;
+
             MatchConfiguration = new MatchConfiguration();
+
+            if (isRematch)
+            {
+                MatchConfiguration.TrySetWorldId(previousWorldId, previousIsManualWorldId);
+            }
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 

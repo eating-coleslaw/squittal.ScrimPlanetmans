@@ -358,9 +358,7 @@
                         _matchConfiguration.Title = newTitle;
                         MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
                     }
-
                 }
-
             }
 
             if (_activeRuleset.RulesetFacilityRules.Any())
@@ -507,7 +505,8 @@
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            _matchConfiguration = new MatchConfiguration();
+            //_matchConfiguration = new MatchConfiguration();
+            _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
 
             _matchConfiguration.RoundSecondsTotal = _activeRuleset.DefaultRoundLength;
             _matchConfiguration.Title = (_activeRuleset.DefaultMatchTitle == null) ? string.Empty : _activeRuleset.DefaultMatchTitle;
