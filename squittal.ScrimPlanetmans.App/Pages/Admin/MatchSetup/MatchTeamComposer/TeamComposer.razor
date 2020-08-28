@@ -361,6 +361,7 @@
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
+        MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
@@ -382,6 +383,7 @@
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
+        MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
@@ -952,6 +954,24 @@
         }
 
         InvokeAsyncStateHasChanged();
+    }
+
+    private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
+    {
+        var teamOrdinal = e.Message.TeamOrdinal;
+        var newIsLocked = e.Message.IsLocked;
+
+        if (teamOrdinal != _renderedTeamOrdinal)
+        {
+            return;
+        }
+
+        if (newIsLocked != _isTeamLocked)
+        {
+            _isTeamLocked = newIsLocked;
+
+            InvokeAsyncStateHasChanged();
+        }
     }
     #endregion Event Handling
 

@@ -35,12 +35,22 @@
                 @if (_renderedPlayersCount > 0)
                 {
                     <button class="btn btn-link" style="padding: 0; font-size: smaller; vertical-align: baseline;" @onclick="TogglePlayersVisibility">@(_extendPlayers ? "Hide Players" : "Show Players")</button>
-                    <span>|</span>
+                    @if (!_isTeamLocked || _renderedShowRemovals)
+                    {
+                        <span>|</span>
+                    }
                 }
-                <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RefreshOutfitPlayers">Refresh</button>
+                @if (!_isTeamLocked)
+                {
+                    <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RefreshOutfitPlayers">Refresh</button>
+                    @if (_renderedShowRemovals)
+                    {
+                        <span>|</span>
+                    }
+                }
                 @if (_renderedShowRemovals)
                 {
-                    <span>|</span><button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveOutfit">Remove</button>
+                    <button class="btn btn-link" style="padding: 0 0 0 4px; font-size: smaller; vertical-align: baseline;" @onclick="RemoveOutfit">Remove</button>
                 }
             }
         </p>
@@ -155,10 +165,15 @@ else
     private int _renderedPlayersCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
+    private bool _isTeamLocked { get; set; } = false;
+
     #region UI & Layout Variables
     private bool _extendPlayers = true;
 
+    private int _maxPlayersToExtend { get; set; }
+
     private int _defaultMaxPlayersToExtend = 8;
+    private int _lockedMaxPlayersToExtend = 12;
     #endregion
 
     #region Helpers
@@ -177,6 +192,8 @@ else
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
 
+        MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
+
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
@@ -187,6 +204,8 @@ else
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
+
+        MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -208,6 +227,9 @@ else
         {
             _renderedTeamOrdinal = i_teamOrdinal;
             _renderedOutfit = i_outfit;
+
+            _isTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
+            SetMaxPlayersToExtend();
 
             InitializePlayersData();
 
@@ -252,14 +274,17 @@ else
 
         ProcessPlayerChangesQueue();
 
-        if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-        {
-            _extendPlayers = false;
-        }
-        else
-        {
-            _extendPlayers = true;
-        }
+        //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+        //if (_renderedPlayersCount > _maxPlayersToExtend)
+        //{
+        //    _extendPlayers = false;
+        //}
+        //else
+        //{
+        //    _extendPlayers = true;
+        //}
+
+        SetExtendPlayers();
 
         message = $"Finished loading Team {_renderedTeamOrdinal} Outfit data: [{_renderedOutfit.Alias}] {_renderedOutfit.Name}";
         LogMessage(message);
@@ -362,14 +387,38 @@ else
         {
             _isLoadingMembers = false;
 
-            if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-            {
-                _extendPlayers = false;
-            }
-            else
-            {
-                _extendPlayers = true;
-            }
+            //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
+            //if (_renderedPlayersCount > _maxPlayersToExtend)
+            //{
+            //    _extendPlayers = false;
+            //}
+            //else
+            //{
+            //    _extendPlayers = true;
+            //}
+
+            SetExtendPlayers();
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
+    {
+        var teamOrdinal = e.Message.TeamOrdinal;
+        var newIsLocked = e.Message.IsLocked;
+
+        if (teamOrdinal != _renderedTeamOrdinal)
+        {
+            return;
+        }
+
+        if (newIsLocked != _isTeamLocked)
+        {
+            _isTeamLocked = newIsLocked;
+
+            SetMaxPlayersToExtend();
+            SetExtendPlayers();
 
             InvokeAsyncStateHasChanged();
         }
@@ -386,7 +435,7 @@ else
 
         TeamPlayerChangeMessage changeMessage;
 
-        if (player.IsParticipating)
+        if (player.IsParticipating || _isTeamLocked)
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
@@ -402,7 +451,6 @@ else
         _playerChangesQueue.Enqueue(changeMessage);
 
         ProcessPlayerChangesQueue();
-
     }
 
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
@@ -440,13 +488,18 @@ else
             return;
         }
 
-        // Participating players stay visible even when online
-        if (player.IsParticipating)
+        TeamPlayerChangeMessage changeMessage;
+
+        // Participating players stay visible even when online, but need to process the event to ensure online players count is correct
+        if (player.IsParticipating || _isTeamLocked)
         {
-            return;
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
         }
 
-        var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
         _playerChangesQueue.Enqueue(changeMessage);
 
         ProcessPlayerChangesQueue();
@@ -494,8 +547,22 @@ else
                     }
                 }
 
-                _renderedOutfit.MembersOnlineCount = _renderedPlayers.Where(p => p.IsOnline).Count();
+                var oldMembersOnlineCount = _renderedOutfit.MembersOnlineCount;
+                var oldPlayersCount = _renderedPlayersCount;
+
+                _renderedOutfit.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
                 _renderedPlayersCount = _renderedPlayers.Count();
+
+                changes += oldMembersOnlineCount != _renderedOutfit.MembersOnlineCount ? 1 : 0;
+                changes += oldPlayersCount != _renderedPlayersCount ? 1 : 0;
+
+                //_renderedOutfit.MembersOnlineCount = _renderedPlayers.Where(p => p.IsOnline).Count();
+                //_renderedPlayersCount = _renderedPlayers.Count();
+
+                var oldExtendPlayers = _extendPlayers;
+                SetExtendPlayers();
+
+                changes += oldExtendPlayers != _extendPlayers ? 1 : 0;
 
                 if (changes > 0)
                 {
@@ -513,6 +580,23 @@ else
         }
 
         return true;
+    }
+
+    private void SetMaxPlayersToExtend()
+    {
+        _maxPlayersToExtend = _isTeamLocked ? _lockedMaxPlayersToExtend : _defaultMaxPlayersToExtend;
+    }
+
+    private void SetExtendPlayers()
+    {
+        if (_renderedPlayersCount > _maxPlayersToExtend)
+        {
+            _extendPlayers = false;
+        }
+        else
+        {
+            _extendPlayers = true;
+        }
     }
 
     private void InvokeAsyncStateHasChanged()

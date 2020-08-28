@@ -18,6 +18,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<TeamConstructedTeamChangeEventArgs> RaiseTeamConstructedTeamChangeEvent;
         event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
         event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
+        event EventHandler<TeamLockStatusChangeEventArgs> RaiseTeamLockStatusChangeEvent;
 
         event EventHandler<PlayerNameDisplayChangeEventArgs> RaisePlayerNameDisplayChangeEvent;
 
@@ -55,6 +56,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastTeamConstructedTeamChangeMessage(TeamConstructedTeamChangeMessage message);
         void BroadcastTeamAliasChangeMessage(TeamAliasChangeMessage message);
         void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message);
+        void BroadcastTeamLockStatusChangeMessage(TeamLockStatusChangeMessage message);
         void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message);
         void BroadcastTeamStatUpdateMessage(TeamStatUpdateMessage message);
 
@@ -82,5 +84,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message);
         void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message);
+        
     }
 }

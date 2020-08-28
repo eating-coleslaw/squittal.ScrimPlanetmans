@@ -2162,7 +2162,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         #endregion Reset Teams' Match Data (for Rematch)
 
-        #region Lock Team
+        #region Team Locking
+        public bool GetTeamLockStatus(int teamOrdinal)
+        {
+            return GetTeam(teamOrdinal).IsLocked;
+        }
+
         public async Task LockTeamPlayers(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);
@@ -2175,8 +2180,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             try
             {
                 team.IsLocked = true;
-                
-                // TODO: broadcast "Team Lock Status Change" message 
+
+                // TODO: broadcast "Team Lock Status Change" message
+                _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, true));
 
                 var playersToRemove = team.Players.Where(p => !p.IsVisibleInTeamComposer).ToList();
 
@@ -2215,9 +2221,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.IsLocked = true;
 
             // TODO: broadcast "Team Lock Status Change" message;
+            _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
         }
 
-        #endregion Lock Team
+        #endregion Team Locking
 
         #region Roll Back Round
         public async Task RollBackAllTeamStats(int currentRound)
