@@ -139,6 +139,7 @@
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
+    private bool _isManualExtendValue = false;
 
     private int _maxPlayersToExtend { get; set; }
 
@@ -197,7 +198,7 @@
 
             _isTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
             SetMaxPlayersToExtend();
-            
+
             InitializePlayersData();
 
             paramsChanged = true;
@@ -247,6 +248,7 @@
     private void TogglePlayersVisibility()
     {
         _extendPlayers = !_extendPlayers;
+        _isManualExtendValue = true;
     }
     #endregion UI & Layout Controls
 
@@ -442,6 +444,11 @@
 
     private void SetExtendPlayers()
     {
+        if (_isManualExtendValue)
+        {
+            return;
+        }
+
         if (_renderedPlayersCount > _maxPlayersToExtend)
         {
             _extendPlayers = false;

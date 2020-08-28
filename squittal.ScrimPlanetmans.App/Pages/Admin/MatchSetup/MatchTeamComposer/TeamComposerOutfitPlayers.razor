@@ -167,6 +167,7 @@ else
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
+    private bool _isManualExtendValue = false;
 
     private int _maxPlayersToExtend { get; set; }
 
@@ -331,6 +332,7 @@ else
     private void TogglePlayersVisibility()
     {
         _extendPlayers = !_extendPlayers;
+        _isManualExtendValue = true;
     }
     #endregion UI & Layout Controls
 
@@ -376,6 +378,9 @@ else
             _isLoadingMembers = false;
 
             SetExtendPlayers();
+
+            _renderedOutfit.MemberCount = outfit.MemberCount;
+            _renderedOutfit.MembersOnlineCount = outfit.MembersOnlineCount;
 
             InvokeAsyncStateHasChanged();
         }
@@ -449,7 +454,6 @@ else
         else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
-
         }
 
         _playerChangesQueue.Enqueue(changeMessage);
@@ -528,7 +532,7 @@ else
                 var oldMembersOnlineCount = _renderedOutfit.MembersOnlineCount;
                 var oldPlayersCount = _renderedPlayersCount;
 
-                _renderedOutfit.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
+                //_renderedOutfit.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
                 _renderedPlayersCount = _renderedPlayers.Count();
 
                 changes += oldMembersOnlineCount != _renderedOutfit.MembersOnlineCount ? 1 : 0;
@@ -564,6 +568,11 @@ else
 
     private void SetExtendPlayers()
     {
+        if (_isManualExtendValue)
+        {
+            return;
+        }
+
         if (_renderedPlayersCount > _maxPlayersToExtend)
         {
             _extendPlayers = false;

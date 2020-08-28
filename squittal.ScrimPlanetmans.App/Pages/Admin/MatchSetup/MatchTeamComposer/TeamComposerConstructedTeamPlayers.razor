@@ -159,6 +159,8 @@ else
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
+    private bool _isManualExtendValue = false;
+
     private int _maxPlayersToExtend { get; set; }
     private int _defaultMaxPlayersToExtend = 12;
     #endregion
@@ -289,6 +291,7 @@ else
     private void TogglePlayersVisibility()
     {
         _extendPlayers = !_extendPlayers;
+        _isManualExtendValue = true;
     }
     #endregion UI & Layout Controls
 
@@ -483,12 +486,15 @@ else
                 }
 
                 var oldPlayersOnlineCount = _renderedConstructedTeamMatchInfo.MembersOnlineCount;
+                var oldFactionMembersCount = _renderedConstructedTeamMatchInfo.MembersFactionCount;
                 var oldPlayersCount = _renderedPlayersCount;
 
                 _renderedConstructedTeamMatchInfo.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
+                _renderedConstructedTeamMatchInfo.MembersFactionCount = UpdateConstructedTeamFactionMembersCount();
                 _renderedPlayersCount = _renderedPlayers.Count();
 
                 changes += oldPlayersOnlineCount != _renderedConstructedTeamMatchInfo.MembersOnlineCount ? 1 : 0;
+                changes += oldFactionMembersCount != _renderedConstructedTeamMatchInfo.MembersFactionCount ? 1 : 0;
                 changes += oldPlayersCount != _renderedPlayersCount ? 1 : 0;
 
                 var oldExtendPlayers = _extendPlayers;
@@ -522,6 +528,15 @@ else
         return true;
     }
 
+    private int UpdateConstructedTeamFactionMembersCount()
+    {
+        var count = TeamsManager.GetTeamConstructedTeamFactionPlayers(_renderedTeamOrdinal, _renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId).Count();
+
+        _renderedConstructedTeamMatchInfo.MembersFactionCount = count;
+
+        return count;
+    }
+
     private void SetMaxPlayersToExtend()
     {
         _maxPlayersToExtend = _defaultMaxPlayersToExtend;
@@ -529,6 +544,11 @@ else
 
     private void SetExtendPlayers()
     {
+        if (_isManualExtendValue)
+        {
+            return;
+        }
+
         if (_renderedPlayersCount > _maxPlayersToExtend)
         {
             _extendPlayers = false;
