@@ -10,11 +10,11 @@
 
 @if (_team != null)
 {
-    if (_team.EventAggregate.CapturePoints != 0)
+    if (_team.EventAggregate.BaseControlVictories != 0 || _team.EventAggregate.PointsPenalized != 0)
     {
         <div id="@($"{_team.Alias}-adjustmentsRow")" class="stats-row adjustments">
-            <div id="@($"{_team.Alias}-adjustmentsLabel")" class="label">Captures</div>
-            <div id="@($"{_team.Alias}-adjustmentsPoints")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.CapturePoints);">@GetPointsDisplay()</div>
+            <div id="@($"{_team.Alias}-adjustmentsLabel")" class="label">Point Adjustments</div>
+            <div id="@($"{_team.Alias}-adjustmentsPoints")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.PointAdjustments.Select(pa => pa.Points).Sum());">@GetPointsDisplay()</div>
         </div>
     }
 }
@@ -88,7 +88,11 @@
 
     private bool RenderedStatsHaveChanged(ScrimEventAggregate newAggregate)
     {
-        if (_renderedEventAggregate.CapturePoints != newAggregate.CapturePoints)
+        if (_renderedEventAggregate.PointsGranted != newAggregate.PointsGranted)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.PointsPenalized != newAggregate.PointsPenalized)
         {
             return true;
         }
@@ -107,7 +111,7 @@
 
     private string GetPointsDisplay()
     {
-        var points = _renderedEventAggregate.CapturePoints;
+        var points = _renderedEventAggregate.PointAdjustments.Select(pa => pa.Points).Sum();
 
         if (points >= 0)
         {

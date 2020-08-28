@@ -27,6 +27,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
+        public int FirstCapturePoints { get; set; } = 0;
+        public int SubsequentCapturePoints { get; set; } = 0;
+
+        public int CapturePoints { get; set; } = 0;
+
         public int Kills { get; set; } = 0;
         public int Deaths { get; set; } = 0;
         public int Headshots { get; set; } = 0;
@@ -280,6 +285,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             Points += addend.Points;
             NetScore += addend.NetScore;
+
+            FirstCapturePoints += addend.FirstCapturePoints;
+            SubsequentCapturePoints += addend.SubsequentCapturePoints;
+
             Kills += addend.Kills;
             Deaths += addend.Deaths;
             Headshots += addend.Headshots;
@@ -366,6 +375,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             Points -= subtrahend.Points;
             NetScore -= subtrahend.NetScore;
+
+            FirstCapturePoints -= subtrahend.FirstCapturePoints;
+            SubsequentCapturePoints -= subtrahend.SubsequentCapturePoints;
+
             Kills -= subtrahend.Kills;
             Deaths -= subtrahend.Deaths;
             Headshots -= subtrahend.Headshots;
