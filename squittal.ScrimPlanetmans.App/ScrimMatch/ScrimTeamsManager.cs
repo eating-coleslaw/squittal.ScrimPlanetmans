@@ -1239,8 +1239,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            _logger.LogInformation($"Started removing Revives for {characterId}");
-
             using (await _characterMatchDataLock.WaitAsync($"Revives"))
             {
                 try
@@ -1929,8 +1927,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     }
 
                     dbContext.ScrimSpotAssists.RemoveRange(allSpotAssistEvents);
-
-                    _logger.LogInformation($"Removing {allSpotAssistEvents.Count} spot assist events via Team {teamOrdinal} Character {characterId}");
 
                     await dbContext.SaveChangesAsync();
 
