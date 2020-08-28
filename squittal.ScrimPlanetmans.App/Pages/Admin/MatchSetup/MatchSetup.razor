@@ -73,7 +73,7 @@
                     <button class="btn btn-primary" @onclick="StartMatch">
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
-                    <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                    <button class="btn btn-outline-primary" @onclick="(() => ClearMatch(false))" title="Clear all team data, match data, and match configuration">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
                 }
@@ -94,7 +94,11 @@
                             <span class="oi oi-media-step-backward"></span>Reset Round
                         </button>
                     }
-                    <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                    <button class="btn btn-outline-primary" @onclick="(() => ClearMatch(true))" title="Set up a new match with the same teams" style="width: 120px;">
+                        <span class="oi oi-media-step-forward"></span>Rematch
+                    </button>
+
+                    <button class="btn btn-outline-primary" @onclick="(() => ClearMatch(false))" title="Set up a new match with new teams" style="width: 120px;">
                         <span class="oi oi-eject"></span>New Match
                     </button>
 
@@ -131,15 +135,15 @@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-                               <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputSelectRulesetStringId" ValueChanged="@((string s) => OnChangeRulesetSelection(s))" ValueExpression="@(() => _inputSelectRulesetStringId)">
+                            <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputSelectRulesetStringId" ValueChanged="@((string s) => OnChangeRulesetSelection(s))" ValueExpression="@(() => _inputSelectRulesetStringId)">
 
-                                    <option value=@_selectedRuleset.Id.ToString() label="@($"{_selectedRuleset.Name} [{_selectedRuleset.Id}]")">@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</option>
+                                <option value=@_selectedRuleset.Id.ToString() label="@($"{_selectedRuleset.Name} [{_selectedRuleset.Id}]")">@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</option>
 
-                                    @foreach (var ruleset in _rulesets.Where(r => r.Id != _selectedRuleset.Id))
-                                    {
-                                        <option value=@ruleset.Id.ToString() label="@($"{ruleset.Name} [{ruleset.Id}]")">@ruleset.Name [@ruleset.Id.ToString()]</option>
-                                    }
-                                </InputSelect>
+                                @foreach (var ruleset in _rulesets.Where(r => r.Id != _selectedRuleset.Id))
+                                {
+                                    <option value=@ruleset.Id.ToString() label="@($"{ruleset.Name} [{ruleset.Id}]")">@ruleset.Name [@ruleset.Id.ToString()]</option>
+                                }
+                            </InputSelect>
                         </EditForm>
                     }
 
@@ -168,14 +172,14 @@
                                     <option value=@_noFacilitIdValue>No Base</option>
 
                                     @foreach (var zone in _mapZones)
-                                    {
+                                            {
                                         <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
 
                                         @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                        {
+                                                {
                                             <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                        }
-                                    }
+                                                }
+                                            }
                                 </InputSelect>
                             }
                         </div>
@@ -354,9 +358,7 @@
                         _matchConfiguration.Title = newTitle;
                         MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
                     }
-
                 }
-
             }
 
             if (_activeRuleset.RulesetFacilityRules.Any())
@@ -488,7 +490,7 @@
         }
     }
 
-    private async void ClearMatch()
+    private async void ClearMatch(bool isRematch)
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound && !_isClearingMatch)
         {
@@ -497,13 +499,14 @@
 
             InvokeAsyncStateHasChanged();
 
-            await Task.Run(() => ScrimMatchEngine.ClearMatch());
+            await Task.Run(() => ScrimMatchEngine.ClearMatch(isRematch));
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            _matchConfiguration = new MatchConfiguration();
+            //_matchConfiguration = new MatchConfiguration();
+            _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
 
             _matchConfiguration.RoundSecondsTotal = _activeRuleset.DefaultRoundLength;
             _matchConfiguration.Title = (_activeRuleset.DefaultMatchTitle == null) ? string.Empty : _activeRuleset.DefaultMatchTitle;

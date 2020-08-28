@@ -74,7 +74,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
 
-        public async Task ClearMatch()
+        public async Task ClearMatch(bool isRematch)
         {
             if (_isRunning)
             {
@@ -82,10 +82,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             _wsMonitor.DisableScoring();
-            _wsMonitor.RemoveAllCharacterSubscriptions();
+            if (!isRematch)
+            {
+                _wsMonitor.RemoveAllCharacterSubscriptions();
+            }
             _messageService.DisableLogging();
 
+            var previousWorldId = MatchConfiguration.WorldIdString;
+            var previousIsManualWorldId = MatchConfiguration.IsManualWorldId;
+
             MatchConfiguration = new MatchConfiguration();
+
+            if (isRematch)
+            {
+                MatchConfiguration.TrySetWorldId(previousWorldId, previousIsManualWorldId);
+            }
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
@@ -97,7 +108,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _latestTimerTickMessage = null;
 
-            _teamsManager.ClearAllTeams();
+            if (isRematch)
+            {
+                _teamsManager.ResetAllTeamsMatchData();
+            }
+            else
+            {
+                _teamsManager.ClearAllTeams();
+            }
 
             SendMatchStateUpdateMessage();
             SendMatchConfigurationUpdateMessage();

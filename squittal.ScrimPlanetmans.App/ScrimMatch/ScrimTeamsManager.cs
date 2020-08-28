@@ -502,7 +502,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     anyPlayersAdded = true;
                 }
             }
-            
+
+            var newMemberCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
+            outfit.MemberCount = newMemberCount;
+
+            var newOnlineCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && p.IsOnline).Count();
+            outfit.MembersOnlineCount = newOnlineCount;
+
             _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
 
             return anyPlayersAdded;
@@ -682,8 +688,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             var newMemberCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
-
             outfit.MemberCount = newMemberCount;
+
+            var newOnlineCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && p.IsOnline).Count();
+            outfit.MembersOnlineCount = newOnlineCount;
 
             var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
             _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
@@ -730,22 +738,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var outfit = team.Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
 
-            team.TryRemoveOutfit(aliasLower);
-
-            var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).ToList();
-
-            if (players == null || !players.Any())
+            if(!team.TryRemoveOutfit(aliasLower))
             {
                 return false;
             }
 
+            var players = team.Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).ToList();
+
             var anyPlayersRemoved = false;
 
-            foreach (var player in players)
+            if (players != null && players.Any())
             {
-                if (RemovePlayerFromTeam(player))
+                foreach (var player in players)
                 {
-                    anyPlayersRemoved = true;
+                    if (RemovePlayerFromTeam(player))
+                    {
+                        anyPlayersRemoved = true;
+                    }
                 }
             }
 
@@ -1238,8 +1247,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return;
             }
-
-            _logger.LogInformation($"Started removing Revives for {characterId}");
 
             using (await _characterMatchDataLock.WaitAsync($"Revives"))
             {
@@ -1930,8 +1937,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                     dbContext.ScrimSpotAssists.RemoveRange(allSpotAssistEvents);
 
-                    _logger.LogInformation($"Removing {allSpotAssistEvents.Count} spot assist events via Team {teamOrdinal} Character {characterId}");
-
                     await dbContext.SaveChangesAsync();
 
                 }
@@ -1953,10 +1958,41 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            var team = GetTeam(player.TeamOrdinal);
+            //string aliasLower = string.Empty;
 
-            if ( RemovePlayerFromTeam(player))
+            //if (!player.IsOutfitless && !player.IsFromConstructedTeam && !string.IsNullOrWhiteSpace(player.OutfitAliasLower))
+            //{
+            //    aliasLower = player.OutfitAliasLower;
+            //}
+
+            if (RemovePlayerFromTeam(player))
             {
+                var team = GetTeam(player.TeamOrdinal);
+
+                if (!player.IsOutfitless && !player.IsFromConstructedTeam && !string.IsNullOrWhiteSpace(player.OutfitAliasLower))
+                {
+                    var outfit = team.Outfits.Where(o => o.AliasLower == player.OutfitAliasLower).FirstOrDefault();
+
+                    if (outfit != null)
+                    {
+                        outfit.MemberCount -= 1;
+                        outfit.MembersOnlineCount -= player.IsOnline ? 1 : 0;
+                    }
+                }
+                else if (player.IsFromConstructedTeam && player.ConstructedTeamId != null)
+                {
+                    var constructedTeamId = (int)player.ConstructedTeamId;
+
+                    var constructedTeamMatchInfo = team.ConstructedTeamsMatchInfo.Where(t => t.ConstructedTeam.Id == constructedTeamId).FirstOrDefault();
+
+                    if (constructedTeamMatchInfo != null)
+                    {
+                        constructedTeamMatchInfo.MembersFactionCount -= 1;
+                        //constructedTeamMatchInfo.TotalMembersCount -= 1;
+                        constructedTeamMatchInfo.MembersOnlineCount -= player.IsOnline ? 1 : 0;
+                    }
+                }
+
                 if (characterId == MaxPlayerPointsTracker.GetOwningCharacterId())
                 {
                     // TODO: Update Match Max Player Points
@@ -2111,9 +2147,114 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             team.ClearEventAggregateHistory();
+
+            var oldAlias = team.Alias;
+            team.ResetAlias($"{_defaultAliasPreText}{teamOrdinal}");
+
+            _messageService.BroadcastTeamAliasChangeMessage(new TeamAliasChangeMessage(teamOrdinal, team.Alias, oldAlias));
             // TODO: broadcast "Finished Clearing Team" message
         }
         #endregion Clear Teams
+
+        #region Reset Teams' Match Data (for Rematch)
+        public void ResetAllTeamsMatchData()
+        {
+            MaxPlayerPointsTracker = new MaxPlayerPointsTracker();
+            
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                ResetTeamMatchData(teamOrdinal);
+            }
+        }
+
+        private void ResetTeamMatchData(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            var overlayMessageData = new OverlayMessageData
+            {
+                RedrawPointGraph = true,
+                MatchMaxPlayerPoints = MaxPlayerPointsTracker.GetMaxPoints()
+            };
+
+            team.ResetMatchData();
+            SendTeamStatUpdateMessage(team, overlayMessageData);
+
+            var allPlayers = team.Players.ToList();
+            foreach (var player in allPlayers)
+            {
+                player.ResetMatchData();
+
+                SendPlayerStatUpdateMessage(player, overlayMessageData);
+            }
+        }
+
+
+        #endregion Reset Teams' Match Data (for Rematch)
+
+        #region Team Locking
+        public bool GetTeamLockStatus(int teamOrdinal)
+        {
+            return GetTeam(teamOrdinal).IsLocked;
+        }
+
+        public async Task LockTeamPlayers(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            try
+            {
+                team.IsLocked = true;
+
+                _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, true));
+
+                var playersToRemove = team.Players.Where(p => !p.IsVisibleInTeamComposer).ToList();
+
+                var removeTasks = playersToRemove.ToDictionary(p => p, p => RemoveCharacterFromTeamAndDb(p.Id));
+
+                await Task.WhenAll(removeTasks.Values);
+
+                foreach (var outfit in team.Outfits)
+                {
+                    outfit.MemberCount = team.Players.Where(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless).Count();
+
+                    var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
+                    _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
+                }
+
+                // TODO: broadcast some other "Team Lock Status Change" message here, too?
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed locking team {teamOrdinal} players: {ex}");
+            }
+        }
+
+        public void UnlockTeamPlayers(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return;
+            }
+
+            team.IsLocked = true;
+
+            _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
+        }
+
+        #endregion Team Locking
 
         #region Roll Back Round
         public async Task RollBackAllTeamStats(int currentRound)
@@ -2124,7 +2265,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 RollBackTeamStats(teamOrdinal, currentRound);
 
-                //await SaveTeamMatchResultsToDb(teamOrdinal);
                 var teamTask = SaveTeamMatchResultsToDb(teamOrdinal);
                 TaskList.Add(teamTask);
             }
@@ -2149,16 +2289,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.EventAggregateTracker.RollBackRound(currentRound);
             
-            //var players = team.ParticipatingPlayers.ToList();
             var players = team.GetParticipatingPlayers();
 
             foreach (var player in players)
             {
                 player.EventAggregateTracker.RollBackRound(currentRound);
-
-                //team.ParticipatingPlayers.RemoveAll(p => p.Id == player.Id);
-
-                //_participatingPlayers.RemoveAll(p => p.Id == player.Id);
 
                 SendPlayerStatUpdateMessage(player);
             }

@@ -2,7 +2,6 @@
 using squittal.ScrimPlanetmans.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
-using squittal.ScrimPlanetmans.Data.Models;
 
 using System.Collections.Concurrent;
 
@@ -14,6 +13,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public string NameInternal { get; set; } //team1 or team2
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
+
+        public bool IsLocked { get; set; } = false;
 
         public ScrimEventAggregate EventAggregate
         {
@@ -63,6 +64,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return false;
             }
+        }
+
+        public void ResetAlias(string alias)
+        {
+            Alias = alias;
+            HasCustomAlias = false;
         }
 
         public bool ContainsPlayer(string characterId)
@@ -201,6 +208,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
 
             return true;
+        }
+
+        public void ResetMatchData()
+        {
+            ClearEventAggregateHistory();
+
+            ParticipatingPlayers.Clear();
+            ParticipatingPlayersMap.Clear();
         }
 
         public bool UpdateParticipatingPlayer(Player player)

@@ -55,7 +55,6 @@
         }
         else
         {
-            @*<td title="@Player.NameFull [@(Player.Id)]">*@
             <td title="@GetPlayerNameElementTitle()">
                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@Player.NameDisplay</span>
                 @if (Player.PrestigeLevel != 0)
@@ -74,10 +73,11 @@
             </td>
         }
 
-        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Kills);">@(Player.EventAggregate.Kills)</td>
-        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Deaths);">@(Player.EventAggregate.Deaths)</td>
-        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Points);">@(Player.EventAggregate.Points)</td>
-        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.NetScore);">@(Player.EventAggregate.NetScore)</td>
+        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Kills); text-align: right;">@(Player.EventAggregate.Kills)</td>
+        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Deaths); text-align: right;">@(Player.EventAggregate.Deaths)</td>
+        @*<td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.NetScore); text-align: right;">@(Player.EventAggregate.NetScore)</td>*@
+        <td style="opacity: @GetStatOpacity(Player.EventAggregate.NetScore); text-align: right;">@(Player.EventAggregate.NetScore)</td>
+        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.Points); text-align: right;">@(Player.EventAggregate.Points)</td>
 
         <td style="width: 15px; text-align: right;">
             @if (Player.IsBenched)
@@ -159,7 +159,6 @@
     {
         var paramsChanged = false;
 
-        //base.OnParametersSet();
         if (_renderedPlayer != Player)
         {
             _renderedPlayer = Player;
@@ -233,11 +232,6 @@
     private async void RemovePlayer()
     {
         await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(Player.Id);
-        //if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
-        //{
-        //    _teamPlayers.RemoveAll(p => p.Id == characterId);
-        //    _teamNonOutfitPlayers.RemoveAll(p => p.Id == characterId);
-        //}
     }
 
     private void HandleSubstitutePlayer()

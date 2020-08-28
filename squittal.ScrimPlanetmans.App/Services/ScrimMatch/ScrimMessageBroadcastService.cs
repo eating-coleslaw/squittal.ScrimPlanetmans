@@ -29,11 +29,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
         public delegate void TeamAliasChangeEventHandler(object sender, TeamAliasChangeEventArgs e);
         
+        public event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
+        public delegate void TeamFactionChangeEventHandler(object sender, TeamFactionChangeEventArgs e);
+
+        public event EventHandler<TeamLockStatusChangeEventArgs> RaiseTeamLockStatusChangeEvent;
+        public delegate void TeamLockStatusChangeEventHandler(object sender, TeamLockStatusChangeEventArgs e);
+        
         public event EventHandler<PlayerNameDisplayChangeEventArgs> RaisePlayerNameDisplayChangeEvent;
         public delegate void PlayerNameDisplayChangeEventHandler(object sender, PlayerNameDisplayChangeEventArgs e);
 
-        public event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
-        public delegate void TeamFactionChangeEventHandler(object sender, TeamFactionChangeEventArgs e);
 
         public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
         public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
@@ -346,6 +350,28 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         {
             RaiseTeamAliasChangeEvent?.Invoke(this, e);
         }
+
+        public void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message)
+        {
+            OnRaiseTeamFactionChangeEvent(new TeamFactionChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseTeamFactionChangeEvent(TeamFactionChangeEventArgs e)
+        {
+            RaiseTeamFactionChangeEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastTeamLockStatusChangeMessage(TeamLockStatusChangeMessage message)
+        {
+            OnRaiseTeamLockStatusChangeEvent(new TeamLockStatusChangeEventArgs(message));
+
+            TrySaveToLogFile(message.Info);
+        }
+        protected virtual void OnRaiseTeamLockStatusChangeEvent(TeamLockStatusChangeEventArgs e)
+        {
+            RaiseTeamLockStatusChangeEvent?.Invoke(this, e);
+        }
         
         public void BroadcastPlayerNameDisplayChangeMessage(PlayerNameDisplayChangeMessage message)
         {
@@ -358,16 +384,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaisePlayerNameDisplayChangeEvent?.Invoke(this, e);
         }
 
-        public void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message)
-        {
-            OnRaiseTeamFactionChangeEvent(new TeamFactionChangeEventArgs(message));
-
-            TrySaveToLogFile(message.Info);
-        }
-        protected virtual void OnRaiseTeamFactionChangeEvent(TeamFactionChangeEventArgs e)
-        {
-            RaiseTeamFactionChangeEvent?.Invoke(this, e);
-        }
 
         #region Constructed Team Messages
         public void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message)

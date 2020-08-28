@@ -478,6 +478,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 BaseDefenses = (type == FacilityControlType.Defense ? 1 : 0)
             };
 
+            if (actionType == ScrimActionType.FirstBaseCapture)
+            {
+                teamUpdate.FirstCapturePoints = points;
+            }
+            else if (actionType == ScrimActionType.SubsequentBaseCapture)
+            {
+                teamUpdate.SubsequentCapturePoints = points;
+            }
+
             _teamsManager.UpdateTeamStats(teamOrdinal, teamUpdate);
             
             return points;

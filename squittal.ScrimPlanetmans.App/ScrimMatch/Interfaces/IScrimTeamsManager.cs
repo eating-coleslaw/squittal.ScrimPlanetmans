@@ -79,5 +79,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         bool IsConstructedTeamFactionAvailable(int constructedTeamId, int factionId);
         Team GetTeamFromConstructedTeamFaction(int constructedTeamId, int factionId);
         bool IsConstructedTeamAnyFactionAvailable(int constructedTeamId);
+        void ResetAllTeamsMatchData();
+        Task LockTeamPlayers(int teamOrdinal);
+        void UnlockTeamPlayers(int teamOrdinal);
+        bool GetTeamLockStatus(int teamOrdinal);
     }
 }

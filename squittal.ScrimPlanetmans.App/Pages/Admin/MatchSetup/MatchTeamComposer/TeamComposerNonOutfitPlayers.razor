@@ -24,7 +24,7 @@
     <div class="sq-mini-card-12 default">
 
         <h5 style="color: var(--sq-pink); margin-bottom: 0.1rem;  padding: 8px 0 0 16px;">
-            <b>Other Players 2</b> (@_renderedPlayersCount | @_renderedPlayersOnlineCount)
+            <b>Other Players</b> (@_renderedPlayersCount | @_renderedPlayersOnlineCount)
         </h5>
 
         <p style="margin: 0 0 0.1rem 0; padding-left: 16px;">
@@ -52,10 +52,10 @@
                                     <th style="padding-right: 5px; width: 15px;"></th>
                                     <th style="padding-right: 0px; padding-left: 0px; width: 7px;"></th>
                                     <th></th>
-                                    <th>K</th>
-                                    <th>D</th>
-                                    <th>P</th>
-                                    <th>N</th>
+                                    <th style="text-align: right;">K</th>
+                                    <th style="text-align: right;">D</th>
+                                    <th style="text-align: right;">N</th>
+                                    <th style="text-align: right;">P</th>
                                     <th style="padding-right: 5px; width: 15px;"></th>
                                     @if (_renderedShowRemovals)
                                     {
@@ -81,16 +81,14 @@
                                 <tr style="border-bottom: 1px solid var(--sq-pink-lighter-alpha-50)">
                                     @if (!_renderedPlayers.Any(p => !p.IsBenched))
                                     {
-                                        @*<th colspan="2" style="font-weight: 400;">Benched Players</th>*@
                                         <th colspan="3" style="font-weight: 400;">Benched Players</th>
-                                        <th>K</th>
-                                        <th>D</th>
-                                        <th>P</th>
-                                        <th>N</th>
+                                        <th style="text-align: right;">K</th>
+                                        <th style="text-align: right;">D</th>
+                                        <th style="text-align: right;">N</th>
+                                        <th style="text-align: right;">P</th>
                                     }
                                     else
                                     {
-                                        @*<td colspan="6" style="font-weight: 400;">Benched Players</td>*@
                                         <td colspan="7" style="font-weight: 400;">Benched Players</td>
                                     }
 
@@ -137,10 +135,16 @@
     private int _renderedPlayersOnlineCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
+    private bool _isTeamLocked { get; set; } = false;
+
     #region UI & Layout Variables
     private bool _extendPlayers = true;
+    private bool _isManualExtendValue = false;
+
+    private int _maxPlayersToExtend { get; set; }
 
     private int _defaultMaxPlayersToExtend = 8;
+    private int _lockedMaxPlayersToExtend = 12;
     #endregion
 
     #region Helpers
@@ -158,6 +162,8 @@
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
+        MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
+
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
@@ -167,6 +173,8 @@
     public void Dispose()
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
+
+        MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -187,6 +195,9 @@
         if (i_teamOrdinal != _renderedTeamOrdinal)
         {
             _renderedTeamOrdinal = i_teamOrdinal;
+
+            _isTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
+            SetMaxPlayersToExtend();
 
             InitializePlayersData();
 
@@ -216,7 +227,7 @@
 
                 _playerChangesQueue.Enqueue(changeMessage);
             }
-            else // if (player.IsOnline) - Always show all non-outfit players
+            else // Always show all non-outfit players
             {
                 changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
 
@@ -226,14 +237,7 @@
 
         ProcessPlayerChangesQueue();
 
-        if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-        {
-            _extendPlayers = false;
-        }
-        else
-        {
-            _extendPlayers = true;
-        }
+        SetExtendPlayers();
 
         message = $"Finished loading Team {_renderedTeamOrdinal} Non-Outfit Players data";
         LogMessage(message);
@@ -244,6 +248,7 @@
     private void TogglePlayersVisibility()
     {
         _extendPlayers = !_extendPlayers;
+        _isManualExtendValue = true;
     }
     #endregion UI & Layout Controls
 
@@ -251,6 +256,27 @@
     private void LogMessage(string message)
     {
         MessageService.BroadcastSimpleMessage(message);
+    }
+
+    private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
+    {
+        var teamOrdinal = e.Message.TeamOrdinal;
+        var newIsLocked = e.Message.IsLocked;
+
+        if (teamOrdinal != _renderedTeamOrdinal)
+        {
+            return;
+        }
+
+        if (newIsLocked != _isTeamLocked)
+        {
+            _isTeamLocked = newIsLocked;
+
+            SetMaxPlayersToExtend();
+            SetExtendPlayers();
+
+            InvokeAsyncStateHasChanged();
+        }
     }
 
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
@@ -284,14 +310,10 @@
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
-        else //if (player.IsOnline)
+        else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
         }
-        //else
-        //{
-        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        //}
 
         _playerChangesQueue.Enqueue(changeMessage);
 
@@ -330,23 +352,9 @@
         var player = e.Message.Player;
 
         return;
-
-        //if (!ShouldProcessPlayer(player))
-        //{
-        //    return;
-        //}
-
-        //// Participating players stay visible even when online
-        //if (player.IsParticipating)
-        //{
-        //    return;
-        //}
-
-        //var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        //_playerChangesQueue.Enqueue(changeMessage);
-
-        //ProcessPlayerChangesQueue();
     }
+
+
     #endregion Event Handling
 
     private void ProcessPlayerChangesQueue()
@@ -362,9 +370,13 @@
                     var player = changeMessage.Player;
                     var changeType = changeMessage.ChangeType;
 
-                    if (changeType == TeamPlayerChangeType.Add)
+                    if (_isTeamLocked)
                     {
-                        if (!_renderedPlayers.Contains(player))// && (player.IsParticipating || player.IsOnline))
+                        // Do nothing to _renderedPlayers, but still want to update player counts
+                    }
+                    else if (changeType == TeamPlayerChangeType.Add)
+                    {
+                        if (!_renderedPlayers.Contains(player))
                         {
                             _renderedPlayers.Add(player);
                             changes += 1;
@@ -385,13 +397,22 @@
                     }
                     else if (changeType == TeamPlayerChangeType.SetInactive)
                     {
-                        //_renderedPlayers.Remove(player);
-                        //changes += 1;
                     }
                 }
 
+                var oldPlayersOnlineCount = _renderedPlayersOnlineCount;
+                var oldPlayersCount = _renderedPlayersCount;
+
                 _renderedPlayersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
                 _renderedPlayersCount = _renderedPlayers.Count();
+
+                changes += oldPlayersOnlineCount != _renderedPlayersOnlineCount ? 1 : 0;
+                changes += oldPlayersCount != _renderedPlayersCount ? 1 : 0;
+
+                var oldExtendPlayers = _extendPlayers;
+                SetExtendPlayers();
+
+                changes += oldExtendPlayers != _extendPlayers ? 1 : 0;
 
                 if (changes > 0)
                 {
@@ -414,6 +435,28 @@
     private string GetWorldName(int worldId)
     {
         return _worlds.Where(w => w.Id == worldId).Select(w => w.Name).FirstOrDefault();
+    }
+
+    private void SetMaxPlayersToExtend()
+    {
+        _maxPlayersToExtend = _defaultMaxPlayersToExtend;
+    }
+
+    private void SetExtendPlayers()
+    {
+        if (_isManualExtendValue)
+        {
+            return;
+        }
+
+        if (_renderedPlayersCount > _maxPlayersToExtend)
+        {
+            _extendPlayers = false;
+        }
+        else
+        {
+            _extendPlayers = true;
+        }
     }
 
     private void InvokeAsyncStateHasChanged()
