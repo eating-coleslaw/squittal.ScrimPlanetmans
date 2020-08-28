@@ -370,11 +370,7 @@
                     var player = changeMessage.Player;
                     var changeType = changeMessage.ChangeType;
 
-                    if (_isTeamLocked)
-                    {
-                        // Do nothing to _renderedPlayers, but still want to update player counts
-                    }
-                    else if (changeType == TeamPlayerChangeType.Add)
+                    if (changeType == TeamPlayerChangeType.Add)
                     {
                         if (!_renderedPlayers.Contains(player))
                         {
