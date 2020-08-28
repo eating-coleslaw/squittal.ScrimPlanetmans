@@ -94,7 +94,6 @@
                                 <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
                                     @if (!_renderedPlayers.Any(p => !p.IsBenched))
                                     {
-                                        @*<th colspan="2" style="font-weight: 400;">Benched Players</th>*@
                                         <th colspan="3" style="font-weight: 400;">Benched Players</th>
                                         <th>K</th>
                                         <th>D</th>
@@ -103,7 +102,6 @@
                                     }
                                     else
                                     {
-                                        @*<td colspan="6" style="font-weight: 400;">Benched Players</td>*@
                                         <td colspan="7" style="font-weight: 400;">Benched Players</td>
                                     }
 
@@ -260,7 +258,7 @@ else
 
                 _playerChangesQueue.Enqueue(changeMessage);
             }
-            else //if (player.IsOnline)
+            else
             {
                 changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
 
@@ -270,14 +268,6 @@ else
 
         ProcessPlayerChangesQueue();
 
-        //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-        //{
-        //    _extendPlayers = false;
-        //}
-        //else
-        //{
-        //    _extendPlayers = true;
-        //}
         SetExtendPlayers();
 
         message = $"Finished loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name} - Faction {_renderedConstructedTeamMatchInfo.ActiveFactionId}";
@@ -290,7 +280,6 @@ else
     {
         if (!_isLoadingMembers)
         {
-            //TeamsManager.RemoveConstructedTeamFactionFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
             await TeamsManager.RemoveConstructedTeamFactionFromTeamAndDb(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
         }
     }
@@ -347,14 +336,6 @@ else
 
             _renderedConstructedTeamMatchInfo.MembersFactionCount = e.Message.PlayersFound == null ? 0 : e.Message.PlayersFound;
 
-            //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-            //{
-            //    _extendPlayers = false;
-            //}
-            //else
-            //{
-            //    _extendPlayers = true;
-            //}
             SetExtendPlayers();
 
             InvokeAsyncStateHasChanged();
@@ -397,14 +378,10 @@ else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
-        else //if (player.IsOnline)
+        else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
         }
-        //else
-        //{
-        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        //}
 
         _playerChangesQueue.Enqueue(changeMessage);
 
@@ -479,13 +456,9 @@ else
                     var player = changeMessage.Player;
                     var changeType = changeMessage.ChangeType;
 
-                    if (_isTeamLocked)
+                    if (changeType == TeamPlayerChangeType.Add)
                     {
-                        // Do nothing to _renderedPlayers, but still want to update player counts
-                    }
-                    else if (changeType == TeamPlayerChangeType.Add)
-                    {
-                        if (!_renderedPlayers.Contains(player)) // && (player.IsParticipating || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player))
                         {
                             _renderedPlayers.Add(player);
                             changes += 1;
@@ -506,13 +479,8 @@ else
                     }
                     else if (changeType == TeamPlayerChangeType.SetInactive)
                     {
-                        //_renderedPlayers.Remove(player);
-                        //changes += 1;
                     }
                 }
-
-                //_renderedConstructedTeamMatchInfo.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
-                //_renderedPlayersCount = _renderedPlayers.Count();
 
                 var oldPlayersOnlineCount = _renderedConstructedTeamMatchInfo.MembersOnlineCount;
                 var oldPlayersCount = _renderedPlayersCount;

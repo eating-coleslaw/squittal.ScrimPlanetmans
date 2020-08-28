@@ -81,7 +81,6 @@
                                 <tr style="border-bottom: 1px solid var(--sq-pink-lighter-alpha-50)">
                                     @if (!_renderedPlayers.Any(p => !p.IsBenched))
                                     {
-                                        @*<th colspan="2" style="font-weight: 400;">Benched Players</th>*@
                                         <th colspan="3" style="font-weight: 400;">Benched Players</th>
                                         <th>K</th>
                                         <th>D</th>
@@ -90,7 +89,6 @@
                                     }
                                     else
                                     {
-                                        @*<td colspan="6" style="font-weight: 400;">Benched Players</td>*@
                                         <td colspan="7" style="font-weight: 400;">Benched Players</td>
                                     }
 
@@ -228,7 +226,7 @@
 
                 _playerChangesQueue.Enqueue(changeMessage);
             }
-            else // if (player.IsOnline) - Always show all non-outfit players
+            else // Always show all non-outfit players
             {
                 changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
 
@@ -238,14 +236,6 @@
 
         ProcessPlayerChangesQueue();
 
-        //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-        //{
-        //    _extendPlayers = false;
-        //}
-        //else
-        //{
-        //    _extendPlayers = true;
-        //}
         SetExtendPlayers();
 
         message = $"Finished loading Team {_renderedTeamOrdinal} Non-Outfit Players data";
@@ -318,14 +308,10 @@
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
-        else //if (player.IsOnline)
+        else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
         }
-        //else
-        //{
-        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        //}
 
         _playerChangesQueue.Enqueue(changeMessage);
 
@@ -364,22 +350,6 @@
         var player = e.Message.Player;
 
         return;
-
-        //if (!ShouldProcessPlayer(player))
-        //{
-        //    return;
-        //}
-
-        //// Participating players stay visible even when online
-        //if (player.IsParticipating)
-        //{
-        //    return;
-        //}
-
-        //var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        //_playerChangesQueue.Enqueue(changeMessage);
-
-        //ProcessPlayerChangesQueue();
     }
 
 
@@ -404,7 +374,7 @@
                     }
                     else if (changeType == TeamPlayerChangeType.Add)
                     {
-                        if (!_renderedPlayers.Contains(player))// && (player.IsParticipating || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player))
                         {
                             _renderedPlayers.Add(player);
                             changes += 1;
@@ -425,8 +395,6 @@
                     }
                     else if (changeType == TeamPlayerChangeType.SetInactive)
                     {
-                        //_renderedPlayers.Remove(player);
-                        //changes += 1;
                     }
                 }
 
@@ -454,7 +422,7 @@
 
     private bool ShouldProcessPlayer(Player player)
     {
-        if (player.TeamOrdinal != i_teamOrdinal || !player.IsOutfitless || player.IsFromConstructedTeam) // || _isTeamLocked)
+        if (player.TeamOrdinal != i_teamOrdinal || !player.IsOutfitless || player.IsFromConstructedTeam)
         {
             return false;
         }

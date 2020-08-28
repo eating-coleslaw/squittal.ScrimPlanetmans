@@ -113,35 +113,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendMatchConfigurationUpdateMessage();
         }
 
-        //public async Task ClearMatchForRematch()
-        //{
-        //    if (_isRunning)
-        //    {
-        //        await EndRound();
-        //    }
-
-        //    _wsMonitor.DisableScoring();
-        //    _wsMonitor.RemoveAllCharacterSubscriptions();
-        //    _messageService.DisableLogging();
-
-        //    MatchConfiguration = new MatchConfiguration();
-
-        //    _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
-
-        //    _matchState = MatchState.Uninitialized;
-        //    _currentRound = 0;
-
-        //    _matchDataService.CurrentMatchRound = _currentRound;
-        //    _matchDataService.CurrentMatchId = string.Empty;
-
-        //    _latestTimerTickMessage = null;
-
-        //    _teamsManager.ResetAllTeamsMatchData();
-
-        //    SendMatchStateUpdateMessage();
-        //    SendMatchConfigurationUpdateMessage();
-        //}
-
         public void ConfigureMatch(MatchConfiguration configuration)
         {
             MatchConfiguration = configuration;

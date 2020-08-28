@@ -55,7 +55,6 @@
         }
         else
         {
-            @*<td title="@Player.NameFull [@(Player.Id)]">*@
             <td title="@GetPlayerNameElementTitle()">
                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@Player.NameDisplay</span>
                 @if (Player.PrestigeLevel != 0)
@@ -159,7 +158,6 @@
     {
         var paramsChanged = false;
 
-        //base.OnParametersSet();
         if (_renderedPlayer != Player)
         {
             _renderedPlayer = Player;
@@ -233,11 +231,6 @@
     private async void RemovePlayer()
     {
         await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(Player.Id);
-        //if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
-        //{
-        //    _teamPlayers.RemoveAll(p => p.Id == characterId);
-        //    _teamNonOutfitPlayers.RemoveAll(p => p.Id == characterId);
-        //}
     }
 
     private void HandleSubstitutePlayer()

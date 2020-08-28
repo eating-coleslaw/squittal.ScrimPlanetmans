@@ -1,5 +1,4 @@
-﻿@using Newtonsoft.Json.Linq;
-@using squittal.ScrimPlanetmans.App.Pages.Shared;
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.CensusStream;
 @using squittal.ScrimPlanetmans.Data.Models;
 @using squittal.ScrimPlanetmans.Models;
@@ -10,7 +9,6 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
-@*@using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup.MatchTeamComposer;*@
 
 @inject IScrimTeamsManager TeamsManager
 @inject IConstructedTeamService ConstructedTeamsService
@@ -131,21 +129,21 @@
                 @if (_isConstructedTeamVsAvailable)
                 {
                     <button type="submit" class="btn btn-outline-primary vs" @onclick="(() => HandleAddConstructedTeamFactionSubmit(1))" style="display: inline-block;">
-                        @*<span class="oi oi-people"></span>*@VS
+                        VS
                     </button>
                 }
 
                 @if (_isConstructedTeamNcAvailable)
                 {
                     <button type="submit" class="btn btn-outline-primary nc" @onclick="(() => HandleAddConstructedTeamFactionSubmit(2))" style="display: inline-block;">
-                        @*<span class="oi oi-people"></span>*@NC
+                        NC
                     </button>
                 }
 
                 @if (_isConstructedTeamTrAvailable)
                 {
                     <button type="submit" class="btn btn-outline-primary tr" @onclick="(() => HandleAddConstructedTeamFactionSubmit(3))" style="display: inline-block;">
-                        @*<span class="oi oi-people"></span>*@TR
+                        TR
                     </button>
                 }
 
@@ -160,7 +158,6 @@
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                @*Show Removal Controls: <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" />*@
                 <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" style="position: relative; top: 1px;"/> Show Removal Controls
             </EditForm>
         </div>
@@ -674,7 +671,6 @@
 
         try
         {
-            //await TeamsManager.LockTeamPlayers(_renderedTeamOrdinal);
             await Task.Run(() => TeamsManager.LockTeamPlayers(_renderedTeamOrdinal));
             _isTeamLocked = true;
         }

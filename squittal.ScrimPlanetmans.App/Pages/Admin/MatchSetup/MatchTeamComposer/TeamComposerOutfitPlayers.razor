@@ -102,7 +102,6 @@
                                 <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
                                     @if (!_renderedPlayers.Any(p => !p.IsBenched))
                                     {
-                                        @*<th colspan="2" style="font-weight: 400;">Benched Players</th>*@
                                         <th colspan="3" style="font-weight: 400;">Benched Players</th>
                                         <th>K</th>
                                         <th>D</th>
@@ -111,7 +110,6 @@
                                     }
                                     else
                                     {
-                                        @*<td colspan="6" style="font-weight: 400;">Benched Players</td>*@
                                         <td colspan="7" style="font-weight: 400;">Benched Players</td>
                                     }
 
@@ -274,16 +272,6 @@ else
 
         ProcessPlayerChangesQueue();
 
-        //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-        //if (_renderedPlayersCount > _maxPlayersToExtend)
-        //{
-        //    _extendPlayers = false;
-        //}
-        //else
-        //{
-        //    _extendPlayers = true;
-        //}
-
         SetExtendPlayers();
 
         message = $"Finished loading Team {_renderedTeamOrdinal} Outfit data: [{_renderedOutfit.Alias}] {_renderedOutfit.Name}";
@@ -386,16 +374,6 @@ else
         else if (changeType == TeamChangeType.OutfitMembersLoadCompleted)
         {
             _isLoadingMembers = false;
-
-            //if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-            //if (_renderedPlayersCount > _maxPlayersToExtend)
-            //{
-            //    _extendPlayers = false;
-            //}
-            //else
-            //{
-            //    _extendPlayers = true;
-            //}
 
             SetExtendPlayers();
 
@@ -555,9 +533,6 @@ else
 
                 changes += oldMembersOnlineCount != _renderedOutfit.MembersOnlineCount ? 1 : 0;
                 changes += oldPlayersCount != _renderedPlayersCount ? 1 : 0;
-
-                //_renderedOutfit.MembersOnlineCount = _renderedPlayers.Where(p => p.IsOnline).Count();
-                //_renderedPlayersCount = _renderedPlayers.Count();
 
                 var oldExtendPlayers = _extendPlayers;
                 SetExtendPlayers();

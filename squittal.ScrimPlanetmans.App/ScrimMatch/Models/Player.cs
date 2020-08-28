@@ -24,7 +24,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string NameTrimmed { get; set; }
         public string NameAlias { get; set; }
 
-        //public string NameDisplay { get; set; }
         public string NameDisplay
         {
             get
@@ -86,7 +85,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             Id = character.Id;
             NameFull = character.Name;
-            //NameDisplay = NameTrimmed;
             IsOnline = character.IsOnline;
             PrestigeLevel = character.PrestigeLevel;
             FactionId = character.FactionId;

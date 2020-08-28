@@ -2127,7 +2127,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             foreach (var teamOrdinal in _ordinalTeamMap.Keys)
             {
-                //team.ResetMatchData();
                 ResetTeamMatchData(teamOrdinal);
             }
         }
@@ -2181,7 +2180,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 team.IsLocked = true;
 
-                // TODO: broadcast "Team Lock Status Change" message
                 _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, true));
 
                 var playersToRemove = team.Players.Where(p => !p.IsVisibleInTeamComposer).ToList();
@@ -2197,9 +2195,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
                     _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
                 }
-
-                //var outfit = outfitTeam.Outfits.Where(o => o.AliasLower == aliasLower).FirstOrDefault();
-                //var newMemberCount = GetTeam(teamOrdinal).Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless).Count();
 
                 // TODO: broadcast some other "Team Lock Status Change" message here, too?
             }
@@ -2220,7 +2215,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.IsLocked = true;
 
-            // TODO: broadcast "Team Lock Status Change" message;
             _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
         }
 
@@ -2235,7 +2229,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 RollBackTeamStats(teamOrdinal, currentRound);
 
-                //await SaveTeamMatchResultsToDb(teamOrdinal);
                 var teamTask = SaveTeamMatchResultsToDb(teamOrdinal);
                 TaskList.Add(teamTask);
             }
@@ -2260,16 +2253,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.EventAggregateTracker.RollBackRound(currentRound);
             
-            //var players = team.ParticipatingPlayers.ToList();
             var players = team.GetParticipatingPlayers();
 
             foreach (var player in players)
             {
                 player.EventAggregateTracker.RollBackRound(currentRound);
-
-                //team.ParticipatingPlayers.RemoveAll(p => p.Id == player.Id);
-
-                //_participatingPlayers.RemoveAll(p => p.Id == player.Id);
 
                 SendPlayerStatUpdateMessage(player);
             }
