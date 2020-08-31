@@ -1278,7 +1278,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return;
             }
 
-            var actionType = GetFacilityControlActionType(type, (int)controllingTeamOrdinal);
+            var actionType = GetFacilityControlActionType(type);
 
             // "Outside Influence" doesn't really apply to base captures
             if (actionType == ScrimActionType.None)
@@ -1361,21 +1361,16 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
         }
 
-        private ScrimActionType GetFacilityControlActionType(FacilityControlType type, int teamOrdinal)
+        private ScrimActionType GetFacilityControlActionType(FacilityControlType type)
         {
             if (type == FacilityControlType.Unknown)
             {
                 return ScrimActionType.None;
             }
             
-            //var team = _teamsManager.GetTeam(teamOrdinal);
-
-            //var teamRoundControlVictories = _teamsManager.GetCurrentMatchRoundTeamBaseControlsCount(teamOrdinal); // team.EventAggregateTracker.RoundStats.BaseControlVictories;
             var matchRoundControlVictories = _teamsManager.GetCurrentMatchRoundBaseControlsCount();
 
-
             // Only the first defense in a round should ever count. After that, base always trades hands via captures
-            //if (type == FacilityControlType.Defense && teamRoundControlVictories != 0)
             if (type == FacilityControlType.Defense && matchRoundControlVictories != 0)
             {
                 return ScrimActionType.None;
