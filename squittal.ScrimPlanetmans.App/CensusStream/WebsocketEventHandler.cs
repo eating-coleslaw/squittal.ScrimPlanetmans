@@ -1368,17 +1368,20 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return ScrimActionType.None;
             }
             
-            var team = _teamsManager.GetTeam(teamOrdinal);
+            //var team = _teamsManager.GetTeam(teamOrdinal);
 
-            var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+            //var teamRoundControlVictories = _teamsManager.GetCurrentMatchRoundTeamBaseControlsCount(teamOrdinal); // team.EventAggregateTracker.RoundStats.BaseControlVictories;
+            var matchRoundControlVictories = _teamsManager.GetCurrentMatchRoundBaseControlsCount();
+
 
             // Only the first defense in a round should ever count. After that, base always trades hands via captures
-            if (type == FacilityControlType.Defense && roundControlVictories != 0)
+            //if (type == FacilityControlType.Defense && teamRoundControlVictories != 0)
+            if (type == FacilityControlType.Defense && matchRoundControlVictories != 0)
             {
                 return ScrimActionType.None;
             }
 
-            return (roundControlVictories == 0)
+            return (matchRoundControlVictories == 0)
                         ? ScrimActionType.FirstBaseCapture
                         : ScrimActionType.SubsequentBaseCapture;
         }
