@@ -191,6 +191,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = GetTeam(teamOrdinal);
             var oldFactionId = team.FactionId;
 
+            if (oldFactionId == factionId)
+            {
+                return;
+            }
+
             team.FactionId = factionId;
 
             var abbrev = factionId == null ? "null" : _factionService.GetFactionAbbrevFromId((int)factionId);
@@ -2116,6 +2121,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
+            UnlockTeamPlayers(teamOrdinal);
+            _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
+
             var constructedTeamsMatchInfo = team.ConstructedTeamsMatchInfo.ToList();
 
             foreach(var matchInfo in constructedTeamsMatchInfo)
@@ -2152,6 +2160,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.ResetAlias($"{_defaultAliasPreText}{teamOrdinal}");
 
             _messageService.BroadcastTeamAliasChangeMessage(new TeamAliasChangeMessage(teamOrdinal, team.Alias, oldAlias));
+
             // TODO: broadcast "Finished Clearing Team" message
         }
         #endregion Clear Teams
@@ -2212,6 +2221,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
+            // TODO: add KeyedSemaphoreSlim for each team
+
             try
             {
                 team.IsLocked = true;
@@ -2227,6 +2238,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var outfit in team.Outfits)
                 {
                     outfit.MemberCount = team.Players.Where(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless).Count();
+                    outfit.MembersOnlineCount = team.Players.Where(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless && p.IsOnline).Count();
 
                     var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
                     _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
@@ -2249,11 +2261,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            team.IsLocked = true;
+            team.IsLocked = false;
 
             _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
         }
 
+
+        public void UnlockAllTeamPlayers()
+        {
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                UnlockTeamPlayers(teamOrdinal);
+            }
+        }
         #endregion Team Locking
 
         #region Roll Back Round
@@ -2748,6 +2768,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.AddStatsUpdate(updates);
 
             SendTeamStatUpdateMessage(team);
+        }
+
+        public int GetCurrentMatchRoundBaseControlsCount()
+        {
+            var totalControls = 0;
+
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                totalControls += GetCurrentMatchRoundTeamBaseControlsCount(teamOrdinal);
+            }
+
+            return totalControls;
+        }
+
+        public int GetCurrentMatchRoundTeamBaseControlsCount(int teamOrdinal)
+        {
+            var currentRound = _matchDataService.CurrentMatchRound;
+
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return 0;
+            }
+
+            var roundControls = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+
+            if (team.EventAggregateTracker.TryGetTargetRoundStats(currentRound, out var savedRoundStats))
+            {
+                roundControls += savedRoundStats.BaseControlVictories;
+            }
+
+            return roundControls;
         }
 
         #region Match Results/Scores

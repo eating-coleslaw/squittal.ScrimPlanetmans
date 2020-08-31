@@ -148,6 +148,14 @@ else
     public bool i_showRemovals { get; set; } = false;
     private bool _renderedShowRemovals { get; set; } = false;
 
+    [Parameter]
+    public bool i_isTeamLocked { get; set; } = false;
+    private bool _renderedIsTeamLocked { get; set; } = false;
+
+    [Parameter]
+    public bool i_isLockingTeam { get; set; } = false;
+    private bool _renderedIsLockingTeam { get; set; } = false;
+
     private bool _isLoadingMembers { get; set; } = false;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
@@ -155,7 +163,6 @@ else
     private int _renderedPlayersOnlineCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
-    private bool _isTeamLocked { get; set; } = false;
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
@@ -181,7 +188,7 @@ else
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
 
-        MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
+        //MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
@@ -196,7 +203,7 @@ else
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
 
-        MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
+        //MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -214,6 +221,22 @@ else
             paramsChanged = true;
         }
 
+        if (i_isLockingTeam != _renderedIsLockingTeam)
+        {
+            _renderedIsLockingTeam = i_isLockingTeam;
+            paramsChanged = true;
+        }
+
+        if (i_isTeamLocked != _renderedIsTeamLocked)
+        {
+            _renderedIsTeamLocked = i_isTeamLocked;
+
+            SetMaxPlayersToExtend();
+            SetExtendPlayers();
+
+            paramsChanged = true;
+        }
+
         if (i_teamOrdinal != _renderedTeamOrdinal
                 || i_constructedTeamMatchInfo.ConstructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id
                 || i_constructedTeamMatchInfo.ActiveFactionId != _renderedConstructedTeamMatchInfo.ActiveFactionId)
@@ -221,7 +244,7 @@ else
             _renderedTeamOrdinal = i_teamOrdinal;
             _renderedConstructedTeamMatchInfo = i_constructedTeamMatchInfo;
 
-            _isTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
+            _renderedIsTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
 
             InitializePlayersData();
 
@@ -345,26 +368,26 @@ else
         }
     }
 
-    private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
-    {
-        var teamOrdinal = e.Message.TeamOrdinal;
-        var newIsLocked = e.Message.IsLocked;
+    //private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
+    //{
+    //    var teamOrdinal = e.Message.TeamOrdinal;
+    //    var newIsLocked = e.Message.IsLocked;
 
-        if (teamOrdinal != _renderedTeamOrdinal)
-        {
-            return;
-        }
+    //    if (teamOrdinal != _renderedTeamOrdinal)
+    //    {
+    //        return;
+    //    }
 
-        if (newIsLocked != _isTeamLocked)
-        {
-            _isTeamLocked = newIsLocked;
+    //    if (newIsLocked != _renderedIsTeamLocked)
+    //    {
+    //        _renderedIsTeamLocked = newIsLocked;
 
-            SetMaxPlayersToExtend();
-            SetExtendPlayers();
+    //        SetMaxPlayersToExtend();
+    //        SetExtendPlayers();
 
-            InvokeAsyncStateHasChanged();
-        }
-    }
+    //        InvokeAsyncStateHasChanged();
+    //    }
+    //}
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
     {
@@ -377,7 +400,7 @@ else
 
         TeamPlayerChangeMessage changeMessage;
 
-        if (player.IsParticipating || _isTeamLocked)
+        if (player.IsParticipating || _renderedIsTeamLocked)
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
@@ -430,7 +453,7 @@ else
         TeamPlayerChangeMessage changeMessage;
 
         // Participating players stay visible even when online, but need to process the event to ensure online players count is correct
-        if (player.IsParticipating || _isTeamLocked)
+        if (player.IsParticipating || _renderedIsTeamLocked)
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }

@@ -83,5 +83,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task LockTeamPlayers(int teamOrdinal);
         void UnlockTeamPlayers(int teamOrdinal);
         bool GetTeamLockStatus(int teamOrdinal);
+        void UnlockAllTeamPlayers();
+        int GetCurrentMatchRoundTeamBaseControlsCount(int teamOrdinal);
+        int GetCurrentMatchRoundBaseControlsCount();
     }
 }

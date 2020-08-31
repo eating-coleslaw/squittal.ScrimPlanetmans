@@ -36,7 +36,7 @@
 
         <div class="sq-content" style="padding-top: 0;">
 
-            @if (_isLoadingMembers2)
+            @if (_isLoadingMembers)
             {
                 <SpinnerEllipsis />
             }
@@ -126,16 +126,22 @@
     public bool i_showRemovals { get; set; } = false;
     private bool _renderedShowRemovals { get; set; } = false;
 
-    private bool _isLoadingMembers { get; set; } = false;
-    private bool _isLoadingMembers2 => (_renderedPlayersCount == 0);
+    [Parameter]
+    public bool i_isTeamLocked { get; set; } = false;
+    private bool _renderedIsTeamLocked { get; set; } = false;
+
+    [Parameter]
+    public bool i_isLockingTeam { get; set; } = false;
+    private bool _renderedIsLockingTeam { get; set; } = false;
+
+    //private bool _isLoadingMembers { get; set; } = false;
+    private bool _isLoadingMembers => (_renderedPlayersCount == 0);
     private bool _isLoadingOutfit { get; set; } = false;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
     private int _renderedPlayersCount { get; set; } = 0;
     private int _renderedPlayersOnlineCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
-
-    private bool _isTeamLocked { get; set; } = false;
 
     #region UI & Layout Variables
     private bool _extendPlayers = true;
@@ -162,7 +168,7 @@
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
-        MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
+        //MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
@@ -174,7 +180,7 @@
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
 
-        MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
+        //MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -192,11 +198,27 @@
             paramsChanged = true;
         }
 
+        if (i_isLockingTeam != _renderedIsLockingTeam)
+        {
+            _renderedIsLockingTeam = i_isLockingTeam;
+            paramsChanged = true;
+        }
+
+        if (i_isTeamLocked != _renderedIsTeamLocked)
+        {
+            _renderedIsTeamLocked = i_isTeamLocked;
+
+            SetMaxPlayersToExtend();
+            SetExtendPlayers();
+
+            paramsChanged = true;
+        }
+
         if (i_teamOrdinal != _renderedTeamOrdinal)
         {
             _renderedTeamOrdinal = i_teamOrdinal;
 
-            _isTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
+            _renderedIsTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
             SetMaxPlayersToExtend();
 
             InitializePlayersData();
@@ -258,26 +280,26 @@
         MessageService.BroadcastSimpleMessage(message);
     }
 
-    private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
-    {
-        var teamOrdinal = e.Message.TeamOrdinal;
-        var newIsLocked = e.Message.IsLocked;
+    //private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
+    //{
+    //    var teamOrdinal = e.Message.TeamOrdinal;
+    //    var newIsLocked = e.Message.IsLocked;
 
-        if (teamOrdinal != _renderedTeamOrdinal)
-        {
-            return;
-        }
+    //    if (teamOrdinal != _renderedTeamOrdinal)
+    //    {
+    //        return;
+    //    }
 
-        if (newIsLocked != _isTeamLocked)
-        {
-            _isTeamLocked = newIsLocked;
+    //    if (newIsLocked != _renderedIsTeamLocked)
+    //    {
+    //        _renderedIsTeamLocked = newIsLocked;
 
-            SetMaxPlayersToExtend();
-            SetExtendPlayers();
+    //        SetMaxPlayersToExtend();
+    //        SetExtendPlayers();
 
-            InvokeAsyncStateHasChanged();
-        }
-    }
+    //        InvokeAsyncStateHasChanged();
+    //    }
+    //}
 
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
