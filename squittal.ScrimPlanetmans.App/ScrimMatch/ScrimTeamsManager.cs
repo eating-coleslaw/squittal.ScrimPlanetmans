@@ -191,6 +191,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var team = GetTeam(teamOrdinal);
             var oldFactionId = team.FactionId;
 
+            if (oldFactionId == factionId)
+            {
+                return;
+            }
+
             team.FactionId = factionId;
 
             var abbrev = factionId == null ? "null" : _factionService.GetFactionAbbrevFromId((int)factionId);
