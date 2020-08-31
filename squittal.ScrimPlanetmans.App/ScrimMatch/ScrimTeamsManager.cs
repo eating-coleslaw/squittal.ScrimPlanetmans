@@ -2765,6 +2765,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendTeamStatUpdateMessage(team);
         }
 
+        public int GetCurrentMatchRoundBaseControlsCount()
+        {
+            var totalControls = 0;
+
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                totalControls += GetCurrentMatchRoundTeamBaseControlsCount(teamOrdinal);
+            }
+
+            return totalControls;
+        }
+
+        public int GetCurrentMatchRoundTeamBaseControlsCount(int teamOrdinal)
+        {
+            var currentRound = _matchDataService.CurrentMatchRound;
+
+            var team = GetTeam(teamOrdinal);
+
+            if (team == null)
+            {
+                return 0;
+            }
+
+            var roundControls = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+
+            if (team.EventAggregateTracker.TryGetTargetRoundStats(currentRound, out var savedRoundStats))
+            {
+                roundControls += savedRoundStats.BaseControlVictories;
+            }
+
+            return roundControls;
+        }
+
         #region Match Results/Scores
         public async Task SaveRoundEndScores(int round)
         {
