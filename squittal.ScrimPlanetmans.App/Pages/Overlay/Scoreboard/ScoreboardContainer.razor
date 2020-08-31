@@ -15,22 +15,15 @@
 
 <div class="scoreboard">
     <div class="outfitScoresContainer">
-        @*<div class="@SqCssHelper.GetFactionClassFromId(_teamFactionId1)" style="display: inline-block;"><ScoreboardBaseCaptures i_captureCount=3 /></div>*@
-        @*<ScoreboardBaseCaptures i_captureCount=3 />*@
         <ScoreboardBaseCaptures i_captureCount=_teamControls1 i_factionId=_teamFactionId1/>
         <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
             <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>
-            @*<div class="outfitAlias">@_teamAlias1</div><ScoreboardBaseCaptures i_captureCount=3 /><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>*@
         </div><div class="timerContainer">
             <div class="timer-text"><MatchTimer /></div>
         </div><div class="outfitScoresRow team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
             <div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><div class="outfitAlias">@_teamAlias2</div>
-            @*<div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><ScoreboardBaseCaptures i_captureCount=2 /><div class="outfitAlias">@_teamAlias2</div>*@
         </div>
-        @*<div class="@SqCssHelper.GetFactionClassFromId(_teamFactionId2)" style="display: inline-block;"><ScoreboardBaseCaptures i_captureCount=2 /></div>*@
-        @*<ScoreboardBaseCaptures i_captureCount=2 />*@
         <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2/>
-        @*<ScoreboardBaseCaptures i_captureCount=2 i_factionId=_teamFactionId2/>*@
     </div>
 
 </div>
@@ -86,9 +79,6 @@
 
         _matchState = ScrimMatchEngine.GetMatchState();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
-
-        //_teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
-        //_teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
 
         UpdateTeamsControlCounts();
 
@@ -223,11 +213,6 @@
             UpdatePointsDisplay();
 
             InvokeAsyncStateHasChanged();
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
     }
 
@@ -283,11 +268,6 @@
         if (aliasChanged)
         {
             InvokeAsyncStateHasChanged();
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
     }
 
@@ -309,11 +289,6 @@
             UpdatePointsDisplay();
 
             InvokeAsyncStateHasChanged();
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
 
         if (oldCurrentRound != newCurrentRound)
@@ -355,11 +330,6 @@
             UpdateTeamFactionDisplay(teamOrdinal, newFactionAbbreviation);
 
             InvokeAsyncStateHasChanged();
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
     }
     #endregion Event Handling
