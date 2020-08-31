@@ -2116,6 +2116,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
+            UnlockTeamPlayers(teamOrdinal);
+            _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
+
             var constructedTeamsMatchInfo = team.ConstructedTeamsMatchInfo.ToList();
 
             foreach(var matchInfo in constructedTeamsMatchInfo)
@@ -2152,6 +2155,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             team.ResetAlias($"{_defaultAliasPreText}{teamOrdinal}");
 
             _messageService.BroadcastTeamAliasChangeMessage(new TeamAliasChangeMessage(teamOrdinal, team.Alias, oldAlias));
+
             // TODO: broadcast "Finished Clearing Team" message
         }
         #endregion Clear Teams
@@ -2252,11 +2256,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            team.IsLocked = true;
+            team.IsLocked = false;
 
             _messageService.BroadcastTeamLockStatusChangeMessage(new TeamLockStatusChangeMessage(teamOrdinal, false));
         }
 
+
+        public void UnlockAllTeamPlayers()
+        {
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                UnlockTeamPlayers(teamOrdinal);
+            }
+        }
         #endregion Team Locking
 
         #region Roll Back Round
