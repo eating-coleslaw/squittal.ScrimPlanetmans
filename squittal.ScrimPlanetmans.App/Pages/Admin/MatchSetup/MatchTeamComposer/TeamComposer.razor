@@ -166,7 +166,7 @@
     @if (!_isTeamLocked && !_isLockingTeam && (_teamOutfits.Any() || _teamNonOutfitPlayers.Any() || _anyPlayersOnTeam || _teamConstructedTeams.Any()))
     {
         <div style="margin: 8px 0;">
-            <button type="button" class="btn btn-outline-primary" @onclick="HandleLockTeamClick" style="display: inline-block;" title="Lock this team's players. Players not currently visible will be removed">
+            <button type="button" class="btn btn-outline-primary" @onclick="HandleLockTeamClick" style="display: inline-block;" title="Lock this team's players. Players not currently visible will be removed from the match">
                 <span class="oi oi-lock-locked"></span>Lock Team
             </button>
         </div>
@@ -965,6 +965,8 @@
         if (newIsLocked != _isTeamLocked)
         {
             _isTeamLocked = newIsLocked;
+
+            _showRemovals = _isTeamLocked ? false : _showRemovals;
 
             InvokeAsyncStateHasChanged();
         }
