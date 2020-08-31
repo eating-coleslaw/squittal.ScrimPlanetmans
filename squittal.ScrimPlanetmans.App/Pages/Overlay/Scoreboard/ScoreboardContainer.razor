@@ -17,7 +17,7 @@
     <div class="outfitScoresContainer">
         @*<div class="@SqCssHelper.GetFactionClassFromId(_teamFactionId1)" style="display: inline-block;"><ScoreboardBaseCaptures i_captureCount=3 /></div>*@
         @*<ScoreboardBaseCaptures i_captureCount=3 />*@
-        @*<ScoreboardBaseCaptures i_captureCount=_teamControls1 />*@
+        <ScoreboardBaseCaptures i_captureCount=_teamControls1 i_factionId=_teamFactionId1/>
         <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
             <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>
             @*<div class="outfitAlias">@_teamAlias1</div><ScoreboardBaseCaptures i_captureCount=3 /><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>*@
@@ -29,7 +29,8 @@
         </div>
         @*<div class="@SqCssHelper.GetFactionClassFromId(_teamFactionId2)" style="display: inline-block;"><ScoreboardBaseCaptures i_captureCount=2 /></div>*@
         @*<ScoreboardBaseCaptures i_captureCount=2 />*@
-        @*<ScoreboardBaseCaptures i_captureCount=_teamControls2 />*@
+        <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2/>
+        @*<ScoreboardBaseCaptures i_captureCount=2 i_factionId=_teamFactionId2/>*@
     </div>
 
 </div>
@@ -219,12 +220,14 @@
 
         if (pointsChanged)
         {
-            //InvokeAsyncStateHasChanged();
+            UpdatePointsDisplay();
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
+
+            //InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
         }
     }
 

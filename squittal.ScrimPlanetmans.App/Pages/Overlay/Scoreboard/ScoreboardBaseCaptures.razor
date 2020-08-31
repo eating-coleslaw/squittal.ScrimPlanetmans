@@ -1,14 +1,16 @@
-﻿@if (_renderedCaptureCount == 1)
+﻿@using squittal.ScrimPlanetmans.Models;
+
+@if (_renderedCaptureCount == 1)
 {
-    <div style="display: inline-block; width: min-content;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span></div>
+    <div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block; width: min-content;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span></div>
 }
 else if (_renderedCaptureCount == 2)
 {
-    <div style="display: inline-block; width: 24px; white-space: nowrap;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span></div>
+    <div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block; width: 24px; white-space: nowrap;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span></div>
 }
 else if (_renderedCaptureCount >= 3)
 {
-    <div style="display: inline-block;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span style="color: var(--sq-ov-ps2-primary-light); text-shadow: -1px 0px 1px var(--sq-black); font-size: 1rem;">x@_renderedCaptureCount</span></div>
+    <div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span style="color: var(--sq-ov-ps2-primary-light); text-shadow: -1px 0px 1px var(--sq-black); font-size: 1rem;">x@_renderedCaptureCount</span></div>
 }
 
 @code {
@@ -16,13 +18,29 @@ else if (_renderedCaptureCount >= 3)
     public int i_captureCount { get; set; }
     private int _renderedCaptureCount { get; set; } = 0;
 
+    [Parameter]
+    public int? i_factionId { get; set; }
+    private int? _renderedFactionId { get; set; } = (int?)null;
+
     #region Initialization Methods
     protected override void OnParametersSet()
     {
+        var paramsChanged = false;
+
         if (i_captureCount != _renderedCaptureCount)
         {
             _renderedCaptureCount = i_captureCount;
+            paramsChanged = true;
+        }
 
+        if (i_factionId != _renderedFactionId)
+        {
+            _renderedFactionId = i_factionId;
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
             InvokeAsyncStateHasChanged();
         }
     }
