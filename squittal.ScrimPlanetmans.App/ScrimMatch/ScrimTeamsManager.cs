@@ -2212,6 +2212,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
+            // TODO: add KeyedSemaphoreSlim for each team
+
             try
             {
                 team.IsLocked = true;
@@ -2227,6 +2229,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 foreach (var outfit in team.Outfits)
                 {
                     outfit.MemberCount = team.Players.Where(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless).Count();
+                    outfit.MembersOnlineCount = team.Players.Where(p => p.OutfitAliasLower == outfit.AliasLower && !p.IsOutfitless && p.IsOnline).Count();
 
                     var loadCompleteMessage = new TeamOutfitChangeMessage(outfit, TeamChangeType.OutfitMembersLoadCompleted);
                     _messageService.BroadcastTeamOutfitChangeMessage(loadCompleteMessage);
