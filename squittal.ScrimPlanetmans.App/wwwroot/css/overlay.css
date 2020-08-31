@@ -666,7 +666,8 @@ body {
     background-color: aqua;*/
     border-radius: 1px;
     color: rgb(245, 245, 255);
-    max-width: 475px;
+    /*max-width: 475px;*/
+    max-width: calc(475px + 70px);
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
@@ -852,6 +853,19 @@ body {
                 /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
                 /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
             }
+
+.iconify.capture-flag {
+    font-size: 1rem;
+    color: var(--sq-ov-ps2-primary-light);
+    position: relative;
+    bottom: 2px;
+    filter: drop-shadow(-1px 0px 1px var(--sq-black))
+}
+
+    .iconify.capture-flag:nth-of-type(2) {
+        left: -10px;
+        /*filter: drop-shadow(-1px -2px 1px var(--sq-black));*/
+    }
 
 /*.tr .factionLabel {
     color: var(--sq-ov-ps2-primary-dark) !important;
