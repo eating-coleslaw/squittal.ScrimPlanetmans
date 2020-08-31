@@ -15,17 +15,15 @@
 
 <div class="scoreboard">
     <div class="outfitScoresContainer">
-        @*<div class="@SqCssHelper.GetFactionClassFromId(_teamFactionId1)" style="display: inline-block;"><ScoreboardBaseCaptures i_captureCount=3 /></div>*@
+        <ScoreboardBaseCaptures i_captureCount=_teamControls1 i_factionId=_teamFactionId1/>
         <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
             <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>
-            @*<div class="outfitAlias">@_teamAlias1</div><ScoreboardBaseCaptures i_captureCount=3 /><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>*@
         </div><div class="timerContainer">
             <div class="timer-text"><MatchTimer /></div>
         </div><div class="outfitScoresRow team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
             <div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><div class="outfitAlias">@_teamAlias2</div>
-            @*<div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><ScoreboardBaseCaptures i_captureCount=2 /><div class="outfitAlias">@_teamAlias2</div>*@
         </div>
-        @*<div class="@SqCssHelper.GetFactionClassFromId(_teamFactionId2)" style="display: inline-block;"><ScoreboardBaseCaptures i_captureCount=2 /></div>*@
+        <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2/>
     </div>
 
 </div>
@@ -41,12 +39,14 @@
     private string _teamPointsDisplay1 { get; set; }
     private int? _teamFactionId1 { get; set; }
     private string[] _teamFactionDisplay1 { get; set; } = new string[2] { ".", "." };
+    private int _teamControls1 { get; set; } = 0;
 
     private string _teamAlias2 { get; set; }
     private int _teamPoints2 { get; set; } = 0;
     private string _teamPointsDisplay2 { get; set; }
     private int? _teamFactionId2 { get; set; }
     private string[] _teamFactionDisplay2 { get; set; } = new string[2] { ".", "." };
+    private int _teamControls2 { get; set; } = 0;
 
     private MatchState _matchState { get; set; }
     private int _currentRound { get; set; }
@@ -60,6 +60,8 @@
         MessageService.RaiseTeamFactionChangeEvent += ReceiveTeamFactionChangeEvent;
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
+
+        MessageService.RaiseScrimFacilityControlActionEvent += ReceiveFacilityControlEvent;
 
         _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
         var teamPoints1 = ScrimTeamsManager.GetTeamScoreDisplay(1);
@@ -77,6 +79,8 @@
 
         _matchState = ScrimMatchEngine.GetMatchState();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+        UpdateTeamsControlCounts();
 
         UpdateShouldShowPoints();
 
@@ -107,6 +111,8 @@
         MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
         MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
         MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
+
+        MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveFacilityControlEvent;
     }
 
     protected override void OnParametersSet()
@@ -175,6 +181,12 @@
         }
     }
 
+    private void UpdateTeamsControlCounts()
+    {
+        _teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
+        _teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
+    }
+
     #region Event Handling
     private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
     {
@@ -200,10 +212,36 @@
         {
             UpdatePointsDisplay();
 
-            InvokeAsync(() =>
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void ReceiveFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+    {
+        var message = e.Message;
+
+        var controllingTeamOrdinal = message.FacilityControl.ControllingTeamOrdinal;
+
+        if (controllingTeamOrdinal == 1)
+        {
+            var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
+
+            if (newTeamControls != _teamControls1)
             {
-                StateHasChanged();
-            });
+                _teamControls1 = newTeamControls;
+                InvokeAsyncStateHasChanged();
+            }
+
+        }
+        else if (controllingTeamOrdinal == 2)
+        {
+            var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
+
+            if (newTeamControls != _teamControls2)
+            {
+                _teamControls2 = newTeamControls;
+                InvokeAsyncStateHasChanged();
+            }
         }
     }
 
@@ -229,10 +267,7 @@
 
         if (aliasChanged)
         {
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -243,6 +278,9 @@
         var oldMatchState = _matchState;
         var newMatchState = message.MatchState;
 
+        var oldCurrentRound = _currentRound;
+        var newCurrentRound = message.CurrentRound;
+
         if (oldMatchState != newMatchState)
         {
             _matchState = newMatchState;
@@ -250,12 +288,20 @@
             UpdateShouldShowPoints();
             UpdatePointsDisplay();
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
+        }
+
+        if (oldCurrentRound != newCurrentRound)
+        {
+            _currentRound = newCurrentRound;
+
+            UpdateTeamsControlCounts();
+
+            InvokeAsyncStateHasChanged();
         }
     }
+
+
 
     private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
     {
@@ -270,6 +316,7 @@
         if (teamOrdinal == 1 && newFactionId != _teamFactionId1)
         {
             _teamFactionId1 = newFactionId;
+
             factionChanged = true;
         }
         else if (teamOrdinal == 2 && newFactionId != _teamFactionId2)
@@ -282,11 +329,16 @@
         {
             UpdateTeamFactionDisplay(teamOrdinal, newFactionAbbreviation);
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
         }
     }
     #endregion Event Handling
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 }

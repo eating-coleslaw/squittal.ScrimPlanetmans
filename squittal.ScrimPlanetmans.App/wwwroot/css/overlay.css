@@ -855,8 +855,10 @@ body {
             }
 
 .iconify.capture-flag {
-    font-size: 1rem;
-    color: var(--sq-ov-ps2-primary-light);
+/*    font-size: 1rem;*/
+    font-size: 1.25rem;
+/*    color: var(--sq-ov-ps2-primary-light);*/
+    color: var(--sq-ov-ps2-primary);
     position: relative;
     bottom: 2px;
     filter: drop-shadow(-1px 0px 1px var(--sq-black))
