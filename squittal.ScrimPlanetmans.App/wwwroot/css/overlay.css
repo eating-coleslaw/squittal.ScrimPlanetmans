@@ -797,7 +797,8 @@ body {
                 /*border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
                 border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 /**/
-                border-right-width: 11px;
+                /*border-right-width: 11px;*/
+                border-right-width: 14px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .wedge {
@@ -806,11 +807,13 @@ body {
                 /*border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
                 border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 /**/
-                border-left-width: 11px;
+                /*border-left-width: 11px;*/
+                border-left-width: 14px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .factionLabel {
-                font-size: 10px;
+                /*font-size: 10px;*/
+                font-size: 12px;
                 display: inline-block;
                 line-height: 1;
                 /*height: 19px;*/
@@ -829,25 +832,30 @@ body {
                 transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
                 /**/
                 height: 32px;
+                top: 1px;
+                color: var(--sq-ov-ps2-flavor);
+                text-shadow: 0px 0px 2px var(--sq-ov-ps2-primary-dark);
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .factionLabel {
                 border-bottom-left-radius: 1px;
-                left: -8.5px;
+                /*left: -8.5px;*/
+                left: -10px;
                 /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
-                color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
+                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .factionLabel {
                 border-bottom-right-radius: 1px;
-                left: 2px;
+                /*left: 2px;*/
+                left: 3px;
                 /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
-                color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
+                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
             }
 
-.tr .factionLabel {
+/*.tr .factionLabel {
     color: var(--sq-ov-ps2-primary-dark) !important;
-}
+}*/
 
 
 .inactiveWhiteText {
