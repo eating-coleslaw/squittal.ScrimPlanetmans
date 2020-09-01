@@ -9,13 +9,13 @@
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
-@inject IFactionService FactionService 
+@inject IFactionService FactionService
 
 @implements IDisposable
 
 <div class="scoreboard">
     <div class="outfitScoresContainer">
-        <ScoreboardBaseCaptures i_captureCount=_teamControls1 i_factionId=_teamFactionId1/>
+        <ScoreboardBaseCaptures i_captureCount=_teamControls1 i_factionId=_teamFactionId1 i_teamOrdinal=1 />
         <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
             <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>
         </div><div class="timerContainer">
@@ -23,7 +23,7 @@
         </div><div class="outfitScoresRow team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
             <div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><div class="outfitAlias">@_teamAlias2</div>
         </div>
-        <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2/>
+        <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2 i_teamOrdinal=2 />
     </div>
 
 </div>
