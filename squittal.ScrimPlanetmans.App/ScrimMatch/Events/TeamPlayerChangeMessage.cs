@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         public bool IsOutfitless { get; set; } = false; // assume most players will be added via outfits
         public bool IsLastOfOutfit { get; set; } = false;
 
-        public TeamPlayerChangeType ChangeType { get; set; }
+        public TeamPlayerChangeType ChangeType { get; private set; }
 
         public string Info { get => GetInfoMessage(); }
 
