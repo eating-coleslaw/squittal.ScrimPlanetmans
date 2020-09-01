@@ -661,12 +661,8 @@ body {
     Scoreboard
 ***********************/
 .overlay .scoreboard {
-    /*grid-area: scoreboard;
-    background-color: aqua;*/
     border-radius: 1px;
     color: rgb(245, 245, 255);
-    /*max-width: 475px;*/
-    /*max-width: calc(475px + 70px);*/
     max-width: calc(475px + 100px);
     margin-left: auto;
     margin-right: auto;
@@ -686,11 +682,8 @@ body {
 
         .overlay .scoreboard .outfitScoresContainer .outfitScoresRow {
             display: inline-block;
-            /*height: 35px;*/
             border-top-width: 2px;
             border-top-style: solid;
-            /*border-top-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
-            /*border-top-color: var(--sq-ps2-primary, rgb(20, 20, 20));*/
             border-top-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
             -moz-transition: border 0.5s cubic-bezier(.86,0,.07,1);
             -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
@@ -729,13 +722,11 @@ body {
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore {
                 text-align: right;
-                /*padding-right: 5px;*/
                 padding-right: 8px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitScore {
                 text-align: left;
-                /*padding-left: 5px;*/
                 padding-left: 8px;
             }
 
@@ -745,8 +736,6 @@ body {
                 width: 70px;
                 font-weight: 500;
                 box-sizing: inherit;
-                /*color: var(--sq-ov-ps2-flavor, rgb(35, 35, 35));*/
-                /*color: var(--sq-ps2-primary-light, rgb(35, 35, 35));*/
                 color: var(--sq-ov-ps2-flavor, rgb(35, 35, 35));
                 -moz-transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
                 -moz-transition-delay: 1.5s;
@@ -768,14 +757,12 @@ body {
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitAlias {
-                /*padding-left: 3px;*/
                 padding-left: 4px;
                 border-bottom-left-radius: 1px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitAlias {
                 text-align: right;
-                /*padding-right: 3px;*/
                 padding-right: 4px;
                 border-bottom-right-radius: 1px;
             }
@@ -789,38 +776,26 @@ body {
                 -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
                 transition: border 0.5s cubic-bezier(.86,0,.07,1);
                 box-sizing: inherit;
-                /*border-top: 3px solid var(--sq-ps2-primary);*/
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .wedge {
-                /*border-right-width: 10px;*/
                 border-right-style: solid;
-                /*border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
                 border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 /**/
-                /*border-right-width: 11px;*/
                 border-right-width: 14px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .wedge {
-                /*border-left-width: 10px;*/
                 border-left-style: solid;
-                /*border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
                 border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 /**/
-                /*border-left-width: 11px;*/
                 border-left-width: 14px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .factionLabel {
-                /*font-size: 10px;*/
                 font-size: 12px;
                 display: inline-block;
                 line-height: 1;
-                /*height: 19px;*/
-                /*padding-top: 8px;*/
-                /*text-align: center;*/
-                /*vertical-align: top;*/
                 width: 0px;
                 position: relative;
                 box-sizing: inherit;
@@ -840,38 +815,24 @@ body {
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .factionLabel {
                 border-bottom-left-radius: 1px;
-                /*left: -8.5px;*/
                 left: -10px;
-                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
-                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .factionLabel {
                 border-bottom-right-radius: 1px;
-                /*left: 2px;*/
                 left: 3px;
-                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
-                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
             }
 
 .iconify.capture-flag {
-    /*    font-size: 1rem;*/
     font-size: 1.25rem;
-    /*    color: var(--sq-ov-ps2-primary-light);*/
     color: var(--sq-ov-ps2-primary);
     position: relative;
     bottom: 2px;
     filter: drop-shadow(-1px 0px 1px var(--sq-black))
 }
 
-    /*.iconify.capture-flag:nth-of-type(2) {
-        left: -10px;*/
-    /*filter: drop-shadow(-1px -2px 1px var(--sq-black));*/
-    /*}*/
-
     .iconify.capture-flag.stacked {
         left: 10px;
-        /*filter: drop-shadow(-1px -2px 1px var(--sq-black));*/
     }
 
 
@@ -897,7 +858,6 @@ body {
 
 .tr .factionLabel {
     color: var(--sq-ov-ps2-primary-dark) !important;
-    /*text-shadow: 0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-70) !important;*/
     text-shadow: 0px 0px 2px var(--sq-ov-bg-dark-gray-alpha-33) !important;
 }
 

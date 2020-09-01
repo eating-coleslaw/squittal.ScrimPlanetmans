@@ -188,8 +188,6 @@ else
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent += ReceiveTeamConstructedTeamChangeEvent;
 
-        //MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
-
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
@@ -202,8 +200,6 @@ else
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamConstructedTeamChangeEvent -= ReceiveTeamConstructedTeamChangeEvent;
-
-        //MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -367,27 +363,6 @@ else
             InvokeAsyncStateHasChanged();
         }
     }
-
-    //private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
-    //{
-    //    var teamOrdinal = e.Message.TeamOrdinal;
-    //    var newIsLocked = e.Message.IsLocked;
-
-    //    if (teamOrdinal != _renderedTeamOrdinal)
-    //    {
-    //        return;
-    //    }
-
-    //    if (newIsLocked != _renderedIsTeamLocked)
-    //    {
-    //        _renderedIsTeamLocked = newIsLocked;
-
-    //        SetMaxPlayersToExtend();
-    //        SetExtendPlayers();
-
-    //        InvokeAsyncStateHasChanged();
-    //    }
-    //}
 
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
     {

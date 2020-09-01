@@ -134,7 +134,6 @@
     public bool i_isLockingTeam { get; set; } = false;
     private bool _renderedIsLockingTeam { get; set; } = false;
 
-    //private bool _isLoadingMembers { get; set; } = false;
     private bool _isLoadingMembers => (_renderedPlayersCount == 0);
     private bool _isLoadingOutfit { get; set; } = false;
 
@@ -168,8 +167,6 @@
     {
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
 
-        //MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
-
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
@@ -179,8 +176,6 @@
     public void Dispose()
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
-
-        //MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -280,27 +275,6 @@
         MessageService.BroadcastSimpleMessage(message);
     }
 
-    //private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
-    //{
-    //    var teamOrdinal = e.Message.TeamOrdinal;
-    //    var newIsLocked = e.Message.IsLocked;
-
-    //    if (teamOrdinal != _renderedTeamOrdinal)
-    //    {
-    //        return;
-    //    }
-
-    //    if (newIsLocked != _renderedIsTeamLocked)
-    //    {
-    //        _renderedIsTeamLocked = newIsLocked;
-
-    //        SetMaxPlayersToExtend();
-    //        SetExtendPlayers();
-
-    //        InvokeAsyncStateHasChanged();
-    //    }
-    //}
-
     private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
     {
         var message = e.Message;
@@ -340,7 +314,6 @@
         _playerChangesQueue.Enqueue(changeMessage);
 
         ProcessPlayerChangesQueue();
-
     }
 
     private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
@@ -361,7 +334,6 @@
         else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
-
         }
 
         _playerChangesQueue.Enqueue(changeMessage);
@@ -457,7 +429,7 @@
 
     private void SetMaxPlayersToExtend()
     {
-        _maxPlayersToExtend = _defaultMaxPlayersToExtend;
+        _maxPlayersToExtend = i_isTeamLocked ? _lockedMaxPlayersToExtend : _defaultMaxPlayersToExtend;
     }
 
     private void SetExtendPlayers()

@@ -2,29 +2,25 @@
 
 @if (_renderedCaptureCount == 1)
 {
-    @*<div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block; width: min-content;">*@
-    @*<div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass" style="display: inline-block; width: 40px;">*@
     <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
         <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
     </div>
 }
 else if (_renderedCaptureCount == 2)
 {
-    @*<div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass" style="display: inline-block; width: 40px; white-space: nowrap;">*@
     <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
         <span class="iconify capture-flag stacked" data-icon="ion:flag" data-inline="false"></span><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
     </div>
 }
 else if (_renderedCaptureCount >= 3)
 {
-    @*<div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass" style="display: inline-block; width: 40px;">*@
     <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
         <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span class="capture-flag-label">x@_renderedCaptureCount</span>
     </div>
 }
 else
 {
-    <div style="display: inline-block; width: 40px;"></div>
+    <div class="capture-flag-container"></div>
 }
 
 @code {
