@@ -140,6 +140,7 @@
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
     private int _renderedPlayersCount { get; set; } = 0;
     private int _renderedPlayersOnlineCount { get; set; } = 0;
+    private int _renderedPlayersBenchedCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
     #region UI & Layout Variables
@@ -238,7 +239,7 @@
         {
             TeamPlayerChangeMessage changeMessage;
 
-            if (player.IsParticipating)
+            if (player.IsParticipating || player.IsOnline)
             {
                 changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
 
@@ -302,7 +303,7 @@
 
         TeamPlayerChangeMessage changeMessage;
 
-        if (player.IsParticipating)
+        if (player.IsParticipating || _renderedIsTeamLocked)
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
@@ -392,12 +393,15 @@
 
                 var oldPlayersOnlineCount = _renderedPlayersOnlineCount;
                 var oldPlayersCount = _renderedPlayersCount;
+                var oldPlayersBenchedCount = _renderedPlayersBenchedCount;
 
                 _renderedPlayersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
                 _renderedPlayersCount = _renderedPlayers.Count();
+                _renderedPlayersBenchedCount = _renderedPlayers.Count(m => m.IsBenched);
 
                 changes += oldPlayersOnlineCount != _renderedPlayersOnlineCount ? 1 : 0;
                 changes += oldPlayersCount != _renderedPlayersCount ? 1 : 0;
+                changes += oldPlayersBenchedCount != _renderedPlayersBenchedCount ? 1 : 0;
 
                 var oldExtendPlayers = _extendPlayers;
                 SetExtendPlayers();
