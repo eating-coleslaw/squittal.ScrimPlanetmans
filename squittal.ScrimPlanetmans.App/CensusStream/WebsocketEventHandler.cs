@@ -192,6 +192,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
+            bool involvesBenchedPlayer = false;
+
             ScrimDeathActionEvent deathEvent = new ScrimDeathActionEvent
             {
                 Timestamp = payload.Timestamp,
@@ -233,6 +235,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         _teamsManager.SetPlayerLoadoutId(attackerId, deathEvent.AttackerLoadoutId);
 
+                        involvesBenchedPlayer = involvesBenchedPlayer || attackerPlayer.IsBenched;
                     }
                 }
 
@@ -247,6 +250,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     if (victimPlayer != null)
                     {
                         _teamsManager.SetPlayerLoadoutId(victimId, deathEvent.VictimLoadoutId);
+
+                        involvesBenchedPlayer = involvesBenchedPlayer || victimPlayer.IsBenched;
                     }
                 }
 
@@ -263,7 +268,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         deathEvent.AttackerLoadoutId = deathEvent.VictimLoadoutId;
                     }
 
-                    if (_isScoringEnabled)
+                    if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
                         var points = await _scorer.ScoreDeathEvent(deathEvent);
                         deathEvent.Points = points;
@@ -444,6 +449,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
+            bool involvesBenchedPlayer = false;
+
             // Don't bother tracking players destroying unclaimed vehicles
             if (!isValidVictimId)
             {
@@ -502,6 +509,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         _teamsManager.SetPlayerLoadoutId(attackerId, destructionEvent.AttackerLoadoutId);
 
+                        involvesBenchedPlayer = involvesBenchedPlayer || attackerPlayer.IsBenched;
                     }
                 }
 
@@ -511,6 +519,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     victimPlayer = _teamsManager.GetPlayerFromId(victimId);
                     destructionEvent.VictimPlayer = victimPlayer;
+
+                    if (victimPlayer != null)
+                    {
+                        involvesBenchedPlayer = involvesBenchedPlayer || victimPlayer.IsBenched;
+                    }
                 }
 
                 destructionEvent.DeathType = GetVehicleDestructionDeathType(destructionEvent);
@@ -527,7 +540,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         destructionEvent.AttackerVehicle = destructionEvent.VictimVehicle;
                     }
 
-                    if (_isScoringEnabled)
+                    if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
                         var points = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
                         destructionEvent.Points = points;
@@ -939,6 +952,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player medicPlayer;
             Player revivedPlayer;
 
+            bool involvesBenchedPlayer = false;
+
             if (isValidMedicId == true)
             {
                 reviveEvent.MedicCharacterId = medicId;
@@ -946,7 +961,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 medicPlayer = _teamsManager.GetPlayerFromId(medicId);
                 reviveEvent.MedicPlayer = medicPlayer;
 
-                _teamsManager.SetPlayerLoadoutId(medicId, reviveEvent.LoadoutId);
+                if (medicPlayer != null)
+                {
+                    _teamsManager.SetPlayerLoadoutId(medicId, reviveEvent.LoadoutId);
+
+                    involvesBenchedPlayer = involvesBenchedPlayer || medicPlayer.IsBenched;
+                }
             }
 
             if (isValidRevivedId == true)
@@ -955,13 +975,18 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 revivedPlayer = _teamsManager.GetPlayerFromId(revivedId);
                 reviveEvent.RevivedPlayer = revivedPlayer;
+
+                if (revivedPlayer != null)
+                {
+                    involvesBenchedPlayer = involvesBenchedPlayer || revivedPlayer.IsBenched;
+                }
             }
 
             reviveEvent.ActionType = GetReviveScrimActionType(reviveEvent);
 
             if (reviveEvent.ActionType != ScrimActionType.OutsideInterference)
             {
-                if (_isScoringEnabled)
+                if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
                     var points = await _scorer.ScoreReviveEvent(reviveEvent);
                     reviveEvent.Points = points;
@@ -1031,6 +1056,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
+            bool involvesBenchedPlayer = false;
+
             if (isValidattackerId == true)
             {
                 assistEvent.AttackerCharacterId = attackerId;
@@ -1038,7 +1065,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
                 assistEvent.AttackerPlayer = attackerPlayer;
 
-                _teamsManager.SetPlayerLoadoutId(attackerId, assistEvent.LoadoutId);
+                if (attackerPlayer != null)
+                {
+                    _teamsManager.SetPlayerLoadoutId(attackerId, assistEvent.LoadoutId);
+
+                    involvesBenchedPlayer = involvesBenchedPlayer || attackerPlayer.IsBenched;
+                }
             }
 
             if (isValidvictimId == true)
@@ -1047,13 +1079,18 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 victimPlayer = _teamsManager.GetPlayerFromId(victimId);
                 assistEvent.VictimPlayer = victimPlayer;
+
+                if (victimPlayer != null)
+                {
+                    involvesBenchedPlayer = involvesBenchedPlayer || victimPlayer.IsBenched;
+                }
             }
 
             assistEvent.ActionType = GetAssistScrimActionType(assistEvent);
 
             if (assistEvent.ActionType != ScrimActionType.OutsideInterference)
             {
-                if (_isScoringEnabled)
+                if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
                     var points = await _scorer.ScoreAssistEvent(assistEvent);
                     assistEvent.Points = points;
@@ -1224,9 +1261,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             controlEvent.ActionType = GetObjectiveTickScrimActionType(controlEvent);
 
+            var involvesBenchedPlayer = player.IsBenched;
+
             if (controlEvent.ActionType != ScrimActionType.Unknown)
             {
-                if (_isScoringEnabled)
+                if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
                     var points = await _scorer.ScoreObjectiveTickEvent(controlEvent);
                     controlEvent.Points = points;

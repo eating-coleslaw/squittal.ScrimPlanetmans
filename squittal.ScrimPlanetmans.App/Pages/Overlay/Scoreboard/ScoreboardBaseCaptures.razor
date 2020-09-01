@@ -2,15 +2,25 @@
 
 @if (_renderedCaptureCount == 1)
 {
-    <div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block; width: min-content;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span></div>
+    <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
+        <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
+    </div>
 }
 else if (_renderedCaptureCount == 2)
 {
-    <div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block; width: 24px; white-space: nowrap;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span></div>
+    <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
+        <span class="iconify capture-flag stacked" data-icon="ion:flag" data-inline="false"></span><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
+    </div>
 }
 else if (_renderedCaptureCount >= 3)
 {
-    <div class="@SqCssHelper.GetFactionClassFromId(_renderedFactionId)" style="display: inline-block;"><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span style="color: var(--sq-ov-ps2-primary); text-shadow: -1px 0px 1px var(--sq-black); font-size: 1rem;">x@_renderedCaptureCount</span></div>
+    <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
+        <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span class="capture-flag-label">x@_renderedCaptureCount</span>
+    </div>
+}
+else
+{
+    <div class="capture-flag-container"></div>
 }
 
 @code {
@@ -21,6 +31,12 @@ else if (_renderedCaptureCount >= 3)
     [Parameter]
     public int? i_factionId { get; set; }
     private int? _renderedFactionId { get; set; } = (int?)null;
+
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
+
+    private string _teamCssClass { get; set; } = string.Empty;
 
     #region Initialization Methods
     protected override void OnParametersSet()
@@ -36,6 +52,15 @@ else if (_renderedCaptureCount >= 3)
         if (i_factionId != _renderedFactionId)
         {
             _renderedFactionId = i_factionId;
+            paramsChanged = true;
+        }
+
+        if (i_teamOrdinal != _renderedTeamOrdinal)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+
+            _teamCssClass = $"team{_renderedTeamOrdinal}";
+
             paramsChanged = true;
         }
 

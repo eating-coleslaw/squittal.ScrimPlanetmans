@@ -197,8 +197,6 @@ else
         MessageService.RaiseTeamPlayerChangeEvent += ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent += ReceiveTeamOutfitChangeEvent;
 
-        //MessageService.RaiseTeamLockStatusChangeEvent += ReceiveTeamLockStatusChangeEvent;
-
         MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
@@ -209,8 +207,6 @@ else
     {
         MessageService.RaiseTeamPlayerChangeEvent -= ReceiveTeamPlayerChangeEvent;
         MessageService.RaiseTeamOutfitChangeEvent -= ReceiveTeamOutfitChangeEvent;
-
-        //MessageService.RaiseTeamLockStatusChangeEvent -= ReceiveTeamLockStatusChangeEvent;
 
         MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
         MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
@@ -408,27 +404,6 @@ else
         }
     }
 
-    //private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
-    //{
-    //    var teamOrdinal = e.Message.TeamOrdinal;
-    //    var newIsLocked = e.Message.IsLocked;
-
-    //    if (teamOrdinal != _renderedTeamOrdinal)
-    //    {
-    //        return;
-    //    }
-
-    //    if (newIsLocked != _renderedIsTeamLocked)
-    //    {
-    //        _renderedIsTeamLocked = newIsLocked;
-
-    //        SetMaxPlayersToExtend();
-    //        SetExtendPlayers();
-
-    //        InvokeAsyncStateHasChanged();
-    //    }
-    //}
-
     private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
     {
         var player = e.Message.Player;
@@ -554,7 +529,6 @@ else
                 var oldMembersOnlineCount = _renderedOutfit.MembersOnlineCount;
                 var oldPlayersCount = _renderedPlayersCount;
 
-                //_renderedOutfit.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
                 _renderedPlayersCount = _renderedPlayers.Count();
 
                 changes += oldMembersOnlineCount != _renderedOutfit.MembersOnlineCount ? 1 : 0;

@@ -98,12 +98,21 @@
             return;
         }
 
+        TeamPlayerChangeMessage newMessage;
+
         if (message.ChangeType != TeamPlayerChangeType.Remove)
         {
-            message.ChangeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+            newMessage = ShouldShowPlayer(player)
+                            ? new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add)
+                            : new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Remove);
+
+        }
+        else
+        {
+            newMessage = new TeamPlayerChangeMessage(player, message.ChangeType);
         }
 
-        _teamPlayersQueue.Enqueue(message);
+        _teamPlayersQueue.Enqueue(newMessage);
 
         UpdateRenderedPlayers();
     }

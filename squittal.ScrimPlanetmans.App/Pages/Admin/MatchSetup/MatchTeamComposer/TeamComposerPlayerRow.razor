@@ -75,20 +75,19 @@
 
         <td style="opacity: @GetStatOpacity(Player.EventAggregate.Kills); text-align: right;">@(Player.EventAggregate.Kills)</td>
         <td style="opacity: @GetStatOpacity(Player.EventAggregate.Deaths); text-align: right;">@(Player.EventAggregate.Deaths)</td>
-        @*<td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.NetScore); text-align: right;">@(Player.EventAggregate.NetScore)</td>*@
         <td style="opacity: @GetStatOpacity(Player.EventAggregate.NetScore); text-align: right;">@(Player.EventAggregate.NetScore)</td>
         <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.Points); text-align: right;">@(Player.EventAggregate.Points)</td>
 
         <td style="width: 15px; text-align: right;">
             @if (Player.IsBenched)
             {
-                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player In. Benched players are hidden from the streaming overlay">
+                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player In. Benched players are not scored and are hidden from the streaming overlay">
                     <span class="oi oi-account-login" style="font-size: 0.8rem; top: 1px;"></span>
                 </button>
             }
             else
             {
-                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player Out. Benched players are hidden from the streaming overlay">
+                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player Out. Benched players are not scored and are hidden from the streaming overlay">
                     <span class="oi oi-account-logout" style="font-size: 0.8rem; top: 1px;"></span>
                 </button>
             }
