@@ -75,6 +75,11 @@
     {
         var deathEvent = e.Message.DeathEvent;
 
+        if (DoesEventInvolveBenchedPlayers(deathEvent.AttackerPlayer, deathEvent.VictimPlayer))
+        {
+            return;
+        }
+
         var killfeedEvent = ConvertToKillfeedEvent(deathEvent);
 
         _eventsQueue.Enqueue(killfeedEvent);
@@ -85,6 +90,11 @@
     private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
     {
         var reviveEvent = e.Message.ReviveEvent;
+
+        if (DoesEventInvolveBenchedPlayers(reviveEvent.MedicPlayer, reviveEvent.RevivedPlayer))
+        {
+            return;
+        }
 
         var killfeedEvent = ConvertToKillfeedEvent(reviveEvent);
 
@@ -98,6 +108,11 @@
         var objectiveTickEvent = e.Message.ObjectiveTickEvent;
 
         UpdateRenderedEvents();
+    }
+
+    private bool DoesEventInvolveBenchedPlayers(Player player1, Player player2)
+    {
+        return ((player1 != null && player1.IsBenched) || (player2 != null && player2.IsBenched));
     }
 
     #endregion Event Handling
