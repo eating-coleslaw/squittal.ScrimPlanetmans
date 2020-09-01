@@ -859,7 +859,7 @@
     {
         var player = message.Player;
 
-        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        if (player.IsOutfitless && !player.IsFromConstructedTeam && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamNonOutfitPlayers.Add(player);
 
@@ -873,7 +873,7 @@
     {
         var player = message.Player;
 
-        if (player.IsOutfitless)
+        if (player.IsOutfitless && !player.IsFromConstructedTeam)
         {
             _teamNonOutfitPlayers.RemoveAll(p => p.Id == player.Id);
 
@@ -893,7 +893,7 @@
             return;
         }
 
-        if (player.IsOutfitless && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
+        if (player.IsOutfitless && !player.IsFromConstructedTeam && !_teamNonOutfitPlayers.Any(p => p.Id == player.Id))
         {
             _teamNonOutfitPlayers.Add(player);
 
