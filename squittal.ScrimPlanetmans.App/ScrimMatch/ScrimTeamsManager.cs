@@ -862,7 +862,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                                 .Where(t => t.ConstructedTeam.Id == constructedTeamId && t.ActiveFactionId == factionId)
                                                 .FirstOrDefault();
 
-            team.TryRemoveConstructedTeamFaction(constructedTeamId, factionId);
+            if (!team.TryRemoveConstructedTeamFaction(constructedTeamId, factionId))
+            {
+                return false;
+            }
 
             var players = team.GetConstructedTeamFactionPlayers(constructedTeamId, factionId).ToList();
 
@@ -2137,21 +2140,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 RemoveOutfitFromTeam(alias);
             }
+
+            if (team.Players.Any())
+            {
+                var allPlayers = team.Players.ToList();
             
-            // if there are no outfitless players, we're done
-            if (!team.Players.Any())
-            {
-                team.ClearEventAggregateHistory();
-
-                // TODO: broadcast "Finished Clearing Team" message
-                return;
-            }
-
-            var allPlayers = team.Players.ToList();
-
-            foreach (var player in allPlayers)
-            {
-                RemovePlayerFromTeam(player);
+                foreach (var player in allPlayers)
+                {
+                    RemovePlayerFromTeam(player);
+                }
             }
 
             team.ClearEventAggregateHistory();
