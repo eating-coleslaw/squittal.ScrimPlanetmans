@@ -249,7 +249,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             {
                 var details = new ConstructedTeamMemberDetails
                 {
-                    NameFull = $"up{member.CharacterId}",
+                    NameFull = $"uc{member.CharacterId}",
                     NameAlias = string.Empty,
                     CharacterId = member.CharacterId,
                     FactionId = member.FactionId

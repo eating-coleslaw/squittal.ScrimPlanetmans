@@ -52,7 +52,8 @@
         }
         else
         {
-            <td title="@_renderedCharacter.NameFull [@(_renderedCharacterId)]">
+            @*<td title="@_renderedCharacter.NameFull [@(_renderedCharacterId)]">*@
+            <td title="@GetCharacterCellTitle()">
                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@_renderedCharacter.NameDisplay</span>
                 @if (_renderedCharacter.PrestigeLevel != 0)
                 {
@@ -251,6 +252,19 @@
     #endregion UI & Form Controls
 
     #region Helper Methods
+    private string GetCharacterCellTitle()
+    {
+        if (_renderedCharacter.NameFull == $"uc{_renderedCharacter.CharacterId}")
+        {
+            return $"Unknown Character [{_renderedCharacter.CharacterId}]";
+        }
+        else
+        {
+            return $"{_renderedCharacter.NameFull} [{_renderedCharacterId}]";
+        }
+    }
+
+
     private string GetFactionAbbreviationFromId(int factionId)
     {
         return FactionService.GetFactionAbbrevFromId(factionId);
