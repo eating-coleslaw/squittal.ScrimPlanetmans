@@ -131,9 +131,16 @@
     {
         if (i_character != null && i_character.WorldId != _renderedWorldId)
         {
-            _renderedWorldId = (int)i_character.WorldId;
+            World renderedWorld = null;
 
-            var renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
+            if (i_character.WorldId != null)
+            {
+                _renderedWorldId = (int)i_character.WorldId;
+
+                renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
+            }
+
+            //var renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
 
             _renderedWorldName = renderedWorld == null ? "Unknown World" : renderedWorld.Name;
 
