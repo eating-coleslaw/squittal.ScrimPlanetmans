@@ -258,18 +258,12 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 processedCharacters.Add(details);
             }
 
-            //processedCharacters = await processedCharacters.Select(async c => await SetConstructedTeamMemberIsMatchParticipantAsync(c)).ToList();
-
             IEnumerable<Task<ConstructedTeamMemberDetails>> isMatchParticipantTasks =
                 from character in processedCharacters select SetConstructedTeamMemberIsMatchParticipantAsync(character);
 
             var isMatchParticipantTasksResultArray = await Task.WhenAll(isMatchParticipantTasks);
 
             return isMatchParticipantTasksResultArray.ToList();
-            
-            //processedCharacters = isMatchParticipantTasksResultArray.ToList();
-
-            //return processedCharacters;
         }
 
         private ConstructedTeamMemberDetails ConvertToMemberDetailsModel(Character character, ConstructedTeamPlayerMembership membership)
