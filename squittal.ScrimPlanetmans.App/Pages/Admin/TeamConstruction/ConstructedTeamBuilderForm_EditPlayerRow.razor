@@ -72,14 +72,14 @@
             <td>@_renderedWorldName</td>
 
 
-            @if (_renderedShowRemoveControls)
-            {
-                <td style="width: 15px; text-align: right;">
-                    <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleRemovePlayer" title="Remove Character from Team">
-                        <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                    </button>
-                </td>
-            }
+            <td style="width: 15px; text-align: right;">
+                @if (_renderedShowRemoveControls && _renderedCharacter.IsDeleteAllowed)
+                {
+                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleRemovePlayer" title="Remove Character from Team">
+                            <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                        </button>
+                }
+            </td>
         }
     </tr>
 }
@@ -201,7 +201,10 @@
     #region UI & Form Controls
     private async void HandleRemovePlayer()
     {
-        await ConstructedTeamsService.TryRemoveCharacterFromConstructedTeam(_renderedTeamId, _renderedCharacterId);
+        if (_renderedCharacter.IsDeleteAllowed)
+        {
+            await ConstructedTeamsService.TryRemoveCharacterFromConstructedTeam(_renderedTeamId, _renderedCharacterId);
+        }
     }
 
     private void HandleShowEditAliasForm()

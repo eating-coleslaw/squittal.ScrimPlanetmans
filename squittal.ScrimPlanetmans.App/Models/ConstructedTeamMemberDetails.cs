@@ -19,5 +19,7 @@
 
         public int? WorldId { get; set; }
         public int? PrestigeLevel { get; set; }
+        public bool IsMatchParticipant { get; set; } = false;
+        public bool IsDeleteAllowed { get => !IsMatchParticipant; }
     }
 }

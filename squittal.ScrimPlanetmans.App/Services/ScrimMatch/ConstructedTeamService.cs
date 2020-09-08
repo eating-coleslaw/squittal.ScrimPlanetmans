@@ -258,7 +258,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 processedCharacters.Add(details);
             }
 
-            return processedCharacters;
+            //processedCharacters = await processedCharacters.Select(async c => await SetConstructedTeamMemberIsMatchParticipantAsync(c)).ToList();
+
+            IEnumerable<Task<ConstructedTeamMemberDetails>> isMatchParticipantTasks =
+                from character in processedCharacters select SetConstructedTeamMemberIsMatchParticipantAsync(character);
+
+            var isMatchParticipantTasksResultArray = await Task.WhenAll(isMatchParticipantTasks);
+
+            return isMatchParticipantTasksResultArray.ToList();
+            
+            //processedCharacters = isMatchParticipantTasksResultArray.ToList();
+
+            //return processedCharacters;
         }
 
         private ConstructedTeamMemberDetails ConvertToMemberDetailsModel(Character character, ConstructedTeamPlayerMembership membership)
@@ -763,7 +774,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                     return false;
                 }
             }
-
         }
 
         private async Task<bool> TryRemoveCharacterFromConstructedTeamDb(int teamId, string characterId)
@@ -773,6 +783,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
             try
             {
+                var isMatchParticipant = await GetIsConstructedTeamMemberMatchParticipantAsync(teamId, characterId);
+
+                if (isMatchParticipant)
+                {
+                    return false;
+                }
+
                 var storeEntity = await dbContext.ConstructedTeamPlayerMemberships
                                             .Where(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId)
                                             .FirstOrDefaultAsync();
@@ -922,6 +939,32 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             var dbContext = factory.GetDbContext();
 
             return await dbContext.ConstructedTeamPlayerMemberships.AnyAsync(m => m.CharacterId == characterId && m.ConstructedTeamId == teamId);
+        }
+
+        private async Task<ConstructedTeamMemberDetails> SetConstructedTeamMemberIsMatchParticipantAsync(ConstructedTeamMemberDetails memberDetails)
+        {
+            memberDetails.IsMatchParticipant = await GetIsConstructedTeamMemberMatchParticipantAsync(memberDetails.ConstructedTeamId, memberDetails.CharacterId);
+
+            return memberDetails;
+        }
+
+        public async Task<bool> GetIsConstructedTeamMemberMatchParticipantAsync(int teamId, string characterId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.ScrimMatchParticipatingPlayers.AnyAsync(p => p.IsFromConstructedTeam
+                                                                                && p.ConstructedTeamId == teamId
+                                                                                && p.CharacterId == characterId);
+        }
+
+        public async Task<bool> GetIsConstructedTeamMatchParticipant(int teamId)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.ScrimMatchParticipatingPlayers.AnyAsync(p => p.IsFromConstructedTeam
+                                                                                && p.ConstructedTeamId == teamId);
         }
 
         public static bool IsValidConstructedTeamName(string name)
