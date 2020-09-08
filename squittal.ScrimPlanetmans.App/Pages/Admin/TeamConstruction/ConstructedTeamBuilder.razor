@@ -36,7 +36,8 @@
 
                             @foreach (var team in _storedTeamsList)
                             {
-                                <option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}]")">[@team.Alias] @team.Name (@team.Id.ToString())</option>
+                                @*<option value=@team.Id.ToString() label="@($"{team.Name} [{team.Alias}] ({team.Id})")">[@team.Alias] @team.Name (@team.Id.ToString())</option>*@
+                                <option value=@team.Id.ToString()>@team.Name [@team.Alias] - @team.Id.ToString()</option>
                             }
                         </InputSelect>
                     </div>
