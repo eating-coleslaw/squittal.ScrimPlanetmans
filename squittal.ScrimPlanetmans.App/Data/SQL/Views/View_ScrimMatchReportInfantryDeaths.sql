@@ -77,9 +77,9 @@ ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
                                 SUM( CASE WHEN spots.ActionType = 308 THEN 1 ELSE 0 END ) SpotAssists
                           FROM [PlanetmansDbContext].[dbo].ScrimSpotAssist spots
                           GROUP BY spots.ScrimMatchId, spots.Timestamp, spots.VictimCharacterId ) spot_sums
-                ON grenade_sums.ScrimMatchId = deaths.ScrimMatchId
-                    AND grenade_sums.Timestamp = deaths.Timestamp
-                    AND grenade_sums.VictimCharacterId = deaths.VictimCharacterId
+                ON spot_sums.ScrimMatchId = deaths.ScrimMatchId
+                    AND spot_sums.Timestamp = deaths.Timestamp
+                    AND spot_sums.VictimCharacterId = deaths.VictimCharacterId
       LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
         ON match_players.ScrimMatchId = deaths.ScrimMatchId
             AND ( match_players.CharacterId = deaths.AttackerCharacterId
