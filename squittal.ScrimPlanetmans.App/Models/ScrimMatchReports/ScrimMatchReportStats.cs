@@ -17,11 +17,22 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int ScoredDeaths { get; set; }
         public int ZeroPointDeaths { get; set; }
         public int TeamKillDeaths { get; set; }
+
         public int DamageAssists { get; set; }
-        public int DamageTeamAssists { get; set; }
+
         public int DamageAssistedKills { get; set; }
+        public int GrenadeAssistedKills { get; set; }
+        public int SpotAssistedKills { get; set; }
+        public int AssistedKills { get; set; }
+
+        public int DamageTeamAssists { get; set; }
+
         public int DamageAssistedDeaths { get; set; }
+        public int GrenadeAssistedDeaths { get; set; }
+        public int SpotAssistedDeaths { get; set; }
         public int DamageAssistedEnemyDeaths { get; set; }
+        public int GrenadeAssistedEnemyDeaths { get; set; }
+        public int SpotAssistedEnemyDeaths { get; set; }
         public int UnassistedEnemyDeaths { get; set; }
         public int KillsAsHeavyAssault { get; set; }
         public int KillsAsInfiltrator { get; set; }
