@@ -125,11 +125,27 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public void SetFacilitySubscription(int facilityId)
         {
+            var oldFacilityId = SubscribedFacilityId;
+
             SubscribedFacilityId = facilityId;
+
+            var oldFacilityIdString = oldFacilityId == null ? "null" : ((int)oldFacilityId).ToString();
+            var subscribedFacilityIdString = SubscribedFacilityId == null ? "null" : ((int)SubscribedFacilityId).ToString();
+
+            _logger.LogInformation($"SubscribedFacilityId changed: {oldFacilityIdString} => {subscribedFacilityIdString}");
         }
 
         public void SetWorldSubscription(int worldId)
         {
+            var oldWorldId = SubscribedWorldId;
+
+            SubscribedWorldId = worldId;
+
+            var oldWorldIdString = oldWorldId == null ? "null" : ((int)oldWorldId).ToString();
+            var subscribedWorldIdString = SubscribedWorldId == null ? "null" : ((int)SubscribedWorldId).ToString();
+
+            _logger.LogInformation($"SubscribedWorldId changed: {oldWorldIdString} => {subscribedWorldIdString}");
+
             SubscribedWorldId = worldId;
         }
         #endregion Subscription Setup
@@ -360,8 +376,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var message = e.Message;
             var matchConfiguration = message.MatchConfiguration;
 
-            SubscribedFacilityId = matchConfiguration.FacilityId;
-            SubscribedWorldId = matchConfiguration.WorldId;
+            SetFacilitySubscription(matchConfiguration.FacilityId);
+            SetWorldSubscription(matchConfiguration.WorldId);
+
+            //SubscribedFacilityId = matchConfiguration.FacilityId;
+            //SubscribedWorldId = matchConfiguration.WorldId;
 
             if (matchConfiguration.SaveEventsToDatabase)
             {

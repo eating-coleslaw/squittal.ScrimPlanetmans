@@ -768,7 +768,8 @@ body {
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .wedge {
-                border-bottom: 5px solid transparent !important;
+/*                border-bottom: 5px solid transparent !important;*/
+                border-bottom: 4px solid transparent !important;
                 display: inline;
                 border-left-color: transparent;
                 border-right-color: transparent;
