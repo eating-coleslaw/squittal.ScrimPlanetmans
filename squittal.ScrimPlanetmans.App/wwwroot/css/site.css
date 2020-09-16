@@ -371,6 +371,8 @@ app {
     padding-left: 4px;
     font-size: 1rem;
     color: var(--sq-ov-semantic-green);
+    /*margin-top: -0.2rem;*/
+    margin-top: -0.1rem;
 }
 
     .net-score-icon.neutral {
@@ -393,6 +395,10 @@ app {
 /*        top: 6px;*/
 /*        height: 20px;*/
     }
+
+td .net.stats-value {
+    margin-top: -0.2rem;
+}
 
 
 /****************************

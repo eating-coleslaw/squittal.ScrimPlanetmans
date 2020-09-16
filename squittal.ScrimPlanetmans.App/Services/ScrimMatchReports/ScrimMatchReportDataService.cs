@@ -305,8 +305,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 return await dbContext.ScrimMatchReportInfantryPlayerStats
                                         .AsNoTracking()
                                         .Where(e => e.ScrimMatchId == scrimMatchId)
+                                        //.OrderBy(e => e.NameDisplay)
+                                        //.OrderBy(e => e.TeamOrdinal)
+                                        //.OrderByDescending(e => e.TeamOrdinal)
                                         .OrderBy(e => e.NameDisplay)
-                                        .OrderByDescending(e => e.TeamOrdinal)
                                         .ToListAsync(cancellationToken);
 
             }
@@ -380,6 +382,39 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             catch (OperationCanceledException)
             {
                 _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryDeathsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerHeadToHeadStats>> GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerHeadToHeadStats
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId
+                                                    && e.PlayerCharacterId == characterId)
+                                        .OrderByDescending(e => e.PlayerTeamOrdinal != e.OpponentTeamOrdinal)
+                                        .ThenBy(e => e.OpponentNameDisplay)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync scrimMatchId {scrimMatchId} characterId {characterId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync scrimMatchId {scrimMatchId} characterId {characterId}");
                 return null;
             }
             catch (Exception ex)

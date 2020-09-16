@@ -71,6 +71,7 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<ScrimMatchReportInfantryPlayerStats> ScrimMatchReportInfantryPlayerStats { get; set; }
         public DbSet<ScrimMatchReportInfantryTeamStats> ScrimMatchReportInfantryTeamStats { get; set; }
         public DbSet<ScrimMatchReportInfantryDeath> ScrimMatchReportInfantryDeaths { get; set; }
+        public DbSet<ScrimMatchReportInfantryPlayerHeadToHeadStats> ScrimMatchReportInfantryPlayerHeadToHeadStats { get; set; }
         #endregion Views
 
 
@@ -136,6 +137,7 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryTeamStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryDeathConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerHeadToHeadStatsConfiguration());
             #endregion Views
         }
     }

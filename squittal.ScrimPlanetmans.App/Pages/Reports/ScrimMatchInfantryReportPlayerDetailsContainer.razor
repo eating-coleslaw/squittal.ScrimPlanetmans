@@ -1,0 +1,459 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using System.Threading;
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+@*<h4>Killfeed</h4>*@
+
+@*@if (!_hasLoadedStats && !_isLoadingStats)
+    {
+        <button class="btn btn-outline-primary" @onclick="OnLoadStatsSubmit" style="font-size: 1.1rem; font-family: Roboto, 'Segoe UI', sans-serif; display: block; margin: 0 auto 12px auto;">
+            <span class="oi oi-data-transfer-download" style="font-size: 0.9rem;"></span>Load Stats
+        </button>
+    }
+    else*@
+
+@if (_isLoadingStats)
+{
+    @*<h4>Player Drilldown</h4>*@
+
+    <SpinnerEllipsis />
+
+    @*<button class="btn btn-outline-primary" @onclick="OnCancelLoadStatsSubmit" style="font-size: 1.1rem; font-family: Roboto, 'Segoe UI', sans-serif; display: block; margin: 0 auto 16px auto;">
+        <span class="oi oi-x" style="top: 0px; font-size: 0.9rem;"></span>Cancel
+    </button>*@
+}
+else if (_headToHeadStats == null || !_headToHeadStats.Any())
+{
+    <h4>Player Drilldown</h4>
+
+    <p style="font-style: italic;">No player head-to-head data available for this match & player</p>
+}
+else
+{
+    <h4>@_headToHeadStats.Select(e => e.PlayerNameDisplay).FirstOrDefault()</h4>
+
+    <div style="max-height: 620px; overflow-y: auto; width: 100%; margin-bottom: 10px;">
+        <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
+
+            <tbody style="font-size: 0.8rem;">
+
+                <tr class="@SqCssHelper.GetFactionClassFromId(_headToHeadStats.Select(e => e.PlayerFactionId).FirstOrDefault())" style="line-height: 1.2; font-size: 0.85rem; border-bottom: 2px solid var(--sq-ps2-primary-light); vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
+                    @*<th style="padding-left: 10px;"></th>*@
+                    <th style="padding-bottom: 0.2rem;"></th>
+                    <th style="text-align: right; font-weight: 300; width: 60px; padding-bottom: 0.2rem;">Points</th>
+                    @*<th style=" width: 110px;"></th>*@
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Net</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">K</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">D</th>
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">KHSR</th>
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">DHSR</th>
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Dmg. Assists</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">Solo Kills</th>
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Ass. D</th>
+                    @*<th style="font-weight: 300; width: 80px;">Favorable Eng. %</th>*@
+                    <th style="font-weight: 300; width: 80px; padding-bottom: 0.2rem;">Fav. Eng. %</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">1v1 Eng. %</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">1v1 KDR</th>
+                </tr>
+
+                @foreach (var opponentStats in _headToHeadStats)
+                {
+                    <tr class="@SqCssHelper.GetFactionClassFromId(opponentStats.OpponentFactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
+                        <!--<td>
+                <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>-->
+                        @*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                        <!--</td>-->
+                        <td style="color: var(--sq-ps2-primary);text-align: left;" title="@opponentStats.OpponentNameFull [@(opponentStats.OpponentCharacterId)]">
+                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@opponentStats.OpponentNameDisplay</span>
+                            @if (opponentStats.OpponentPrestigeLevel != 0)
+                            {
+                                <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
+                                    <sup>
+                                        <span class="oi oi-star small" aria-hidden="true"></span>
+                                    </sup>
+                                </div>
+                            }
+                        </td>
+                        <td style="text-align: right;">@opponentStats.Points</td>
+                        @*<td>
+                    <div class="graph" style="width: 110px;">
+                        <div class="graph-bar" style="width: @($"{GetPointGraphWidth(opponentStats.Points)}%"); height: 17px; margin: 5px 0 0 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
+                    </div>
+                </td>*@
+                        <td>
+                            <div class="net stats-value" style="margin-top: -0.2rem;">
+                                <span class="value">@opponentStats.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(opponentStats.NetScore)">@GetNetScoreLabelText(opponentStats.NetScore)</span>
+                            </div>
+                        </td>
+                        <td>@opponentStats.Kills</td>
+                        <td>@opponentStats.Deaths</td>
+                        <td>@opponentStats.HeadshotKillPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td>@opponentStats.HeadshotDeathPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td>@opponentStats.DamageAssistsDealt</td>
+                        <td>@opponentStats.UnassistedKills</td>
+                        <td>@opponentStats.AssistedDeaths</td>
+                        @*<td>@player.WeightedFavorableEngagementPercent2<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
+                        <td>@opponentStats.WeightedFavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td>@opponentStats.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td>@opponentStats.OneVsOneKillDeathRatio</td>
+                    </tr>
+                }
+
+                <tr class="@SqCssHelper.GetFactionClassFromId(_headToHeadStats.Select(e => e.PlayerFactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ps2-primary-light);"></tr>
+
+            </tbody>
+        </table>
+
+    </div>
+    
+    <div style="height: 1rem; line-height: 1rem; color: var(--sq-gray);">
+        @_headToHeadStats.Select(e => e.PlayerCharacterId).FirstOrDefault()
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string i_scrimMatchId { get; set; }
+    private string _renderedScrimMatchId { get; set; }
+
+    [Parameter]
+    public string i_playerId { get; set; }
+    public string _renderedPlayerId { get; set; }
+
+    private List<ScrimMatchReportInfantryPlayerHeadToHeadStats> _headToHeadStats { get; set; }
+
+    //private List<ScrimMatchReportInfantryDeath> _deaths { get; set; }
+
+    private bool _hasLoadedStats { get; set; } = false;
+
+    private bool _isChangingScrimMatch { get; set; } = false;
+    private bool _isLoadingStats { get; set; } = false;
+
+    //private bool _hasLoadedKillfeed { get; set; } = false;
+
+    //private bool _isChangingScrimMatch { get; set; } = false;
+    //private bool _isLoadingDeaths { get; set; } = false;
+
+    //private int[] infiltratorIds = { 1, 8, 15 };
+    //private int[] lightAssaultIds = { 3, 10, 17 };
+    //private int[] medicIds = { 4, 11, 18 };
+    //private int[] engineerIds = { 5, 12, 19 };
+    //private int[] heavyAssaultIds = { 6, 13, 20 };
+    //private int[] maxIds = { 7, 14, 21 };
+
+    private CancellationTokenSource cts;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        _hasLoadedStats = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoadingStats = true;
+
+        if (i_scrimMatchId != null && i_playerId != null)
+        {
+            _renderedScrimMatchId = i_scrimMatchId;
+            _renderedPlayerId = i_playerId;
+
+            await LoadPlayerHeadToHeadStats();
+
+            //if (_hasLoadedStats)
+            //{
+            //    await LoadPlayerHeadToHeadStats();
+            //}
+        }
+
+        _isLoadingStats = false;
+    }
+
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
+        {
+            _isChangingScrimMatch = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedScrimMatchId = i_scrimMatchId;
+            _renderedPlayerId = i_playerId;
+
+            await LoadPlayerHeadToHeadStats();
+
+            //if (_hasLoadedStats)
+            //{
+            //    await LoadPlayerHeadToHeadStats();
+            //}
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingScrimMatch = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadPlayerHeadToHeadStats()
+    {
+        _isLoadingStats = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var headToHeadStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync(_renderedScrimMatchId, _renderedPlayerId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _headToHeadStats = new List<ScrimMatchReportInfantryPlayerHeadToHeadStats>();
+
+            if (headToHeadStats != null && headToHeadStats.Any())
+            {
+                _headToHeadStats.AddRange(headToHeadStats);
+            }
+
+            _hasLoadedStats = true;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingStats = false;
+    }
+    #endregion Initialization Methods
+
+    #region Form Controls
+    private async void OnLoadStatsSubmit()
+    {
+        await LoadPlayerHeadToHeadStats();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnCancelLoadStatsSubmit()
+    {
+        _isLoadingStats = false;
+        _hasLoadedStats = false;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+    }
+    #endregion Form Controls
+
+    private string GetHeadshotClass(bool? isHeadshot)
+    {
+        if (isHeadshot == null)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            return (bool)isHeadshot ? "headshot" : string.Empty;
+
+        }
+    }
+
+    private string GetPointsDisplay(int points)
+    {
+        if (points >= 0)
+        {
+            return $"+{points}";
+        }
+        else
+        {
+            return points.ToString();
+        }
+    }
+
+    private string GetNetScoreLabelCssClass(int netScore)
+    {
+        if (netScore == 0)
+        {
+            return "neutral";
+        }
+        else if (netScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText(int netScore)
+    {
+        if (netScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
+        }
+    }
+
+    private string GetDeathRowBgClass(DeathEventType deathType)
+    {
+        if (deathType == DeathEventType.Teamkill || deathType == DeathEventType.Suicide)
+        {
+            return "teamkill"; //#FEF9BF";
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    private string GetDeathRowPrimaryClass(ScrimMatchReportInfantryDeath death)
+    {
+        switch (death.DeathType)
+        {
+            case DeathEventType.Kill:
+                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+
+            case DeathEventType.Suicide:
+                return SqCssHelper.GetFactionClassFromId(death.VictimFactionId);
+
+            case DeathEventType.Teamkill:
+                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+
+            default:
+                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+        }
+    }
+
+
+    //private string GetLoadoutIconFromLoadoutId(int loadoutId)
+    //{
+    //    if (infiltratorIds.Contains(loadoutId))
+    //    {
+    //        return "infil";
+    //    }
+    //    else if (lightAssaultIds.Contains(loadoutId))
+    //    {
+    //        return "la";
+    //    }
+    //    else if (medicIds.Contains(loadoutId))
+    //    {
+    //        return "medic";
+    //    }
+    //    else if (engineerIds.Contains(loadoutId))
+    //    {
+    //        return "engy";
+    //    }
+    //    else if (heavyAssaultIds.Contains(loadoutId))
+    //    {
+    //        return "heavy";
+    //    }
+    //    else if (maxIds.Contains(loadoutId))
+    //    {
+    //        return "max";
+    //    }
+    //    else
+    //    {
+    //        return "unknown";
+    //    }
+    //}
+
+
+    //private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
+    //{
+    //    if (planetsideClass == PlanetsideClass.Infiltrator)
+    //    {
+    //        return "infil";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.LightAssault)
+    //    {
+    //        return "la";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.Medic)
+    //    {
+    //        return "medic";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.Engineer)
+    //    {
+    //        return "engy";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.HeavyAssault)
+    //    {
+    //        return "heavy";
+    //    }
+    //    else if (planetsideClass == PlanetsideClass.MAX)
+    //    {
+    //        return "max";
+    //    }
+    //    else
+    //    {
+    //        return "unknown";
+    //    }
+    //}
+
+    private string GetLoadoutIconFilterStyle(int factionId)
+    {
+        if (factionId == 1)
+        {
+            return "brightness(0) saturate(100%) invert(39%) sepia(41%) saturate(1794%) hue-rotate(224deg) brightness(98%) contrast(91%);";
+        }
+        if (factionId == 2)
+        {
+            return "brightness(0) saturate(100%) invert(49%) sepia(57%) saturate(1428%) hue-rotate(184deg) brightness(101%) contrast(98%);";
+        }
+        if (factionId == 3)
+        {
+            return "brightness(0) saturate(100%) invert(50%) sepia(34%) saturate(1466%) hue-rotate(307deg) brightness(98%) contrast(88%);";
+        }
+
+        return string.Empty;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

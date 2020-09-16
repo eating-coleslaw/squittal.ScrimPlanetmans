@@ -145,6 +145,9 @@
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerDeaths.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerHeadToHeadStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
