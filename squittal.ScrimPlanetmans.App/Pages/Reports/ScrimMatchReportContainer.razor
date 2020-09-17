@@ -198,6 +198,8 @@
                     if (!string.IsNullOrWhiteSpace(_selectedPlayerId) && !_isChangingSelectedPlayer)
                     {
                         <ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_selectedPlayerId OnSelectDetailsPlayer="OnSelectPlayerSubmit" />
+
+                        <ScrimMatchInfantryReportPlayerWeaponStatsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_selectedPlayerId />
                     }
                     else
                     {

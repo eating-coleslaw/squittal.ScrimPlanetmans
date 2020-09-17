@@ -1,0 +1,345 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using System.Threading;
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+
+@if (_isLoadingStats)
+{
+    <SpinnerEllipsis />
+}
+else if (_weaponStats == null || !_weaponStats.Any())
+{
+    <h5>Weapons</h5>
+
+    <p style="font-style: italic;">No player weapon data available for this match & player</p>
+}
+else
+{
+    <h5>Weapons</h5>
+
+    <div style="max-height: 620px; overflow-y: auto; width: 100%; margin-bottom: 10px;">
+        <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
+
+            <tbody style="font-size: 0.8rem;">
+
+                <tr class="@SqCssHelper.GetFactionClassFromId(_weaponStats.Select(e => e.FactionId).FirstOrDefault())" style="line-height: 1.2; font-size: 0.85rem; border-bottom: 2px solid var(--sq-ps2-primary-light); vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
+                    <th style="padding-bottom: 0.2rem;"></th>
+                    <th style="text-align: right; font-weight: 300; width: 40px; padding-bottom: 0.2rem;" total="Total Points">Pts.</th>
+                    @*<th style=" width: 110px;"></th>*@
+                    @*<th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;" title="Net Score">Net</th>*@
+                    <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Kills">Kills</th>
+                    <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Deaths">Deaths</th>
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">KHSR</th>
+                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">DHSR</th>
+                    <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
+                    <th style="font-weight: 300; width: 70px; max-width: 60px; padding-bottom: 0.2rem;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
+                    @*<th style="font-weight: 300; width: 60px; min-width: 50px; padding-bottom: 0.2rem;" title="One vs One Engagement Percent">1v1 Eng. %</th>*@
+                    @*<th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;" title="One vs One Kill-Death Ratio">1v1 KDR</th>*@
+                </tr>
+
+                @foreach (var weaponStats in _weaponStats)
+                {
+                    <tr class="@SqCssHelper.GetFactionClassFromId(weaponStats.WeaponFactionId)" style="color: var(--sq-ov-ps2-primary-dark); @((weaponStats.WeaponFactionId > 0 ? "" : "background-color: var(--sq-pink-lighter-alpha-10);"))">
+                        <td style="color: var(--sq-ps2-primary);text-align: left;" title="@weaponStats.WeaponName [@(weaponStats.WeaponId)]">
+                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 150px; display: block;">@weaponStats.WeaponName</span>
+                        </td>
+                        <td style="text-align: right;">@weaponStats.Points</td>
+                        @*<td>
+                            <div class="net stats-value" style="margin-top: -0.2rem;">
+                                <span class="value">@weaponStats.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(weaponStats.NetScore)">@GetNetScoreLabelText(weaponStats.NetScore)</span>
+                            </div>
+                        </td>*@
+                        <td>@weaponStats.Kills</td>
+                        <td>@weaponStats.Deaths</td>
+                        <td>@weaponStats.HeadshotKillPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td>@weaponStats.HeadshotDeathPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        @*<td>@weaponStats.DamageAssistsDealt</td>*@
+                        <td>@weaponStats.UnassistedKills</td>
+                        <td>@weaponStats.AssistedDeaths</td>
+                        @*<td title="@weaponStats.OneVsOneCount / @weaponStats.KillDeathEngagementCount">@weaponStats.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
+                        @*<td title="@weaponStats.UnassistedKills / @weaponStats.UnassistedDeaths">@weaponStats.OneVsOneKillDeathRatio</td>*@
+                    </tr>
+                }
+
+                <tr class="@SqCssHelper.GetFactionClassFromId(_weaponStats.Select(e => e.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ps2-primary-light);"></tr>
+
+            </tbody>
+        </table>
+
+    </div>
+
+    @*<div style="height: 1rem; line-height: 1rem; color: var(--sq-gray);">
+            @_weaponStats.Select(e => e.PlayerCharacterId).FirstOrDefault()
+        </div>*@
+}
+
+@code {
+    [Parameter]
+    public string i_scrimMatchId { get; set; }
+    private string _renderedScrimMatchId { get; set; }
+
+    [Parameter]
+    public string i_playerId { get; set; }
+    public string _renderedPlayerId { get; set; }
+
+    private List<ScrimMatchReportInfantryPlayerWeaponStats> _weaponStats { get; set; }
+
+    private bool _hasLoadedStats { get; set; } = false;
+
+    private bool _isChangingScrimMatch { get; set; } = false;
+    private bool _isLoadingStats { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        _hasLoadedStats = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoadingStats = true;
+
+        if (i_scrimMatchId != null && i_playerId != null)
+        {
+            _renderedScrimMatchId = i_scrimMatchId;
+            _renderedPlayerId = i_playerId;
+
+            await LoadPlayerWeaponStats();
+        }
+
+        _isLoadingStats = false;
+    }
+
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
+        {
+            _isChangingScrimMatch = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedScrimMatchId = i_scrimMatchId;
+            _renderedPlayerId = i_playerId;
+
+            await LoadPlayerWeaponStats();
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingScrimMatch = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadPlayerWeaponStats()
+    {
+        _isLoadingStats = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var weaponStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerWeaponStatsAsync(_renderedScrimMatchId, _renderedPlayerId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _weaponStats = new List<ScrimMatchReportInfantryPlayerWeaponStats>();
+
+            if (weaponStats != null && weaponStats.Any())
+            {
+                _weaponStats.AddRange(weaponStats);
+            }
+
+            _hasLoadedStats = true;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingStats = false;
+    }
+    #endregion Initialization Methods
+
+    #region UI & Form Controls
+    private async void OnLoadStatsSubmit()
+    {
+        await LoadPlayerWeaponStats();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnCancelLoadStatsSubmit()
+    {
+        _isLoadingStats = false;
+        _hasLoadedStats = false;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+    }
+    #endregion UI & Form Controls
+
+    private string GetHeadshotClass(bool? isHeadshot)
+    {
+        if (isHeadshot == null)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            return (bool)isHeadshot ? "headshot" : string.Empty;
+
+        }
+    }
+
+    private string GetPointsDisplay(int points)
+    {
+        if (points >= 0)
+        {
+            return $"+{points}";
+        }
+        else
+        {
+            return points.ToString();
+        }
+    }
+
+    private string GetNetScoreLabelCssClass(int netScore)
+    {
+        if (netScore == 0)
+        {
+            return "neutral";
+        }
+        else if (netScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText(int netScore)
+    {
+        if (netScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
+        }
+    }
+
+    private string GetDeathRowBgClass(DeathEventType deathType)
+    {
+        if (deathType == DeathEventType.Teamkill || deathType == DeathEventType.Suicide)
+        {
+            return "teamkill";
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
+    {
+        if (planetsideClass == PlanetsideClass.Infiltrator)
+        {
+            return "infil";
+        }
+        else if (planetsideClass == PlanetsideClass.LightAssault)
+        {
+            return "la";
+        }
+        else if (planetsideClass == PlanetsideClass.Medic)
+        {
+            return "medic";
+        }
+        else if (planetsideClass == PlanetsideClass.Engineer)
+        {
+            return "engy";
+        }
+        else if (planetsideClass == PlanetsideClass.HeavyAssault)
+        {
+            return "heavy";
+        }
+        else if (planetsideClass == PlanetsideClass.MAX)
+        {
+            return "max";
+        }
+        else
+        {
+            return "unknown";
+        }
+    }
+
+    private string GetLoadoutIconFilterStyle(int factionId)
+    {
+        if (factionId == 1)
+        {
+            return "brightness(0) saturate(100%) invert(39%) sepia(41%) saturate(1794%) hue-rotate(224deg) brightness(98%) contrast(91%);";
+        }
+        if (factionId == 2)
+        {
+            return "brightness(0) saturate(100%) invert(49%) sepia(57%) saturate(1428%) hue-rotate(184deg) brightness(101%) contrast(98%);";
+        }
+        if (factionId == 3)
+        {
+            return "brightness(0) saturate(100%) invert(50%) sepia(34%) saturate(1466%) hue-rotate(307deg) brightness(98%) contrast(88%);";
+        }
+
+        return string.Empty;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

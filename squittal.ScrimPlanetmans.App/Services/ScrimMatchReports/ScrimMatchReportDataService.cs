@@ -490,6 +490,40 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerWeaponStats>> GetHistoricalScrimMatchInfantryPlayerWeaponStatsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerWeaponStats
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId
+                                                    && e.CharacterId == characterId)
+                                        .OrderByDescending(e => e.Kills)
+                                        .ThenByDescending(e => e.Deaths)
+                                        .ThenBy(e => e.WeaponName)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         //public async Task<PaginatedList<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryPlayerDeathsAsync(string scrimMatchId, int? pageIndex)
         //{
         //    try
