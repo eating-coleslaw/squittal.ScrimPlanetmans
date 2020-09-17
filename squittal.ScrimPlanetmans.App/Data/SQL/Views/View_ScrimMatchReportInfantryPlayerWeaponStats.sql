@@ -29,20 +29,12 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
          COALESCE(death_sums.ScoredDeaths, 0) ScoredDeaths,
          COALESCE(death_sums.ZeroPointDeaths, 0) ZeroPointDeaths,
          COALESCE(kill_sums.DamageAssistedKills, 0) DamageAssistedKills,
-         COALESCE(kill_sums.DamageAssistedOnlyKills, 0) DamageAssistedOnlyKills,
          COALESCE(kill_sums.GrenadeAssistedKills, 0) GrenadeAssistedKills,
-         COALESCE(kill_sums.GrenadeAssistedOnlyKills, 0) GrenadeAssistedOnlyKills,
-         COALESCE(kill_sums.SpotAssistedKills, 0) SpotAssistedKills,
-         COALESCE(kill_sums.SpotAssistedOnlyKills, 0) SpotAssistedOnlyKills,
          COALESCE(kill_sums.AssistedKills, 0) AssistedKills,
          COALESCE(kill_sums.UnassistedKills, 0) UnassistedKills,
          COALESCE(kill_sums.UnassistedHeadshotKills, 0) UnassistedHeadshotKills,
          COALESCE(death_sums.DamageAssistedDeaths, 0) DamageAssistedDeaths,
-         COALESCE(death_sums.DamageAssistedOnlyDeaths, 0) DamageAssistedOnlyDeaths,
          COALESCE(death_sums.GrenadeAssistedDeaths, 0) GrenadeAssistedDeaths,
-         COALESCE(death_sums.GrenadeAssistedOnlyDeaths, 0) GrenadeAssistedOnlyDeaths,
-         COALESCE(death_sums.SpotAssistedDeaths, 0) SpotAssistedDeaths,
-         COALESCE(death_sums.SpotAssistedOnlyDeaths, 0) SpotAssistedOnlyDeaths,
          COALESCE(death_sums.AssistedDeaths, 0) AssistedDeaths,
          COALESCE(death_sums.UnassistedDeaths, 0) UnassistedDeaths,
          COALESCE(death_sums.UnassistedHeadshotDeaths, 0) UnassistedHeadshotDeaths
@@ -81,21 +73,9 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
                                SUM( CASE WHEN damage_sums.TotalDamages > 0
                                            THEN 1
                                          ELSE 0 END ) DamageAssistedDeaths,
-                               SUM( CASE WHEN damage_sums.TotalDamages > 0 AND (grenade_sums.TotalGrenades IS NULL OR grenade_sums.TotalGrenades = 0) AND (spot_sums.TotalSpots Is NULL OR spot_sums.TotalSpots = 0)
-                                           THEN 1
-                                         ELSE 0 END ) DamageAssistedOnlyDeaths,
                                SUM( CASE WHEN grenade_sums.TotalGrenades > 0
                                            THEN 1
                                          ELSE 0 END ) GrenadeAssistedDeaths,
-                               SUM( CASE WHEN grenade_sums.TotalGrenades > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (spot_sums.TotalSpots Is NULL OR spot_sums.TotalSpots = 0)
-                                           THEN 1
-                                         ELSE 0 END ) GrenadeAssistedOnlyDeaths,
-                               SUM( CASE WHEN spot_sums.TotalSpots > 0
-                                           THEN 1
-                                         ELSE 0 END ) SpotAssistedDeaths,
-                               SUM( CASE WHEN spot_sums.TotalSpots > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (grenade_sums.TotalGrenades Is NULL OR grenade_sums.TotalGrenades  = 0)
-                                           THEN 1
-                                         ELSE 0 END ) SpotAssistedOnlyDeaths,
                                SUM( CASE WHEN damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL
                                            THEN 1
                                          ELSE 0 END ) UnassistedDeaths,
@@ -117,13 +97,6 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
                                  AND deaths.Timestamp = grenade_sums.Timestamp
                                  AND deaths.VictimTeamOrdinal = grenade_sums.VictimTeamOrdinal
                                  AND deaths.VictimCharacterId = grenade_sums.VictimCharacterId
-                            LEFT OUTER JOIN ( SELECT ScrimMatchId, spots.VictimTeamOrdinal, VictimCharacterId, spots.Timestamp, COUNT(*) TotalSpots
-                                                FROM [PlanetmansDbContext].[dbo].[ScrimSpotAssist] spots
-                                                GROUP BY ScrimMatchId, VictimTeamOrdinal, Timestamp, VictimCharacterId ) spot_sums
-                              ON deaths.ScrimMatchId = spot_sums.ScrimMatchId
-                                 AND deaths.Timestamp = spot_sums.Timestamp
-                                 AND deaths.VictimTeamOrdinal = spot_sums.VictimTeamOrdinal
-                                 AND deaths.VictimCharacterId = spot_sums.VictimCharacterId
                         WHERE DeathType IN (0, 1) AND WeaponId IS NOT NULL AND WeaponId <> 0
                         GROUP BY deaths.ScrimMatchId, deaths.VictimCharacterId, deaths.WeaponId ) death_sums
         ON match_players.ScrimMatchId = death_sums.ScrimMatchId
@@ -150,21 +123,9 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
                                SUM( CASE WHEN damage_sums.TotalDamages > 0
                                            THEN 1
                                          ELSE 0 END ) DamageAssistedKills,
-                               SUM( CASE WHEN damage_sums.TotalDamages > 0 AND (grenade_sums.TotalGrenades IS NULL OR grenade_sums.TotalGrenades = 0) AND (spot_sums.TotalSpots Is NULL OR spot_sums.TotalSpots = 0)
-                                           THEN 1
-                                         ELSE 0 END ) DamageAssistedOnlyKills,
                                SUM( CASE WHEN grenade_sums.TotalGrenades > 0
                                            THEN 1
                                          ELSE 0 END ) GrenadeAssistedKills,
-                               SUM( CASE WHEN grenade_sums.TotalGrenades > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (spot_sums.TotalSpots Is NULL OR spot_sums.TotalSpots = 0)
-                                           THEN 1
-                                         ELSE 0 END ) GrenadeAssistedOnlyKills,
-                               SUM( CASE WHEN spot_sums.TotalSpots > 0
-                                           THEN 1
-                                         ELSE 0 END ) SpotAssistedKills,
-                               SUM( CASE WHEN spot_sums.TotalSpots > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (grenade_sums.TotalGrenades Is NULL OR grenade_sums.TotalGrenades  = 0)
-                                           THEN 1
-                                         ELSE 0 END ) SpotAssistedOnlyKills,
                                SUM( CASE WHEN damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL
                                            THEN 1
                                          ELSE 0 END ) UnassistedKills,
@@ -186,13 +147,6 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
                                      AND kills.Timestamp = grenade_sums.Timestamp
                                      AND kills.AttackerTeamOrdinal = grenade_sums.AttackerTeamOrdinal
                                      AND kills.VictimCharacterId = grenade_sums.VictimCharacterId
-                            LEFT OUTER JOIN ( SELECT ScrimMatchId, spots.SpotterTeamOrdinal, VictimCharacterId, spots.Timestamp, COUNT(*) TotalSpots
-                                                FROM [PlanetmansDbContext].[dbo].[ScrimSpotAssist] spots
-                                                GROUP BY ScrimMatchId, SpotterTeamOrdinal, Timestamp, VictimCharacterId ) spot_sums
-                              ON kills.ScrimMatchId = spot_sums.ScrimMatchId
-                                 AND kills.Timestamp = spot_sums.Timestamp
-                                 AND kills.AttackerTeamOrdinal = spot_sums.SpotterTeamOrdinal
-                                 AND kills.VictimCharacterId = spot_sums.VictimCharacterId
                           WHERE DeathType IN (0, 1) AND WeaponId IS NOT NULL AND WeaponId <> 0
                           GROUP BY kills.ScrimMatchId, kills.AttackerCharacterId, kills.WeaponId ) kill_sums
         ON match_players.ScrimMatchId = kill_sums.ScrimMatchId
