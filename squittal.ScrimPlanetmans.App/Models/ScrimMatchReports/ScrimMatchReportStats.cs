@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
@@ -117,10 +118,14 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         {
             get
             {
-                if (EnemyEngagementCount > 0)
+                if (EnemyEngagementCount > 0 && FavorableEngagementCount >= 0)
                 {
                     return (FavorableEngagementCount >= WeightedEnemyEngagementCount) ? 100.0
                                 : Math.Round(FavorableEngagementCount / WeightedEnemyEngagementCount * 100, 0);
+                }
+                else if (FavorableEngagementCount < 0)
+                {
+                    return Math.Round(0 * 100.0, 0);
                 }
                 else
                 {

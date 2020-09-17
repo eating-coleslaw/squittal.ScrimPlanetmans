@@ -61,10 +61,14 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         {
             get
             {
-                if (EngagementCount > 0)
+                if (EngagementCount > 0 && FavorableEngagementCount >= 0)
                 {
                     return (FavorableEngagementCount >= WeightedEngagementCount) ? 100.0
                                 : Math.Round(FavorableEngagementCount / WeightedEngagementCount * 100, 0);
+                }
+                else if (FavorableEngagementCount < 0)
+                {
+                    return Math.Round(0 * 100.0, 0);
                 }
                 else
                 {

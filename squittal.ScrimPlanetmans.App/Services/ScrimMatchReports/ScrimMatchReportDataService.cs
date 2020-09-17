@@ -392,6 +392,39 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
+        public async Task<IEnumerable<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryPlayerDeathsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryDeaths
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId
+                                                    && ( e.AttackerCharacterId == characterId
+                                                         || e.VictimCharacterId == characterId ) )
+                                        .OrderByDescending(e => e.Timestamp)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryDeathsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryDeathsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         public async Task<IEnumerable<ScrimMatchReportInfantryPlayerHeadToHeadStats>> GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
         {
             try
@@ -415,6 +448,38 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             catch (OperationCanceledException)
             {
                 _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync scrimMatchId {scrimMatchId} characterId {characterId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerClassEventCounts>> GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync(string scrimMatchId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerClassEventCounts
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId)
+                                        .OrderByDescending(e => e.TeamOrdinal)
+                                        .ThenBy(e => e.NameDisplay)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
                 return null;
             }
             catch (Exception ex)

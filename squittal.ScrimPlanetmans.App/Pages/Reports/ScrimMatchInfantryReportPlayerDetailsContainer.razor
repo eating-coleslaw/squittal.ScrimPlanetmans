@@ -32,13 +32,23 @@
 }
 else if (_headToHeadStats == null || !_headToHeadStats.Any())
 {
-    <h4>Player Drilldown</h4>
+    <div style="display: grid; grid-template-columns: 1fr 30px; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
+        <h4>Player Drilldown</h4>
+    </div>
 
     <p style="font-style: italic;">No player head-to-head data available for this match & player</p>
 }
 else
 {
-    <h4>@_headToHeadStats.Select(e => e.PlayerNameDisplay).FirstOrDefault()</h4>
+    <div style="display: grid; grid-template-columns: 1fr 30px; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;"> @* grid-template-rows: 1.75rem 1rem;  margin-bottom: 24px; *@
+        <h4>
+            <span class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(_opponentClassMap[_renderedPlayerId])" style="display: inline-block; height: 24px; width: 24px; position: relative; top: 3px; filter: @GetLoadoutIconFilterStyle(_headToHeadStats.Select(e => e.PlayerFactionId).FirstOrDefault())"></span> @_headToHeadStats.Select(e => e.PlayerNameDisplay).FirstOrDefault()
+        </h4>
+
+        <button @onclick="OnClosePlayerDetails" style="color: var(--sq-gray); padding: 0; font-size: 0.8rem; background-color: transparent; border: none; text-align: right;" title="Close player details">
+            <span class="oi oi-x" style="top: 0;"></span>
+        </button>
+    </div>
 
     <div style="max-height: 620px; overflow-y: auto; width: 100%; margin-bottom: 10px;">
         <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
@@ -46,33 +56,45 @@ else
             <tbody style="font-size: 0.8rem;">
 
                 <tr class="@SqCssHelper.GetFactionClassFromId(_headToHeadStats.Select(e => e.PlayerFactionId).FirstOrDefault())" style="line-height: 1.2; font-size: 0.85rem; border-bottom: 2px solid var(--sq-ps2-primary-light); vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
-                    @*<th style="padding-left: 10px;"></th>*@
+                    <th style="padding-left: 10px; "></th>
                     <th style="padding-bottom: 0.2rem;"></th>
-                    <th style="text-align: right; font-weight: 300; width: 60px; padding-bottom: 0.2rem;">Points</th>
+                    <th style="text-align: right; font-weight: 300; width: 40px; padding-bottom: 0.2rem;" total="Total Points">Pts.</th>
                     @*<th style=" width: 110px;"></th>*@
-                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Net</th>
-                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">K</th>
-                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">D</th>
-                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">KHSR</th>
-                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">DHSR</th>
-                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Dmg. Assists</th>
-                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">Solo Kills</th>
-                    <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Ass. D</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;" title="Net Score">Net</th>
+                    <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Kills">Kills</th>
+                    <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Deaths">Deaths</th>
+                    @*<th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">KHSR</th>*@
+                    @*<th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">DHSR</th>*@
+                    @*<th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;">Dmg. Assists</th>*@
+                    <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
+                    <th style="font-weight: 300; width: 70px; max-width: 60px; padding-bottom: 0.2rem;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
                     @*<th style="font-weight: 300; width: 80px;">Favorable Eng. %</th>*@
-                    <th style="font-weight: 300; width: 80px; padding-bottom: 0.2rem;">Fav. Eng. %</th>
-                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">1v1 Eng. %</th>
-                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;">1v1 KDR</th>
+                    <th style="font-weight: 300; width: 60px;  min-width: 50px; padding-bottom: 0.2rem;" title="Favorable Engagement Percent">Fav. Eng. %</th>
+                    <th style="font-weight: 300; width: 60px; min-width: 50px; padding-bottom: 0.2rem;" title="One vs One Engagement Percent">1v1 Eng. %</th>
+                    <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;" title="One vs One Kill-Death Ratio">1v1 KDR</th>
                 </tr>
 
                 @foreach (var opponentStats in _headToHeadStats)
                 {
                     <tr class="@SqCssHelper.GetFactionClassFromId(opponentStats.OpponentFactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
-                        <!--<td>
-                <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>-->
-                        @*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
-                        <!--</td>-->
+                        <td>
+                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(_opponentClassMap[opponentStats.OpponentCharacterId])" style="filter: @GetLoadoutIconFilterStyle(opponentStats.OpponentFactionId); margin-top: 0;"></div>
+                        </td>
                         <td style="color: var(--sq-ps2-primary);text-align: left;" title="@opponentStats.OpponentNameFull [@(opponentStats.OpponentCharacterId)]">
-                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@opponentStats.OpponentNameDisplay</span>
+
+                            <button class="btn btn-link" style="color: var(--sq-ov-ps2-primary-dark) !important; font-size: 0.8rem; padding: 0; margin-top: 0; border: none; line-height: 1.5rem;" @onclick="(() => OnSelectHeadToHeadPlayer(opponentStats.OpponentCharacterId))">
+                                <span style="text-overflow: ellipsis; overflow: hidden; max-width: 150px; display: block;">@opponentStats.OpponentNameDisplay</span>
+                                @if (opponentStats.OpponentPrestigeLevel != 0)
+                                {
+                                    <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
+                                        <sup>
+                                            <span class="oi oi-star small" aria-hidden="true"></span>
+                                        </sup>
+                                    </div>
+                                }
+                            </button>
+
+                            @*<span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@opponentStats.OpponentNameDisplay</span>
                             @if (opponentStats.OpponentPrestigeLevel != 0)
                             {
                                 <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
@@ -80,14 +102,14 @@ else
                                         <span class="oi oi-star small" aria-hidden="true"></span>
                                     </sup>
                                 </div>
-                            }
+                            }*@
                         </td>
                         <td style="text-align: right;">@opponentStats.Points</td>
                         @*<td>
-                    <div class="graph" style="width: 110px;">
-                        <div class="graph-bar" style="width: @($"{GetPointGraphWidth(opponentStats.Points)}%"); height: 17px; margin: 5px 0 0 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
-                    </div>
-                </td>*@
+                            <div class="graph" style="width: 110px;">
+                                <div class="graph-bar" style="width: @($"{GetPointGraphWidth(opponentStats.Points)}%"); height: 17px; margin: 5px 0 0 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
+                            </div>
+                        </td>*@
                         <td>
                             <div class="net stats-value" style="margin-top: -0.2rem;">
                                 <span class="value">@opponentStats.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(opponentStats.NetScore)">@GetNetScoreLabelText(opponentStats.NetScore)</span>
@@ -95,15 +117,15 @@ else
                         </td>
                         <td>@opponentStats.Kills</td>
                         <td>@opponentStats.Deaths</td>
-                        <td>@opponentStats.HeadshotKillPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                        <td>@opponentStats.HeadshotDeathPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                        <td>@opponentStats.DamageAssistsDealt</td>
+                        @*<td>@opponentStats.HeadshotKillPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
+                        @*<td>@opponentStats.HeadshotDeathPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
+                        @*<td>@opponentStats.DamageAssistsDealt</td>*@
                         <td>@opponentStats.UnassistedKills</td>
                         <td>@opponentStats.AssistedDeaths</td>
                         @*<td>@player.WeightedFavorableEngagementPercent2<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
-                        <td>@opponentStats.WeightedFavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                        <td>@opponentStats.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                        <td>@opponentStats.OneVsOneKillDeathRatio</td>
+                        <td title="@opponentStats.FavorableEngagementCount / @opponentStats.WeightedEngagementCount">@opponentStats.WeightedFavorableEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td title="@opponentStats.OneVsOneCount / @opponentStats.EngagementCount">@opponentStats.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        <td title="@opponentStats.UnassistedKills / @opponentStats.UnassistedDeaths">@opponentStats.OneVsOneKillDeathRatio</td>
                     </tr>
                 }
 
@@ -128,7 +150,12 @@ else
     public string i_playerId { get; set; }
     public string _renderedPlayerId { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnSelectDetailsPlayer { get; set; }
+
     private List<ScrimMatchReportInfantryPlayerHeadToHeadStats> _headToHeadStats { get; set; }
+
+    private Dictionary<string, PlanetsideClass> _opponentClassMap { get; set; }
 
     //private List<ScrimMatchReportInfantryDeath> _deaths { get; set; }
 
@@ -142,12 +169,12 @@ else
     //private bool _isChangingScrimMatch { get; set; } = false;
     //private bool _isLoadingDeaths { get; set; } = false;
 
-    //private int[] infiltratorIds = { 1, 8, 15 };
-    //private int[] lightAssaultIds = { 3, 10, 17 };
-    //private int[] medicIds = { 4, 11, 18 };
-    //private int[] engineerIds = { 5, 12, 19 };
-    //private int[] heavyAssaultIds = { 6, 13, 20 };
-    //private int[] maxIds = { 7, 14, 21 };
+    private int[] infiltratorIds = { 1, 8, 15 };
+    private int[] lightAssaultIds = { 3, 10, 17 };
+    private int[] medicIds = { 4, 11, 18 };
+    private int[] engineerIds = { 5, 12, 19 };
+    private int[] heavyAssaultIds = { 6, 13, 20 };
+    private int[] maxIds = { 7, 14, 21 };
 
     private CancellationTokenSource cts;
 
@@ -235,6 +262,8 @@ else
         {
             var headToHeadStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync(_renderedScrimMatchId, _renderedPlayerId, cts.Token);
 
+            var classCounts = await ReportDataService.GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync(_renderedScrimMatchId, cts.Token);
+
             cts.Token.ThrowIfCancellationRequested();
 
             _headToHeadStats = new List<ScrimMatchReportInfantryPlayerHeadToHeadStats>();
@@ -243,6 +272,10 @@ else
             {
                 _headToHeadStats.AddRange(headToHeadStats);
             }
+
+            //_opponentClassMap = new Dictionary<string, PlanetsideClass>();
+
+            _opponentClassMap = classCounts.ToDictionary(e => e.CharacterId, e => e.PrimaryPlanetsideClass);
 
             _hasLoadedStats = true;
         }
@@ -261,7 +294,7 @@ else
     }
     #endregion Initialization Methods
 
-    #region Form Controls
+    #region UI & Form Controls
     private async void OnLoadStatsSubmit()
     {
         await LoadPlayerHeadToHeadStats();
@@ -280,7 +313,17 @@ else
         }
 
     }
-    #endregion Form Controls
+
+    private void OnSelectHeadToHeadPlayer(string characterId)
+    {
+        OnSelectDetailsPlayer.InvokeAsync(characterId);
+    }
+
+    private void OnClosePlayerDetails()
+    {
+        OnSelectDetailsPlayer.InvokeAsync(string.Empty);
+    }
+    #endregion UI & Form Controls
 
     private string GetHeadshotClass(bool? isHeadshot)
     {
@@ -347,23 +390,23 @@ else
         }
     }
 
-    private string GetDeathRowPrimaryClass(ScrimMatchReportInfantryDeath death)
-    {
-        switch (death.DeathType)
-        {
-            case DeathEventType.Kill:
-                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+    //private string GetDeathRowPrimaryClass(ScrimMatchReportInfantryDeath death)
+    //{
+    //    switch (death.DeathType)
+    //    {
+    //        case DeathEventType.Kill:
+    //            return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
 
-            case DeathEventType.Suicide:
-                return SqCssHelper.GetFactionClassFromId(death.VictimFactionId);
+    //        case DeathEventType.Suicide:
+    //            return SqCssHelper.GetFactionClassFromId(death.VictimFactionId);
 
-            case DeathEventType.Teamkill:
-                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+    //        case DeathEventType.Teamkill:
+    //            return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
 
-            default:
-                return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
-        }
-    }
+    //        default:
+    //            return SqCssHelper.GetFactionClassFromId(death.AttackerFactionId);
+    //    }
+    //}
 
 
     //private string GetLoadoutIconFromLoadoutId(int loadoutId)
@@ -399,37 +442,37 @@ else
     //}
 
 
-    //private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
-    //{
-    //    if (planetsideClass == PlanetsideClass.Infiltrator)
-    //    {
-    //        return "infil";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.LightAssault)
-    //    {
-    //        return "la";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.Medic)
-    //    {
-    //        return "medic";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.Engineer)
-    //    {
-    //        return "engy";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.HeavyAssault)
-    //    {
-    //        return "heavy";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.MAX)
-    //    {
-    //        return "max";
-    //    }
-    //    else
-    //    {
-    //        return "unknown";
-    //    }
-    //}
+    private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
+    {
+        if (planetsideClass == PlanetsideClass.Infiltrator)
+        {
+            return "infil";
+        }
+        else if (planetsideClass == PlanetsideClass.LightAssault)
+        {
+            return "la";
+        }
+        else if (planetsideClass == PlanetsideClass.Medic)
+        {
+            return "medic";
+        }
+        else if (planetsideClass == PlanetsideClass.Engineer)
+        {
+            return "engy";
+        }
+        else if (planetsideClass == PlanetsideClass.HeavyAssault)
+        {
+            return "heavy";
+        }
+        else if (planetsideClass == PlanetsideClass.MAX)
+        {
+            return "max";
+        }
+        else
+        {
+            return "unknown";
+        }
+    }
 
     private string GetLoadoutIconFilterStyle(int factionId)
     {

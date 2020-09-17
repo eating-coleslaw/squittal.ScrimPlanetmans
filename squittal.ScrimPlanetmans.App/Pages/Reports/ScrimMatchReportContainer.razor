@@ -197,7 +197,7 @@
                 {
                     if (!string.IsNullOrWhiteSpace(_selectedPlayerId) && !_isChangingSelectedPlayer)
                     {
-                        <ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_selectedPlayerId />
+                        <ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_selectedPlayerId OnSelectDetailsPlayer="OnSelectPlayerSubmit" />
                     }
                     else
                     {
@@ -397,7 +397,6 @@
 
         InvokeAsyncStateHasChanged();
     }
-
     #endregion UI & Form Controls
 
     private decimal GetPointGraphWidth(int points)
