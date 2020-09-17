@@ -205,12 +205,6 @@
                     }
                 }
 
-                @*@if (_renderedScrimMatchId != null && !_isChangingScrimMatch)
-                    {
-                        <ScrimMatchInfantryReportDeathsContainer i_scrimMatchId="@_renderedScrimMatchId" />
-                    }*@
-
-
             </div>
         </div>
 
@@ -389,7 +383,6 @@
         }
 
         _isChangingSelectedPlayer = true;
-        //InvokeAsyncStateHasChanged();
 
         _selectedPlayerId = playerId;
 
