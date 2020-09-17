@@ -10,8 +10,14 @@
 
 @implements IDisposable
 
-
-<h4>Killfeed</h4>
+@if (!string.IsNullOrWhiteSpace(_renderedPlayerId))
+{
+    <h5 style="">Killfeed</h5>
+}
+else
+{
+    <h4>Killfeed</h4>
+}
 
 @if (!_hasLoadedKillfeed && !_isLoadingDeaths)
 {
@@ -34,7 +40,7 @@ else if (_deaths == null || !_deaths.Any())
 else
 {
 
-    <div style="max-height: 620px; overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray); margin-bottom: 10px;">
+    <div style="max-height: @((string.IsNullOrWhiteSpace(_renderedPlayerId) ? "620px" : "300px")); overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray); margin-bottom: 10px;">
         <table class="report-killfeed">
             <tbody>
                 @foreach (var death in _deaths)
@@ -47,7 +53,7 @@ else
                         <td>
                             <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
                         </td>
-                        <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.AttackerNameDisplay</td>
+                        <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.ScrimMatchRound</td>
                         <td>
                             @if (death.IsHeadshot == 1)
                             {
@@ -101,6 +107,10 @@ else
     public string i_scrimMatchId { get; set; }
     private string _renderedScrimMatchId { get; set; }
 
+    [Parameter]
+    public string i_playerId { get; set; }
+    private string _renderedPlayerId { get; set; }
+
     private List<ScrimMatchReportInfantryDeath> _deaths { get; set; }
 
     private bool _hasLoadedKillfeed { get; set; } = false;
@@ -132,6 +142,11 @@ else
         {
             _renderedScrimMatchId = i_scrimMatchId;
 
+            if (!string.IsNullOrWhiteSpace(i_playerId))
+            {
+                _renderedPlayerId = i_playerId;
+            }
+
             if (_hasLoadedKillfeed)
             {
                 await LoadInfantryDeaths();
@@ -154,12 +169,19 @@ else
     {
         var paramsChanged = false;
 
-        if (i_scrimMatchId != _renderedScrimMatchId)
+        if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
         {
             _isChangingScrimMatch = true;
             InvokeAsyncStateHasChanged();
 
             _renderedScrimMatchId = i_scrimMatchId;
+
+            if (i_playerId != _renderedPlayerId)
+            {
+                _renderedPlayerId = i_playerId;
+
+                _hasLoadedKillfeed = false;
+            }
 
             if (_hasLoadedKillfeed)
             {
@@ -193,7 +215,9 @@ else
 
         try
         {
-            var deaths = await ReportDataService.GetHistoricalScrimMatchInfantryDeathsAsync(_renderedScrimMatchId, cts.Token);
+            var deaths = string.IsNullOrWhiteSpace(_renderedPlayerId)
+                            ? await ReportDataService.GetHistoricalScrimMatchInfantryDeathsAsync(_renderedScrimMatchId, cts.Token)
+                            : await ReportDataService.GetHistoricalScrimMatchInfantryPlayerDeathsAsync(_renderedScrimMatchId, _renderedPlayerId, cts.Token);
 
             cts.Token.ThrowIfCancellationRequested();
 

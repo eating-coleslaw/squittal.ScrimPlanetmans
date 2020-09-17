@@ -21,19 +21,28 @@ else if (_headToHeadStats == null || !_headToHeadStats.Any())
         <h4>Player Drilldown</h4>
     </div>
 
+    <h5>Head-To-Head</h5>
+
     <p style="font-style: italic;">No player head-to-head data available for this match & player</p>
 }
 else
 {
-    <div style="display: grid; grid-template-columns: 1fr 30px; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;"> @* grid-template-rows: 1.75rem 1rem;  margin-bottom: 24px; *@
+    <div style="display: grid; grid-template-columns: 1fr 30px; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
+        @* grid-template-rows: 1.75rem 1rem;  margin-bottom: 24px; *@
         <h4>
             <span class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(_opponentClassMap[_renderedPlayerId])" style="display: inline-block; height: 24px; width: 24px; position: relative; top: 3px; filter: @GetLoadoutIconFilterStyle(_headToHeadStats.Select(e => e.PlayerFactionId).FirstOrDefault())"></span> @_headToHeadStats.Select(e => e.PlayerNameDisplay).FirstOrDefault()
+            <span style="line-height: 1rem; color: var(--sq-gray); font-weight: 300; font-size: 0.9rem; padding-left: 4px;">
+                [@_headToHeadStats.Select(e => e.PlayerCharacterId).FirstOrDefault()]
+            </span>
         </h4>
 
         <button @onclick="OnClosePlayerDetails" style="color: var(--sq-gray); padding: 0; font-size: 0.8rem; background-color: transparent; border: none; text-align: right;" title="Close player details">
             <span class="oi oi-x" style="top: 0;"></span>
         </button>
+
     </div>
+
+    <h5>Head-To-Head</h5>
 
     <div style="max-height: 620px; overflow-y: auto; width: 100%; margin-bottom: 10px;">
         <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
@@ -103,10 +112,10 @@ else
         </table>
 
     </div>
-    
-    <div style="height: 1rem; line-height: 1rem; color: var(--sq-gray);">
-        @_headToHeadStats.Select(e => e.PlayerCharacterId).FirstOrDefault()
-    </div>
+
+    @*<div style="height: 1rem; line-height: 1rem; color: var(--sq-gray);">
+            @_headToHeadStats.Select(e => e.PlayerCharacterId).FirstOrDefault()
+        </div>*@
 }
 
 @code {
