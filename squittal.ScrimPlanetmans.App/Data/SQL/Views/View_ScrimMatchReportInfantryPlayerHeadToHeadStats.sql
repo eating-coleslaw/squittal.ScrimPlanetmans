@@ -55,7 +55,7 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
       FULL OUTER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players2
         ON match_players.ScrimMatchId = match_players2.ScrimMatchId
             AND ( match_players.CharacterId <> match_players2.CharacterId )
-      FULL OUTER JOIN ( SELECT deaths.ScrimMatchId,
+      LEFT OUTER JOIN ( SELECT deaths.ScrimMatchId,
                                deaths.VictimCharacterId CharacterId,
                                deaths.AttackerCharacterId DeathAttackerCharacterId,
                                MAX( deaths.VictimTeamOrdinal ) TeamOrdinal,
@@ -134,7 +134,7 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
            AND match_players.TeamOrdinal = death_sums.TeamOrdinal
            AND match_players.CharacterId = death_sums.CharacterId
            AND match_players2.CharacterId = death_sums.DeathAttackerCharacterId
-      FULL OUTER JOIN ( SELECT match_players.ScrimMatchId DamageDealtScrimMatchId,
+      LEFT OUTER JOIN ( SELECT match_players.ScrimMatchId DamageDealtScrimMatchId,
                                match_players.CharacterId DamageDealtAttackerCharacterId,
                                damages.VictimCharacterId DamageDealtVictimCharacterId,
                                MAX( victim_players.TeamOrdinal ) DamageDealtVictimTeamOrdinal,
@@ -156,7 +156,7 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
         ON match_players.ScrimMatchId = damages_dealt.DamageDealtScrimMatchId
            AND match_players.CharacterId = damages_dealt.DamageDealtAttackerCharacterId
            AND match_players2.CharacterId = damages_dealt.DamageDealtVictimCharacterId
-      FULL OUTER JOIN ( SELECT match_players.ScrimMatchId DamageTakenScrimMatchId,
+      LEFT OUTER JOIN ( SELECT match_players.ScrimMatchId DamageTakenScrimMatchId,
                                match_players.CharacterId DamageTakenVictimCharacterId,
                                damages.AttackerCharacterId DamageTakenAttackerCharacterId,
                                MAX( attacker_players.TeamOrdinal ) DamageTakenAttackerTeamOrdinal,
@@ -178,7 +178,7 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
         ON damages_taken.DamageTakenScrimMatchId = match_players.ScrimMatchId
            AND match_players.CharacterId = damages_taken.DamageTakenVictimCharacterId
            AND match_players2.CharacterId = damages_taken.DamageTakenAttackerCharacterId
-      FULL OUTER JOIN ( SELECT kills.ScrimMatchId,
+      LEFT OUTER JOIN ( SELECT kills.ScrimMatchId,
                                kills.AttackerCharacterId CharacterId,
                                kills.VictimCharacterId KillVictimCharacterId,
                                MAX( kills.AttackerTeamOrdinal ) TeamOrdinal,
