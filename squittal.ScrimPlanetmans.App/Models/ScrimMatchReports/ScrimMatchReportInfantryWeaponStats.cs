@@ -38,8 +38,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int UnassistedHeadshotDeaths { get; set; }
 
 
-        public double WeightedAssistedDeaths => DamageAssistedDeaths + GrenadeAssistedDeaths + (SpotAssistedDeaths * 0.25);
-
         public int OneVsOneCount => UnassistedDeaths + UnassistedKills;
 
         public int KillDeathEngagementCount => Deaths + Kills;
