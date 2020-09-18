@@ -66,10 +66,10 @@ else
                     {
                         @*<tr class="@SqCssHelper.GetFactionClassFromId(weaponStats.WeaponFactionId)" style="color: var(--sq-ov-ps2-primary-dark); @((weaponStats.WeaponFactionId > 0 ? "" : "background-color: var(--sq-pink-lighter-alpha-10);"))">*@
                         <tr class="@SqCssHelper.GetFactionClassFromId(weaponStats.WeaponFactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
-                            <td style="color: var(--sq-ps2-primary);text-align: left;" title="@weaponStats.WeaponName [@(weaponStats.WeaponId)]">
+                            <td style="color: var(--sq-ps2-primary); text-align: left; line-height: 1.5rem;" title="@weaponStats.WeaponName [@(weaponStats.WeaponId)]">
                                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 150px; display: block;">@weaponStats.WeaponName</span>
                             </td>
-                            <td style="text-align: right;">@weaponStats.Points</td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.Points); text-align: right;">@weaponStats.Points</td>
                             <td style="opacity: @GetStatOpacity(weaponStats.Kills);">@weaponStats.Kills</td>
                             <td style="opacity: @GetStatOpacity(weaponStats.UnassistedKills);">@weaponStats.UnassistedKills</td>
                             <td style="opacity: @GetStatOpacity(weaponStats.AssistedKills);">@weaponStats.AssistedKills</td>

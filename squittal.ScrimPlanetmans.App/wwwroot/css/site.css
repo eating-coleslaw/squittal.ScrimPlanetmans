@@ -1231,6 +1231,20 @@ th.sortable {
     padding: 0.2rem 10px 0.2rem 5px;
 }
 
+.table-striped-light tbody .nav-link {
+    padding: 0;
+    margin-top: 0;
+    line-height: 1.5rem;
+    color: var(--sq-ov-ps2-primary-dark);
+}
+
+    .table-striped-light tbody .nav-link:hover,
+    .table-striped-light tbody .nav-link:focus {
+        color: #0056b3;
+    }
+
+
+
 .sq-text-muted {
     color: var(--bs-gray);
     font-weight: 400;
