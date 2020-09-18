@@ -37,11 +37,6 @@ else
             </span>
         </h4>
 
-        @*<button @onclick="OnClosePlayerDetails" style="color: var(--sq-gray); padding: 0; font-size: 0.8rem; background-color: transparent; border: none; text-align: right;" title="Close player details">
-            <span class="oi oi-x" style="top: 0;"></span>
-        </button>*@
-
-        @*<NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}") style="color: var(--sq-gray); padding: 0; font-size: 0.8rem; background-color: transparent; border: none; text-align: right;" title="Close player details">*@
         <NavLink class="nav-link icon black" href=@($"ScrimMatch/{_renderedScrimMatchId}") style="text-align: right;" title="Close player details">
             <span class="oi oi-x" style="top: 0;"></span>
         </NavLink>
@@ -74,7 +69,7 @@ else
                     <tr class="@SqCssHelper.GetFactionClassFromId(_headToHeadStats.Select(e => e.PlayerFactionId).FirstOrDefault())" style="line-height: 1.2; font-size: 0.85rem; border-bottom: 2px solid var(--sq-ps2-primary-light); vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
                         <th style="padding-left: 10px; "></th>
                         <th style="padding-bottom: 0.2rem;"></th>
-                        <th style="text-align: right; font-weight: 300; width: 40px; padding-bottom: 0.2rem;" total="Total Points">Pts.</th>
+                        <th style="text-align: right; font-weight: 300; width: 40px; padding-bottom: 0.2rem;" title="Total Points">Pts.</th>
                         <th style="font-weight: 300; width: 60px; padding-bottom: 0.2rem;" title="Net Score">Net</th>
                         <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Kills">Kills</th>
                         <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Deaths">Deaths</th>
@@ -140,14 +135,9 @@ else
     public string i_playerId { get; set; }
     public string _renderedPlayerId { get; set; }
 
-    //[Parameter]
-    //public EventCallback<string> OnSelectDetailsPlayer { get; set; }
-
     private List<ScrimMatchReportInfantryPlayerHeadToHeadStats> _headToHeadStats { get; set; }
 
     private Dictionary<string, PlanetsideClass> _opponentClassMap { get; set; }
-
-    //private bool _hasLoadedStats { get; set; } = false;
 
     private bool _isChangingScrimMatch { get; set; } = false;
     private bool _isLoadingStats { get; set; } = false;
@@ -158,26 +148,6 @@ else
 
 
     #region Initialization Methods
-    //protected override void OnInitialized()
-    //{
-    //    _hasLoadedStats = false;
-    //}
-
-    //protected override async Task OnInitializedAsync()
-    //{
-    //    _isLoadingStats = true;
-
-    //    if (i_scrimMatchId != null && i_playerId != null)
-    //    {
-    //        _renderedScrimMatchId = i_scrimMatchId;
-    //        _renderedPlayerId = i_playerId;
-
-    //        await LoadPlayerHeadToHeadStats();
-    //    }
-
-    //    _isLoadingStats = false;
-    //}
-
     public void Dispose()
     {
         if (cts != null)
@@ -194,7 +164,6 @@ else
         if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
         {
             _isChangingScrimMatch = true;
-            //_isLoadingStats = true;
             InvokeAsyncStateHasChanged();
 
             _renderedScrimMatchId = i_scrimMatchId;
@@ -202,7 +171,6 @@ else
 
             await LoadPlayerHeadToHeadStats();
 
-            //_isLoadingStats = false;
             paramsChanged = true;
         }
 
@@ -261,16 +229,6 @@ else
     #endregion Initialization Methods
 
     #region UI & Form Controls
-    //private void OnSelectHeadToHeadPlayer(string characterId)
-    //{
-    //    OnSelectDetailsPlayer.InvokeAsync(characterId);
-    //}
-
-    //private void OnClosePlayerDetails()
-    //{
-    //    OnSelectDetailsPlayer.InvokeAsync(string.Empty);
-    //}
-
     private void OnToggleShowHeadToHeadTable()
     {
         _showHeadToHeadTable = !_showHeadToHeadTable;

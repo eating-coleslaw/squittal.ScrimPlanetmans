@@ -25,9 +25,6 @@
     {
         <h5 style="color: var(--sq-ov-ps2-primary-dark);">
             Killfeed
-            @*<button class="btn btn-link" style="font-size: 0.8rem; padding: 0; margin-top: 0; border: none; line-height: 1.5rem;" @onclick="OnToggleShowKillfeed">
-                Hide
-            </button>*@
         </h5>
     }
 }
@@ -327,7 +324,7 @@ else if (_showKillfeed)
     {
         if (deathType == DeathEventType.Teamkill || deathType == DeathEventType.Suicide)
         {
-            return "teamkill"; //#FEF9BF";
+            return "teamkill";
         }
         else
         {
@@ -385,39 +382,6 @@ else if (_showKillfeed)
             return "unknown";
         }
     }
-
-
-    //private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
-    //{
-    //    if (planetsideClass == PlanetsideClass.Infiltrator)
-    //    {
-    //        return "infil";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.LightAssault)
-    //    {
-    //        return "la";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.Medic)
-    //    {
-    //        return "medic";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.Engineer)
-    //    {
-    //        return "engy";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.HeavyAssault)
-    //    {
-    //        return "heavy";
-    //    }
-    //    else if (planetsideClass == PlanetsideClass.MAX)
-    //    {
-    //        return "max";
-    //    }
-    //    else
-    //    {
-    //        return "unknown";
-    //    }
-    //}
 
     private string GetLoadoutIconFilterStyle(int factionId)
     {

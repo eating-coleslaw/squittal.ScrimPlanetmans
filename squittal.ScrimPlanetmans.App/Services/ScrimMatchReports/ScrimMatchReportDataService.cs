@@ -305,9 +305,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 return await dbContext.ScrimMatchReportInfantryPlayerStats
                                         .AsNoTracking()
                                         .Where(e => e.ScrimMatchId == scrimMatchId)
-                                        //.OrderBy(e => e.NameDisplay)
-                                        //.OrderBy(e => e.TeamOrdinal)
-                                        //.OrderByDescending(e => e.TeamOrdinal)
                                         .OrderBy(e => e.NameDisplay)
                                         .ToListAsync(cancellationToken);
 
