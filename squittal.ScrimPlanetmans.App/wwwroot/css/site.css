@@ -1243,6 +1243,18 @@ th.sortable {
         color: #0056b3;
     }
 
+.nav-link.icon.black {
+    color: var(--sq-gray);
+    padding: 0;
+    font-size: 0.8rem;
+    background-color: transparent;
+    border: none;
+}
+
+    .nav-link.icon.black:hover,
+    .nav-link.icon.black:focus {
+        color: var(--sq-black);
+    }
 
 
 .sq-text-muted {

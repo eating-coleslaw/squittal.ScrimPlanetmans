@@ -2,7 +2,6 @@
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
-@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using System.Threading;
 
 @inject IScrimMatchReportDataService ReportDataService
@@ -64,7 +63,6 @@ else
 
                     @foreach (var weaponStats in _weaponStats)
                     {
-                        @*<tr class="@SqCssHelper.GetFactionClassFromId(weaponStats.WeaponFactionId)" style="color: var(--sq-ov-ps2-primary-dark); @((weaponStats.WeaponFactionId > 0 ? "" : "background-color: var(--sq-pink-lighter-alpha-10);"))">*@
                         <tr class="@SqCssHelper.GetFactionClassFromId(weaponStats.WeaponFactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
                             <td style="color: var(--sq-ps2-primary); text-align: left; line-height: 1.5rem;" title="@weaponStats.WeaponName [@(weaponStats.WeaponId)]">
                                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 150px; display: block;">@weaponStats.WeaponName</span>
@@ -102,8 +100,6 @@ else
 
     private List<ScrimMatchReportInfantryPlayerWeaponStats> _weaponStats { get; set; }
 
-    private bool _hasLoadedStats { get; set; } = false;
-
     private bool _isChangingScrimMatch { get; set; } = false;
     private bool _isLoadingStats { get; set; } = false;
 
@@ -113,25 +109,25 @@ else
 
 
     #region Initialization Methods
-    protected override void OnInitialized()
-    {
-        _hasLoadedStats = false;
-    }
+    //protected override void OnInitialized()
+    //{
+    //    _hasLoadedStats = false;
+    //}
 
-    protected override async Task OnInitializedAsync()
-    {
-        _isLoadingStats = true;
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    _isLoadingStats = true;
 
-        if (i_scrimMatchId != null && i_playerId != null)
-        {
-            _renderedScrimMatchId = i_scrimMatchId;
-            _renderedPlayerId = i_playerId;
+    //    if (i_scrimMatchId != null && i_playerId != null)
+    //    {
+    //        _renderedScrimMatchId = i_scrimMatchId;
+    //        _renderedPlayerId = i_playerId;
 
-            await LoadPlayerWeaponStats();
-        }
+    //        await LoadPlayerWeaponStats();
+    //    }
 
-        _isLoadingStats = false;
-    }
+    //    _isLoadingStats = false;
+    //}
 
     public void Dispose()
     {
@@ -146,9 +142,11 @@ else
     {
         var paramsChanged = false;
 
+
         if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
         {
             _isChangingScrimMatch = true;
+            _isLoadingStats = true;
             InvokeAsyncStateHasChanged();
 
             _renderedScrimMatchId = i_scrimMatchId;
@@ -156,6 +154,7 @@ else
 
             await LoadPlayerWeaponStats();
 
+            _isLoadingStats = false;
             paramsChanged = true;
         }
 
@@ -193,8 +192,6 @@ else
             {
                 _weaponStats.AddRange(weaponStats);
             }
-
-            _hasLoadedStats = true;
         }
         catch
         {
@@ -212,145 +209,11 @@ else
     #endregion Initialization Methods
 
     #region UI & Form Controls
-    private async void OnLoadStatsSubmit()
-    {
-        await LoadPlayerWeaponStats();
-
-        InvokeAsyncStateHasChanged();
-    }
-
-    private void OnCancelLoadStatsSubmit()
-    {
-        _isLoadingStats = false;
-        _hasLoadedStats = false;
-
-        if (cts != null)
-        {
-            cts.Cancel();
-        }
-
-    }
-
     private void OnToggleShowWeaponsTable()
     {
         _showWeaponsTable = !_showWeaponsTable;
     }
     #endregion UI & Form Controls
-
-    private string GetHeadshotClass(bool? isHeadshot)
-    {
-        if (isHeadshot == null)
-        {
-            return string.Empty;
-        }
-        else
-        {
-            return (bool)isHeadshot ? "headshot" : string.Empty;
-
-        }
-    }
-
-    private string GetPointsDisplay(int points)
-    {
-        if (points >= 0)
-        {
-            return $"+{points}";
-        }
-        else
-        {
-            return points.ToString();
-        }
-    }
-
-    private string GetNetScoreLabelCssClass(int netScore)
-    {
-        if (netScore == 0)
-        {
-            return "neutral";
-        }
-        else if (netScore < 0)
-        {
-            return "negative";
-        }
-        else
-        {
-            return string.Empty;
-        }
-    }
-
-    private string GetNetScoreLabelText(int netScore)
-    {
-        if (netScore == 0)
-        {
-            return "•";
-        }
-        else
-        {
-            return "Δ";
-        }
-    }
-
-    private string GetDeathRowBgClass(DeathEventType deathType)
-    {
-        if (deathType == DeathEventType.Teamkill || deathType == DeathEventType.Suicide)
-        {
-            return "teamkill";
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    private string GetLoadoutIconFromLoadoutId(PlanetsideClass planetsideClass)
-    {
-        if (planetsideClass == PlanetsideClass.Infiltrator)
-        {
-            return "infil";
-        }
-        else if (planetsideClass == PlanetsideClass.LightAssault)
-        {
-            return "la";
-        }
-        else if (planetsideClass == PlanetsideClass.Medic)
-        {
-            return "medic";
-        }
-        else if (planetsideClass == PlanetsideClass.Engineer)
-        {
-            return "engy";
-        }
-        else if (planetsideClass == PlanetsideClass.HeavyAssault)
-        {
-            return "heavy";
-        }
-        else if (planetsideClass == PlanetsideClass.MAX)
-        {
-            return "max";
-        }
-        else
-        {
-            return "unknown";
-        }
-    }
-
-    private string GetLoadoutIconFilterStyle(int factionId)
-    {
-        if (factionId == 1)
-        {
-            return "brightness(0) saturate(100%) invert(39%) sepia(41%) saturate(1794%) hue-rotate(224deg) brightness(98%) contrast(91%);";
-        }
-        if (factionId == 2)
-        {
-            return "brightness(0) saturate(100%) invert(49%) sepia(57%) saturate(1428%) hue-rotate(184deg) brightness(101%) contrast(98%);";
-        }
-        if (factionId == 3)
-        {
-            return "brightness(0) saturate(100%) invert(50%) sepia(34%) saturate(1466%) hue-rotate(307deg) brightness(98%) contrast(88%);";
-        }
-
-        return string.Empty;
-    }
 
     private double GetStatOpacity(int value)
     {

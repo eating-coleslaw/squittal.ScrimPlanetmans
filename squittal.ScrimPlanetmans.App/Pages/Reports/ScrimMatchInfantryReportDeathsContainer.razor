@@ -65,12 +65,12 @@ else if (_showKillfeed)
                     <tr class="@GetDeathRowBgClass(death.DeathType) @GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">
                         <td class="team-fill"></td>
                         <td title="Round @death.ScrimMatchRound" style="text-align: right; padding-left: 8px;">@death.ScrimMatchRound</td>
-                        <td style="text-align: right;">@death.Timestamp.ToLongTimeString()</td>
+                        <td style="text-align: right; width: 100px;">@death.Timestamp.ToLongTimeString()</td>
                         <td class="points" style="text-align: right;">@GetPointsDisplay(death.Points)</td>
                         <td>
                             <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
                         </td>
-                        <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.ScrimMatchRound</td>
+                        <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.AttackerNameDisplay</td>
                         <td>
                             @if (death.IsHeadshot == 1)
                             {

@@ -224,7 +224,8 @@
                 {
                     if (!string.IsNullOrWhiteSpace(_renderedSelectedPlayerId) && !_isChangingSelectedPlayer)
                     {
-                        <ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_renderedSelectedPlayerId OnSelectDetailsPlayer="OnSelectPlayerSubmit" />
+                        @*<ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_renderedSelectedPlayerId OnSelectDetailsPlayer="OnSelectPlayerSubmit" />*@
+                        <ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_renderedSelectedPlayerId />
 
                         <ScrimMatchInfantryReportPlayerWeaponStatsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_renderedSelectedPlayerId />
                     }
@@ -267,7 +268,7 @@
 
     private CancellationTokenSource cts;
 
-    private string _debug { get; set; } = string.Empty;
+    //private string _debug { get; set; } = string.Empty;
 
     #region Initialization Methods
     //protected override async Task OnInitializedAsync()
