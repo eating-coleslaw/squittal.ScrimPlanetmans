@@ -3,16 +3,17 @@
 @page "/ReportBrowser/{i_scrimMatchId}"
 @page "/ScrimMatch/{i_scrimMatchId}"
 
-@page "/Reports/{i_scrimMatchId}/{i_selectedPlayerId}"
-@page "/MatchReport/{i_scrimMatchId}/{i_selectedPlayerId}"
-@page "/ReportBrowser/{i_scrimMatchId}/{i_selectedPlayerId}"
-@page "/ScrimMatch/{i_scrimMatchId}/{i_selectedPlayerId}"
+@page "/Reports/{i_scrimMatchId}/{i_selectedPlayerInput}"
+@page "/MatchReport/{i_scrimMatchId}/{i_selectedPlayerInput}"
+@page "/ReportBrowser/{i_scrimMatchId}/{i_selectedPlayerInput}"
+@page "/ScrimMatch/{i_scrimMatchId}/{i_selectedPlayerInput}"
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
+@using System.Text.RegularExpressions;
 
 @inject IScrimMatchReportDataService ReportDataService
 @inject NavigationManager NavManager
@@ -125,7 +126,7 @@
                                                 
                                                 @*@if (team.TeamOrdinal == 1)
                                                 {*@ 
-                                                    <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{player.CharacterId}")>
+                                                    <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{player.NameFull}")>
                                                         <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
                                                         @if (player.PrestigeLevel != 0)
                                                         {
@@ -250,7 +251,7 @@
     private string _renderedScrimMatchId { get; set; }
 
     [Parameter]
-    public string i_selectedPlayerId { get; set; }
+    public string i_selectedPlayerInput { get; set; }
     private string _renderedSelectedPlayerId { get; set; } //= string.Empty;
 
 
@@ -265,6 +266,9 @@
     private bool _isChangingScrimMatch { get; set; } = false;
 
     private bool _isChangingSelectedPlayer { get; set; } = false;
+
+    private Regex _idRegex = new Regex("[0-9]{19}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private Regex _nameRegex = new Regex("[A-Za-z0-9]{1,32}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private CancellationTokenSource cts;
 
@@ -333,6 +337,7 @@
     protected override async Task OnParametersSetAsync()
     {
         var paramsChanged = false;
+        _isLoadingScrimPlayers = true;
 
         if (i_scrimMatchId != _renderedScrimMatchId)
         {
@@ -369,14 +374,30 @@
                 cts.Token.ThrowIfCancellationRequested();
 
 
-                if (!string.IsNullOrWhiteSpace(i_selectedPlayerId))
+                if (!string.IsNullOrWhiteSpace(i_selectedPlayerInput))
                 {
-                    _renderedSelectedPlayerId = i_selectedPlayerId;
+                    var selectedPlayerName = GetCharacterNameFullFromParameter(i_selectedPlayerInput);
+                    var selectedPlayerId = GetCharacterIdFromParameter(i_selectedPlayerInput);
 
-                    if (!IsSelectedPlayerValid())
+                    //_renderedSelectedPlayerId = i_selectedPlayerInput;
+
+                    _renderedSelectedPlayerId = selectedPlayerId;
+
+                    if (i_selectedPlayerInput != selectedPlayerName)
+                    {
+                        NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}/{selectedPlayerName}");
+                    }
+                    else if (!IsSelectedPlayerValid())
                     {
                         NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}");
                     }
+
+                    //_renderedSelectedPlayerId = i_selectedPlayerInput;
+
+                    //if (!IsSelectedPlayerValid())
+                    //{
+                    //    NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}");
+                    //}
 
                     paramsChanged = true;
                 }
@@ -394,17 +415,28 @@
                 cts = null;
             }
         }
-        else if (i_selectedPlayerId != _renderedSelectedPlayerId)
+        else if (i_selectedPlayerInput != _renderedSelectedPlayerId)
         {
-            _renderedSelectedPlayerId = i_selectedPlayerId;
+            var selectedPlayerName = GetCharacterNameFullFromParameter(i_selectedPlayerInput);
+            var selectedPlayerId = GetCharacterIdFromParameter(i_selectedPlayerInput);
 
-            if (!IsSelectedPlayerValid())
+            //_renderedSelectedPlayerId = i_selectedPlayerInput;
+
+            _renderedSelectedPlayerId = selectedPlayerId;
+
+            if (i_selectedPlayerInput != selectedPlayerName)
+            {
+                NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}/{selectedPlayerName}");
+            }
+            else if (!IsSelectedPlayerValid())
             {
                 NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}");
             }
 
             paramsChanged = true;
         }
+
+        _isLoadingScrimPlayers = false;
 
         if (paramsChanged)
         {
@@ -435,18 +467,31 @@
 
     private bool IsSelectedPlayerValid()
     {
-        if (string.IsNullOrWhiteSpace(i_selectedPlayerId))
+        if (string.IsNullOrWhiteSpace(_renderedSelectedPlayerId))
         {
             return true;
         }
         else if (_playerStats != null && _playerStats.Any())
         {
-            return _playerStats.Any(p => p.CharacterId == i_selectedPlayerId);
+            return _playerStats.Any(p => p.CharacterId == _renderedSelectedPlayerId);
         }
         else
         {
             return false;
         }
+
+        //if (string.IsNullOrWhiteSpace(i_selectedPlayerInput))
+        //{
+        //    return true;
+        //}
+        //else if (_playerStats != null && _playerStats.Any())
+        //{
+        //    return _playerStats.Any(p => p.CharacterId == i_selectedPlayerInput);
+        //}
+        //else
+        //{
+        //    return false;
+        //}
     }
     #endregion Initialization Methods
 
@@ -467,6 +512,80 @@
         InvokeAsyncStateHasChanged();
     }
     #endregion UI & Form Controls
+
+    private string GetCharacterNameFullFromParameter(string inputString)
+    {
+        if (string.IsNullOrWhiteSpace(inputString) || _playerStats == null || !_playerStats.Any())
+        {
+            return string.Empty;
+        }
+
+        //Regex _idRegex = new Regex("[0-9]{19}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        bool isId = _idRegex.Match(inputString).Success;
+
+        if (isId)
+        {
+            return _playerStats.Where(p => p.CharacterId == inputString).Select(p => p.NameFull).FirstOrDefault();
+        }
+
+        //Regex _nameRegex = new Regex("[A-Za-z0-9]{1,32}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        bool isName = _nameRegex.Match(inputString).Success;
+
+        if (isName)
+        {
+            var nameFullMatch = _playerStats.Where(p => p.NameFull == inputString).Select(p => p.NameFull).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(nameFullMatch))
+            {
+                return nameFullMatch;
+            }
+
+            var nameDisplayMatch = _playerStats.Where(p => p.NameDisplay == inputString).Select(p => p.NameFull).FirstOrDefault();
+
+            return nameDisplayMatch;
+
+            //return _playerStats.Where(p => p.NameFull == inputString || p.NameDisplay == inputString).Select(p => p.NameFull).FirstOrDefault();
+        }
+
+        return string.Empty;
+    }
+
+    private string GetCharacterIdFromParameter(string inputString)
+    {
+        if (string.IsNullOrWhiteSpace(inputString) || _playerStats == null || !_playerStats.Any())
+        {
+            return string.Empty;
+        }
+
+        //Regex _idRegex = new Regex("[0-9]{19}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        bool isId = _idRegex.Match(inputString).Success;
+
+        if (isId)
+        {
+            return _playerStats.Where(p => p.CharacterId == inputString).Select(p => p.CharacterId).FirstOrDefault();
+        }
+
+        //Regex _nameRegex = new Regex("[A-Za-z0-9]{1,32}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        bool isName = _nameRegex.Match(inputString).Success;
+
+        if (isName)
+        {
+            var nameFullMatch = _playerStats.Where(p => p.NameFull == inputString).Select(p => p.CharacterId).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(nameFullMatch))
+            {
+                return nameFullMatch;
+            }
+
+            var nameDisplayMatch = _playerStats.Where(p => p.NameDisplay == inputString).Select(p => p.CharacterId).FirstOrDefault();
+
+            return nameDisplayMatch;
+
+            //return _playerStats.Where(p => p.NameFull == inputString || p.NameDisplay == inputString).Select(p => p.NameFull).FirstOrDefault();
+        }
+
+        return string.Empty;
+    }
 
     private decimal GetPointGraphWidth(int points)
     {

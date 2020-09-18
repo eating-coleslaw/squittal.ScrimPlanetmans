@@ -93,7 +93,7 @@ else
                             </td>
                             <td style="color: var(--sq-ps2-primary);text-align: left;" title="@opponentStats.OpponentNameFull [@(opponentStats.OpponentCharacterId)]">
 
-                                <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{opponentStats.OpponentCharacterId}")>
+                                <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{opponentStats.OpponentNameFull}")>
                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@opponentStats.OpponentNameDisplay</span>
                                     @if (opponentStats.OpponentPrestigeLevel != 0)
                                     {
@@ -194,7 +194,7 @@ else
         if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
         {
             _isChangingScrimMatch = true;
-            _isLoadingStats = true;
+            //_isLoadingStats = true;
             InvokeAsyncStateHasChanged();
 
             _renderedScrimMatchId = i_scrimMatchId;
@@ -202,7 +202,7 @@ else
 
             await LoadPlayerHeadToHeadStats();
 
-            _isLoadingStats = false;
+            //_isLoadingStats = false;
             paramsChanged = true;
         }
 
