@@ -142,10 +142,19 @@
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryDeaths.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerClassEventCounts.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerDeaths.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerHeadToHeadStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerWeaponStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryTeamStats.sql">
