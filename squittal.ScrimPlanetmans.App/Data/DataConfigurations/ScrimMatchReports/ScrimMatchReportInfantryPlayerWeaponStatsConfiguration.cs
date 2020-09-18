@@ -15,6 +15,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Ignore(p => p.HeadshotKillPercent);
             builder.Ignore(p => p.HeadshotDeathPercent);
 
+            builder.Property(e => e.WeaponFactionId).HasDefaultValue(4);
+
             builder.Property(e => e.PrestigeLevel).HasDefaultValue(0);
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.NetScore).HasDefaultValue(0);
