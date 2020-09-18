@@ -582,6 +582,11 @@ No-Link Brand Header
                 background-color: var(--sq-ps2-primary-light-alpha-40);
             }
 
+            .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1).default {
+                /*background-color: var(--sq-pink-lighter-alpha-10);*/
+                background-color: var(--sq-light-blue-gray-alpha);
+            }
+
             .header-card-container.default .table-striped-light tbody tr .btn {
                 margin-top: 0.2rem;
             }
@@ -1188,6 +1193,12 @@ th.sortable {
 
 .table-striped-light tbody tr:nth-of-type(2n+1) {
     background-color: var(--sq-ps2-primary-light-alpha-40);
+}
+
+.table-striped-light tbody tr:nth-of-type(2n+1).default {
+    /*background-color: var(--sq-ps2-primary-light-alpha-40);*/
+    /*background-color: var(--sq-pink-lighter-alpha-10);*/
+    background-color: var(--sq-light-blue-gray-alpha);
 }
 
 

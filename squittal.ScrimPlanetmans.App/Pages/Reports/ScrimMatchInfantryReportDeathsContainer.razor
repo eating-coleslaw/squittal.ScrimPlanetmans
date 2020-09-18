@@ -12,7 +12,24 @@
 
 @if (!string.IsNullOrWhiteSpace(_renderedPlayerId))
 {
-    <h5 style="">Killfeed</h5>
+    @if (_hasLoadedKillfeed && !_isLoadingDeaths)
+    {
+        <h5 style="color: var(--sq-ov-ps2-primary-dark);">
+            Killfeed
+            <button class="btn btn-link" style="font-size: 0.8rem; padding: 0; margin-top: 0; border: none; line-height: 1.5rem;" @onclick="OnToggleShowKillfeed">
+                @((_showKillfeed ? "Hide" : "Show"))
+            </button>
+        </h5>
+    }
+    else
+    {
+        <h5 style="color: var(--sq-ov-ps2-primary-dark);">
+            Killfeed
+            @*<button class="btn btn-link" style="font-size: 0.8rem; padding: 0; margin-top: 0; border: none; line-height: 1.5rem;" @onclick="OnToggleShowKillfeed">
+                Hide
+            </button>*@
+        </h5>
+    }
 }
 else
 {
@@ -33,11 +50,11 @@ else if (_isLoadingDeaths)
         <span class="oi oi-x" style="top: 0px; font-size: 0.9rem;"></span>Cancel
     </button>
 }
-else if (_deaths == null || !_deaths.Any())
+else if (_showKillfeed && (_deaths == null || !_deaths.Any() ))
 {
     <p style="font-style: italic;">No kill data available for this match</p>
 }
-else
+else if (_showKillfeed)
 {
 
     <div style="max-height: @((string.IsNullOrWhiteSpace(_renderedPlayerId) ? "620px" : "300px")); overflow-y: auto; width: 100%; border-top: 1px solid var(--sq-light-blue-gray); border-bottom: 1px solid var(--sq-light-blue-gray); margin-bottom: 10px;">
@@ -118,6 +135,8 @@ else
     private bool _isChangingScrimMatch { get; set; } = false;
     private bool _isLoadingDeaths { get; set; } = false;
 
+    private bool _showKillfeed { get; set; } = true;
+
     private int[] infiltratorIds = { 1, 8, 15 };
     private int[] lightAssaultIds = { 3, 10, 17 };
     private int[] medicIds = { 4, 11, 18 };
@@ -145,6 +164,10 @@ else
             if (!string.IsNullOrWhiteSpace(i_playerId))
             {
                 _renderedPlayerId = i_playerId;
+            }
+            else
+            {
+                _showKillfeed = true;
             }
 
             if (_hasLoadedKillfeed)
@@ -181,6 +204,11 @@ else
                 _renderedPlayerId = i_playerId;
 
                 _hasLoadedKillfeed = false;
+
+                if (string.IsNullOrWhiteSpace(_renderedPlayerId))
+                {
+                    _showKillfeed = true;
+                }
             }
 
             if (_hasLoadedKillfeed)
@@ -244,7 +272,7 @@ else
     }
     #endregion Initialization Methods
 
-    #region Form Controls
+    #region UI & Form Controls
     private async void OnLoadKillsSubmit()
     {
         await LoadInfantryDeaths();
@@ -263,7 +291,12 @@ else
         }
 
     }
-    #endregion Form Controls
+
+    private void OnToggleShowKillfeed()
+    {
+        _showKillfeed = !_showKillfeed;
+    }
+    #endregion UI & Form Controls
 
     private string GetHeadshotClass(bool? isHeadshot)
     {
