@@ -19,7 +19,7 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
          match_players.PrestigeLevel PrestigeLevel,
          player_weapon_combos.WeaponId WeaponId,
          weapons.Name WeaponName,
-         COALESCE( weapons.FactionId, 0 ) WeaponFactionId,
+         COALESCE( weapons.FactionId, 4 ) WeaponFactionId,
          COALESCE(kill_sums.Points, 0) Points,
          COALESCE(kill_sums.NetScore, 0) + COALESCE(death_sums.NetScore, 0) NetScore,
          COALESCE(kill_sums.Kills, 0) Kills,
