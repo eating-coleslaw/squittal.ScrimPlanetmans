@@ -5,7 +5,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
     public class ScrimMatchReportInfantryWeaponStats
     {
         public int Points { get; set; }
-        public int NetScore { get; set; }
         public int Kills { get; set; }
         public int HeadshotKills { get; set; }
         public int Deaths { get; set; }
@@ -39,8 +38,6 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int EnemyDeaths { get; set; }
         public int HeadshotEnemyDeaths { get; set; }
 
-        public int ScoredEnemyDeaths { get; set; }
-        public int ZeroPointEnemyDeaths { get; set; }
 
         public int DamageAssistedEnemyDeaths { get; set; }
 
