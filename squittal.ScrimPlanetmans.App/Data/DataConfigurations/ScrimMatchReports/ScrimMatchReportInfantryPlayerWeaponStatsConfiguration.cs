@@ -19,7 +19,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.Property(e => e.PrestigeLevel).HasDefaultValue(0);
             builder.Property(e => e.Points).HasDefaultValue(0);
-            builder.Property(e => e.NetScore).HasDefaultValue(0);
             builder.Property(e => e.Teamkills).HasDefaultValue(0);
             builder.Property(e => e.TeamkillDeaths).HasDefaultValue(0);
             builder.Property(e => e.Suicides).HasDefaultValue(0);
@@ -44,8 +43,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.HeadshotTeamkills).HasDefaultValue(0);
             builder.Property(e => e.EnemyDeaths).HasDefaultValue(0);
             builder.Property(e => e.HeadshotEnemyDeaths).HasDefaultValue(0);
-            builder.Property(e => e.ScoredEnemyDeaths).HasDefaultValue(0);
-            builder.Property(e => e.ZeroPointEnemyDeaths).HasDefaultValue(0);
             builder.Property(e => e.DamageAssistedEnemyDeaths).HasDefaultValue(0);
             builder.Property(e => e.DamageAssistedEnemyDeaths).HasDefaultValue(0);
         }

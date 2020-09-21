@@ -45,7 +45,6 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerClassEventCounts AS
     FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
       LEFT OUTER JOIN ( SELECT ScrimMatchId,
                                AttackerCharacterId CharacterId,
-                               MAX( AttackerTeamOrdinal ) TeamOrdinal,
                                SUM( CASE WHEN AttackerLoadoutId IN ( 1, 8, 15) THEN 1 ELSE 0 END )  KillsAsInfiltrator,
                                SUM( CASE WHEN AttackerLoadoutId IN ( 3, 10, 17) THEN 1 ELSE 0 END ) KillsAsLightAssault,
                                SUM( CASE WHEN AttackerLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) KillsAsMedic,
@@ -55,11 +54,9 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerClassEventCounts AS
                           FROM [PlanetmansDbContext].[dbo].ScrimDeath kills
                           GROUP BY ScrimMatchId, AttackerCharacterId ) kill_sums
         ON match_players.ScrimMatchId = kill_sums.ScrimMatchId
-            AND match_players.TeamOrdinal = kill_sums.TeamOrdinal
             AND match_players.CharacterId = kill_sums.CharacterId
       LEFT OUTER JOIN ( SELECT ScrimMatchId,
                                VictimCharacterId CharacterId,
-                               MAX( VictimTeamOrdinal ) VictimTeamOrdinal,
                                SUM( CASE WHEN VictimLoadoutId IN ( 1, 8, 15) THEN 1 ELSE 0 END )  DeathsAsInfiltrator,
                                SUM( CASE WHEN VictimLoadoutId IN ( 3, 10, 17) THEN 1 ELSE 0 END ) DeathsAsLightAssault,
                                SUM( CASE WHEN VictimLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) DeathsAsMedic,
@@ -69,11 +66,9 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerClassEventCounts AS
                           FROM [PlanetmansDbContext].[dbo].ScrimDeath deaths
                           GROUP BY ScrimMatchId, VictimCharacterId ) death_sums
         ON match_players.ScrimMatchId = death_sums.ScrimMatchId
-          AND match_players.TeamOrdinal = death_sums.VictimTeamOrdinal
           AND match_players.CharacterId = death_sums.CharacterId
       LEFT OUTER JOIN ( SELECT ScrimMatchId,
                                AttackerCharacterId,
-                               MAX( AttackerTeamOrdinal ) AttackerTeamOrdinal,
                                SUM( CASE WHEN AttackerLoadoutId IN ( 1, 8, 15) THEN 1 ELSE 0 END )  DamageAssistsAsInfiltrator,
                                SUM( CASE WHEN AttackerLoadoutId IN ( 3, 10, 17) THEN 1 ELSE 0 END ) DamageAssistsAsLightAssault,
                                SUM( CASE WHEN AttackerLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) DamageAssistsAsMedic,
@@ -83,5 +78,4 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerClassEventCounts AS
                           FROM [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
                           GROUP BY ScrimMatchId, AttackerCharacterId ) damage_sums
         ON match_players.ScrimMatchId = damage_sums.ScrimMatchId
-            AND match_players.TeamOrdinal = damage_sums.AttackerTeamOrdinal 
             AND match_players.CharacterId = damage_sums.AttackerCharacterId
