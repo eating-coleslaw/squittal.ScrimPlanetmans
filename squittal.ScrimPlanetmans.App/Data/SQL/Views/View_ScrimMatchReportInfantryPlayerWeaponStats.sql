@@ -72,30 +72,20 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
                             ELSE 0 END ) ZeroPointKills, 
                   SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 1 THEN 1
                             ELSE 0 END ) Teamkills, 
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.IsHeadshot = 0 THEN 1
+                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 0 AND deaths.IsHeadshot = 1 THEN 1
                             ELSE 0 END ) HeadshotKills, 
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 1 AND deaths.IsHeadshot = 0 THEN 1
+                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 1 AND deaths.IsHeadshot = 1 THEN 1
                             ELSE 0 END ) HeadshotTeamkills, 
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND ( damage_sums.TotalDamages > 0 OR grenade_sums.TotalGrenades > 0 ) THEN 1
-                            ELSE 0 END ) AssistedKills,
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND damage_sums.TotalDamages > 0 THEN 1
-                            ELSE 0 END ) DamageAssistedKills,
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND grenade_sums.TotalGrenades > 0 THEN 1
-                            ELSE 0 END ) GrenadeAssistedKills,
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1
-                            ELSE 0 END ) UnassistedKills,
-                  SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.IsHeadshot = 1 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1
-                            ELSE 0 END ) UnassistedHeadshotKills,
                   SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 0 AND ( damage_sums.TotalDamages > 0 OR grenade_sums.TotalGrenades > 0 ) THEN 1
-                            ELSE 0 END ) AssistedEnemyKills,
+                            ELSE 0 END ) AssistedKills,
                   SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 0 AND damage_sums.TotalDamages > 0 THEN 1
-                            ELSE 0 END ) DamageAssistedEnemyKills,
+                            ELSE 0 END ) DamageAssistedKills,
                   SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 0 AND grenade_sums.TotalGrenades > 0 THEN 1
-                            ELSE 0 END ) GrenadeAssistedEnemyKills,
+                            ELSE 0 END ) GrenadeAssistedKills,
                   SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 0 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1
-                            ELSE 0 END ) UnassistedEnemyKills,
+                            ELSE 0 END ) UnassistedKills,
                   SUM( CASE WHEN match_players.CharacterId = deaths.AttackerCharacterId AND deaths.DeathType = 0 AND deaths.IsHeadshot = 1 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1
-                            ELSE 0 END ) UnassistedHeadshotEnemyKills,
+                            ELSE 0 END ) UnassistedHeadshotKills,
         
                   SUM( CASE WHEN match_players.CharacterId = deaths.VictimCharacterId THEN 1
                             ELSE 0 END ) Deaths, 
