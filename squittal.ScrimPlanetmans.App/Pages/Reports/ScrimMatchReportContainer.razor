@@ -3,11 +3,17 @@
 @page "/ReportBrowser/{i_scrimMatchId}"
 @page "/ScrimMatch/{i_scrimMatchId}"
 
+@page "/Reports/{i_scrimMatchId}/{i_selectedPlayerInput}"
+@page "/MatchReport/{i_scrimMatchId}/{i_selectedPlayerInput}"
+@page "/ReportBrowser/{i_scrimMatchId}/{i_selectedPlayerInput}"
+@page "/ScrimMatch/{i_scrimMatchId}/{i_selectedPlayerInput}"
+
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
+@using System.Text.RegularExpressions;
 
 @inject IScrimMatchReportDataService ReportDataService
 @inject NavigationManager NavManager
@@ -75,21 +81,20 @@
                                     }
 
                                     <tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
-                                        <th style="padding-left: 10px;"></th>
+                                        <th style="padding-left: 10px;" title="Primary Class"></th>
                                         <th></th>
-                                        <th style="text-align: right; font-weight: 300; width: 60px;">Points</th>
+                                        <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
                                         <th style=" width: 110px;"></th>
-                                        <th style="font-weight: 300; width: 70px;">Net Score</th>
-                                        <th style="font-weight: 300; width: 60px;">Kills</th>
-                                        <th style="font-weight: 300; width: 60px;">Deaths</th>
-                                        <th style="font-weight: 300; width: 70px;">Head Shot %</th>
-                                        <th style="font-weight: 300; width: 70px;">Dmg. Assists</th>
-                                        <th style="font-weight: 300; width: 60px;">Solo Kills</th>
-                                        <th style="font-weight: 300; width: 70px;">Assisted Deaths</th>
-                                        @*<th style="font-weight: 300; width: 80px;">Favorable Eng. %</th>*@
-                                        <th style="font-weight: 300; width: 80px;">Favorable Eng. %</th>
-                                        <th style="font-weight: 300; width: 60px;">1v1 Eng. %</th>
-                                        <th style="font-weight: 300; width: 60px;">1v1 KDR</th>
+                                        <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
+                                        <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
+                                        <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
+                                        <th style="font-weight: 300; width: 70px;" title="Head Shot Percent">Head Shot %</th>
+                                        <th style="font-weight: 300; width: 70px;" title="Damage Assists">Dmg. Assists</th>
+                                        <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
+                                        <th style="font-weight: 300; width: 70px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Assisted Deaths</th>
+                                        <th style="font-weight: 300; width: 80px;" title="Favorable Engagement Percent">Favorable Eng. %</th>
+                                        <th style="font-weight: 300; width: 60px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
+                                        <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
                                     </tr>
 
                                     <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right;">
@@ -100,14 +105,13 @@
                                         <td>@team.NetScore</td>
                                         <td>@team.Kills</td>
                                         <td>@team.Deaths</td>
-                                        <td>@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                        <td title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                         <td>@team.DamageAssists</td>
                                         <td>@team.UnassistedKills</td>
                                         <td>@team.DamageAssistedEnemyDeaths</td>
-                                        @*<td>@team.WeightedFavorableEngagementPercent2<span style="font-size: smaller;">%</span></td>*@
-                                        <td>@team.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
-                                        <td>@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
-                                        <td>@team.OneVsOneKillDeathRatio</td>
+                                        <td title="@team.FavorableEngagementCount / @team.WeightedEnemyEngagementCount">@team.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
+                                        <td title="@team.OneVsOneCount / @team.EnemyKillDeathEngagementCount">@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                        <td title="@team.UnassistedKills / @team.UnassistedEnemyDeaths ">@team.OneVsOneKillDeathRatio</td>
                                     </tr>
 
                                     @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
@@ -117,20 +121,24 @@
                                                 <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
                                             </td>
                                             <td style="text-align: left;" title="@player.NameFull [@(player.CharacterId)]">
-                                                <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
-                                                @if (player.PrestigeLevel != 0)
-                                                {
-                                                    <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
-                                                        <sup>
-                                                            <span class="oi oi-star small" aria-hidden="true"></span>
-                                                        </sup>
-                                                    </div>
-                                                }
+                                                
+                                                <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{player.NameFull}")>
+                                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
+                                                    @if (player.PrestigeLevel != 0)
+                                                    {
+                                                        <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
+                                                            <sup>
+                                                                <span class="oi oi-star small" aria-hidden="true"></span>
+                                                            </sup>
+                                                        </div>
+                                                    }
+                                                </NavLink>
+
                                             </td>
                                             <td style="text-align: right;">@player.Points</td>
                                             <td>
                                                 <div class="graph" style="width: 110px;">
-                                                    <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 5px 0 0 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
+                                                    <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                 </div>
                                             </td>
                                             <td>
@@ -140,14 +148,13 @@
                                             </td>
                                             <td>@player.Kills</td>
                                             <td>@player.Deaths</td>
-                                            <td>@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            <td title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                             <td>@player.DamageAssists</td>
                                             <td>@player.UnassistedKills</td>
                                             <td>@player.DamageAssistedEnemyDeaths</td>
-                                            @*<td>@player.WeightedFavorableEngagementPercent2<span style="font-size: smaller; padding-left: 1px;">%</span></td>*@
-                                            <td>@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td>@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td>@player.OneVsOneKillDeathRatio</td>
+                                            <td title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            <td title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            <td title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
                                         </tr>
                                     }
 
@@ -189,13 +196,19 @@
 
         <div class="col-lg-5" style="margin-left: auto; margin-right: auto;">
 
-            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-y: auto; max-height: 700px;">
+            <div class="header-card-container @GetDetailsPanelFactionClass()" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-y: auto; margin-bottom: 16px;">
 
                 @if (_renderedScrimMatchId != null && !_isChangingScrimMatch)
                 {
-                    <ScrimMatchInfantryReportDeathsContainer i_scrimMatchId="@_renderedScrimMatchId" />
-                }
+                    if (!string.IsNullOrWhiteSpace(_renderedSelectedPlayerId) && !_isChangingSelectedPlayer)
+                    {
+                        <ScrimMatchInfantryReportPlayerDetailsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_renderedSelectedPlayerId />
 
+                        <ScrimMatchInfantryReportPlayerWeaponStatsContainer i_scrimMatchId=@_renderedScrimMatchId i_playerId=@_renderedSelectedPlayerId />
+                    }
+
+                    <ScrimMatchInfantryReportDeathsContainer i_scrimMatchId="@_renderedScrimMatchId" i_playerId="@_renderedSelectedPlayerId" />
+                }
 
             </div>
         </div>
@@ -209,6 +222,11 @@
     public string i_scrimMatchId { get; set; }
     private string _renderedScrimMatchId { get; set; }
 
+    [Parameter]
+    public string i_selectedPlayerInput { get; set; }
+    private string _renderedSelectedPlayerId { get; set; }
+
+
     private IEnumerable<ScrimMatchReportInfantryPlayerStats> _playerStats { get; set; }
     private IEnumerable<ScrimMatchReportInfantryTeamStats> _teamStats { get; set; }
 
@@ -219,61 +237,15 @@
     private bool _isLoadingScrimPlayers { get; set; } = false;
     private bool _isChangingScrimMatch { get; set; } = false;
 
+    private bool _isChangingSelectedPlayer { get; set; } = false;
+
+    private Regex _idRegex = new Regex("[0-9]{19}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private Regex _nameRegex = new Regex("[A-Za-z0-9]{1,32}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private CancellationTokenSource cts;
 
-    private string _debug { get; set; } = string.Empty;
 
     #region Initialization Methods
-    protected override async Task OnInitializedAsync()
-    {
-        _isLoadingScrimPlayers = true;
-
-        if (i_scrimMatchId != null)
-        {
-            // If a process is already underway, cancel it
-            if (cts != null)
-            {
-                cts.Cancel();
-            }
-
-            // Set cts to cancel the current process if another table refresh is requested
-            CancellationTokenSource newCTS = new CancellationTokenSource();
-            cts = newCTS;
-
-            try
-            {
-                _renderedScrimMatchId = i_scrimMatchId;
-
-                var TaskList = new List<Task>();
-
-                var playerStatsTask = LoadInfantryPlayerStats(cts.Token);
-                TaskList.Add(playerStatsTask);
-
-                var teamStatsTask = LoadInfantryTeamStats(cts.Token);
-                TaskList.Add(teamStatsTask);
-
-                var matchInfoTask = LoadMatchInfo(cts.Token);
-                TaskList.Add(matchInfoTask);
-
-                await Task.WhenAll(TaskList);
-
-                cts.Token.ThrowIfCancellationRequested();
-            }
-            catch
-            {
-                // Ignore
-            }
-
-            // When the process is complete, signal that another process can proceed
-            if (cts == newCTS)
-            {
-                cts = null;
-            }
-        }
-
-        _isLoadingScrimPlayers = false;
-    }
-
     public void Dispose()
     {
         if (cts != null)
@@ -286,6 +258,7 @@
     protected override async Task OnParametersSetAsync()
     {
         var paramsChanged = false;
+        _isLoadingScrimPlayers = true;
 
         if (i_scrimMatchId != _renderedScrimMatchId)
         {
@@ -321,6 +294,26 @@
 
                 cts.Token.ThrowIfCancellationRequested();
 
+
+                if (!string.IsNullOrWhiteSpace(i_selectedPlayerInput))
+                {
+                    var selectedPlayerName = GetCharacterNameFullFromParameter(i_selectedPlayerInput);
+                    var selectedPlayerId = GetCharacterIdFromParameter(i_selectedPlayerInput);
+
+                    _renderedSelectedPlayerId = selectedPlayerId;
+
+                    if (i_selectedPlayerInput != selectedPlayerName)
+                    {
+                        NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}/{selectedPlayerName}");
+                    }
+                    else if (!IsSelectedPlayerValid())
+                    {
+                        NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}");
+                    }
+
+                    paramsChanged = true;
+                }
+
                 paramsChanged = true;
             }
             catch
@@ -334,6 +327,26 @@
                 cts = null;
             }
         }
+        else if (i_selectedPlayerInput != _renderedSelectedPlayerId)
+        {
+            var selectedPlayerName = GetCharacterNameFullFromParameter(i_selectedPlayerInput);
+            var selectedPlayerId = GetCharacterIdFromParameter(i_selectedPlayerInput);
+
+            _renderedSelectedPlayerId = selectedPlayerId;
+
+            if (i_selectedPlayerInput != selectedPlayerName)
+            {
+                NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}/{selectedPlayerName}");
+            }
+            else if (!IsSelectedPlayerValid())
+            {
+                NavManager.NavigateTo($"/ScrimMatch/{_renderedScrimMatchId}");
+            }
+
+            paramsChanged = true;
+        }
+
+        _isLoadingScrimPlayers = false;
 
         if (paramsChanged)
         {
@@ -361,8 +374,107 @@
     {
         _matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId, cancellationToken);
     }
+
+    private bool IsSelectedPlayerValid()
+    {
+        if (string.IsNullOrWhiteSpace(_renderedSelectedPlayerId))
+        {
+            return true;
+        }
+        else if (_playerStats != null && _playerStats.Any())
+        {
+            return _playerStats.Any(p => p.CharacterId == _renderedSelectedPlayerId);
+        }
+        else
+        {
+            return false;
+        }
+    }
     #endregion Initialization Methods
 
+    #region UI & Form Controls
+    private void OnSelectPlayerSubmit(string playerId)
+    {
+        if (_renderedSelectedPlayerId == playerId)
+        {
+            return;
+        }
+
+        _isChangingSelectedPlayer = true;
+
+        _renderedSelectedPlayerId = playerId;
+
+        _isChangingSelectedPlayer = false;
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion UI & Form Controls
+
+    private string GetCharacterNameFullFromParameter(string inputString)
+    {
+        if (string.IsNullOrWhiteSpace(inputString) || _playerStats == null || !_playerStats.Any())
+        {
+            return string.Empty;
+        }
+
+        bool isId = _idRegex.Match(inputString).Success;
+
+        if (isId)
+        {
+            return _playerStats.Where(p => p.CharacterId == inputString).Select(p => p.NameFull).FirstOrDefault();
+        }
+
+        bool isName = _nameRegex.Match(inputString).Success;
+
+        if (isName)
+        {
+            var nameFullMatch = _playerStats.Where(p => p.NameFull == inputString).Select(p => p.NameFull).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(nameFullMatch))
+            {
+                return nameFullMatch;
+            }
+
+            var nameDisplayMatch = _playerStats.Where(p => p.NameDisplay == inputString).Select(p => p.NameFull).FirstOrDefault();
+
+            return nameDisplayMatch;
+        }
+
+        return string.Empty;
+    }
+
+    private string GetCharacterIdFromParameter(string inputString)
+    {
+        if (string.IsNullOrWhiteSpace(inputString) || _playerStats == null || !_playerStats.Any())
+        {
+            return string.Empty;
+        }
+
+        bool isId = _idRegex.Match(inputString).Success;
+
+        if (isId)
+        {
+            return _playerStats.Where(p => p.CharacterId == inputString).Select(p => p.CharacterId).FirstOrDefault();
+        }
+
+        bool isName = _nameRegex.Match(inputString).Success;
+
+        if (isName)
+        {
+            var nameFullMatch = _playerStats.Where(p => p.NameFull == inputString).Select(p => p.CharacterId).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(nameFullMatch))
+            {
+                return nameFullMatch;
+            }
+
+            var nameDisplayMatch = _playerStats.Where(p => p.NameDisplay == inputString).Select(p => p.CharacterId).FirstOrDefault();
+
+            return nameDisplayMatch;
+        }
+
+        return string.Empty;
+    }
 
     private decimal GetPointGraphWidth(int points)
     {
@@ -456,6 +568,13 @@
         }
 
         return string.Empty;
+    }
+
+    private string GetDetailsPanelFactionClass()
+    {
+        return (_renderedScrimMatchId != null && !_isChangingScrimMatch && !string.IsNullOrWhiteSpace(_renderedSelectedPlayerId) && !_isChangingSelectedPlayer)
+            ? SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.CharacterId == _renderedSelectedPlayerId).Select(p => p.FactionId).FirstOrDefault())
+            : "default";
     }
 
     private void InvokeAsyncStateHasChanged()

@@ -1,0 +1,212 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
+@using System.Threading;
+
+@inject IScrimMatchReportDataService ReportDataService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+
+@if (_isLoadingStats)
+{
+    <h5>Weapons</h5>
+
+    <SpinnerEllipsis />
+}
+else if (_weaponStats == null || !_weaponStats.Any())
+{
+    <h5>Weapons</h5>
+
+    <p style="font-style: italic;">No player weapon data available for this match & player</p>
+}
+else
+{
+    @if (!_showWeaponsTable)
+    {
+
+        <h5 style="color: var(--sq-ov-ps2-primary-dark);">
+            Weapons
+            <button class="btn btn-link" style="font-size: 0.8rem; padding: 0; margin-top: 0; border: none; line-height: 1.5rem;" @onclick="OnToggleShowWeaponsTable">
+                Show
+            </button>
+        </h5>
+    }
+    else
+    {
+        <h5 style="color: var(--sq-ov-ps2-primary-dark);">
+            Weapons
+            <button class="btn btn-link" style="font-size: 0.8rem; padding: 0; margin-top: 0; border: none; line-height: 1.5rem;" @onclick="OnToggleShowWeaponsTable">
+                Hide
+            </button>
+        </h5>
+
+        <div style="max-height: 620px; overflow-y: auto; width: 100%; margin-bottom: 10px;">
+            <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
+
+                <tbody style="font-size: 0.8rem;">
+
+                    <tr class="@SqCssHelper.GetFactionClassFromId(_weaponStats.Select(e => e.FactionId).FirstOrDefault())" style="line-height: 1.2; font-size: 0.85rem; border-bottom: 2px solid var(--sq-ps2-primary-light); vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
+                        <th style="padding-bottom: 0.2rem;"></th>
+                        <th style="text-align: right; font-weight: 300; width: 40px; padding-bottom: 0.2rem;" title="Total Points">Pts.</th>
+                        <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Kills">Kills</th>
+                        <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
+                        <th style="font-weight: 300; width: 70px; max-width: 60px; padding-bottom: 0.2rem;" title="Assisted Kills (excluding spot-assisted-only kills)">Asst. Kills</th>
+                        <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;" title="Headshot Kill Percent">KHSR</th>
+                        <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Deaths">Deaths</th>
+                        <th style="font-weight: 300; width: 50px; padding-bottom: 0.2rem;" title="Solo/Unassisted Deaths (including spot-assisted-only kills)">Solo Deaths</th>
+                        <th style="font-weight: 300; width: 70px; max-width: 60px; padding-bottom: 0.2rem;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
+                        <th style="font-weight: 300; width: 70px; padding-bottom: 0.2rem;" title="Headshot Death Percent">DHSR</th>
+                    </tr>
+
+                    @foreach (var weaponStats in _weaponStats)
+                    {
+                        <tr class="@SqCssHelper.GetFactionClassFromId(weaponStats.WeaponFactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
+                            <td style="color: var(--sq-ps2-primary); text-align: left; line-height: 1.5rem;" title="@weaponStats.WeaponName [@(weaponStats.WeaponId)]">
+                                <span style="text-overflow: ellipsis; overflow: hidden; max-width: 150px; display: block;">@weaponStats.WeaponName</span>
+                            </td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.Points); text-align: right;">@weaponStats.Points</td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.Kills);">@weaponStats.Kills</td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.UnassistedKills);">@weaponStats.UnassistedKills</td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.AssistedKills);">@weaponStats.AssistedKills</td>
+                            <td title="@weaponStats.HeadshotKills / @weaponStats.Kills">@weaponStats.HeadshotKillPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.Deaths);">@weaponStats.Deaths</td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.UnassistedDeaths);">@weaponStats.UnassistedDeaths</td>
+                            <td style="opacity: @GetStatOpacity(weaponStats.AssistedDeaths);">@weaponStats.AssistedDeaths</td>
+                            <td title="@weaponStats.HeadshotEnemyDeaths / @weaponStats.EnemyDeaths">@weaponStats.HeadshotDeathPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                        </tr>
+                    }
+
+                    <tr class="@SqCssHelper.GetFactionClassFromId(_weaponStats.Select(e => e.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ps2-primary-light);"></tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+    }
+}
+
+@code {
+    [Parameter]
+    public string i_scrimMatchId { get; set; }
+    private string _renderedScrimMatchId { get; set; }
+
+    [Parameter]
+    public string i_playerId { get; set; }
+    public string _renderedPlayerId { get; set; }
+
+    private List<ScrimMatchReportInfantryPlayerWeaponStats> _weaponStats { get; set; }
+
+    private bool _isChangingScrimMatch { get; set; } = false;
+    private bool _isLoadingStats { get; set; } = false;
+
+    private bool _showWeaponsTable { get; set; } = true;
+
+    private CancellationTokenSource cts;
+
+
+    #region Initialization Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+
+        if (i_scrimMatchId != _renderedScrimMatchId || i_playerId != _renderedPlayerId)
+        {
+            _isChangingScrimMatch = true;
+            _isLoadingStats = true;
+            InvokeAsyncStateHasChanged();
+
+            _renderedScrimMatchId = i_scrimMatchId;
+            _renderedPlayerId = i_playerId;
+
+            await LoadPlayerWeaponStats();
+
+            _isLoadingStats = false;
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            _isChangingScrimMatch = false;
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadPlayerWeaponStats()
+    {
+        _isLoadingStats = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set cts to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var weaponStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerWeaponStatsAsync(_renderedScrimMatchId, _renderedPlayerId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _weaponStats = new List<ScrimMatchReportInfantryPlayerWeaponStats>();
+
+            if (weaponStats != null && weaponStats.Any())
+            {
+                _weaponStats.AddRange(weaponStats);
+            }
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingStats = false;
+    }
+    #endregion Initialization Methods
+
+    #region UI & Form Controls
+    private void OnToggleShowWeaponsTable()
+    {
+        _showWeaponsTable = !_showWeaponsTable;
+    }
+    #endregion UI & Form Controls
+
+    private double GetStatOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

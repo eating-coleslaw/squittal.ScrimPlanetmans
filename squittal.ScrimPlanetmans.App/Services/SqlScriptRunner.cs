@@ -26,12 +26,19 @@ namespace squittal.ScrimPlanetmans.Services
         public void RunSqlScript(string fileName)
         {
             var scriptPath = Path.Combine(_scriptDirectory, fileName);
+            
+            try
+            {
+                var scriptFileInfo = new FileInfo(scriptPath);
 
-            var scriptFileInfo = new FileInfo(scriptPath);
-
-            string scriptText = scriptFileInfo.OpenText().ReadToEnd();
-
-            _server.ConnectionContext.ExecuteNonQuery(scriptText);
+                string scriptText = scriptFileInfo.OpenText().ReadToEnd();
+                
+                _server.ConnectionContext.ExecuteNonQuery(scriptText);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error running sql script {scriptPath}: {ex}");
+            }
         }
 
         public void RunSqlDirectoryScripts(string directoryName)
