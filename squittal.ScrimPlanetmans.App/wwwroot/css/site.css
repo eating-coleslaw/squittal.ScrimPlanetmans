@@ -460,10 +460,14 @@ No-Link Brand Header
         }
 
         .nolink-header a.external {
-            position: absolute;
+            /*position: absolute;
             right: 0;
             top: 0;
-            padding: 0.25rem 1rem;
+            padding: 0.25rem 1rem;*/
+            position: relative;
+            left: 12px;
+            bottom: 5px;
+            padding: 0;
             color: var(--sq-logo-purple);
         }
 
@@ -511,6 +515,13 @@ No-Link Brand Header
             color: transparent;
             mix-blend-mode: saturation;
         }
+
+    .nolink-header .header-clock {
+        font-size: 1rem;
+        vertical-align: text-top;
+        display: inline;
+        color: var(--sq-logo-purple);
+    }
 
 
 .col-lg-6 {
