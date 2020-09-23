@@ -1323,8 +1323,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var actionType = GetFacilityControlActionType(type);
 
-            var actionTypeName = Enum.GetName(typeof(ScrimActionType), actionType);
-
             _logger.LogInformation($"FacilityControl payload has FacilityControlType of {type} & ScrimActionType of {actionType} ({(int)actionType}) for Team {controllingTeamOrdinal}: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
 
             // "Outside Influence" doesn't really apply to base captures
