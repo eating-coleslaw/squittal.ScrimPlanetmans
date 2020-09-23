@@ -1308,16 +1308,24 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (type == FacilityControlType.Unknown)
             {
+                _logger.LogInformation($"FacilityControl payload had Unknow FacilityControlType: worldId={payload.WorldId} facilityId={payload.FacilityId}");
+                
                 return;
             }
 
             var controllingTeamOrdinal = _teamsManager.GetFirstTeamWithFactionId(newFactionId);
             if (controllingTeamOrdinal == null)
             {
+                _logger.LogInformation($"Could not resolve controlling team for {type} FacilityControl payload: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
+
                 return;
             }
 
             var actionType = GetFacilityControlActionType(type);
+
+            var actionTypeName = Enum.GetName(typeof(ScrimActionType), actionType);
+
+            _logger.LogInformation($"FacilityControl payload has FacilityControlType of {type} & ScrimActionType of {actionType} ({(int)actionType}) for Team {controllingTeamOrdinal}: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
 
             // "Outside Influence" doesn't really apply to base captures
             if (actionType == ScrimActionType.None)

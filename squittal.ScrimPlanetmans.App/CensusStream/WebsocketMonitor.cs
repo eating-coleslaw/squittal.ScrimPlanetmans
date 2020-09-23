@@ -348,6 +348,17 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 matchesWorld = worldId == SubscribedWorldId;
             }
 
+            if (matchesWorld)
+            {
+                var idsString = $"Sub: w{SubscribedWorldId} f{SubscribedFacilityId} | PL: w{worldId} f{facilityId}";
+                
+                var matchMessage = matchesFacility
+                                        ? $"FacilityControl payload matching World & Facility detected. {idsString}. Payload={payload}"
+                                        : $"FacilityControl payload matching World but not Facility detected. {idsString}. Payload={payload}";
+
+                _logger.LogInformation(matchMessage);
+            }
+
             return (matchesFacility && matchesWorld);
         }
 
