@@ -27,7 +27,7 @@
 
         <div class="col-lg-7" style="margin-left: auto; margin-right: auto;">
 
-            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-x: auto;">
+            <div class="header-card-container default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-x: auto; margin-bottom: 24px;">
 
                 @if (_matchInfo == null || _isChangingScrimMatch)
                 {
@@ -35,7 +35,7 @@
                 }
                 else
                 {
-                    <div style="display: grid; grid-template-columns: 60% 40%; grid-template-rows: 1.75rem 1rem; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 60% 40%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 12px;">
                         <h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4> @*margin-bottom: 2px;*@
                         <p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
                         @if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
@@ -69,6 +69,28 @@
                     else
                     {
 
+                        @if (_teamRoundStats != null && _teamRoundStats.Any() && _playerRoundStats != null && _playerRoundStats.Any())
+                        {
+                            <div style="text-align: right; margin-top: 4px; margin-bottom: 4px;">
+                            
+                                @if (!_showAllRoundStats)
+                                {
+                                    <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif" @onclick="OnShowAllRoundStats">Expand All Rounds</button>
+
+                                    @if (_expandedRoundPlayers.Any() || _expandedRoundTeams.Any() || _expandedRoundTeamCaptures.Any())
+                                    {
+                                        <span style="padding: 0 8px 0 8px; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;">|</span>
+                                    }
+                                }
+
+                                @if (_showAllRoundStats || _expandedRoundPlayers.Any() || _expandedRoundTeams.Any() || _expandedRoundTeamCaptures.Any())
+                                {
+                                    <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;" @onclick="OnHideAllRoundStats">Collapse All Rounds</button>
+                                }
+
+                            </div>
+                        }
+                        
                         <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-light">
 
                             <tbody style="font-size: 0.8rem;">
@@ -97,7 +119,7 @@
                                         <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
                                     </tr>
 
-                                    <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right;">
+                                    <tr @onclick="() => OnClickTeamRow(team.TeamOrdinal)" class=" clickable-row @GetClickableTeamRowIsActiveClass(team.TeamOrdinal) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right; border-top: none !important;">
                                         <td style="padding-left: 10px;"></td>
                                         <td style="text-align: left;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                         <td>@team.Points</td>
@@ -114,14 +136,50 @@
                                         <td title="@team.UnassistedKills / @team.UnassistedEnemyDeaths ">@team.OneVsOneKillDeathRatio</td>
                                     </tr>
 
+                                    @if (_expandedRoundTeams.Contains(team.TeamOrdinal))
+                                    {
+                                        for (var round = 1; round <= _matchInfo.RoundCount; round++)
+                                        {
+                                            <tr class="expanded-row @GetRoundRowBorderClass(round, _matchInfo.RoundCount) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ov-ps2-primary-dark); text-align: right;">
+                                                <td style="padding-left: 10px;"></td>
+                                                <td style="text-align: right;">Round @round</td>
+
+                                                @if (_teamRoundStats.Any(e => e.TeamOrdinal == team.TeamOrdinal && e.ScrimMatchRound == round))
+                                                {
+                                                    @foreach (var teamRoundStats in _teamRoundStats.Where(e => e.TeamOrdinal == team.TeamOrdinal && e.ScrimMatchRound == round).ToList())
+                                                    {
+                                                        <td>@teamRoundStats.Points</td>
+                                                        <td></td>
+                                                        <td>@teamRoundStats.NetScore</td>
+                                                        <td>@teamRoundStats.Kills</td>
+                                                        <td>@teamRoundStats.Deaths</td>
+                                                        <td title="@teamRoundStats.HeadshotKills / @teamRoundStats.Kills">@teamRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                                        <td>@teamRoundStats.DamageAssists</td>
+                                                        <td>@teamRoundStats.UnassistedKills</td>
+                                                        <td>@teamRoundStats.DamageAssistedEnemyDeaths</td>
+                                                        <td title="@teamRoundStats.FavorableEngagementCount / @teamRoundStats.WeightedEnemyEngagementCount">@teamRoundStats.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
+                                                        <td title="@teamRoundStats.OneVsOneCount / @teamRoundStats.EnemyKillDeathEngagementCount">@teamRoundStats.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                                        <td title="@teamRoundStats.UnassistedKills / @teamRoundStats.UnassistedEnemyDeaths ">@teamRoundStats.OneVsOneKillDeathRatio</td>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <td colspan="2" class="sq-text-muted">No data found</td>
+                                                }
+                                            </tr>
+                                        }
+
+                                        <tr style="height: 8px; background-color: transparent;"></tr>
+                                    }
+
                                     @foreach (var player in _playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal))
                                     {
-                                        <tr class="@SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
-                                            <td>
+                                        <tr class="clickable-row @GetClickablePlayerRowIsActiveClass(player.CharacterId) @SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
                                                 <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(player.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
                                             </td>
                                             <td style="text-align: left;" title="@player.NameFull [@(player.CharacterId)]">
-                                                
+
                                                 <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{player.NameFull}")>
                                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>
                                                     @if (player.PrestigeLevel != 0)
@@ -135,42 +193,116 @@
                                                 </NavLink>
 
                                             </td>
-                                            <td style="text-align: right;">@player.Points</td>
-                                            <td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" style="text-align: right;">@player.Points</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
                                                 <div class="graph" style="width: 110px;">
                                                     <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
                                                 <div class="net stats-value">
                                                     <span class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
                                                 </div>
                                             </td>
-                                            <td>@player.Kills</td>
-                                            <td>@player.Deaths</td>
-                                            <td title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td>@player.DamageAssists</td>
-                                            <td>@player.UnassistedKills</td>
-                                            <td>@player.DamageAssistedEnemyDeaths</td>
-                                            <td title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.Kills</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.Deaths</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssists</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.UnassistedKills</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssistedEnemyDeaths</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
                                         </tr>
+
+                                        @if (_expandedRoundPlayers.Contains(player.CharacterId))
+                                        {
+                                            for (var round = 1; round <= _matchInfo.RoundCount; round++)
+                                            {
+                                                <tr class="expanded-row @GetRoundRowBorderClass(round, _matchInfo.RoundCount) @SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
+
+                                                    @if (_playerRoundStats.Any(e => e.CharacterId == player.CharacterId && e.ScrimMatchRound == round))
+                                                    {
+                                                        @foreach (var playerRoundStats in _playerRoundStats.Where(e => e.CharacterId == player.CharacterId && e.ScrimMatchRound == round).ToList())
+                                                        {
+                                                            <td></td>
+                                                            <td style="text-align: right;">
+                                                                <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(playerRoundStats.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId); display: inline-block; vertical-align: text-bottom; margin-right: 8px;"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                                                                <div style="display: inline-block; vertical-align: text-bottom;">Round @round</div>
+                                                            </td>
+                                                            <td>@playerRoundStats.Points</td>
+                                                            <td>
+                                                                <div class="graph" style="width: 110px;">
+                                                                    <div class="graph-bar @((round == 1 ? "striped-background" : "dotted-background"))" style="width: @($"{GetPointGraphWidth(playerRoundStats.Points, round)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary-light); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="net stats-value">
+                                                                    <span class="value">@playerRoundStats.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(playerRoundStats.NetScore)">@GetNetScoreLabelText(playerRoundStats.NetScore)</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>@playerRoundStats.Kills</td>
+                                                            <td>@playerRoundStats.Deaths</td>
+                                                            <td title="@playerRoundStats.HeadshotKills / @playerRoundStats.Kills">@playerRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                                            <td>@playerRoundStats.DamageAssists</td>
+                                                            <td>@playerRoundStats.UnassistedKills</td>
+                                                            <td>@playerRoundStats.DamageAssistedEnemyDeaths</td>
+                                                            <td title="@playerRoundStats.FavorableEngagementCount / @playerRoundStats.WeightedEnemyEngagementCount">@playerRoundStats.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
+                                                            <td title="@playerRoundStats.OneVsOneCount / @playerRoundStats.EnemyKillDeathEngagementCount">@playerRoundStats.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                                            <td title="@playerRoundStats.UnassistedKills / @playerRoundStats.UnassistedEnemyDeaths ">@playerRoundStats.OneVsOneKillDeathRatio</td>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <td style="padding-left: 10px;"></td>
+                                                        <td style="text-align: right;">Round @round</td>
+                                                        <td colspan="2" class="sq-text-muted">No data found</td>
+                                                    }
+                                                </tr>
+                                            }
+                                            <tr style="height: 8px; background-color: transparent;"></tr>
+                                        }
                                     }
 
                                     @if (team.FacilityCapturePoints != 0)
                                     {
-                                        <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; @(team.PointAdjustments == 0 ? "border-bottom: 1px solid var(--sq-ps2-primary-light);" : string.Empty)">
-                                            <td colspan="2" style="font-style: italic;">Captures</td>
+                                        <tr @onclick="() => OnClickCapturesRow(team.TeamOrdinal)" class="clickable-row @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; @(team.PointAdjustments == 0 ? "border-bottom: 1px solid var(--sq-ps2-primary-light);" : string.Empty)">
+                                            <td style="padding-left: 10px;"></td>
+                                            <td colspan="1" style="font-style: italic; text-align: left;">Captures</td>
                                             <td>@team.FacilityCapturePoints</td>
+                                            <td colspan="11"></td>
                                         </tr>
+
+                                        @if (_expandedRoundTeamCaptures.Contains(team.TeamOrdinal))
+                                        {
+                                            for (var round = 1; round <= _matchInfo.RoundCount; round++)
+                                            {
+                                                <tr class="expanded-row @GetRoundRowBorderClass(round, _matchInfo.RoundCount) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ov-ps2-primary-dark); text-align: right;">
+
+                                                    @if (_teamRoundStats.Any(e => e.TeamOrdinal == team.TeamOrdinal && e.ScrimMatchRound == round))
+                                                    {
+                                                        @foreach (var teamRoundStats in _teamRoundStats.Where(e => e.TeamOrdinal == team.TeamOrdinal && e.ScrimMatchRound == round).ToList())
+                                                        {
+                                                            <td style="padding-left: 10px;"></td>
+                                                            <td colspan="1" class="expanded-row" style="text-align: left;">
+                                                                <div style="margin-left: 56px;">Round @round</div>
+                                                            </td>
+                                                            <td>@teamRoundStats.FacilityCapturePoints</td>
+                                                            <td colspan="11"></td>
+                                                        }
+                                                    }
+                                                </tr>
+                                            }
+
+                                            <tr style="height: 8px; background-color: transparent;"></tr>
+                                        }
                                     }
 
 
                                     @if (team.PointAdjustments != 0)
                                     {
                                         <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ps2-primary-light);">
-                                            <td colspan="2" style="font-style: italic;">Adjustments</td>
+                                            <td colspan="2" style="font-style: italic; text-align: left;">Adjustments</td>
                                             <td>@team.PointAdjustments</td>
                                         </tr>
                                     }
@@ -196,7 +328,7 @@
 
         <div class="col-lg-5" style="margin-left: auto; margin-right: auto;">
 
-            <div class="header-card-container @GetDetailsPanelFactionClass()" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-y: auto; margin-bottom: 16px;">
+            <div class="header-card-container @GetDetailsPanelFactionClass()" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); overflow-y: auto; margin-bottom: 24px;">
 
                 @if (_renderedScrimMatchId != null && !_isChangingScrimMatch)
                 {
@@ -229,6 +361,16 @@
 
     private IEnumerable<ScrimMatchReportInfantryPlayerStats> _playerStats { get; set; }
     private IEnumerable<ScrimMatchReportInfantryTeamStats> _teamStats { get; set; }
+
+    private bool _showAllRoundStats { get; set; } = false;
+    private List<string> _expandedRoundPlayers { get; set; } = new List<string>();
+    private List<int> _expandedRoundTeams { get; set; } = new List<int>();
+    private List<int> _expandedRoundTeamCaptures { get; set; } = new List<int>();
+
+    private IEnumerable<ScrimMatchReportInfantryPlayerRoundStats> _playerRoundStats { get; set; }
+    private IEnumerable<ScrimMatchReportInfantryTeamRoundStats> _teamRoundStats { get; set; }
+
+    private Dictionary<int, int> _maxPlayerRoundPoints { get; set; }
 
     private ScrimMatchInfo _matchInfo { get; set; }
 
@@ -289,6 +431,12 @@
 
                 var matchInfoTask = LoadMatchInfo(cts.Token);
                 TaskList.Add(matchInfoTask);
+
+                var playerRoundStatsTask = LoadInfantryPlayerRoundStats(cts.Token);
+                TaskList.Add(playerRoundStatsTask);
+
+                var teamRoundStatsTask = LoadInfantryTeamRoundStats(cts.Token);
+                TaskList.Add(teamRoundStatsTask);
 
                 await Task.WhenAll(TaskList);
 
@@ -365,9 +513,33 @@
         }
     }
 
+    private async Task LoadInfantryPlayerRoundStats(CancellationToken cancellationToken)
+    {
+        _playerRoundStats = await ReportDataService.GetHistoricalScrimMatchInfantryPlayerRoundStatsAsync(_renderedScrimMatchId, cancellationToken);
+
+        if (_playerRoundStats != null && _playerRoundStats.Any())
+        {
+            var rounds = _playerRoundStats.Select(e => e.ScrimMatchRound).Distinct().ToList();
+
+            _maxPlayerRoundPoints = new Dictionary<int, int>();
+
+            foreach (var round in rounds)
+            {
+                var maxRoundPoints = _playerRoundStats.Where(e => e.ScrimMatchRound == round).Max(e => e.Points);
+
+                _maxPlayerRoundPoints.TryAdd(round, maxRoundPoints);
+            }
+        }
+    }
+
     private async Task LoadInfantryTeamStats(CancellationToken cancellationToken)
     {
         _teamStats = await ReportDataService.GetHistoricalScrimMatchInfantryTeamStatsAsync(_renderedScrimMatchId, cancellationToken);
+    }
+
+    private async Task LoadInfantryTeamRoundStats(CancellationToken cancellationToken)
+    {
+        _teamRoundStats = await ReportDataService.GetHistoricalScrimMatchInfantryTeamRoundStatsAsync(_renderedScrimMatchId, cancellationToken);
     }
 
     private async Task LoadMatchInfo(CancellationToken cancellationToken)
@@ -407,6 +579,104 @@
         _isChangingSelectedPlayer = false;
 
         InvokeAsyncStateHasChanged();
+    }
+
+    private void OnToggleShowRoundStats()
+    {
+        _showAllRoundStats = !_showAllRoundStats;
+    }
+
+    private void OnShowAllRoundStats()
+    {
+        _showAllRoundStats = true;
+
+        lock (_expandedRoundPlayers)
+        {
+            _expandedRoundPlayers.AddRange(_playerStats.Select(e => e.CharacterId).Distinct().ToList());
+        }
+
+        lock (_expandedRoundTeams)
+        {
+            _expandedRoundTeams.AddRange(_teamStats.Select(e => e.TeamOrdinal).Distinct().ToList());
+        }
+
+        lock (_expandedRoundTeamCaptures)
+        {
+            _expandedRoundTeamCaptures.AddRange(_teamStats.Select(e => e.TeamOrdinal).Distinct().ToList());
+        }
+    }
+
+    private void OnHideAllRoundStats()
+    {
+        _showAllRoundStats = false;
+
+        lock (_expandedRoundPlayers)
+        {
+            _expandedRoundPlayers.Clear();
+        }
+
+        lock (_expandedRoundTeams)
+        {
+            _expandedRoundTeams.Clear();
+        }
+
+        lock (_expandedRoundTeamCaptures)
+        {
+            _expandedRoundTeamCaptures.Clear();
+        }
+    }
+
+    private void OnClickPlayerRow(string characterId)
+    {
+        lock (_expandedRoundPlayers)
+        {
+            if (_expandedRoundPlayers.Contains(characterId))
+            {
+                _expandedRoundPlayers.Remove(characterId);
+
+                _showAllRoundStats = false;
+            }
+            else
+            {
+                _expandedRoundPlayers.Add(characterId);
+            }
+        }
+    }
+
+    private void OnClickTeamRow(int teamOrdinal)
+    {
+        lock (_expandedRoundTeams)
+        {
+            if (_expandedRoundTeams.Contains(teamOrdinal))
+            {
+                _expandedRoundTeams.Remove(teamOrdinal);
+
+                _showAllRoundStats = false;
+            }
+            else
+            {
+                _expandedRoundTeams.Add(teamOrdinal);
+            }
+
+            //InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void OnClickCapturesRow(int teamOrdinal)
+    {
+        lock (_expandedRoundTeamCaptures)
+        {
+            if (_expandedRoundTeamCaptures.Contains(teamOrdinal))
+            {
+                _expandedRoundTeamCaptures.Remove(teamOrdinal);
+
+                _showAllRoundStats = false;
+            }
+            else
+            {
+                _expandedRoundTeamCaptures.Add(teamOrdinal);
+            }
+        }
     }
     #endregion UI & Form Controls
 
@@ -481,6 +751,19 @@
         var maxPoints = _maxPlayerPoints;
 
         var playerPoints = points;
+
+        return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
+    }
+
+    private decimal GetPointGraphWidth(int points, int round)
+    {
+        int maxPoints = 0;
+        var playerPoints = points;
+
+        if (!_maxPlayerRoundPoints.TryGetValue(round, out maxPoints))
+        {
+            maxPoints = 0;
+        }
 
         return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
     }
@@ -575,6 +858,25 @@
         return (_renderedScrimMatchId != null && !_isChangingScrimMatch && !string.IsNullOrWhiteSpace(_renderedSelectedPlayerId) && !_isChangingSelectedPlayer)
             ? SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.CharacterId == _renderedSelectedPlayerId).Select(p => p.FactionId).FirstOrDefault())
             : "default";
+    }
+
+    private string GetClickableTeamRowIsActiveClass(int teamOrdinal)
+    {
+        return _expandedRoundTeams.Contains(teamOrdinal) || _showAllRoundStats
+                    ? "active"
+                    : string.Empty;
+    }
+
+    private string GetClickablePlayerRowIsActiveClass(string characterId)
+    {
+        return _expandedRoundPlayers.Contains(characterId) || _showAllRoundStats
+                    ? "active"
+                    : string.Empty;
+    }
+
+    private string GetRoundRowBorderClass(int round, int maxRounds)
+    {
+        return round == maxRounds ? "last-of-group" : string.Empty;
     }
 
     private void InvokeAsyncStateHasChanged()

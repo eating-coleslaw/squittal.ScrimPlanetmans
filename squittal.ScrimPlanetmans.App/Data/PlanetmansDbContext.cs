@@ -69,7 +69,9 @@ namespace squittal.ScrimPlanetmans.Data
         #region Views
         public DbSet<ScrimMatchInfo> ScrimMatchInfo { get; set; }
         public DbSet<ScrimMatchReportInfantryPlayerStats> ScrimMatchReportInfantryPlayerStats { get; set; }
+        public DbSet<ScrimMatchReportInfantryPlayerRoundStats> ScrimMatchReportInfantryPlayerRoundStats { get; set; }
         public DbSet<ScrimMatchReportInfantryTeamStats> ScrimMatchReportInfantryTeamStats { get; set; }
+        public DbSet<ScrimMatchReportInfantryTeamRoundStats> ScrimMatchReportInfantryTeamRoundStats { get; set; }
         public DbSet<ScrimMatchReportInfantryDeath> ScrimMatchReportInfantryDeaths { get; set; }
         public DbSet<ScrimMatchReportInfantryPlayerHeadToHeadStats> ScrimMatchReportInfantryPlayerHeadToHeadStats { get; set; }
         public DbSet<ScrimMatchReportInfantryPlayerClassEventCounts> ScrimMatchReportInfantryPlayerClassEventCounts { get; set; }
@@ -137,7 +139,9 @@ namespace squittal.ScrimPlanetmans.Data
             #region Views
             builder.ApplyConfiguration(new ScrimMatchInfoConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerStatsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerRoundStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryTeamStatsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryTeamRoundStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryDeathConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerHeadToHeadStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerClassEventCountsConfiguration());
