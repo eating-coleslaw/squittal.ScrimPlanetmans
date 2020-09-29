@@ -62,7 +62,7 @@ else if (_showKillfeed)
                     <tr class="@GetDeathRowBgClass(death.DeathType) @GetDeathRowPrimaryClass(death)" style="color: var(--sq-ps2-primary-dark);">
                         <td class="team-fill"></td>
                         <td title="Round @death.ScrimMatchRound" style="text-align: right; padding-left: 8px;">@death.ScrimMatchRound</td>
-                        @if (string.IsNullOrWhiteSpace(_renderedPlayerId))
+                        @if (!string.IsNullOrWhiteSpace(_renderedPlayerId))
                         {
                             <td style="text-align: right; width: 100px;">@death.Timestamp.ToLongTimeString()</td>
                         }
