@@ -126,7 +126,6 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                                SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND spot_sums.TotalSpots > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (grenade_sums.TotalGrenades Is NULL OR grenade_sums.TotalGrenades  = 0) THEN 1 ELSE 0 END ) SpotAssistedOnlyDeaths,
                                SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND DeathType = 0 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedEnemyDeaths,
                                SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedDeaths,
-                              --  SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND NextEventTimeDiff >= 6 AND PrevEventTimeDiff > 3 THEN 1 ELSE 0 END ) TrickleDeaths_6s
                                SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal
                                              THEN CASE WHEN deaths.AttackerLoadoutId IN ( 3, 10, 17) AND deaths.VictimLoadoutId IN ( 3, 10, 17)
                                                          THEN CASE WHEN deaths.NextEventTimeDiff >= 9 AND deaths.PrevEventTimeDiff > 6 THEN 1

@@ -114,7 +114,7 @@
                                         <th style="font-weight: 300; width: 70px;" title="Damage Assists">Dmg. Assists</th>
                                         <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
                                         <th style="font-weight: 300; width: 70px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Assisted Deaths</th>
-                                        <th style="font-weight: 300; width: 64px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Trickle Deaths</th>
+                                        <th style="font-weight: 300; width: 64px;" title="Trickle Deaths">Trickle Deaths</th>
                                         <th style="font-weight: 300; width: 80px;" title="Favorable Engagement Percent">Favorable Eng. %</th>
                                         <th style="font-weight: 300; width: 60px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
                                         <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
@@ -184,7 +184,6 @@
                                             <td style="text-align: left;" title="@player.NameFull [@(player.CharacterId)]">
 
                                                 <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{player.NameFull}")>
-                                                    @*<span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>*@
                                                     <span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "110px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
                                                     @if (player.PrestigeLevel != 0)
                                                     {
@@ -303,7 +302,6 @@
                                             <tr style="height: 8px; background-color: transparent;"></tr>
                                         }
                                     }
-
 
                                     @if (team.PointAdjustments != 0)
                                     {
@@ -664,8 +662,6 @@
             {
                 _expandedRoundTeams.Add(teamOrdinal);
             }
-
-            //InvokeAsyncStateHasChanged();
         }
     }
 
@@ -759,7 +755,6 @@
 
         var playerPoints = points;
 
-        //return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
         return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(100 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
     }
 
@@ -773,7 +768,6 @@
             maxPoints = 0;
         }
 
-        //return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
         return (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(100 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
     }
 

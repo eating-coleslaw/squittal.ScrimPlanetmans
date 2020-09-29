@@ -75,7 +75,7 @@ else if (_showKillfeed)
                         }
                         <td class="points" style="text-align: right;">@GetPointsDisplay(death.Points)</td>
                         <td>
-                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>
                         </td>
                         <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.AttackerNameDisplay</td>
                         <td>
@@ -86,7 +86,7 @@ else if (_showKillfeed)
                         </td>
                         <td title="@death.WeaponName [@death.WeaponId]" class="weapon">@death.WeaponName</td>
                         <td>
-                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.VictimLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.VictimFactionId)"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.VictimLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.VictimFactionId)"></div>
                         </td>
                         <td title="@death.VictimNameDisplay [@death.VictimCharacterId]" class="@SqCssHelper.GetFactionClassFromId(death.VictimFactionId) player">@death.VictimNameDisplay</td>
                         <td>
