@@ -130,10 +130,10 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamRoundStats AS
                                  SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND DeathType = 0 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedEnemyDeaths,
                                  SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedDeaths,
                                  SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal
-                                             THEN CASE WHEN deaths.AttackerLoadoutId IN ( 3, 10, 17) AND deaths.VictimLoadoutId IN ( 3, 10, 17)
-                                                         THEN CASE WHEN NextEventTimeDiff >= 9 AND PrevEventTimeDiff > 6 THEN 1
+                                             THEN CASE WHEN kills.AttackerLoadoutId IN ( 3, 10, 17) AND kills.VictimLoadoutId IN ( 3, 10, 17)
+                                                         THEN CASE WHEN kills.NextEventTimeDiff >= 9 AND kills.PrevEventTimeDiff > 6 THEN 1
                                                                    ELSE 0 END
-                                                       WHEN NextEventTimeDiff >= 6 AND PrevEventTimeDiff > 3 THEN 1
+                                                       WHEN kills.NextEventTimeDiff >= 6 AND kills.PrevEventTimeDiff > 3 THEN 1
                                                        ELSE 0 END
                                            ELSE 0 END ) TrickleDeaths_6s
                               

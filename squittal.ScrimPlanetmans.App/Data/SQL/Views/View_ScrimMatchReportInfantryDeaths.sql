@@ -40,9 +40,9 @@ ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
        MAX(COALESCE(grenade_sums.FlashGrenadeAssists, 0)) FlashGrenadeAssists,
        MAX(COALESCE(spot_sums.SpotAssists, 0) ) SpotAssists,
        CAST( MAX( CASE WHEN deaths.AttackerLoadoutId IN ( 3, 10, 17) AND deaths.VictimLoadoutId IN ( 3, 10, 17)
-                         THEN CASE WHEN NextEventTimeDiff >= 9 AND PrevEventTimeDiff > 6 THEN 1
+                         THEN CASE WHEN deaths.NextEventTimeDiff >= 9 AND deaths.PrevEventTimeDiff > 6 THEN 1
                                    ELSE 0 END
-                       WHEN NextEventTimeDiff >= 6 AND PrevEventTimeDiff > 3 THEN 1
+                       WHEN deaths.NextEventTimeDiff >= 6 AND deaths.PrevEventTimeDiff > 3 THEN 1
                        ELSE 0 END ) AS BIT ) IsTrickleDeath,
        MAX( deaths.NextEventTimeDiff ) SecondsToNextDeathEvent,
        MAX( deaths.PrevEventTimeDiff ) SecondsFromPreviousDeathEvent
