@@ -19,57 +19,58 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerRoundStats AS
          match_players.FactionId,
          match_players.WorldId,
          match_players.PrestigeLevel,
-         COALESCE(kill_sums.Points, 0) Points,
-         COALESCE(kill_sums.NetScore, 0) NetScore,
-         COALESCE(kill_sums.Kills, 0) Kills,
-         COALESCE(kill_sums.HeadshotKills, 0) HeadshotKills,
-         COALESCE(kill_sums.Deaths, 0) Deaths,
-         COALESCE(kill_sums.HeadshotEnemyDeaths, 0) HeadshotEnemyDeaths,
-         COALESCE(kill_sums.TeamKills, 0) TeamKills,
-         COALESCE(kill_sums.Suicides, 0) Suicides,
-         COALESCE(kill_sums.ScoredDeaths, 0) ScoredDeaths,
-         COALESCE(kill_sums.ZeroPointDeaths, 0) ZeroPointDeaths,
-         COALESCE(kill_sums.TeamKillDeaths, 0) TeamKillDeaths,
-         COALESCE(damage_sums.DamageAssists, 0) DamageAssists,
-         COALESCE(damage_sums.DamageTeamAssists, 0) DamageTeamAssists,
-         COALESCE(kill_sums.DamageAssistedKills, 0) DamageAssistedKills,
-         COALESCE(kill_sums.DamageAssistedOnlyKills, 0) DamageAssistedOnlyKills,
-         COALESCE(kill_sums.GrenadeAssistedKills, 0) GrenadeAssistedKills,
-         COALESCE(kill_sums.GrenadeAssistedOnlyKills, 0) GrenadeAssistedOnlyKills,
-         COALESCE(kill_sums.SpotAssistedKills, 0) SpotAssistedKills,
-         COALESCE(kill_sums.SpotAssistedOnlyKills, 0) SpotAssistedOnlyKills,
-         COALESCE(kill_sums.AssistedKills, 0) AssistedKills,
-         COALESCE(kill_sums.DamageAssistedDeaths, 0) DamageAssistedDeaths,
-         COALESCE(kill_sums.DamageAssistedOnlyDeaths, 0) DamageAssistedOnlyDeaths,
-         COALESCE(kill_sums.GrenadeAssistedDeaths, 0) GrenadeAssistedDeaths,
-         COALESCE(kill_sums.GrenadeAssistedOnlyDeaths, 0) GrenadeAssistedOnlyDeaths,
-         COALESCE(kill_sums.SpotAssistedDeaths, 0) SpotAssistedDeaths,
-         COALESCE(kill_sums.SpotAssistedOnlyDeaths, 0) SpotAssistedOnlyDeaths,
-         COALESCE(kill_sums.DamageAssistedEnemyDeaths, 0) DamageAssistedEnemyDeaths,
-         COALESCE(kill_sums.DamageAssistedOnlyEnemyDeaths, 0) DamageAssistedOnlyEnemyDeaths,
-         COALESCE(kill_sums.GrenadeAssistedEnemyDeaths, 0) GrenadeAssistedEnemyDeaths,
-         COALESCE(kill_sums.GrenadeAssistedOnlyEnemyDeaths, 0) GrenadeAssistedOnlyEnemyDeaths,
-         COALESCE(kill_sums.SpotAssistedEnemyDeaths, 0) SpotAssistedEnemyDeaths,
-         COALESCE(kill_sums.SpotAssistedOnlyEnemyDeaths, 0) SpotAssistedOnlyEnemyDeaths,
-         COALESCE(kill_sums.UnassistedEnemyDeaths, 0) UnassistedEnemyDeaths,
-         COALESCE(kill_sums.KillsAsHeavyAssault, 0) KillsAsHeavyAssault,
-         COALESCE(kill_sums.KillsAsInfiltrator, 0) KillsAsInfiltrator,
-         COALESCE(kill_sums.KillsAsLightAssault, 0) KillsAsLightAssault,
-         COALESCE(kill_sums.KillsAsMedic, 0) KillsAsMedic,
-         COALESCE(kill_sums.KillsAsEngineer, 0) KillsAsEngineer,
-         COALESCE(kill_sums.KillsAsMax, 0) KillsAsMax,
-         COALESCE(kill_sums.DeathsAsHeavyAssault, 0) DeathsAsHeavyAssault,
-         COALESCE(kill_sums.DeathsAsInfiltrator, 0) DeathsAsInfiltrator,
-         COALESCE(kill_sums.DeathsAsLightAssault, 0) DeathsAsLightAssault,
-         COALESCE(kill_sums.DeathsAsMedic, 0) DeathsAsMedic,
-         COALESCE(kill_sums.DeathsAsEngineer, 0) DeathsAsEngineer,
-         COALESCE(kill_sums.DeathsAsMax, 0) DeathsAsMax,
-         COALESCE(damage_sums.DamageAssistsAsHeavyAssault, 0) DamageAssistsAsHeavyAssault,
-         COALESCE(damage_sums.DamageAssistsAsInfiltrator, 0) DamageAssistsAsInfiltrator,
-         COALESCE(damage_sums.DamageAssistsAsLightAssault, 0) DamageAssistsAsLightAssault,
-         COALESCE(damage_sums.DamageAssistsAsMedic, 0) DamageAssistsAsMedic,
-         COALESCE(damage_sums.DamageAssistsAsEngineer, 0) DamageAssistsAsEngineer,
-         COALESCE(damage_sums.DamageAssistsAsMax, 0) DamageAssistsAsMax
+         COALESCE( kill_sums.Points, 0 ) Points,
+         COALESCE( kill_sums.NetScore, 0 ) NetScore,
+         COALESCE( kill_sums.Kills, 0 ) Kills,
+         COALESCE( kill_sums.HeadshotKills, 0 ) HeadshotKills,
+         COALESCE( kill_sums.Deaths, 0 ) Deaths,
+         COALESCE( kill_sums.HeadshotEnemyDeaths, 0 ) HeadshotEnemyDeaths,
+         COALESCE( kill_sums.TeamKills, 0 ) TeamKills,
+         COALESCE( kill_sums.Suicides, 0 ) Suicides,
+         COALESCE( kill_sums.ScoredDeaths, 0 ) ScoredDeaths,
+         COALESCE( kill_sums.ZeroPointDeaths, 0 ) ZeroPointDeaths,
+         COALESCE( kill_sums.TeamKillDeaths, 0 ) TeamKillDeaths,
+         COALESCE( kill_sums.TrickleDeaths_6s, 0 ) TrickleDeaths,
+         COALESCE( damage_sums.DamageAssists, 0 ) DamageAssists,
+         COALESCE( damage_sums.DamageTeamAssists, 0 ) DamageTeamAssists,
+         COALESCE( kill_sums.DamageAssistedKills, 0 ) DamageAssistedKills,
+         COALESCE( kill_sums.DamageAssistedOnlyKills, 0 ) DamageAssistedOnlyKills,
+         COALESCE( kill_sums.GrenadeAssistedKills, 0 ) GrenadeAssistedKills,
+         COALESCE( kill_sums.GrenadeAssistedOnlyKills, 0 ) GrenadeAssistedOnlyKills,
+         COALESCE( kill_sums.SpotAssistedKills, 0 ) SpotAssistedKills,
+         COALESCE( kill_sums.SpotAssistedOnlyKills, 0 ) SpotAssistedOnlyKills,
+         COALESCE( kill_sums.AssistedKills, 0 ) AssistedKills,
+         COALESCE( kill_sums.DamageAssistedDeaths, 0 ) DamageAssistedDeaths,
+         COALESCE( kill_sums.DamageAssistedOnlyDeaths, 0 ) DamageAssistedOnlyDeaths,
+         COALESCE( kill_sums.GrenadeAssistedDeaths, 0 ) GrenadeAssistedDeaths,
+         COALESCE( kill_sums.GrenadeAssistedOnlyDeaths, 0 ) GrenadeAssistedOnlyDeaths,
+         COALESCE( kill_sums.SpotAssistedDeaths, 0 ) SpotAssistedDeaths,
+         COALESCE( kill_sums.SpotAssistedOnlyDeaths, 0 ) SpotAssistedOnlyDeaths,
+         COALESCE( kill_sums.DamageAssistedEnemyDeaths, 0 ) DamageAssistedEnemyDeaths,
+         COALESCE( kill_sums.DamageAssistedOnlyEnemyDeaths, 0 ) DamageAssistedOnlyEnemyDeaths,
+         COALESCE( kill_sums.GrenadeAssistedEnemyDeaths, 0 ) GrenadeAssistedEnemyDeaths,
+         COALESCE( kill_sums.GrenadeAssistedOnlyEnemyDeaths, 0 ) GrenadeAssistedOnlyEnemyDeaths,
+         COALESCE( kill_sums.SpotAssistedEnemyDeaths, 0 ) SpotAssistedEnemyDeaths,
+         COALESCE( kill_sums.SpotAssistedOnlyEnemyDeaths, 0 ) SpotAssistedOnlyEnemyDeaths,
+         COALESCE( kill_sums.UnassistedEnemyDeaths, 0 ) UnassistedEnemyDeaths,
+         COALESCE( kill_sums.KillsAsHeavyAssault, 0 ) KillsAsHeavyAssault,
+         COALESCE( kill_sums.KillsAsInfiltrator, 0 ) KillsAsInfiltrator,
+         COALESCE( kill_sums.KillsAsLightAssault, 0 ) KillsAsLightAssault,
+         COALESCE( kill_sums.KillsAsMedic, 0 ) KillsAsMedic,
+         COALESCE( kill_sums.KillsAsEngineer, 0 ) KillsAsEngineer,
+         COALESCE( kill_sums.KillsAsMax, 0 ) KillsAsMax,
+         COALESCE( kill_sums.DeathsAsHeavyAssault, 0 ) DeathsAsHeavyAssault,
+         COALESCE( kill_sums.DeathsAsInfiltrator, 0 ) DeathsAsInfiltrator,
+         COALESCE( kill_sums.DeathsAsLightAssault, 0 ) DeathsAsLightAssault,
+         COALESCE( kill_sums.DeathsAsMedic, 0 ) DeathsAsMedic,
+         COALESCE( kill_sums.DeathsAsEngineer, 0 ) DeathsAsEngineer,
+         COALESCE( kill_sums.DeathsAsMax, 0 ) DeathsAsMax,
+         COALESCE( damage_sums.DamageAssistsAsHeavyAssault, 0 ) DamageAssistsAsHeavyAssault,
+         COALESCE( damage_sums.DamageAssistsAsInfiltrator, 0 ) DamageAssistsAsInfiltrator,
+         COALESCE( damage_sums.DamageAssistsAsLightAssault, 0 ) DamageAssistsAsLightAssault,
+         COALESCE( damage_sums.DamageAssistsAsMedic, 0 ) DamageAssistsAsMedic,
+         COALESCE( damage_sums.DamageAssistsAsEngineer, 0 ) DamageAssistsAsEngineer,
+         COALESCE( damage_sums.DamageAssistsAsMax, 0 ) DamageAssistsAsMax
     FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
       INNER JOIN [PlanetmansDbContext].[dbo].ScrimMatchRoundConfiguration match_rounds
         ON match_players.ScrimMatchId = match_rounds.ScrimMatchId
@@ -127,14 +128,28 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerRoundStats AS
                                SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND spot_sums.TotalSpots > 0 THEN 1 ELSE 0 END ) SpotAssistedDeaths,
                                SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND spot_sums.TotalSpots > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (grenade_sums.TotalGrenades Is NULL OR grenade_sums.TotalGrenades  = 0) THEN 1 ELSE 0 END ) SpotAssistedOnlyDeaths,
                                SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND DeathType = 0 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedEnemyDeaths,
-                               SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedDeaths
+                               SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedDeaths,
+                               SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND NextEventTimeDiff >= 6 AND PrevEventTimeDiff > 3 THEN 1 ELSE 0 END ) TrickleDeaths_6s
                               
                           FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
-                            LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimDeath kills
+                            LEFT OUTER JOIN ( SELECT ScrimMatchId,
+                                                     ScrimMatchRound,
+                                                     Timestamp,
+                                                     DeathType,
+                                                     AttackerCharacterId,
+                                                     AttackerLoadoutId,
+                                                     VictimCharacterId,
+                                                     VictimLoadoutId,
+                                                     IsHeadshot,
+                                                     Points,
+                                                     DATEDIFF(SECOND, Timestamp, LAG( Timestamp ) OVER ( PARTITION BY ScrimMatchId, ScrimMatchRound ORDER BY Timestamp DESC ) ) NextEventTimeDiff,
+                                                     DATEDIFF(SECOND, LEAD( Timestamp ) OVER ( PARTITION BY ScrimMatchId, ScrimMatchRound ORDER BY Timestamp DESC ), Timestamp ) PrevEventTimeDiff
+                                                FROM [PlanetmansDbContext].[dbo].ScrimDeath ) kills
                               ON match_players.ScrimMatchId = kills.ScrimMatchId
                                 AND ( match_players.CharacterId = kills.AttackerCharacterId
                                       OR match_players.CharacterId = kills.VictimCharacterId ) 
-                            LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, damages.Timestamp, COUNT(*) TotalDamages,
+                            LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, damages.Timestamp,
+                                                     COUNT(*) TotalDamages,
                                                      SUM( CASE WHEN damages.ActionType = 304 THEN 1 ELSE 0 END ) EnemyDamages,
                                                      SUM( CASE WHEN damages.ActionType = 310 THEN 1 ELSE 0 END ) TeamDamages,
                                                      SUM( CASE WHEN damages.ActionType = 312 THEN 1 ELSE 0 END ) SelfDamages
@@ -143,7 +158,8 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerRoundStats AS
                               ON kills.ScrimMatchId = damage_sums.ScrimMatchId
                                 AND kills.Timestamp = damage_sums.Timestamp
                                 AND kills.VictimCharacterId = damage_sums.VictimCharacterId
-                            LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, grenades.Timestamp, COUNT(*) TotalGrenades,
+                            LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, grenades.Timestamp,
+                                                     COUNT(*) TotalGrenades,
                                                      SUM( CASE WHEN grenades.ActionType = 306 THEN 1 ELSE 0 END ) EnemyGrenades,
                                                      SUM( CASE WHEN grenades.ActionType = 311 THEN 1 ELSE 0 END ) TeamGrenades,
                                                      SUM( CASE WHEN grenades.ActionType = 313 THEN 1 ELSE 0 END ) SelfGrenades
@@ -152,7 +168,8 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerRoundStats AS
                               ON kills.ScrimMatchId = grenade_sums.ScrimMatchId
                                   AND kills.Timestamp = grenade_sums.Timestamp
                                   AND kills.VictimCharacterId = grenade_sums.VictimCharacterId
-                            LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, spots.Timestamp, COUNT(*) TotalSpots
+                            LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, spots.Timestamp,
+                                                     COUNT(*) TotalSpots
                                                 FROM [PlanetmansDbContext].[dbo].[ScrimSpotAssist] spots
                                                 GROUP BY ScrimMatchId, SpotterTeamOrdinal, Timestamp, VictimCharacterId ) spot_sums
                               ON kills.ScrimMatchId = spot_sums.ScrimMatchId

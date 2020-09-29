@@ -407,7 +407,8 @@ tr.clickable-row {
     tr.clickable-row:hover {
         cursor: pointer;
         /*border: 1px solid var(--sq-light-blue-gray);*/
-        background-color: var(--sq-bg-white-lit) !important;
+        /*background-color: var(--sq-bg-white-lit) !important;*/
+        background-color: var(--sq-ps2-primary-light-alpha-60) !important;
     }
 
     /*tr.clickable-row.active:first-of-type {*/

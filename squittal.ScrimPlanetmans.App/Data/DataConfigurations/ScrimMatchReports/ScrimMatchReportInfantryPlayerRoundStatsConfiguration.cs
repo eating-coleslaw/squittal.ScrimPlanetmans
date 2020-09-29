@@ -37,6 +37,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.ScoredDeaths).HasDefaultValue(0);
             builder.Property(e => e.ZeroPointDeaths).HasDefaultValue(0);
             builder.Property(e => e.TeamKillDeaths).HasDefaultValue(0);
+            builder.Property(e => e.TrickleDeaths).HasDefaultValue(0);
             builder.Property(e => e.DamageAssists).HasDefaultValue(0);
             builder.Property(e => e.DamageTeamAssists).HasDefaultValue(0);
             builder.Property(e => e.DamageAssistedKills).HasDefaultValue(0);
