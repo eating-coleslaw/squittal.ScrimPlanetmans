@@ -185,7 +185,7 @@
 
                                                 <NavLink class="nav-link" href=@($"ScrimMatch/{_renderedScrimMatchId}/{player.NameFull}")>
                                                     @*<span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@player.NameDisplay</span>*@
-                                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "110px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay@player.NameFull</span>
+                                                    <span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "110px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
                                                     @if (player.PrestigeLevel != 0)
                                                     {
                                                         <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
