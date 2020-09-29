@@ -281,8 +281,8 @@
     private string GetPlayerNameElementTitle()
     {
         return !Player.IsOutfitless
-                    ? $"{Player.NameDisplay} [{Player.Id}]"
-                    : $"{Player.NameDisplay} [{Player.Id}\nServer: {_renderedWorldName}";
+                    ? $"{Player.NameFull} [{Player.Id}]"
+                    : $"{Player.NameFull} [{Player.Id}\nServer: {_renderedWorldName}";
     }
 
     private double GetStatOpacity(int value)
