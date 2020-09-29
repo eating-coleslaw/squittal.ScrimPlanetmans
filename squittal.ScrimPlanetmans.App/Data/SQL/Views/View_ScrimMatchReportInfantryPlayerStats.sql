@@ -127,7 +127,14 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerStats AS
                                 SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND spot_sums.TotalSpots > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (grenade_sums.TotalGrenades Is NULL OR grenade_sums.TotalGrenades  = 0) THEN 1 ELSE 0 END ) SpotAssistedOnlyDeaths,
                                 SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND DeathType = 0 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedEnemyDeaths,
                                 SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1 ELSE 0 END ) UnassistedDeaths,
-                                SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND NextEventTimeDiff >= 6 AND PrevEventTimeDiff > 3 THEN 1 ELSE 0 END ) TrickleDeaths_6s
+                                -- SUM( CASE WHEN CharacterId = kills.VictimCharacterId AND NextEventTimeDiff >= 6 AND PrevEventTimeDiff > 3 THEN 1 ELSE 0 END ) TrickleDeaths_6s,
+                                SUM( CASE WHEN CharacterId = kills.VictimCharacterId
+                                             THEN CASE WHEN kills.AttackerLoadoutId IN ( 3, 10, 17) AND kills.VictimLoadoutId IN ( 3, 10, 17)
+                                                         THEN CASE WHEN kills.NextEventTimeDiff >= 9 AND kills.PrevEventTimeDiff > 6 THEN 1
+                                                                   ELSE 0 END
+                                                       WHEN kills.NextEventTimeDiff >= 6 AND kills.PrevEventTimeDiff > 3 THEN 1
+                                                       ELSE 0 END
+                                           ELSE 0 END ) TrickleDeaths_6s
                             
                             FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
                               LEFT OUTER JOIN ( SELECT ScrimMatchId,
