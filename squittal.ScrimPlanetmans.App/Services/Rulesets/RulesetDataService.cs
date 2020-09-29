@@ -120,14 +120,20 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         {
             try
             {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
+                if (RulesetsMap.Count == 0 || !RulesetsMap.Any())
+                {
+                    await SetUpRulesetsMapAsync(cancellationToken);
+                }
 
-                Ruleset ruleset;
+                if (RulesetsMap == null || !RulesetsMap.Any())
+                {
+                    return null;
+                }
 
-                ruleset = await dbContext.Rulesets
-                                               .Where(r => r.Id == rulesetId)
-                                               .FirstOrDefaultAsync(cancellationToken);
+                if (!RulesetsMap.TryGetValue(rulesetId, out Ruleset ruleset))
+                {
+                    return null;
+                }
 
                 if (includeCollections)
                 {
