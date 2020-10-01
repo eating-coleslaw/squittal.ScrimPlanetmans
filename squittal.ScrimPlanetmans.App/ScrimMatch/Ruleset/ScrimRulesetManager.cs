@@ -19,6 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemCategoryService _itemCategoryService;
+        private readonly IItemService _itemService;
         private readonly IRulesetDataService _rulesetDataService;
         private readonly IScrimMessageBroadcastService _messageService;
         public ILogger<ScrimRulesetManager> _logger;
@@ -28,10 +29,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly int _defaultRulesetId = 1;
 
 
-        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
+        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IItemService itemService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
         {
             _dbContextHelper = dbContextHelper;
             _itemCategoryService = itemCategoryService;
+            _itemService = itemService;
             _rulesetDataService = rulesetDataService;
             _messageService = messageService;
             _logger = logger;
@@ -181,13 +183,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var storeActionRules = new List<RulesetActionRule>();
             var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
+            var storeItemRules = new List<RulesetItemRule>();
             var storeFacilityRules = new List<RulesetFacilityRule>();
 
             if (storeRuleset != null)
             {
+                // TODO: use Task.WhenAll for this 
+
                 storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
                 storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+
+                storeItemRules = await dbContext.RulesetItemRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
                 storeFacilityRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
@@ -307,6 +314,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     if (isWeaponItemCategoryId)
                     {
                         storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
+                        storeEntity.IsBanned = defaultEntity != null ? defaultEntity.IsBanned : false;
+                        storeEntity.DeferToItemRules = defaultEntity != null ? defaultEntity.DeferToItemRules : false;
 
                         dbContext.RulesetItemCategoryRules.Update(storeEntity);
                         allItemCategoryRules.Add(storeEntity);
@@ -323,6 +332,81 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
             }
             #endregion Item Category Rules
+
+            #region Item Rules
+            var defaultItemRules = GetDefaultItemRules();
+            var createdItemRules = new List<RulesetItemRule>();
+            //var allItemIds = await _itemService.GetItemIdsAsync();
+            var allWeaponItems = await _itemService.GetAllWeaponItemsAsync();
+
+            var allItemIds = new List<int>(defaultItemRules.Select(r => r.ItemId));
+            if (storeItemRules != null)
+            {
+                allItemIds.AddRange(storeItemRules.Select(r => r.ItemId));
+            }
+
+
+            var allItemRules = new List<RulesetItemRule>();
+
+
+            foreach (var itemId in allItemIds)
+            {
+                var isWeaponItem = (allWeaponItems.Any(r => r.Id == itemId));
+
+                var storeEntity = storeItemRules?.FirstOrDefault(r => r.ItemId == itemId);
+                var defaultEntity = defaultItemRules.FirstOrDefault(r => r.ItemId == itemId);
+
+                if (storeEntity == null)
+                {
+                    if (defaultEntity != null)
+                    {
+                        defaultEntity.RulesetId = defaultRulesetId;
+
+                        createdItemRules.Add(defaultEntity);
+                        allItemRules.Add(defaultEntity);
+                    }
+                    else if (isWeaponItem)
+                    {
+                        var categoryId = allWeaponItems.Where(i => i.Id == itemId).Select(i => i.ItemCategoryId).FirstOrDefault();
+
+                        if (categoryId != null)
+                        {
+                            var defaultPoints = allItemCategoryRules.Where(r => r.ItemCategoryId == categoryId).Select(r => r.Points).FirstOrDefault();
+
+                            var newEntity = BuildRulesetItemRule(defaultRulesetId, itemId, (int)categoryId, defaultPoints, false);
+                            
+                            createdItemRules.Add(newEntity);
+                            allItemRules.Add(newEntity);
+                        }    
+                    }
+                }
+                else
+                {
+                    var categoryId = allWeaponItems.Where(i => i.Id == itemId).Select(i => i.ItemCategoryId).FirstOrDefault();
+
+                    if (isWeaponItem && categoryId != null)
+                    {
+                        storeEntity.Points = defaultEntity != null
+                                                ? defaultEntity.Points
+                                                : allItemCategoryRules.Where(r => r.ItemCategoryId == categoryId).Select(r => r.Points).FirstOrDefault(); ;
+
+                        storeEntity.IsBanned = defaultEntity != null ? defaultEntity.IsBanned : false;
+
+                        dbContext.RulesetItemRules.Update(storeEntity);
+                        allItemRules.Add(storeEntity);
+                    }
+                    else
+                    {
+                        dbContext.RulesetItemRules.Remove(storeEntity);
+                    }
+                }
+            }
+
+            if (createdItemRules.Any())
+            {
+                await dbContext.RulesetItemRules.AddRangeAsync(createdItemRules);
+            }
+            #endregion Item Rules
 
             #region Facility Rules
             var defaultFacilityRules = GetDefaultFacilityRules();
@@ -371,6 +455,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             storeRuleset.RulesetActionRules = allActionRules;
             storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
+            storeRuleset.RulesetItemRules = allItemRules;
             storeRuleset.RulesetFacilityRules = allFacilityRules;
 
             if (rulesetExistsInDb)
@@ -389,19 +474,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return new RulesetItemCategoryRule[]
             {
-                BuildRulesetItemCategoryRule(2, 1),   // Knife
-                BuildRulesetItemCategoryRule(3, 1),   // Pistol
-                BuildRulesetItemCategoryRule(5, 1),   // SMG
-                BuildRulesetItemCategoryRule(6, 1),   // LMG
-                BuildRulesetItemCategoryRule(7, 1),   // Assault Rifle
-                BuildRulesetItemCategoryRule(8, 1),   // Carbine
-                BuildRulesetItemCategoryRule(11, 1),  // Sniper Rifle
-                BuildRulesetItemCategoryRule(12, 1),  // Scout Rifle
-                BuildRulesetItemCategoryRule(19, 1),  // Battle Rifle
-                BuildRulesetItemCategoryRule(24, 1),  // Crossbow
-                BuildRulesetItemCategoryRule(100, 1), // Infantry
-                BuildRulesetItemCategoryRule(102, 1), // Infantry Weapons
-                BuildRulesetItemCategoryRule(157, 1)  // Hybrid Rifle
+                BuildRulesetItemCategoryRule(2, 1, false, true),   // Knife
+                BuildRulesetItemCategoryRule(3, 1, false, false),   // Pistol
+                BuildRulesetItemCategoryRule(5, 1, false, false),   // SMG
+                BuildRulesetItemCategoryRule(6, 1, false, false),   // LMG
+                BuildRulesetItemCategoryRule(7, 1, false, false),   // Assault Rifle
+                BuildRulesetItemCategoryRule(8, 1, false, false),   // Carbine
+                BuildRulesetItemCategoryRule(11, 1, false, false),  // Sniper Rifle
+                BuildRulesetItemCategoryRule(12, 1, false, false),  // Scout Rifle
+                BuildRulesetItemCategoryRule(19, 1, false, false),  // Battle Rifle
+                BuildRulesetItemCategoryRule(24, 1, false, false),  // Crossbow
+                BuildRulesetItemCategoryRule(100, 1, false, false), // Infantry
+                BuildRulesetItemCategoryRule(102, 1, false, false), // Infantry Weapons
+                BuildRulesetItemCategoryRule(157, 1, false, false)  // Hybrid Rifle
+            };
+        }
+
+        private IEnumerable<RulesetItemRule> GetDefaultItemRules()
+        {
+            return new RulesetItemRule[]
+            {
+                BuildRulesetItemRule(271, 2, 0, true),  // Carver
+                BuildRulesetItemRule(285, 2, 0, true), // Ripper
+                BuildRulesetItemRule(286, 2, 0, true)  // Lumine Edge
             };
         }
 
@@ -481,22 +576,49 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
         {
             return new RulesetItemCategoryRule
             {
                 RulesetId = rulesetId,
                 ItemCategoryId = itemCategoryId,
-                Points = points
+                Points = points,
+                IsBanned = isBanned,
+                DeferToItemRules = deferToItemRules
             };
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int itemCategoryId, int points = 0)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
         {
             return new RulesetItemCategoryRule
             {
                 ItemCategoryId = itemCategoryId,
-                Points = points
+                Points = points,
+                IsBanned = isBanned,
+                DeferToItemRules = deferToItemRules
+            };
+        }
+
+        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        {
+            return new RulesetItemRule
+            {
+                RulesetId = rulesetId,
+                ItemId = itemId,
+                ItemCategoryId = itemCategoryId,
+                Points = points,
+                IsBanned = isBanned
+            };
+        }
+
+        private RulesetItemRule BuildRulesetItemRule(int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        {
+            return new RulesetItemRule
+            {
+                ItemId = itemId,
+                ItemCategoryId = itemCategoryId,
+                Points = points,
+                IsBanned = isBanned
             };
         }
 

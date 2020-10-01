@@ -103,6 +103,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
+        public async Task<IEnumerable<Item>> GetAllWeaponItemsAsync()
+        {
+            if (WeaponsMap == null || WeaponsMap.Count == 0)
+            {
+                await SetUpWeaponsMapAsync();
+            }
+
+            if (WeaponsMap == null || WeaponsMap.Count == 0)
+            {
+                return null;
+            }
+
+            return WeaponsMap.Values.ToList();
+        }
+
         public async Task<Item> GetWeaponItemAsync(int id)
         {
             // TODO: handle "Unknown" weapon deaths/kills, like Fatalities

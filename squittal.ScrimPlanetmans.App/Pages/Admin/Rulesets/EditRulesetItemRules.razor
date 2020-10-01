@@ -1,5 +1,457 @@
-﻿<h3>EditRulesetItemRules</h3>
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+@using System.Collections.Concurrent;
+
+@inject IRulesetDataService RulesetDataService
+
+@implements IDisposable
+
+<div class="sq-mini-card-3 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+    @if (_changesCount > 0)
+    {
+        <h5>Item Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
+    }
+    else
+    {
+        <h5>Item Rules</h5>
+    }
+
+    @if (_isLoadingRules || _isSavingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        @if (_itemRules != null && _itemRules.Any())
+        {
+            <EditForm Model="@_itemRules" OnValidSubmit="(() => OnSaveScrimItemRulesEditSubmit(false))" style="margin-top: 8px;">
+                <DataAnnotationsValidator />
+
+                <div class="sq-content">
+
+                    @if (_changesCount > 0 && !_isClearingRules)
+                    {
+                        <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimItemRulesEditSubmit(true))">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+
+                        <button type="button" title="Reset changes to original values" class="btn btn-outline-primary" @onclick="OnClearRuleChanges">
+                            <span class="oi oi-x" style="top: 0px;"></span>Clear
+                        </button>
+                    }
+                    else
+                    {
+                        <button title="There are no changes to save" disabled class="btn btn-primary disabled">
+                            <span class="oi oi-data-transfer-upload"></span>Save
+                        </button>
+                    }
+
+                    @*<div class="tabbed-button-container" style="">
+                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
+                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
+                        <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
+                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
+                    </div>*@
+
+                    <div style="margin-top: 4px; margin-bottom: 12px;">
+                        @if (_itemCategoryDomains != null && _deferredItemCategories != null)
+                        {
+                            @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_selectedItemCategoryIdString>*@
+                            <div style="display: inline; margin-right: 4px;">Item Category:</div><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_selectedItemCategoryIdString" ValueChanged="@((string id) => OnSelectItemCategoryId(id))" ValueExpression="@(() => _selectedItemCategoryIdString)">
+                                <option value=@_noSelectedItemCategoryValue>None</option>
+
+                                @foreach (var domain in _itemCategoryDomains)
+                                {
+                                    <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@GetItemCategoryDomainDescription(domain)</optgroup>
+
+                                    @foreach (var itemCategory in _deferredItemCategories.Where(c => c.ItemCategory.Domain == domain))
+                                    {
+                                        <option value=@itemCategory.ItemCategoryId.ToString() label="@itemCategory.ItemCategory.Name">@itemCategory.ItemCategory.Name (@itemCategory.ItemCategoryId)</option>
+                                    }
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+
+                    @if (_selectedItemCategoryId == _noSelectedItemCategoryValue)
+                    {
+                        <p>Select an Item Category to edit Item Rules</p>
+                    }
+                    else if (_itemRules == null || !_itemRules.Any())
+                    {
+                        <p>There are no Item Rules for this Ruleset</p>
+                    }
+                    else if (!_itemRules.Any(r => r.ItemCategoryId == _selectedItemCategoryId))
+                    {
+                        <p>There are no Item Rules for this Item Category</p>
+                    }
+                    else
+                    {
+                        <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                            <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                                <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                    <tr>
+                                        <th style="padding-bottom: 2px;">Item <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                        <th style="padding-bottom: 2px;">Points</th>
+                                        <th style="padding-bottom: 2px;">Banned?</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var itemRule in _itemRules.Where(r => r.ItemCategoryId == _selectedItemCategoryId))
+                                    {
+                                        <tr class="sans-serif-font">
+                                            <td style="color: var(--sq-black);">@itemRule.Item.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemRule.ItemId]</span></td>
+                                            <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.Points);">
+                                                <InputNumber Value="@itemRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemRule, p))" ValueExpression="@(() => itemRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                            </td>
+
+                                            <td style="opacity: @GetBoolValueOpacity(itemRule.IsBanned);">
+                                                <InputCheckbox Value="@itemRule.IsBanned" ValueChanged="@((bool b) => OnChangeRuleIsBanned(itemRule, b))" ValueExpression="@(() => itemRule.IsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.IsBanned ? "Yes" : "No")</span>
+                                            </td>
+
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <p>No item rules...</p>
+        }
+    }
+</div>
+
 
 @code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
 
+    private IEnumerable<RulesetItemRule> _itemRules { get; set; }
+
+    private IEnumerable<RulesetItemCategoryRule> _deferredItemCategories { get; set; }
+    private IEnumerable<ItemCategoryDomain> _itemCategoryDomains { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+    bool _isSavingRules { get; set; } = false;
+    bool _isClearingRules { get; set; } = false;
+
+    private CancellationTokenSource cts;
+
+    private ConcurrentDictionary<int, RulesetItemRule> _changedRules { get; set; } = new ConcurrentDictionary<int, RulesetItemRule>();
+    private ConcurrentDictionary<int, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<int, int>();
+    private ConcurrentDictionary<int, bool> _originalRuleBans { get; set; } = new ConcurrentDictionary<int, bool>();
+
+    private int _changesCount { get; set; } = 0;
+
+    private string _selectedItemCategoryIdString { get; set; } = "0";
+    private int _selectedItemCategoryId { get; set; } = 0;
+
+    private int _noSelectedItemCategoryValue = 0;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _renderedRulesetId = i_rulesetId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRulesAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            _itemRules = await RulesetDataService.GetRulesetItemRulesAsync(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _deferredItemCategories = await RulesetDataService.GetRulesetItemCategoryRulesDeferringToItemRules(_renderedRulesetId, cts.Token);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            if (_deferredItemCategories != null)
+            {
+                _itemCategoryDomains = _deferredItemCategories.Select(c => c.ItemCategory.Domain).Distinct().ToList();
+            }
+
+            _originalRulePoints.Clear();
+            _originalRuleBans.Clear();
+
+            _changedRules.Clear();
+
+            _changesCount = 0;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private void OnChangeRulePoints(RulesetItemRule rule, int newPoints)
+    {
+        var itemId = rule.ItemId;
+        var currentPoints = rule.Points;
+
+        var hasAlreadyChanged = _originalRulePoints.ContainsKey(itemId);
+
+        if (_originalRulePoints.TryGetValue(itemId, out int originalPoints))
+        {
+            rule.Points = newPoints;
+
+            if (newPoints == originalPoints)
+            {
+                _originalRulePoints.TryRemove(itemId, out var removedRulePoints);
+
+                if (!RuleHasAnyChanges(itemId))
+                {
+                    _changedRules.TryRemove(itemId, out var removedRule);
+                }
+            }
+            else
+            {
+                _changedRules.AddOrUpdate(itemId, rule, (key, oldValue) => rule);
+            }
+        }
+        else
+        {
+            if (!_originalRulePoints.TryAdd(itemId, currentPoints))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            rule.Points = newPoints;
+
+            _changedRules.AddOrUpdate(itemId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+    }
+
+    private void OnChangeRuleIsBanned(RulesetItemRule rule, bool newIsBanned)
+    {
+        var itemId = rule.ItemId;
+        var currentIsBanned = rule.IsBanned;
+
+        var hasAlreadyChanged = _originalRuleBans.ContainsKey(itemId);
+
+        if (_originalRuleBans.TryGetValue(itemId, out bool originalIsBanned))
+        {
+            if (newIsBanned == originalIsBanned)
+            {
+                _originalRuleBans.TryRemove(itemId, out var removedIsBanned);
+
+                if (!RuleHasAnyChanges(itemId))
+                {
+                    _changedRules.TryRemove(itemId, out var removedRule);
+                }
+            }
+
+            rule.IsBanned = newIsBanned;
+        }
+        else
+        {
+            if (!_originalRuleBans.TryAdd(itemId, currentIsBanned))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            rule.IsBanned = newIsBanned;
+
+            _changedRules.AddOrUpdate(itemId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private bool RuleHasAnyChanges(int itemId)
+    {
+        return RuleHasPointChange(itemId) || RuleHasBanChange(itemId);
+    }
+
+    private bool RuleHasPointChange(int itemId)
+    {
+        return _originalRulePoints.ContainsKey(itemId);
+    }
+
+    private bool RuleHasBanChange(int itemId)
+    {
+        return _originalRuleBans.ContainsKey(itemId);
+    }
+
+    #endregion Event Handling
+
+    #region Form Handling
+    private async void OnSaveScrimItemRulesEditSubmit(bool isManualClick)
+    {
+        if (!isManualClick)
+        {
+            return;
+        }
+
+        if (_changedRules.Any())
+        {
+            _isSavingRules = true;
+            InvokeAsyncStateHasChanged();
+
+            await RulesetDataService.SaveRulesetItemRules(_renderedRulesetId, _changedRules.Values.AsEnumerable());
+
+            foreach (var idRulePair in _changedRules)
+            {
+                _itemRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
+                _itemRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().IsBanned = idRulePair.Value.IsBanned;
+            }
+
+            _originalRulePoints.Clear();
+            _originalRuleBans.Clear();
+            _changedRules.Clear();
+            _changesCount = 0;
+
+            _isSavingRules = false;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void OnClearRuleChanges()
+    {
+        if (!_changedRules.Any() || !_itemRules.Any())
+        {
+            return;
+        }
+
+        _isClearingRules = true;
+
+        foreach (var idPointsPair in _originalRulePoints)
+        {
+            _itemRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
+        }
+
+        foreach (var idBanPair in _originalRuleBans)
+        {
+            _itemRules.Where(r => r.ItemCategoryId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
+        }
+
+        _originalRulePoints.Clear();
+        _originalRuleBans.Clear();
+        _changedRules.Clear();
+        _changesCount = 0;
+
+        _isClearingRules = false;
+    }
+
+    private void OnSelectItemCategoryId(string itemCategoryIdString)
+    {
+        if (int.TryParse(itemCategoryIdString, out int parsedInt))
+        {
+            _selectedItemCategoryId = parsedInt;
+            _selectedItemCategoryIdString = itemCategoryIdString;
+        }
+        else
+        {
+            _selectedItemCategoryId = _noSelectedItemCategoryValue;
+            _selectedItemCategoryIdString = _noSelectedItemCategoryValue.ToString();
+        }
+    }
+    #endregion Form Handling
+
+    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
+    {
+        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+    #region Helpers
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetBoolValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion Helpers
 }

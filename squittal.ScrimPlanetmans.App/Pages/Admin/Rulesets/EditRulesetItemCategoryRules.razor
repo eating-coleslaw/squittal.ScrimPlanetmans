@@ -11,7 +11,7 @@
 
 @implements IDisposable
 
-<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+<div class="sq-mini-card-3 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
     @if (_changesCount > 0)
     {
         <h5>Item Category Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
@@ -185,7 +185,11 @@
             cts.Token.ThrowIfCancellationRequested();
 
             _originalRulePoints.Clear();
+            _originalRuleBans.Clear();
+            _originalRuleDefers.Clear();
             _changedRules.Clear();
+
+            _changesCount = 0;
         }
         catch
         {
@@ -297,7 +301,7 @@
             if (newIsBanned == originalIsBanned)
             {
                 _originalRuleBans.TryRemove(itemCategoryId, out var removedIsBanned);
-                
+
                 if (!RuleHasAnyChanges(itemCategoryId))
                 {
                     _changedRules.TryRemove(itemCategoryId, out var removedRule);
@@ -395,7 +399,7 @@
             _itemCategoryRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
         }
 
-        foreach (var idBanPair in _originalRuleDefers)
+        foreach (var idBanPair in _originalRuleBans)
         {
             _itemCategoryRules.Where(r => r.ItemCategoryId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
         }

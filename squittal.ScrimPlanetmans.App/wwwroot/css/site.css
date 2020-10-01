@@ -1625,7 +1625,8 @@ max-width: 38%;
 .sq-mini-card-3 {
     /*flex: 0 0 calc(30% - 0.5rem) !important;*/
     /*flex: 0 0 calc(25% - 0.5rem) !important;*/
-    flex: 0 0 calc(28% - 0.5rem) !important;
+    /*flex: 0 0 calc(28% - 0.5rem) !important;*/
+    flex: 0 0 calc(25% - 0.75rem) !important;
 }
 
     .sq-mini-card-3:first-child {

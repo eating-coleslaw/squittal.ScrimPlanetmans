@@ -38,5 +38,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task<bool> DeleteRulesetAsync(int rulesetId);
         Task<IEnumerable<RulesetItemRule>> GetRulesetItemRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules);
+        Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesDeferringToItemRules(int rulesetId, CancellationToken cancellationToken);
     }
 }
