@@ -29,14 +29,14 @@
     {
         @if (_itemCategoryRules != null && _itemCategoryRules.Any())
         {
-            <EditForm Model="@_itemCategoryRules" OnValidSubmit="(() => OnSaveScrimActionRulesEditSubmit(false))" style="margin-top: 8px;" >
+            <EditForm Model="@_itemCategoryRules" OnValidSubmit="(() => OnSaveScrimItemCategoryRulesEditSubmit(false))" style="margin-top: 8px;" >
                 <DataAnnotationsValidator />
         
                 <div class="sq-content">
 
                     @if (_changesCount > 0 && !_isClearingRules)
                     {
-                        <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimActionRulesEditSubmit(true))">
+                        <button title="Save changes to the database" type="submit" class="btn btn-primary" @onclick="(() => OnSaveScrimItemCategoryRulesEditSubmit(true))">
                             <span class="oi oi-data-transfer-upload"></span>Save
                         </button>
 
@@ -348,7 +348,7 @@
     #endregion Event Handling
 
     #region Form Handling
-    private async void OnSaveScrimActionRulesEditSubmit(bool isManualClick)
+    private async void OnSaveScrimItemCategoryRulesEditSubmit(bool isManualClick)
     {
         if (!isManualClick)
         {
