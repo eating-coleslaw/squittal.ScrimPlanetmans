@@ -603,13 +603,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetActionRules.AddRange(newEntities);
                     }
 
-                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    //if (storeRuleset != null)
-                    //{
-                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
-                    //    dbContext.Rulesets.Update(storeRuleset);
-                    //}
-
                     await dbContext.SaveChangesAsync();
 
                     var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
@@ -672,13 +665,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetItemCategoryRules.AddRange(newEntities);
                     }
 
-                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    //if (storeRuleset != null)
-                    //{
-                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
-                    //    dbContext.Rulesets.Update(storeRuleset);
-                    //}
-
                     await dbContext.SaveChangesAsync();
 
                     var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
@@ -740,13 +726,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     {
                         dbContext.RulesetItemRules.AddRange(newEntities);
                     }
-
-                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    //if (storeRuleset != null)
-                    //{
-                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
-                    //    dbContext.Rulesets.Update(storeRuleset);
-                    //}
 
                     await dbContext.SaveChangesAsync();
 
@@ -814,26 +793,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetFacilityRules.AddRange(newEntities);
                     }
 
-                    //if (!isRulesetCreation)
-                    //{
-
-                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    //if (storeRuleset != null)
-                    //{
-                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
-                    //    dbContext.Rulesets.Update(storeRuleset);
-                    //}
-                    //}
-
                     await dbContext.SaveChangesAsync();
 
                     var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
-                    //if (!isRulesetCreation)
-                    //{
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
-                    //}
                 }
                 catch (Exception ex)
                 {
@@ -931,8 +896,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
 
-                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-
                     var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
 
                     if (storeRuleset == null)
@@ -940,7 +903,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         return null;
                     }
 
-                    storeRuleset.DateLastModified = dateLastModifiedUtc; // DateTime.UtcNow;
+                    storeRuleset.DateLastModified = dateLastModifiedUtc;
                     dbContext.Rulesets.Update(storeRuleset);
 
                     await dbContext.SaveChangesAsync();
