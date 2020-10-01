@@ -603,14 +603,16 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetActionRules.AddRange(newEntities);
                     }
 
-                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    if (storeRuleset != null)
-                    {
-                        storeRuleset.DateLastModified = DateTime.UtcNow;
-                        dbContext.Rulesets.Update(storeRuleset);
-                    }
+                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    //if (storeRuleset != null)
+                    //{
+                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
+                    //    dbContext.Rulesets.Update(storeRuleset);
+                    //}
 
                     await dbContext.SaveChangesAsync();
+
+                    var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ActionRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
@@ -670,14 +672,16 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetItemCategoryRules.AddRange(newEntities);
                     }
 
-                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    if (storeRuleset != null)
-                    {
-                        storeRuleset.DateLastModified = DateTime.UtcNow;
-                        dbContext.Rulesets.Update(storeRuleset);
-                    }
+                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    //if (storeRuleset != null)
+                    //{
+                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
+                    //    dbContext.Rulesets.Update(storeRuleset);
+                    //}
 
                     await dbContext.SaveChangesAsync();
+
+                    var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
@@ -737,14 +741,16 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetItemRules.AddRange(newEntities);
                     }
 
-                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    if (storeRuleset != null)
-                    {
-                        storeRuleset.DateLastModified = DateTime.UtcNow;
-                        dbContext.Rulesets.Update(storeRuleset);
-                    }
+                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    //if (storeRuleset != null)
+                    //{
+                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
+                    //    dbContext.Rulesets.Update(storeRuleset);
+                    //}
 
                     await dbContext.SaveChangesAsync();
+
+                    var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
@@ -811,15 +817,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     //if (!isRulesetCreation)
                     //{
 
-                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
-                    if (storeRuleset != null)
-                    {
-                        storeRuleset.DateLastModified = DateTime.UtcNow;
-                        dbContext.Rulesets.Update(storeRuleset);
-                    }
+                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    //if (storeRuleset != null)
+                    //{
+                    //    storeRuleset.DateLastModified = DateTime.UtcNow;
+                    //    dbContext.Rulesets.Update(storeRuleset);
+                    //}
                     //}
 
                     await dbContext.SaveChangesAsync();
+
+                    var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
                     //if (!isRulesetCreation)
                     //{
@@ -910,6 +918,40 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 catch (Exception ex)
                 {
                     _logger.LogError($"Error saving RulesetFacilityRule changes to database: {ex}");
+                }
+            }
+        }
+
+        private async Task<Ruleset> UpdateRulesetDateLastModified(int rulesetId, DateTime dateLastModifiedUtc)
+        {
+            using (await _rulesetLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+
+                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+
+                    if (storeRuleset == null)
+                    {
+                        return null;
+                    }
+
+                    storeRuleset.DateLastModified = dateLastModifiedUtc; // DateTime.UtcNow;
+                    dbContext.Rulesets.Update(storeRuleset);
+
+                    await dbContext.SaveChangesAsync();
+
+                    return storeRuleset;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error updating DateLastModified for ruleset ID {rulesetId}: {ex}");
+
+                    return null;
                 }
             }
         }
