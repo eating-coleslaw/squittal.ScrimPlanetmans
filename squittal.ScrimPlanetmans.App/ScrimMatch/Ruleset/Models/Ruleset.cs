@@ -29,8 +29,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int DefaultRoundLength { get; set; } = 900;
         //public int DefaultRounds { get; set; } == 2
 
-        public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }
+        public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
+        public ICollection<RulesetItemRule> RulesetItemRules { get; set; }
         public ICollection<RulesetFacilityRule> RulesetFacilityRules { get; set; }
 
     }

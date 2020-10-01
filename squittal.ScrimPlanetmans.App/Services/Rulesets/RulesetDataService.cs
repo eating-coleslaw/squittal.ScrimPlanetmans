@@ -39,6 +39,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private readonly KeyedSemaphoreSlim _rulesetLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
+        private readonly KeyedSemaphoreSlim _itemRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _facilityRulesLock = new KeyedSemaphoreSlim();
 
         private readonly KeyedSemaphoreSlim _rulesetExportLock = new KeyedSemaphoreSlim();
@@ -145,6 +146,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
                     TaskList.Add(itemCategoryRulesTask);
 
+                    var itemRulesTask = GetRulesetItemRulesAsync(rulesetId, CancellationToken.None);
+                    TaskList.Add(itemRulesTask);
+
                     var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
                     TaskList.Add(facilityRulesTask);
 
@@ -152,6 +156,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     ruleset.RulesetActionRules = actionRulesTask.Result.ToList();
                     ruleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
+                    ruleset.RulesetItemRules = itemRulesTask.Result.ToList();
                     ruleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
                 }
 
@@ -283,6 +288,78 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        public async Task<IEnumerable<RulesetItemRule>> GetRulesetItemRulesAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetItemRules
+                                               .Where(r => r.RulesetId == rulesetId)
+                                               .Include("Item")
+                                               .OrderBy(r => r.Item.FactionId)
+                                               .ThenBy(r => r.Item.Name)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetItemRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetItemRulesAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<RulesetItemRule>> GetRulesetItemRulesForItemCategoryIdAsync(int rulesetId, int itemCategoryId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetItemRules
+                                               .Where(r => r.RulesetId == rulesetId && r.ItemCategoryId == itemCategoryId)
+                                               .Include("Item")
+                                               .OrderBy(r => r.Item.FactionId)
+                                               .ThenBy(r => r.Item.Name)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetItemRulesForItemCategoryIdAsync rulesetId {rulesetId} itemCategoryId {itemCategoryId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetItemRulesForItemCategoryIdAsync rulesetId {rulesetId} itemCategoryId {itemCategoryId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         public async Task<IEnumerable<RulesetFacilityRule>> GetRulesetFacilityRulesAsync(int rulesetId, CancellationToken cancellationToken)
         {
             try
@@ -367,6 +444,42 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 MapRegionId = mapRegion.Id,
                 MapRegion = mapRegion
             };
+        }
+
+        public async Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesDeferringToItemRules(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var rules = await dbContext.RulesetItemCategoryRules
+                                               .Where(r => r.RulesetId == rulesetId && r.DeferToItemRules)
+                                               .Include("ItemCategory")
+                                               .OrderBy(r => r.ItemCategory.Domain)
+                                               .ThenBy(r => r.ItemCategory.Name)
+                                               .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return rules;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetRulesetItemCategoryRulesDeferringToItemRules rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetItemCategoryRulesDeferringToItemRules rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
         }
         #endregion GET methods
 
@@ -576,6 +689,73 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        /*
+         * Upsert New or Modified RulesetItemRules for a specific ruleset.
+         */
+        public async Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules)
+        {
+            if (rulesetId == DefaultRulesetId)
+            {
+                return;
+            }
+
+            using (await _itemRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
+
+                if (!ruleUpdates.Any())
+                {
+                    return;
+                }
+
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeRules = await dbContext.RulesetItemRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+
+                    var newEntities = new List<RulesetItemRule>();
+
+                    foreach (var rule in ruleUpdates)
+                    {
+                        var storeEntity = storeRules.Where(r => r.ItemId == rule.ItemId).FirstOrDefault();
+
+                        if (storeEntity == null)
+                        {
+                            newEntities.Add(rule);
+                        }
+                        else
+                        {
+                            storeEntity = rule;
+                            dbContext.RulesetItemRules.Update(storeEntity);
+                        }
+                    }
+
+                    if (newEntities.Any())
+                    {
+                        dbContext.RulesetItemRules.AddRange(newEntities);
+                    }
+
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    if (storeRuleset != null)
+                    {
+                        storeRuleset.DateLastModified = DateTime.UtcNow;
+                        dbContext.Rulesets.Update(storeRuleset);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+
+                    var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemRule);
+                    _messageService.BroadcastRulesetRuleChangeMessage(message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error saving RulesetItemRule changes to database: {ex}");
+                }
+            }
+        }
+
         private async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRule> rules)
         {
             if (rulesetId == DefaultRulesetId)
@@ -748,6 +928,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var itemCategoryRulesTask = SeedNewRulesetDefaultItemCategoryRules(ruleset.Id);
             TaskList.Add(itemCategoryRulesTask);
 
+            var itemRulesTask = SeedNewRulesetDefaultItemRules(ruleset.Id);
+            TaskList.Add(itemRulesTask);
+
             var actionRulesTask = SeedNewRulesetDefaultActionRules(ruleset.Id);
             TaskList.Add(actionRulesTask);
 
@@ -875,7 +1058,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         return;
                     }
 
-                    dbContext.RulesetItemCategoryRules.AddRange(defaultRules.Select(r => BuildRulesetItemCategoryRule(rulesetId, r.ItemCategoryId, r.Points)));
+                    dbContext.RulesetItemCategoryRules.AddRange(defaultRules.Select(r => BuildRulesetItemCategoryRule(rulesetId, r.ItemCategoryId, r.Points, r.IsBanned, r.DeferToItemRules)));
 
                     await dbContext.SaveChangesAsync();
                 }
@@ -888,16 +1071,67 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
         {
             return new RulesetItemCategoryRule
             {
                 RulesetId = rulesetId,
                 ItemCategoryId = itemCategoryId,
-                Points = points
+                Points = points,
+                IsBanned = isBanned,
+                DeferToItemRules = deferToItemRules
             };
         }
 
+        private async Task SeedNewRulesetDefaultItemRules(int rulesetId)
+        {
+            using (await _itemRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeRulesCount = await dbContext.RulesetItemRules.Where(r => r.RulesetId == rulesetId).CountAsync();
+
+                    if (storeRulesCount > 0)
+                    {
+                        return;
+                    }
+
+                    var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+
+                    var defaultRules = await dbContext.RulesetItemRules.Where(r => r.RulesetId == defaultRulesetId).ToListAsync();
+
+                    if (defaultRules == null)
+                    {
+                        return;
+                    }
+
+                    dbContext.RulesetItemRules.AddRange(defaultRules.Select(r => BuildRulesetItemRule(rulesetId, r.ItemId, r.ItemCategoryId, r.Points, r.IsBanned)));
+
+                    await dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return;
+                }
+            }
+        }
+
+        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        {
+            return new RulesetItemRule
+            {
+                RulesetId = rulesetId,
+                ItemId = itemId,
+                ItemCategoryId = itemCategoryId,
+                Points = points,
+                IsBanned = isBanned
+            };
+        }
         private async Task SeedNewRulesetDefaultFacilityRules(int rulesetId)
         {
             using (await _facilityRulesLock.WaitAsync($"{rulesetId}"))
@@ -1059,6 +1293,43 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        private async Task<bool> DeleteRulesetItemRulesAsync(int rulesetId)
+        {
+            using (await _itemRulesLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    var storeRules = await GetRulesetItemRulesAsync(rulesetId, CancellationToken.None);
+
+                    if (storeRules == null || !storeRules.Any())
+                    {
+                        return true;
+                    }
+
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    foreach (var rule in storeRules)
+                    {
+                        rule.Ruleset = null;
+                        rule.ItemCategory = null;
+                    }
+
+                    dbContext.RulesetItemRules.RemoveRange(storeRules);
+
+                    await dbContext.SaveChangesAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error deleting Item Rules for ruleset {rulesetId}: {ex}");
+
+                    return false;
+                }
+            }
+        }
+
         private async Task<bool> DeleteRulesetFacilityRulesAsync(int rulesetId)
         {
             using (await _facilityRulesLock.WaitAsync($"{rulesetId}"))
@@ -1204,7 +1475,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     return null;
                 }
                 
-                
                 if (currentDefaultRuleset == null)
                 {
                     newDefaultRuleset.IsCustomDefault = true;
@@ -1325,6 +1595,15 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     ruleset.RulesetItemCategoryRules = jsonRuleset.RulesetItemCategoryRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
                     var itemCategoryRulesTask = SaveRulesetItemCategoryRules(ruleset.Id, ruleset.RulesetItemCategoryRules);
                     TaskList.Add(itemCategoryRulesTask);
+
+                    var rulesetItemRules = new List<RulesetItemRule>();
+
+                    foreach (var jsonItemCategoryRule in jsonRuleset.RulesetItemCategoryRules)
+                    {
+                        rulesetItemRules.AddRange(jsonItemCategoryRule.RulesetItemRules.Select(r => ConvertToDbModel(ruleset.Id, r, jsonItemCategoryRule.ItemCategoryId)));
+                    }
+
+                    ruleset.RulesetItemRules = new List<RulesetItemRule>(rulesetItemRules);
                 }
                 
                 if (jsonRuleset.RulesetFacilityRules != null && jsonRuleset.RulesetFacilityRules.Any())
@@ -1349,6 +1628,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     ruleset.RulesetActionRules?.Clear();
                     ruleset.RulesetItemCategoryRules?.Clear();
+                    ruleset.RulesetItemRules?.Clear();
                     ruleset.RulesetFacilityRules?.Clear();
 
                     return ruleset;
@@ -1402,6 +1682,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         private RulesetItemCategoryRule ConvertToDbModel(int rulesetId, JsonRulesetItemCategoryRule jsonRule)
         {
             return BuildRulesetItemCategoryRule(rulesetId, jsonRule.ItemCategoryId, jsonRule.Points);
+        }
+
+        private RulesetItemRule ConvertToDbModel(int rulesetId, JsonRulesetItemRule jsonRule, int itemCategoryId)
+        {
+            return BuildRulesetItemRule(rulesetId, jsonRule.ItemId, itemCategoryId, jsonRule.Points, jsonRule.IsBanned);
         }
 
         private RulesetFacilityRule ConvertToDbModel(int rulesetID, JsonRulesetFacilityRule jsonRule)

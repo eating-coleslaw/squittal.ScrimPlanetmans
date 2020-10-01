@@ -3,21 +3,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 {
-    public class RulesetItemCategoryRule
+    public class RulesetItemRule
     {
         [Required]
         public int RulesetId { get; set; }
 
         [Required]
+        public int ItemId { get; set; }
+
         public int ItemCategoryId { get; set; }
-        
+
         public int Points { get; set; }
 
         public bool IsBanned { get; set; }
 
-        public bool DeferToItemRules { get; set; }
-
         public Ruleset Ruleset { get; set; }
+        public Item Item { get; set; }
         public ItemCategory ItemCategory { get; set; }
     }
 }
