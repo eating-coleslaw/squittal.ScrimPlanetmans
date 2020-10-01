@@ -201,17 +201,17 @@
 
         if (_originalRulePoints.TryGetValue(action, out int originalPoints))
         {
-            rule.Points = newPoints;
-
             if (newPoints == originalPoints)
             {
-                _changedRules.TryRemove(action, out var removedRule);
-            }
-            else
-            {
-                _changedRules.AddOrUpdate(action, rule, (key, oldValue) => rule);
+                _originalRulePoints.TryRemove(action, out var removedPoints);
+
+                if (!RuleHasAnyChanges(action))
+                {
+                    _changedRules.TryRemove(action, out var removedRule);
+                }
             }
 
+            rule.Points = newPoints;
         }
         else
         {
@@ -243,7 +243,12 @@
         {
             if (newDefer == originalDefer)
             {
-                _changedRules.TryRemove(action, out var removedRule);
+                _originalRuleDefers.TryRemove(action, out var removedDefer);
+
+                if (!RuleHasAnyChanges(action))
+                {
+                    _changedRules.TryRemove(action, out var removedRule);
+                }
             }
 
             rule.DeferToItemCategoryRules = newDefer;
@@ -252,6 +257,8 @@
         {
             if (!_originalRuleDefers.TryAdd(action, currentDefer))
             {
+                _changesCount = _changedRules.Count();
+
                 return;
             }
 
@@ -260,7 +267,24 @@
             _changedRules.AddOrUpdate(action, rule, (key, oldValue) => rule);
         }
 
+        _changesCount = _changedRules.Count();
+
         InvokeAsyncStateHasChanged();
+    }
+
+    private bool RuleHasAnyChanges(ScrimActionType scrimAction)
+    {
+        return RuleHasPointChange(scrimAction) || RuleHasDeferChange(scrimAction);
+    }
+
+    private bool RuleHasPointChange(ScrimActionType scrimAction)
+    {
+        return _originalRulePoints.ContainsKey(scrimAction);
+    }
+
+    private bool RuleHasDeferChange(ScrimActionType scrimAction)
+    {
+        return _originalRuleDefers.ContainsKey(scrimAction);
     }
 
     #endregion Event Handling
@@ -284,10 +308,10 @@
             {
                 _actionRules.Where(r => r.ScrimActionType == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
                 _actionRules.Where(r => r.ScrimActionType == idRulePair.Key).FirstOrDefault().DeferToItemCategoryRules = idRulePair.Value.DeferToItemCategoryRules;
-
             }
 
             _originalRulePoints.Clear();
+            _originalRuleDefers.Clear();
             _changedRules.Clear();
             _changesCount = 0;
 
@@ -317,6 +341,7 @@
         }
 
         _originalRulePoints.Clear();
+        _originalRuleDefers.Clear();
         _changedRules.Clear();
         _changesCount = 0;
 

@@ -64,6 +64,8 @@
                                 <tr>
                                     <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                     <th style="padding-bottom: 2px;">Points</th>
+                                    <th style="padding-bottom: 2px;">Banned?</th>
+                                    <th style="padding-bottom: 2px;">Defer to<br />Item Rules?</th>
                                 </tr>
                             </thead>
 
@@ -75,6 +77,15 @@
                                         <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points);">
                                             <InputNumber Value="@itemCategoryRule.Points" ValueChanged="@((int p) => OnChangeRulePoints(itemCategoryRule, p))" ValueExpression="@(() => itemCategoryRule.Points)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
                                         </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.IsBanned);">
+                                            <InputCheckbox Value="@itemCategoryRule.IsBanned" ValueChanged="@((bool b) => OnChangeRuleIsBanned(itemCategoryRule, b))" ValueExpression="@(() => itemCategoryRule.IsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemCategoryRule.IsBanned ? "Yes" : "No")</span>
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">
+                                            <InputCheckbox Value="@itemCategoryRule.DeferToItemRules" ValueChanged="@((bool d) => OnChangeRuleDefer(itemCategoryRule, d))" ValueExpression="@(() => itemCategoryRule.DeferToItemRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemCategoryRule.DeferToItemRules ? "Yes" : "No")</span>
+                                        </td>
+
                                     </tr>
                                 }
                             </tbody>
@@ -106,6 +117,8 @@
 
     private ConcurrentDictionary<int, RulesetItemCategoryRule> _changedRules { get; set; } = new ConcurrentDictionary<int, RulesetItemCategoryRule>();
     private ConcurrentDictionary<int, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<int, int>();
+    private ConcurrentDictionary<int, bool> _originalRuleDefers { get; set; } = new ConcurrentDictionary<int, bool>();
+    private ConcurrentDictionary<int, bool> _originalRuleBans { get; set; } = new ConcurrentDictionary<int, bool>();
 
     private int _changesCount { get; set; } = 0;
 
@@ -203,7 +216,12 @@
 
             if (newPoints == originalPoints)
             {
-                _changedRules.TryRemove(categoryId, out var removedRule);
+                _originalRulePoints.TryRemove(categoryId, out var removedRulePoints);
+
+                if (!RuleHasAnyChanges(categoryId))
+                {
+                    _changedRules.TryRemove(categoryId, out var removedRule);
+                }
             }
             else
             {
@@ -226,6 +244,107 @@
 
         _changesCount = _changedRules.Count();
     }
+
+    private void OnChangeRuleDefer(RulesetItemCategoryRule rule, bool newDefer)
+    {
+        var itemCategoryId = rule.ItemCategoryId;
+        var currentDefer = rule.DeferToItemRules;
+
+        var hasAlreadyChanged = _originalRuleDefers.ContainsKey(itemCategoryId);
+
+        if (_originalRuleDefers.TryGetValue(itemCategoryId, out bool originalDefer))
+        {
+            if (newDefer == originalDefer)
+            {
+                _originalRuleDefers.TryRemove(itemCategoryId, out var removedDefer);
+
+                if (!RuleHasAnyChanges(itemCategoryId))
+                {
+                    _changedRules.TryRemove(itemCategoryId, out var removedRule);
+                }
+            }
+
+            rule.DeferToItemRules = newDefer;
+        }
+        else
+        {
+            if (!_originalRuleDefers.TryAdd(itemCategoryId, currentDefer))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            rule.DeferToItemRules = newDefer;
+
+            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnChangeRuleIsBanned(RulesetItemCategoryRule rule, bool newIsBanned)
+    {
+        var itemCategoryId = rule.ItemCategoryId;
+        var currentIsBanned = rule.IsBanned;
+
+        var hasAlreadyChanged = _originalRuleBans.ContainsKey(itemCategoryId);
+
+        if (_originalRuleBans.TryGetValue(itemCategoryId, out bool originalIsBanned))
+        {
+            if (newIsBanned == originalIsBanned)
+            {
+                _originalRuleBans.TryRemove(itemCategoryId, out var removedIsBanned);
+                
+                if (!RuleHasAnyChanges(itemCategoryId))
+                {
+                    _changedRules.TryRemove(itemCategoryId, out var removedRule);
+                }
+            }
+
+            rule.IsBanned = newIsBanned;
+        }
+        else
+        {
+            if (!_originalRuleBans.TryAdd(itemCategoryId, currentIsBanned))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            rule.IsBanned = newIsBanned;
+
+            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private bool RuleHasAnyChanges(int itemCategoryId)
+    {
+        return RuleHasPointChange(itemCategoryId) || RuleHasBanChange(itemCategoryId) || RuleHasDeferChange(itemCategoryId);
+    }
+
+    private bool RuleHasPointChange(int itemCategoryId)
+    {
+        return _originalRulePoints.ContainsKey(itemCategoryId);
+    }
+
+    private bool RuleHasBanChange(int itemCategoryId)
+    {
+        return _originalRuleBans.ContainsKey(itemCategoryId);
+    }
+
+    private bool RuleHasDeferChange(int itemCategoryId)
+    {
+        return _originalRuleDefers.ContainsKey(itemCategoryId);
+    }
+
     #endregion Event Handling
 
     #region Form Handling
@@ -246,13 +365,16 @@
             foreach (var idRulePair in _changedRules)
             {
                 _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
-
+                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().IsBanned = idRulePair.Value.IsBanned;
+                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().DeferToItemRules = idRulePair.Value.DeferToItemRules;
             }
 
             _originalRulePoints.Clear();
+            _originalRuleBans.Clear();
+            _originalRuleDefers.Clear();
             _changedRules.Clear();
             _changesCount = 0;
-            
+
             _isSavingRules = false;
 
             InvokeAsyncStateHasChanged();
@@ -273,7 +395,19 @@
             _itemCategoryRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
         }
 
+        foreach (var idBanPair in _originalRuleDefers)
+        {
+            _itemCategoryRules.Where(r => r.ItemCategoryId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
+        }
+
+        foreach (var idDeferPair in _originalRuleDefers)
+        {
+            _itemCategoryRules.Where(r => r.ItemCategoryId == idDeferPair.Key).FirstOrDefault().DeferToItemRules = idDeferPair.Value;
+        }
+
         _originalRulePoints.Clear();
+        _originalRuleBans.Clear();
+        _originalRuleDefers.Clear();
         _changedRules.Clear();
         _changesCount = 0;
 
@@ -312,6 +446,13 @@
     private double GetValueOpacity(int value)
     {
         return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetBoolValueOpacity(bool value)
+    {
+        return (value == true)
             ? 1.0
             : 0.5;
     }

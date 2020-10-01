@@ -1605,7 +1605,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     foreach (var jsonItemCategoryRule in jsonRuleset.RulesetItemCategoryRules)
                     {
-                        rulesetItemRules.AddRange(jsonItemCategoryRule.RulesetItemRules.Select(r => ConvertToDbModel(ruleset.Id, r, jsonItemCategoryRule.ItemCategoryId)));
+                        if (jsonItemCategoryRule.RulesetItemRules != null && jsonItemCategoryRule.RulesetItemRules.Any())
+                        {
+                            foreach (var jsonItemRule in jsonItemCategoryRule.RulesetItemRules)
+                            {
+                                if (!rulesetItemRules.Any(r => r.ItemId == jsonItemRule.ItemId))
+                                {
+                                    rulesetItemRules.Add(ConvertToDbModel(ruleset.Id, jsonItemRule, jsonItemCategoryRule.ItemCategoryId));
+                                }
+                            }
+                            //rulesetItemRules.AddRange(jsonItemCategoryRule.RulesetItemRules.Where(r => !rulesetItemRules.Any(e => e.ItemId == r.ItemId)).Select(r => ConvertToDbModel(ruleset.Id, r, jsonItemCategoryRule.ItemCategoryId)));
+                        }
                     }
 
                     ruleset.RulesetItemRules = new List<RulesetItemRule>(rulesetItemRules);
