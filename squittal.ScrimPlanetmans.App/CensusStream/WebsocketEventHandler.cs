@@ -135,18 +135,20 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     case "PlayerLogin":
                         var loginParam = jPayload.ToObject<PlayerLoginPayload>(_payloadDeserializer);
-                        await Task.Run(()=>
-                        {
-                            Process(loginParam);
-                        });
+                        await Process(loginParam);
+                        //await Task.Run(()=>
+                        //{
+                        //    Process(loginParam);
+                        //});
                         break;
 
                     case "PlayerLogout":
                         var logoutParam = jPayload.ToObject<PlayerLogoutPayload>(_payloadDeserializer);
-                        await Task.Run(() =>
-                        {
-                            Process(logoutParam);
-                        });
+                        await Process(logoutParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(logoutParam);
+                        //});
                         break;
 
                     case "GainExperience":
@@ -177,7 +179,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<ScrimDeathActionEvent> Process(DeathPayload payload)
         {
-            if (!_deathFilter.TryFilterNewPayload(payload))
+            if (!await _deathFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Death payload detected, excluded");
                 return null;
@@ -434,7 +436,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("VehicleDestroy", typeof(VehicleDestroyPayload))]
         private async Task<ScrimVehicleDestructionActionEvent> Process(VehicleDestroyPayload payload)
         {
-            if (!_vehicleDestroyFilter.TryFilterNewPayload(payload))
+            if (!await _vehicleDestroyFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Vehicle Destroy payload detected, excluded");
                 return null;
@@ -808,9 +810,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
-        private PlayerLogin Process(PlayerLoginPayload payload)
+        private async Task<PlayerLogin> Process(PlayerLoginPayload payload)
         {
-            if (!_loginFilter.TryFilterNewPayload(payload))
+            if (!await _loginFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Player Login payload detected, excluded");
                 return null;
@@ -837,9 +839,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
-        private PlayerLogout Process(PlayerLogoutPayload payload)
+        private async Task<PlayerLogout> Process(PlayerLogoutPayload payload)
         {
-            if (!_logoutFilter.TryFilterNewPayload(payload))
+            if (!await _logoutFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Player Logout payload detected, excluded");
                 return null;
@@ -870,7 +872,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
         private async Task Process(GainExperiencePayload payload)
         {
-            if (!_experienceFilter.TryFilterNewPayload(payload))
+            if (!await _experienceFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Gain Experience payload detected, excluded");
                 return;
@@ -1295,7 +1297,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private async Task Process(FacilityControlPayload payload)
         {
-            if (!_facilityControlFilter.TryFilterNewPayload(payload))
+            if (!await _facilityControlFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Facility Control payload detected, excluded");
                 return;
