@@ -11,9 +11,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
         private ConcurrentQueue<T> PayloadQueue { get; set; } = new ConcurrentQueue<T>();
         private readonly KeyedSemaphoreSlim _payloadLock = new KeyedSemaphoreSlim();
 
-        private int MaxQueueItems { get; set; } = 10;
+        private int MaxQueueItems { get; set; } = 15;
 
-        public PayloadUniquenessFilter(int maxQueueItems = 10)
+        public PayloadUniquenessFilter(int maxQueueItems = 15)
         {
             MaxQueueItems = maxQueueItems;
         }
