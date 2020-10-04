@@ -77,6 +77,10 @@
     <Compile Remove="Migrations\20200824191359_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
     <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.cs" />
     <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
+    <Compile Remove="Migrations\20201001173644_AddRulesetItemRules.cs" />
+    <Compile Remove="Migrations\20201001173644_AddRulesetItemRules.Designer.cs" />
+    <Compile Remove="Migrations\20201002184137_AddRulesetItemRuleModel.cs" />
+    <Compile Remove="Migrations\20201002184137_AddRulesetItemRuleModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
