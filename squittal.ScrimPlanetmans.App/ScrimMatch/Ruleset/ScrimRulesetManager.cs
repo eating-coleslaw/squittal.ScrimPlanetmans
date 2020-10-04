@@ -273,7 +273,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdActionRules.Any())
             {
-                await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
+                //await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
+                dbContext.RulesetActionRules.AddRange(createdActionRules);
             }
             #endregion Action rules
 
@@ -329,7 +330,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdItemCategoryRules.Any())
             {
-                await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
+                //await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
+                dbContext.RulesetItemCategoryRules.AddRange(createdItemCategoryRules);
             }
             #endregion Item Category Rules
 
@@ -342,12 +344,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var allItemIds = new List<int>(defaultItemRules.Select(r => r.ItemId));
             if (storeItemRules != null)
             {
-                allItemIds.AddRange(storeItemRules.Select(r => r.ItemId));
+                allItemIds.AddRange(storeItemRules.Where(r => !allItemIds.Contains(r.ItemId)).Select(r => r.ItemId));
             }
 
+            if (allWeaponItems != null)
+            {
+                allItemIds.AddRange(allWeaponItems.Where(r => !allItemIds.Contains(r.Id)).Select(r => r.Id));
+            }
 
             var allItemRules = new List<RulesetItemRule>();
-
 
             foreach (var itemId in allItemIds)
             {
@@ -404,7 +409,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdItemRules.Any())
             {
-                await dbContext.RulesetItemRules.AddRangeAsync(createdItemRules);
+                //await dbContext.RulesetItemRules.AddRangeAsync(createdItemRules);
+                dbContext.RulesetItemRules.AddRange(createdItemRules);
             }
             #endregion Item Rules
 
@@ -448,7 +454,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdFacilityRules.Any())
             {
-                await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
+                //await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
+                dbContext.RulesetFacilityRules.AddRange(createdFacilityRules);
             }
             #endregion Facility Rules
 
