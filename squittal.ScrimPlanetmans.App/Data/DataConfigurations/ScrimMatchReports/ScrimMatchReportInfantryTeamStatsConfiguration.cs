@@ -63,6 +63,9 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.DamageAssistsAsMedic).HasDefaultValue(0);
             builder.Property(e => e.DamageAssistsAsEngineer).HasDefaultValue(0);
             builder.Property(e => e.DamageAssistsAsMax).HasDefaultValue(0);
+            builder.Property(e => e.KillDamageDealt).HasDefaultValue(0);
+            builder.Property(e => e.AssistDamageDealt).HasDefaultValue(0);
+            builder.Property(e => e.TotalDamageDealt).HasDefaultValue(0);
 
         }
     }

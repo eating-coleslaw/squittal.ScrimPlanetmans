@@ -68,7 +68,10 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
          MAX( COALESCE( damage_sums.DamageAssistsAsLightAssault, 0 ) ) DamageAssistsAsLightAssault,
          MAX( COALESCE( damage_sums.DamageAssistsAsMedic, 0 ) ) DamageAssistsAsMedic,
          MAX( COALESCE( damage_sums.DamageAssistsAsEngineer, 0 ) ) DamageAssistsAsEngineer,
-         MAX( COALESCE( damage_sums.DamageAssistsAsMax, 0 ) ) DamageAssistsAsMax
+         MAX( COALESCE( damage_sums.DamageAssistsAsMax, 0 ) ) DamageAssistsAsMax,
+         CAST( MAX( ROUND( COALESCE( kill_sums.KillDamageDealt, 0 ), 0 ) ) AS int ) KillDamageDealt,
+         CAST( MAX( ROUND( COALESCE( damage_sums.AssistDamageDealt, 0 ), 0 ) ) AS int ) AssistDamageDealt,
+         CAST( MAX( ROUND( COALESCE( kill_sums.KillDamageDealt, 0 ) + COALESCE( damage_sums.AssistDamageDealt, 0 ), 0 ) ) AS int ) TotalDamageDealt
     FROM ( SELECT match_players.ScrimMatchId,
                   match_players.TeamOrdinal
              FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
@@ -97,6 +100,13 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                                SUM( CASE WHEN kills.AttackerTeamOrdinal = match_teams.TeamOrdinal AND DeathType = 0 AND spot_sums.TotalSpots > 0 THEN 1 ELSE 0 END ) SpotAssistedKills,
                                SUM( CASE WHEN kills.AttackerTeamOrdinal = match_teams.TeamOrdinal AND DeathType = 0 AND spot_sums.TotalSpots > 0 AND (damage_sums.TotalDamages IS NULL OR damage_sums.TotalDamages = 0) AND (grenade_sums.TotalGrenades Is NULL OR grenade_sums.TotalGrenades  = 0) THEN 1 ELSE 0 END ) SpotAssistedOnlyKills,
                                SUM( CASE WHEN kills.AttackerTeamOrdinal = match_teams.TeamOrdinal AND DeathType = 0 AND ( damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL ) THEN 1 ELSE 0 END ) UnassistedKills,
+                               SUM( CASE WHEN kills.AttackerTeamOrdinal = match_teams.TeamOrdinal AND damage_sums.TotalDamages > 0
+                                             THEN CASE WHEN kills.VictimLoadoutId IN ( 1, 8, 15) THEN 900 - damage_sums.MinVictimDamageReceived
+                                                       ELSE 1000 - damage_sums.MinVictimDamageReceived END
+                                         WHEN kills.AttackerTeamOrdinal = match_teams.TeamOrdinal AND ( damage_sums.TotalDamages = 0 OR damage_sums.TotalDamages IS NULL )
+                                           THEN CASE WHEN kills.VictimLoadoutId IN ( 1, 8, 15) THEN 900
+                                                     ELSE 1000 END
+                                         ELSE 0 END ) KillDamageDealt,
                            
                                SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND DeathType IN ( 0, 1, 2) THEN 1 ELSE 0 END ) Deaths,
                                SUM( CASE WHEN kills.VictimTeamOrdinal = match_teams.TeamOrdinal AND DeathType = 1 THEN 1 ELSE 0 END ) TeamKillDeaths,
@@ -155,11 +165,14 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                               ON match_teams.ScrimMatchId = kills.ScrimMatchId
                                  AND ( match_teams.TeamOrdinal = kills.AttackerTeamOrdinal
                                        OR match_teams.TeamOrdinal = kills.VictimTeamOrdinal )
-                            LEFT OUTER JOIN ( SELECT ScrimMatchId, damages.AttackerTeamOrdinal, VictimCharacterId, damages.Timestamp, COUNT(*) TotalDamages,
+                            LEFT OUTER JOIN ( SELECT ScrimMatchId, damages.AttackerTeamOrdinal, VictimCharacterId, damages.Timestamp,
+                                                     COUNT(*) TotalDamages,
                                                      SUM( CASE WHEN damages.ActionType = 304 THEN 1 ELSE 0 END ) EnemyDamages,
                                                      SUM( CASE WHEN damages.ActionType = 310 THEN 1 ELSE 0 END ) TeamDamages,
-                                                     SUM( CASE WHEN damages.ActionType = 312 THEN 1 ELSE 0 END ) SelfDamages
-                                                FROM [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                                                     SUM( CASE WHEN damages.ActionType = 312 THEN 1 ELSE 0 END ) SelfDamages,
+                                                     AVG( CASE WHEN damages.ActionType = 304 THEN AdjustedAssistDamageDealt ELSE 0 END ) AvgVictimDamageReceived,
+                                                     MIN( CASE WHEN damages.ActionType = 304 THEN AdjustedAssistDamageDealt ELSE 0 END ) MinVictimDamageReceived
+                                                FROM [PlanetmansDbContext].[dbo].View_ScrimDamageAssistDamageDealt damages
                                                 GROUP BY ScrimMatchId, AttackerTeamOrdinal, Timestamp, VictimCharacterId ) damage_sums
                               ON kills.ScrimMatchId = damage_sums.ScrimMatchId
                                  AND kills.Timestamp = damage_sums.Timestamp
@@ -194,9 +207,10 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
                                SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 304 AND damages.AttackerLoadoutId IN ( 4, 11, 18) THEN 1 ELSE 0 END ) DamageAssistsAsMedic,
                                SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 304 AND damages.AttackerLoadoutId IN ( 5, 12, 19) THEN 1 ELSE 0 END ) DamageAssistsAsEngineer,
                                SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 304 AND damages.AttackerLoadoutId IN ( 6, 13, 20) THEN 1 ELSE 0 END ) DamageAssistsAsHeavyAssault,
-                               SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 304 AND damages.AttackerLoadoutId IN ( 7, 14, 21) THEN 1 ELSE 0 END ) DamageAssistsAsMax
+                               SUM( CASE WHEN CharacterId = damages.AttackerCharacterId AND damages.ActionType = 304 AND damages.AttackerLoadoutId IN ( 7, 14, 21) THEN 1 ELSE 0 END ) DamageAssistsAsMax,
+                               SUM( CASE WHEN CharacterID = damages.AttackerCharacterId AND damages.ActionType = 304 THEN damages.AdjustedAssistDamageDealt ELSE 0 END ) AssistDamageDealt
                           FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
-                            INNER JOIN [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                            INNER JOIN [PlanetmansDbContext].[dbo].View_ScrimDamageAssistDamageDealt damages
                               ON match_players.ScrimMatchId = damages.ScrimMatchId
                                  AND  match_players.CharacterId = damages.AttackerCharacterId
                           GROUP BY match_players.ScrimMatchId, match_players.TeamOrdinal ) damage_sums

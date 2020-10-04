@@ -106,17 +106,21 @@
                                         <th style="padding-left: 10px;" title="Primary Class"></th>
                                         <th style="width: 145px"></th>
                                         <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
-                                        <th style=" width: 100px;"></th>
+                                        @*<th style=" width: 100px;"></th>*@
+                                        <th style=" width: 90px;"></th>
                                         <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
                                         <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
                                         <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
                                         <th style="font-weight: 300; width: 70px;" title="Head Shot Percent">Head Shot %</th>
                                         <th style="font-weight: 300; width: 70px;" title="Damage Assists">Dmg. Assists</th>
+                                        <th style="font-weight: 300; width: 70px;" title="Damage Dealt">Dmg. Dealt</th>
                                         <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
-                                        <th style="font-weight: 300; width: 70px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Assisted Deaths</th>
-                                        <th style="font-weight: 300; width: 64px;" title="Trickle Deaths">Trickle Deaths</th>
-                                        <th style="font-weight: 300; width: 80px;" title="Favorable Engagement Percent">Favorable Eng. %</th>
-                                        <th style="font-weight: 300; width: 60px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
+                                        @*<th style="font-weight: 300; width: 70px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Assisted Deaths</th>*@
+                                        <th style="font-weight: 300; width: 65px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
+                                        <th style="font-weight: 300; width: 65px;" title="Trickle Deaths">Trickle Deaths</th>
+                                        @*<th style="font-weight: 300; width: 80px;" title="Favorable Engagement Percent">Favorable Eng. %</th>*@
+                                        <th style="font-weight: 300; width: 65px;" title="Favorable Engagement Percent">Fav. Eng. %</th>
+                                        <th style="font-weight: 300; width: 65px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
                                         <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
                                     </tr>
 
@@ -130,6 +134,8 @@
                                         <td>@team.Deaths</td>
                                         <td title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                         <td>@team.DamageAssists</td>
+                                        @*<td>@team.TotalDamageDealt.ToString("N0")</td>*@
+                                        <td title="@($"Kills: {team.KillDamageDealt.ToString("N0")}\nAssists: {team.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(team.TotalDamageDealt)</td>
                                         <td>@team.UnassistedKills</td>
                                         <td>@team.DamageAssistedEnemyDeaths</td>
                                         <td>@team.TrickleDeaths</td>
@@ -157,6 +163,7 @@
                                                         <td>@teamRoundStats.Deaths</td>
                                                         <td title="@teamRoundStats.HeadshotKills / @teamRoundStats.Kills">@teamRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                                         <td>@teamRoundStats.DamageAssists</td>
+                                                        <td title="@($"Kills: {teamRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {teamRoundStats.AssistDamageDealt.ToString("N0")}")">@teamRoundStats.TotalDamageDealt.ToString("N0")</td>
                                                         <td>@teamRoundStats.UnassistedKills</td>
                                                         <td>@teamRoundStats.DamageAssistedEnemyDeaths</td>
                                                         <td>@teamRoundStats.TrickleDeaths</td>
@@ -198,7 +205,8 @@
                                             </td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)" style="text-align: right;">@player.Points</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
-                                                <div class="graph" style="width: 100px;">
+                                                @*<div class="graph" style="width: 100px;">*@
+                                                <div class="graph" style="width: 90px;">
                                                     <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                 </div>
                                             </td>
@@ -211,6 +219,7 @@
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.Deaths</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssists</td>
+                                            <td  title="@($"Kills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")" @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.TotalDamageDealt.ToString("N0")</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.UnassistedKills</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssistedEnemyDeaths</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.TrickleDeaths</td>
@@ -236,7 +245,8 @@
                                                             </td>
                                                             <td>@playerRoundStats.Points</td>
                                                             <td>
-                                                                <div class="graph" style="width: 100px;">
+                                                                <div class="graph" style="width: 90px;">
+                                                                @*<div class="graph" style="width: 100px;">*@
                                                                     <div class="graph-bar @((round == 1 ? "striped-background" : "dotted-background"))" style="width: @($"{GetPointGraphWidth(playerRoundStats.Points, round)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary-light); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                                 </div>
                                                             </td>
@@ -249,6 +259,7 @@
                                                             <td>@playerRoundStats.Deaths</td>
                                                             <td title="@playerRoundStats.HeadshotKills / @playerRoundStats.Kills">@playerRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                                             <td>@playerRoundStats.DamageAssists</td>
+                                                            <td title="@($"Kills: {playerRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {playerRoundStats.AssistDamageDealt.ToString("N0")}")">@playerRoundStats.TotalDamageDealt.ToString("N0")</td>
                                                             <td>@playerRoundStats.UnassistedKills</td>
                                                             <td>@playerRoundStats.DamageAssistedEnemyDeaths</td>
                                                             <td>@playerRoundStats.TrickleDeaths</td>
@@ -880,6 +891,18 @@
     private string GetRoundRowBorderClass(int round, int maxRounds)
     {
         return round == maxRounds ? "last-of-group" : string.Empty;
+    }
+
+    private string GetAbbreviatedDamageDealt(int damageDealt)
+    {
+        if (damageDealt < 10000)
+        {
+            return damageDealt.ToString("N0");
+        }
+        else
+        {
+            return $"{Math.Round(damageDealt / 1000.0, 1).ToString("N0")}k";
+        }
     }
 
     private void InvokeAsyncStateHasChanged()

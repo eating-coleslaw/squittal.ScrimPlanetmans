@@ -50,6 +50,11 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int SpotAssistedOnlyEnemyDeaths { get; set; }
         public int UnassistedEnemyDeaths { get; set; }
 
+        public int KillDamageDealt { get; set; }
+        public int AssistDamageDealt { get; set; }
+        public int TotalDamageDealt { get; set; }
+
+
         #region Class-Specific Stats
         public int KillsAsHeavyAssault { get; set; }
         public int KillsAsInfiltrator { get; set; }
