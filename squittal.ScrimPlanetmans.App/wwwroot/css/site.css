@@ -989,14 +989,33 @@ table.report-killfeed tbody {
             background-color: var(--sq-ps2-primary);
         }
 
+        table.report-killfeed tbody td.round-number {
+            text-align: right;
+            /*padding-left: 8px;*/
+            /*padding-left: 4px;*/
+            width: 20px;
+        }
+
+        table.report-killfeed tbody td.timestamp {
+            text-align: right;
+            width: 100px;
+        }
+
+        table.report-killfeed tbody td.timestamp.time-difference {
+            width: 110px;
+        }
+
         table.report-killfeed tbody td.player {
-            max-width: 120px;
+            /*max-width: 120px;*/
+            /*max-width: 100px;*/
+            max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         table.report-killfeed tbody td.weapon {
-            max-width: 80px;
+            /*max-width: 80px;*/
+            max-width: 70px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
