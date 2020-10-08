@@ -1015,12 +1015,6 @@ table.report-killfeed tbody {
             text-overflow: ellipsis;
         }
 
-        table.report-killfeed tbody td.timestamp {
-            min-width: 105px;
-            max-width: 110px;
-            width: 7rem;
-        }
-
         table.report-killfeed tbody td.loadout-enemy {
             padding-left: 0.5rem;
             max-width: 30px;
