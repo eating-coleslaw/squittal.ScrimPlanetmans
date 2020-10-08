@@ -102,35 +102,27 @@
                                         </tr>
                                     }
 
-                                    @*<tr style="line-height: 1.2; font-size: 0.85rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">*@
                                     <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
                                         <th style="padding-left: 10px;" title="Primary Class"></th>
                                         <th style="width: 145px"></th>
                                         <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
-                                        @*<th style=" width: 100px;"></th>*@
                                         <th style=" width: 90px;"></th>
                                         <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
                                         <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
                                         <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
-                                        @*<th style="font-weight: 300; width: 70px;" title="Head Shot Percent">Head Shot %</th>*@
                                         <th style="font-weight: 300; width: 55px;" title="Head Shot Percent">
                                             <div class="ps2-icon headshot tr" title="Headshot" style="filter: brightness(0) saturate(100%) invert(30%);display: inline-block;margin-top: 0px;"></div>%
                                         </th>
-                                        @*<th style="font-weight: 300; width: 70px;" title="Damage Assists">Dmg. Asst.</th>*@
                                         <th style="font-weight: 300; width: 55px;" title="Damage Assists">Dmg. Asst.</th>
                                         <th style="font-weight: 300; width: 70px;" title="Damage Dealt">Dmg. Dealt</th>
                                         <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
-                                        @*<th style="font-weight: 300; width: 70px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Assisted Deaths</th>*@
                                         <th style="font-weight: 300; width: 60px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
                                         <th style="font-weight: 300; width: 60px;" title="Trickle Deaths">Trickle Deaths</th>
-                                        @*<th style="font-weight: 300; width: 65px;" title="Trickle Deaths">💧 Deaths</th>*@
-                                        @*<th style="font-weight: 300; width: 80px;" title="Favorable Engagement Percent">Favorable Eng. %</th>*@
                                         <th style="font-weight: 300; width: 65px;" title="Favorable Engagement Percent">Fav. Eng. %</th>
                                         <th style="font-weight: 300; width: 65px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
                                         <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
                                     </tr>
 
-                                    @*<tr @onclick="() => OnClickTeamRow(team.TeamOrdinal)" class=" clickable-row @GetClickableTeamRowIsActiveClass(team.TeamOrdinal) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 1.2rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right; border-top: none !important;">*@
                                     <tr @onclick="() => OnClickTeamRow(team.TeamOrdinal)" class=" clickable-row @GetClickableTeamRowIsActiveClass(team.TeamOrdinal) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
                                         <td style="padding-left: 10px; padding-top: 0px;"></td>
                                         <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
@@ -141,7 +133,6 @@
                                         <td style="padding-top: 0px;">@team.Deaths</td>
                                         <td style="padding-top: 0px;" title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                         <td style="padding-top: 0px;">@team.DamageAssists</td>
-                                        @*<td>@team.TotalDamageDealt.ToString("N0")</td>*@
                                         <td style="padding-top: 0px;" title="@($"{team.TotalDamageDealt.ToString("N0")}\nKills: {team.KillDamageDealt.ToString("N0")}\nAssists: {team.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(team.TotalDamageDealt, true)</td>
                                         <td style="padding-top: 0px;">@team.UnassistedKills</td>
                                         <td style="padding-top: 0px;">@team.DamageAssistedEnemyDeaths</td>
@@ -170,7 +161,6 @@
                                                         <td>@teamRoundStats.Deaths</td>
                                                         <td title="@teamRoundStats.HeadshotKills / @teamRoundStats.Kills">@teamRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                                         <td>@teamRoundStats.DamageAssists</td>
-                                                        @*<td title="@($"Kills: {teamRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {teamRoundStats.AssistDamageDealt.ToString("N0")}")">@teamRoundStats.TotalDamageDealt.ToString("N0")</td>*@
                                                         <td title="@($"{teamRoundStats.TotalDamageDealt.ToString("N0")}\n{teamRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {teamRoundStats.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(teamRoundStats.TotalDamageDealt, true)</td>
                                                         <td>@teamRoundStats.UnassistedKills</td>
                                                         <td>@teamRoundStats.DamageAssistedEnemyDeaths</td>
@@ -213,7 +203,6 @@
                                             </td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)" style="text-align: right;">@player.Points</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
-                                                @*<div class="graph" style="width: 100px;">*@
                                                 <div class="graph" style="width: 90px;">
                                                     <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                 </div>
@@ -228,7 +217,6 @@
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssists</td>
                                             <td  title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")" @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.TotalDamageDealt.ToString("N0")</td>
-                                            @*<td title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")" @onclick="() => OnClickPlayerRow(player.CharacterId)">@GetAbbreviatedDamageDealt(player.TotalDamageDealt, false)</td>*@
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.UnassistedKills</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssistedEnemyDeaths</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.TrickleDeaths</td>
@@ -255,7 +243,6 @@
                                         <td>@playerRoundStats.Points</td>
                                         <td>
                                             <div class="graph" style="width: 90px;">
-                                                @*<div class="graph" style="width: 100px;">*@
                                                 <div class="graph-bar @((round == 1 ? "striped-background" : "dotted-background"))" style="width: @($"{GetPointGraphWidth(playerRoundStats.Points, round)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary-light); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                             </div>
                                         </td>
@@ -269,7 +256,6 @@
                                         <td title="@playerRoundStats.HeadshotKills / @playerRoundStats.Kills">@playerRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                         <td>@playerRoundStats.DamageAssists</td>
                                         <td title="@($"{playerRoundStats.TotalDamageDealt.ToString("N0")}\nKills: {playerRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {playerRoundStats.AssistDamageDealt.ToString("N0")}")">@playerRoundStats.TotalDamageDealt.ToString("N0")</td>
-                                        @*<td title="@($"{playerRoundStats.TotalDamageDealt.ToString("N0")}\nKills: {playerRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {playerRoundStats.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(playerRoundStats.TotalDamageDealt, false)</td>*@
                                         <td>@playerRoundStats.UnassistedKills</td>
                                         <td>@playerRoundStats.DamageAssistedEnemyDeaths</td>
                                         <td>@playerRoundStats.TrickleDeaths</td>
@@ -914,15 +900,10 @@
         }
         else if (damageDealt < 100000)
         {
-            //return (MarkupString)$"{Math.Round((double)damageDealt / 1000.0, 2).ToString("N0")}<span class=\"sq-text-muted\">k<\\span>";
-            //return (MarkupString)$"{Math.Round((double)damageDealt / 1000.0, 1)}<span class=\"sq-text-muted\">k<\\span>";
-            //return (MarkupString)$"{Math.Round(damageDealt / 1000.0, 1)}<span style=\"color: var(--sq-ov-ps2-primary-dark-alpha-70);\">k</span>";
             return (MarkupString)$"{Math.Round(damageDealt / 1000.0, 1)}<span style=\"color: {color};\">k</span>";
         }
         else
         {
-            //return (MarkupString)$"{Math.Round((double)damageDealt / 1000.0, 0)}<span class=\"sq-text-muted\">k<\\span>";
-            //return (MarkupString)$"{Math.Round(damageDealt / 1000.0, 0)}<span style=\"color: var(--sq-ov-ps2-primary-dark-alpha-70);\">k</span>";;
             return (MarkupString)$"{Math.Round(damageDealt / 1000.0, 0)}<span style=\"color: {color};\">k</span>";;
         }
     }
