@@ -183,8 +183,10 @@
 
     private void UpdateTeamsControlCounts()
     {
-        _teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
-        _teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
+        //_teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
+        _teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(1);
+        //_teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
+        _teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(2);
     }
 
     #region Event Handling
@@ -224,7 +226,8 @@
 
         if (controllingTeamOrdinal == 1)
         {
-            var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
+            //var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(1);
+            var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(1);
 
             if (newTeamControls != _teamControls1)
             {
@@ -235,7 +238,8 @@
         }
         else if (controllingTeamOrdinal == 2)
         {
-            var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
+            //var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamBaseControlsCount(2);
+            var newTeamControls = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(2);
 
             if (newTeamControls != _teamControls2)
             {

@@ -27,6 +27,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             }
         }
 
+        public int FirstCaptures { get; set; } = 0;
+        public int SubsequentCaptures { get; set; } = 0;
+
+        public int WeightedCapturesCount
+        {
+            get
+            {
+                return FirstCaptures + (SubsequentCaptures * 2);
+            }
+        }
+
         public int FirstCapturePoints { get; set; } = 0;
         public int SubsequentCapturePoints { get; set; } = 0;
 
@@ -292,6 +303,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             Points += addend.Points;
             NetScore += addend.NetScore;
 
+            FirstCaptures += addend.FirstCaptures;
+            SubsequentCaptures += addend.SubsequentCaptures;
+
             FirstCapturePoints += addend.FirstCapturePoints;
             SubsequentCapturePoints += addend.SubsequentCapturePoints;
 
@@ -381,6 +395,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             Points -= subtrahend.Points;
             NetScore -= subtrahend.NetScore;
+
+            FirstCaptures -= subtrahend.FirstCaptures;
+            SubsequentCaptures -= subtrahend.SubsequentCaptures;
 
             FirstCapturePoints -= subtrahend.FirstCapturePoints;
             SubsequentCapturePoints -= subtrahend.SubsequentCapturePoints;

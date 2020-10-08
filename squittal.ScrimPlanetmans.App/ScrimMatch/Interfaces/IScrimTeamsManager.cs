@@ -86,5 +86,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void UnlockAllTeamPlayers();
         int GetCurrentMatchRoundTeamBaseControlsCount(int teamOrdinal);
         int GetCurrentMatchRoundBaseControlsCount();
+        int GetCurrentMatchRoundWeightedCapturesCount();
+        int GetCurrentMatchRoundTeamWeightedCapturesCount(int teamOrdinal);
     }
 }

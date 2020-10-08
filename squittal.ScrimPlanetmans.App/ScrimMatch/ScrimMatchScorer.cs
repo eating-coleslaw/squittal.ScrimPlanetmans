@@ -480,10 +480,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (actionType == ScrimActionType.FirstBaseCapture)
             {
+                teamUpdate.FirstCaptures = 1;
                 teamUpdate.FirstCapturePoints = points;
             }
             else if (actionType == ScrimActionType.SubsequentBaseCapture)
             {
+                teamUpdate.SubsequentCaptures = 1;
                 teamUpdate.SubsequentCapturePoints = points;
             }
 
