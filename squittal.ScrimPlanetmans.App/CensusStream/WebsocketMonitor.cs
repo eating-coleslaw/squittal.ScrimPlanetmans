@@ -132,7 +132,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var oldFacilityIdString = oldFacilityId == null ? "null" : ((int)oldFacilityId).ToString();
             var subscribedFacilityIdString = SubscribedFacilityId == null ? "null" : ((int)SubscribedFacilityId).ToString();
 
-            _logger.LogInformation($"SubscribedFacilityId changed: {oldFacilityIdString} => {subscribedFacilityIdString}");
+            if (oldFacilityIdString != subscribedFacilityIdString)
+            {
+                _logger.LogInformation($"SubscribedFacilityId changed: {oldFacilityIdString} => {subscribedFacilityIdString}");
+            }
         }
 
         public void SetWorldSubscription(int worldId)
@@ -144,9 +147,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var oldWorldIdString = oldWorldId == null ? "null" : ((int)oldWorldId).ToString();
             var subscribedWorldIdString = SubscribedWorldId == null ? "null" : ((int)SubscribedWorldId).ToString();
 
-            _logger.LogInformation($"SubscribedWorldId changed: {oldWorldIdString} => {subscribedWorldIdString}");
+            if (oldWorldIdString != subscribedWorldIdString)
+            {
+                _logger.LogInformation($"SubscribedWorldId changed: {oldWorldIdString} => {subscribedWorldIdString}");
+            }    
 
-            SubscribedWorldId = worldId;
         }
         #endregion Subscription Setup
 
@@ -350,11 +355,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (matchesWorld)
             {
-                var idsString = $"Sub: w{SubscribedWorldId} f{SubscribedFacilityId} | PL: w{worldId} f{facilityId}";
-                
+                var timestamp = payload.Value<string>("timestamp");
+
+                var idsString = $"Sub: w{SubscribedWorldId} f{SubscribedFacilityId} | PL: w{worldId} f{facilityId} t{timestamp}";
+
                 var matchMessage = matchesFacility
-                                        ? $"FacilityControl payload matching World & Facility detected. {idsString}. Payload={payload}"
-                                        : $"FacilityControl payload matching World but not Facility detected. {idsString}. Payload={payload}";
+                                        ? $"FacilityControl payload matching World & Facility detected. {idsString}"
+                                        : $"FacilityControl payload matching World but not Facility detected. {idsString}";
 
                 _logger.LogInformation(matchMessage);
             }
