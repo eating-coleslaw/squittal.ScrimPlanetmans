@@ -211,11 +211,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             try
             {
-                items = await _censusItem.GetAllItems();
+                //items = await _censusItem.GetAllItems();
+                items = await _censusItem.GetAllWeaponItems();
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Items. Refreshing store from backup...");
+                _logger.LogError("Census API query failed: get all weapon Items. Refreshing store from backup...");
                 return false;
             }
 
@@ -284,7 +285,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<int> GetCensusCountAsync()
         {
-            return await _censusItem.GetItemsCount();
+            //return await _censusItem.GetItemsCount();
+            return await _censusItem.GetWeaponItemsCount();
         }
 
         public async Task<int> GetStoreCountAsync()
