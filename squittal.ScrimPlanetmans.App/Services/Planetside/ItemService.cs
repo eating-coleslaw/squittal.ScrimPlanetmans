@@ -27,7 +27,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private ConcurrentDictionary<int, Item> WeaponsMap { get; set; } = new ConcurrentDictionary<int, Item>();
         private readonly SemaphoreSlim _weaponMapSetUpSemaphore = new SemaphoreSlim(1);
         
-        public string BackupSqlScriptFileName => "dbo.Item.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Item.Table.sql";
 
 
         public ItemService(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService,

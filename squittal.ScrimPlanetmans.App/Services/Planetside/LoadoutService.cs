@@ -17,7 +17,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<LoadoutService> _logger;
 
-        public string BackupSqlScriptFileName => "dbo.Loadout.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Loadout.Table.sql";
 
 
         public LoadoutService(IDbContextHelper dbContextHelper, CensusLoadout censusLoadout, ISqlScriptRunner sqlScriptRunner, ILogger<LoadoutService> logger)
