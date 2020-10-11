@@ -83,6 +83,8 @@
     <Compile Remove="Migrations\20201002184137_AddRulesetItemRuleModel.Designer.cs" />
     <Compile Remove="Migrations\20201009141541_RemoveRulesetRuleForeignKeys.cs" />
     <Compile Remove="Migrations\20201009141541_RemoveRulesetRuleForeignKeys.Designer.cs" />
+    <Compile Remove="Migrations\20201009142315_RemoveRulesetRuleForeignKeys.cs" />
+    <Compile Remove="Migrations\20201009142315_RemoveRulesetRuleForeignKeys.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
