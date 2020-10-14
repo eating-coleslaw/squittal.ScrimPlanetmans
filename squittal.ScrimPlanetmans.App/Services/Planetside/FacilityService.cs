@@ -142,7 +142,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            return await dbContext.MapRegions.Where(region => realZones.Contains(region.ZoneId) && scrimFacilityTypes.Contains(region.FacilityTypeId))
+            return await dbContext.MapRegions.Where(region => realZones.Contains(region.ZoneId) && scrimFacilityTypes.Contains(region.FacilityTypeId) && region.IsCurrent)
                                              .ToListAsync();
         }
 
@@ -229,17 +229,48 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             var storeEntities = await GetAllStoreMapRegionsAsync();
 
-            foreach (var censusEntity in censusEntities.Where(e => e.FacilityId != 0))
+            //foreach (var censusEntity in censusEntities.Where(e => e.FacilityId != 0))
+            foreach (var censusEntity in censusEntities)
             {
                 var storeEntity = storeEntities.FirstOrDefault(e => e.Id == censusEntity.Id && e.FacilityId == censusEntity.FacilityId);
+                var storeMapRegion = storeEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
 
                 if (storeEntity == null)
                 {
-                    createdEntities.Add(censusEntity);
+                    // Brand New MapRegion
+                    if (storeMapRegion == null)
+                    {
+                        createdEntities.Add(censusEntity);
+                    }
+                    // Existing MapRegion overwritten with new FacilityID
+                    else if (censusEntity.FacilityId != 0)
+                    {
+                        createdEntities.Add(censusEntity);
+
+                        storeEntity = storeMapRegion;
+                        storeEntity.IsDeprecated = true;
+                        storeEntity.IsCurrent = false;
+
+                        dbContext.MapRegions.Update(storeEntity);
+                    }
+                    // Existing MapRegion is Deleted with no replacement
+                    else
+                    {
+                        storeEntity = storeMapRegion;
+                        storeEntity.IsDeprecated = true;
+                        storeEntity.IsCurrent = true;
+
+                        dbContext.MapRegions.Update(storeEntity);
+                    }
                 }
                 else //if (censusEntity.FacilityId != 0)
                 {
+                    // Existing MapRegion updated somehow
                     storeEntity = censusEntity;
+
+                    storeEntity.IsDeprecated = false;
+                    storeEntity.IsCurrent = true;
+
                     dbContext.MapRegions.Update(storeEntity);
                 }
             }
@@ -276,7 +307,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            return await dbContext.MapRegions.CountAsync();
+            return await dbContext.MapRegions.CountAsync(e => e.IsCurrent);
         }
 
         public void RefreshStoreFromBackup()
