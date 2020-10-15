@@ -727,9 +727,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                             storeEntity = rule;
                             //storeEntity.ItemCategory = null;
 
-                            storeEntity.Points = rule.Points;
-                            storeEntity.IsBanned = rule.IsBanned;
-                            storeEntity.DeferToItemRules = rule.DeferToItemRules;
+                            //storeEntity.Points = rule.Points;
+                            //storeEntity.IsBanned = rule.IsBanned;
+                            //storeEntity.DeferToItemRules = rule.DeferToItemRules;
 
                             dbContext.RulesetItemCategoryRules.Update(storeEntity);
                             //dbContext.RulesetItemCategoryRules.Update(rule);
