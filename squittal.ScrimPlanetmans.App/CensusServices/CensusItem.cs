@@ -50,6 +50,7 @@ namespace squittal.ScrimPlanetmans.CensusServices
             query.Where("item_category_id").NotEquals(142);
             query.Where("item_category_id").NotEquals(143);
             query.Where("item_category_id").NotEquals(145);
+            query.Where("item_category_id").NotEquals(146);
             query.Where("item_category_id").NotEquals(148);
 
             return await query.GetBatchAsync<CensusItemModel>();
