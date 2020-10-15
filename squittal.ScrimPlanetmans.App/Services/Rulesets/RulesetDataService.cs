@@ -751,6 +751,19 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.Rulesets.Update(storeRuleset);
                     }
 
+
+                    var TaskList = new List<Task>();
+
+                    foreach (var rule in dbContext.RulesetItemCategoryRules)
+                    {
+                        //await UpdateItemRulesForItemCategoryRule(dbContext, rule);
+                        //var itemRulesTask = UpdateItemRulesForItemCategoryRule(dbContext, rule);
+                        var itemRulesTask = UpdateItemRulesForItemCategoryRule(rule);
+                        TaskList.Add(itemRulesTask);
+                    }
+
+                    await Task.WhenAll(TaskList);
+
                     await dbContext.SaveChangesAsync();
 
                     //var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
@@ -760,7 +773,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     //_logger.LogInformation($"Saved Item Category Rule updates for Ruleset {rulesetId}");
 
-                    await UpdateRulesetItemRulesForDeferredItemCategoryRules(rulesetId);
+                    //await UpdateRulesetItemRulesForDeferredItemCategoryRules(rulesetId);
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
@@ -798,7 +811,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
 
-                    var storeRules = await dbContext.RulesetItemRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
+                    var storeRules = await GetRulesetItemRulesAsync(rulesetId, CancellationToken.None);
+                    //var storeRules = await dbContext.RulesetItemRules.Where(rule => rule.RulesetId == rulesetId).ToListAsync();
 
                     var newEntities = new List<RulesetItemRule>();
 
@@ -812,7 +826,10 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         }
                         else
                         {
+                            rule.Item = null;
+
                             storeEntity = rule;
+                            
                             dbContext.RulesetItemRules.Update(storeEntity);
                         }
                     }
@@ -822,9 +839,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetItemRules.AddRange(newEntities);
                     }
 
-                    //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
 
-                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+                    //var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
 
                     if (storeRuleset != null)
                     {
@@ -1177,10 +1194,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
             foreach (var rule in allItemCategoryRules)
             {
-                await UpdateItemRulesForItemCategoryRule(rule);
+                //await UpdateItemRulesForItemCategoryRule(rule);
             }
         }
 
+        //private async Task UpdateItemRulesForItemCategoryRule(PlanetmansDbContext dbContext, RulesetItemCategoryRule itemCategoryRule)
         private async Task UpdateItemRulesForItemCategoryRule(RulesetItemCategoryRule itemCategoryRule)
         {
             var rulesetId = itemCategoryRule.RulesetId;
@@ -1203,7 +1221,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     //    return;
                     //}
 
-                    var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+                    //var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+                    var defaultRulesetId = DefaultRulesetId;
 
                     //var defaultItemRules = await dbContext.RulesetItemRules.Where(r => r.RulesetId == defaultRulesetId).ToListAsync();
 

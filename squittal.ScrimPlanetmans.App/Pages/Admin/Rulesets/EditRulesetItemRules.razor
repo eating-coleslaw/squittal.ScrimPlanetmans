@@ -298,7 +298,8 @@
 
         var changeType = e.Message.RuleChangeType;
 
-        if (changeType != RulesetRuleChangeType.ItemCategoryRule && changeType != RulesetRuleChangeType.ItemRule)
+        //if (changeType != RulesetRuleChangeType.ItemCategoryRule && changeType != RulesetRuleChangeType.ItemRule)
+        if (changeType != RulesetRuleChangeType.ItemCategoryRule)
         {
             return;
         }
