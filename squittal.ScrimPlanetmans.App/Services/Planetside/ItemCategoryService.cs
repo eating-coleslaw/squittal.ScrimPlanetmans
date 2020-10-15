@@ -48,6 +48,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             142, // Consolidated Decal
             143, // Attachments
             145, // ANT Utility
+            146, // Bount Contract
             148  // ANT Harvesting Tool
         };
 
@@ -150,6 +151,16 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             return GetWeaponItemCategoryIds();
+        }
+
+        public async Task<IEnumerable<ItemCategory>> GetItemCategoriesFromIdsAsync(IEnumerable<int> itemCategoryIds)
+        {
+            if (ItemCategoriesMap == null || !ItemCategoriesMap.Any())
+            {
+                await SetUpItemCategoriesListAsync();
+            }
+
+            return ItemCategoriesMap.Where(m => itemCategoryIds.Contains(m.Key)).Select(m => m.Value).ToList();
         }
 
         public IEnumerable<int> GetItemCategoryIds()

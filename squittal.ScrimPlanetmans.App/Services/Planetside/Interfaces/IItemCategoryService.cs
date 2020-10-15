@@ -6,6 +6,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public interface IItemCategoryService : ILocallyBackedCensusStore
     {
+        Task<IEnumerable<ItemCategory>> GetItemCategoriesFromIdsAsync(IEnumerable<int> itemCategoryIds);
         Task<IEnumerable<int>> GetItemCategoryIdsAsync();
         IEnumerable<int> GetNonWeaponItemCateogryIds();
         IEnumerable<ItemCategory> GetWeaponItemCategories();
