@@ -52,7 +52,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return item;
         }
 
-        public async Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId)
+        public async Task<IEnumerable<Item>> GetItemsByCategoryIdAsync(int categoryId)
         {
             if (ItemsMap == null || ItemsMap.Count == 0)
             {

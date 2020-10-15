@@ -8,7 +8,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
     {
         Task<IEnumerable<Item>> GetAllWeaponItemsAsync();
         Task<Item> GetItemAsync(int itemId);
-        Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId);
+        Task<IEnumerable<Item>> GetItemsByCategoryIdAsync(int categoryId);
         Task<Item> GetWeaponItemAsync(int id);
 
         Task SetUpItemsMapAsync();

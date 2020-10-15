@@ -180,7 +180,11 @@
 
         try
         {
-            _itemCategoryRules = await RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
+            var _itemCategoryRulesTask = RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
+
+            await _itemCategoryRulesTask;
+
+            _itemCategoryRules = _itemCategoryRulesTask.Result.ToList();
 
             cts.Token.ThrowIfCancellationRequested();
 
@@ -209,32 +213,32 @@
     #region Event Handling
     private void OnChangeRulePoints(RulesetItemCategoryRule rule, int newPoints)
     {
-        var categoryId = rule.ItemCategory.Id;
+        var itemCategoryId = rule.ItemCategory.Id;
         var currentPoints = rule.Points;
 
-        var hasAlreadyChanged = _originalRulePoints.ContainsKey(categoryId);
+        var hasAlreadyChanged = _originalRulePoints.ContainsKey(itemCategoryId);
 
-        if (_originalRulePoints.TryGetValue(categoryId, out int originalPoints))
+        if (_originalRulePoints.TryGetValue(itemCategoryId, out int originalPoints))
         {
             rule.Points = newPoints;
 
             if (newPoints == originalPoints)
             {
-                _originalRulePoints.TryRemove(categoryId, out var removedRulePoints);
+                _originalRulePoints.TryRemove(itemCategoryId, out var removedRulePoints);
 
-                if (!RuleHasAnyChanges(categoryId))
+                if (!RuleHasAnyChanges(itemCategoryId))
                 {
-                    _changedRules.TryRemove(categoryId, out var removedRule);
+                    _changedRules.TryRemove(itemCategoryId, out var removedRule);
                 }
             }
             else
             {
-                _changedRules.AddOrUpdate(categoryId, rule, (key, oldValue) => rule);
+                _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
             }
         }
         else
         {
-            if (!_originalRulePoints.TryAdd(categoryId, currentPoints))
+            if (!_originalRulePoints.TryAdd(itemCategoryId, currentPoints))
             {
                 _changesCount = _changedRules.Count();
 
@@ -243,7 +247,10 @@
 
             rule.Points = newPoints;
 
-            _changedRules.AddOrUpdate(categoryId, rule, (key, oldValue) => rule);
+            //_changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+
+            var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
+            _changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
         }
 
         _changesCount = _changedRules.Count();
@@ -281,7 +288,10 @@
 
             rule.DeferToItemRules = newDefer;
 
-            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+            //_changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+
+            var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
+            _changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
         }
 
         _changesCount = _changedRules.Count();
@@ -321,7 +331,10 @@
 
             rule.IsBanned = newIsBanned;
 
-            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+            //_changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+
+            var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
+            _changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
         }
 
         _changesCount = _changedRules.Count();
@@ -366,12 +379,12 @@
 
             await RulesetDataService.SaveRulesetItemCategoryRules(_renderedRulesetId, _changedRules.Values.AsEnumerable());
 
-            foreach (var idRulePair in _changedRules)
-            {
-                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
-                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().IsBanned = idRulePair.Value.IsBanned;
-                _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().DeferToItemRules = idRulePair.Value.DeferToItemRules;
-            }
+            //foreach (var idRulePair in _changedRules)
+            //{
+            //    _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
+            //    _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().IsBanned = idRulePair.Value.IsBanned;
+            //    _itemCategoryRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().DeferToItemRules = idRulePair.Value.DeferToItemRules;
+            //}
 
             _originalRulePoints.Clear();
             _originalRuleBans.Clear();
@@ -380,6 +393,8 @@
             _changesCount = 0;
 
             _isSavingRules = false;
+
+            await LoadRulesAsync();
 
             InvokeAsyncStateHasChanged();
         }
@@ -418,6 +433,18 @@
         _isClearingRules = false;
     }
     #endregion Form Handling
+
+    private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
+    {
+        return new RulesetItemCategoryRule
+        {
+            RulesetId = rulesetId,
+            ItemCategoryId = itemCategoryId,
+            Points = points,
+            IsBanned = isBanned,
+            DeferToItemRules = deferToItemRules
+        };
+    }
 
     private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
     {

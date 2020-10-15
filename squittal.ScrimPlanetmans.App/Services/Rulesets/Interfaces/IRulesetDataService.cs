@@ -1,5 +1,6 @@
 ﻿using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Models.Forms;
+using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System.Collections.Generic;
 using System.Threading;
@@ -39,5 +40,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task<IEnumerable<RulesetItemRule>> GetRulesetItemRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules);
         Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesDeferringToItemRules(int rulesetId, CancellationToken cancellationToken);
+        Task<IEnumerable<ItemCategory>> GetItemCategoriesDeferringToItemRules(int rulesetId, CancellationToken cancellationToken);
     }
 }
