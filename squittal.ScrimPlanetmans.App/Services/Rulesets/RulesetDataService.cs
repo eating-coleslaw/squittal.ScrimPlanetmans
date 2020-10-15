@@ -743,7 +743,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     //var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
 
-                    //var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+                    ////var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
 
                     //if (storeRuleset != null)
                     //{
@@ -751,12 +751,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     //    dbContext.Rulesets.Update(storeRuleset);
                     //}
 
-                    await dbContext.SaveChangesAsync();
+                    //await dbContext.SaveChangesAsync();
 
-                    ////var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
+                    var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
-                    //var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
-                    //_messageService.BroadcastRulesetRuleChangeMessage(message);
+                    var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
+                    _messageService.BroadcastRulesetRuleChangeMessage(message);
 
                     _logger.LogInformation($"Saved Item Category Rule updates for Ruleset {rulesetId}");
 
