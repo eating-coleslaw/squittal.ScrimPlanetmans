@@ -247,10 +247,10 @@
 
             rule.Points = newPoints;
 
-            //_changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
 
-            var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
-            _changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
+            //var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
+            //_changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
         }
 
         _changesCount = _changedRules.Count();
@@ -288,10 +288,10 @@
 
             rule.DeferToItemRules = newDefer;
 
-            //_changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
 
-            var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
-            _changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
+            //var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
+            //_changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
         }
 
         _changesCount = _changedRules.Count();
@@ -331,10 +331,10 @@
 
             rule.IsBanned = newIsBanned;
 
-            //_changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
+            _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
 
-            var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
-            _changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
+            //var newRule = BuildRulesetItemCategoryRule(_renderedRulesetId, rule.ItemCategoryId, rule.Points, rule.IsBanned, rule.DeferToItemRules);
+            //_changedRules.AddOrUpdate(itemCategoryId, newRule, (key, oldValue) => newRule);
         }
 
         _changesCount = _changedRules.Count();
