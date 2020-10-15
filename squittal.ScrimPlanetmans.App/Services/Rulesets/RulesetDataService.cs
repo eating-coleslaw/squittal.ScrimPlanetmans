@@ -755,12 +755,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     //var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
 
+                    //var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
+                    //_messageService.BroadcastRulesetRuleChangeMessage(message);
+
+                    //_logger.LogInformation($"Saved Item Category Rule updates for Ruleset {rulesetId}");
+
+                    await UpdateRulesetItemRulesForDeferredItemCategoryRules(rulesetId);
+
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
 
                     _logger.LogInformation($"Saved Item Category Rule updates for Ruleset {rulesetId}");
-
-                    //await UpdateRulesetItemRulesForDeferredItemCategoryRules(rulesetId);
                 }
                 catch (Exception ex)
                 {
@@ -1224,7 +1229,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         {
                             if (defaultRule != null)
                             {
-                                var newRule = BuildRulesetItemRule(rulesetId, item.Id, itemCategoryId, defaultRule.Points, defaultRule.IsBanned);
+                                var points = (itemCategoryPoints != 0 && defaultRule.Points != 0) ? itemCategoryPoints : defaultRule.Points;
+                                var isBanned = (isItemCategoryBanned) ? isItemCategoryBanned : defaultRule.IsBanned;
+
+                                //var newRule = BuildRulesetItemRule(rulesetId, item.Id, itemCategoryId, defaultRule.Points, defaultRule.IsBanned);
+                                var newRule = BuildRulesetItemRule(rulesetId, item.Id, itemCategoryId, points, isBanned);
                                 createdRules.Add(newRule);
                             }
                             else
