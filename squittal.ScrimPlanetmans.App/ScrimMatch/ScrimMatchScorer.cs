@@ -49,7 +49,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
         #region Death Events
-        public async Task<int> ScoreDeathEvent(ScrimDeathActionEvent death)
+        public async Task<ScrimEventScoringResult> ScoreDeathEvent(ScrimDeathActionEvent death)
         {
             switch (death.DeathType)
             {
@@ -63,11 +63,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     return await ScoreTeamkill(death);
 
                 default:
-                    return 0;
+                    //return 0;
+                    return new ScrimEventScoringResult(ScrimEventScorePointsSource.Default, 0, false);
             }
         }
 
-        private async Task<int> ScoreKill(ScrimDeathActionEvent death)
+        private async Task<ScrimEventScoringResult> ScoreKill(ScrimDeathActionEvent death)
         {
             //int points = 0;
 
@@ -113,10 +114,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             await _teamsManager.UpdatePlayerStats(death.AttackerPlayer.Id, attackerUpdate);
             await _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
-        private async Task<int> ScoreSuicide(ScrimDeathActionEvent death)
+        private async Task<ScrimEventScoringResult> ScoreSuicide(ScrimDeathActionEvent death)
         {
             //var actionType = death.ActionType;
             //var points = GetActionRulePoints(actionType);
@@ -136,10 +138,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
-        private async Task<int> ScoreTeamkill(ScrimDeathActionEvent death)
+        private async Task<ScrimEventScoringResult> ScoreTeamkill(ScrimDeathActionEvent death)
         {
             //var actionType = death.ActionType;
             //var points = GetActionRulePoints(actionType);
@@ -165,23 +168,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             await _teamsManager.UpdatePlayerStats(death.AttackerPlayer.Id, attackerUpdate);
             await _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
         #endregion Death Events
 
         #region Vehicle Destruction Events
-        public async Task<int> ScoreVehicleDestructionEvent(ScrimVehicleDestructionActionEvent destruction)
+        public async Task<ScrimEventScoringResult> ScoreVehicleDestructionEvent(ScrimVehicleDestructionActionEvent destruction)
         {
             return destruction.DeathType switch
             {
                 DeathEventType.Kill => await ScoreVehicleDestruction(destruction),
                 DeathEventType.Suicide => await ScoreVehicleTeamDestruction(destruction),
                 DeathEventType.Teamkill => await ScoreVehicleSuicideDestruction(destruction),
-                _ => 0,
+                //_ => 0,
+                _ => new ScrimEventScoringResult(ScrimEventScorePointsSource.Default, 0, false)
             };
         }
 
-        private async Task<int> ScoreVehicleDestruction(ScrimVehicleDestructionActionEvent destruction)
+        private async Task<ScrimEventScoringResult> ScoreVehicleDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
             var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
             var points = scoringResult.Points;
@@ -229,11 +234,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
             }
 
-            return points;
+            //return points;
+            return scoringResult;
 
         }
 
-        private async Task<int> ScoreVehicleSuicideDestruction(ScrimVehicleDestructionActionEvent destruction)
+        private async Task<ScrimEventScoringResult> ScoreVehicleSuicideDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
             //var points = GetDeathOrDestructionEventPoints(death.ActionType, null, null);
             var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
@@ -266,10 +272,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
-        private async Task<int> ScoreVehicleTeamDestruction(ScrimVehicleDestructionActionEvent destruction)
+        private async Task<ScrimEventScoringResult> ScoreVehicleTeamDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
             var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
             var points = scoringResult.Points;
@@ -302,7 +309,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             await _teamsManager.UpdatePlayerStats(destruction.AttackerPlayer.Id, attackerUpdate);
             await _teamsManager.UpdatePlayerStats(destruction.VictimPlayer.Id, victimUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
         private ScrimEventAggregate GetVehicleDestroyedEventAggregate(VehicleType vehicleType)
@@ -351,7 +359,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #endregion Vehicle Destruction Events
 
         #region Experience Events
-        public async Task<int> ScoreReviveEvent(ScrimReviveActionEvent revive)
+        public async Task<ScrimEventScoringResult> ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
             var actionType = revive.ActionType;
             var scoringResult = GetActionRulePoints(actionType);
@@ -373,10 +381,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             await _teamsManager.UpdatePlayerStats(revive.MedicPlayer.Id, medicUpdate);
             await _teamsManager.UpdatePlayerStats(revive.RevivedPlayer.Id, revivedUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
-        public async Task<int> ScoreAssistEvent(ScrimAssistActionEvent assist)
+        public async Task<ScrimEventScoringResult> ScoreAssistEvent(ScrimAssistActionEvent assist)
         {
             var actionType = assist.ActionType;
             var scoringResult = GetActionRulePoints(actionType);
@@ -447,10 +456,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 await _teamsManager.UpdatePlayerStats(assist.VictimPlayer.Id, victimUpdate);
             }
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
-        public async Task<int> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective)
+        public async Task<ScrimEventScoringResult> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective)
         {
             //var actionType = objective.ActionType;
             //var points = _activeRuleset.RulesetActionRules
@@ -483,13 +493,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(objective.Player.Id, playerUpdate);
 
-            return points;
+            //return points;
+            return scoringResult;
         }
 
         #endregion Experience Events
 
         #region Objective Events
-        public int ScoreFacilityControlEvent(ScrimFacilityControlActionEvent control)
+        public ScrimEventScoringResult ScoreFacilityControlEvent(ScrimFacilityControlActionEvent control)
         {
             var teamOrdinal = control.ControllingTeamOrdinal;
             var type = control.ControlType;
@@ -517,7 +528,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _teamsManager.UpdateTeamStats(teamOrdinal, teamUpdate);
             
-            return points;
+            //return points;
+            return scoringResult;
         }
         #endregion Objective Events
 
