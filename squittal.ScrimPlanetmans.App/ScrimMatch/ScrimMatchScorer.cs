@@ -69,25 +69,28 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<int> ScoreKill(ScrimDeathActionEvent death)
         {
-            int points = 0;
+            //int points = 0;
 
-            if (GetDeferToItemCategoryPoints(death.ActionType))
-            {
-                var categoryId = death.Weapon?.ItemCategoryId;
+            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id);
+            var points = scoringResult.Points;
 
-                if (categoryId != null)
-                {
-                    points = _activeRuleset.RulesetItemCategoryRules
-                                                .Where(rule => rule.ItemCategoryId == categoryId)
-                                                .Select(rule => rule.Points)
-                                                .FirstOrDefault();
-                }
-            }
-            else
-            {
-                var actionType = death.ActionType;
-                points = GetActionRulePoints(actionType);
-            }
+            //if (GetActionDefersToItemCategoryRule(death.ActionType))
+            //{
+            //    var categoryId = death.Weapon?.ItemCategoryId;
+
+            //    if (categoryId != null)
+            //    {
+            //        points = _activeRuleset.RulesetItemCategoryRules
+            //                                    .Where(rule => rule.ItemCategoryId == categoryId)
+            //                                    .Select(rule => rule.Points)
+            //                                    .FirstOrDefault();
+            //    }
+            //}
+            //else
+            //{
+            //    var actionType = death.ActionType;
+            //    points = GetActionRulePoints(actionType);
+            //}
 
             var isHeadshot = (death.IsHeadshot ? 1 : 0);
 
@@ -115,8 +118,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<int> ScoreSuicide(ScrimDeathActionEvent death)
         {
-            var actionType = death.ActionType;
-            var points = GetActionRulePoints(actionType);
+            //var actionType = death.ActionType;
+            //var points = GetActionRulePoints(actionType);
+
+            //var points = GetDeathOrDestructionEventPoints(death.ActionType, null, null);
+            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id);
+            var points = scoringResult.Points;
 
             var victimUpdate = new ScrimEventAggregate()
             {
@@ -134,8 +141,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<int> ScoreTeamkill(ScrimDeathActionEvent death)
         {
-            var actionType = death.ActionType;
-            var points = GetActionRulePoints(actionType);
+            //var actionType = death.ActionType;
+            //var points = GetActionRulePoints(actionType);
+
+            //var points = GetDeathOrDestructionEventPoints(death.ActionType, null, null);
+            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id);
+            var points = scoringResult.Points;
 
             var attackerUpdate = new ScrimEventAggregate()
             {
@@ -172,25 +183,28 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<int> ScoreVehicleDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
-            int points = 0;
+            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
+            var points = scoringResult.Points;
 
-            if (GetDeferToItemCategoryPoints(destruction.ActionType))
-            {
-                var categoryId = destruction.Weapon.ItemCategoryId;
+            //int points = 0;
 
-                if (categoryId != null)
-                {
-                    points = _activeRuleset.RulesetItemCategoryRules
-                                                .Where(rule => rule.ItemCategoryId == categoryId)
-                                                .Select(rule => rule.Points)
-                                                .FirstOrDefault();
-                }
-            }
-            else
-            {
-                var actionType = destruction.ActionType;
-                points = GetActionRulePoints(actionType);
-            }
+            //if (GetActionDefersToItemCategoryRule(destruction.ActionType))
+            //{
+            //    var categoryId = destruction.Weapon.ItemCategoryId;
+
+            //    if (categoryId != null)
+            //    {
+            //        points = _activeRuleset.RulesetItemCategoryRules
+            //                                    .Where(rule => rule.ItemCategoryId == categoryId)
+            //                                    .Select(rule => rule.Points)
+            //                                    .FirstOrDefault();
+            //    }
+            //}
+            //else
+            //{
+            //    var actionType = destruction.ActionType;
+            //    points = GetActionRulePoints(actionType);
+            //}
 
             var attackerUpdate = new ScrimEventAggregate()
             {
@@ -221,21 +235,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<int> ScoreVehicleSuicideDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
-            int points;
+            //var points = GetDeathOrDestructionEventPoints(death.ActionType, null, null);
+            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
+            var points = scoringResult.Points;
 
-            if (GetDeferToItemCategoryPoints(destruction.ActionType))
-            {
-                var categoryId = destruction.Weapon.ItemCategoryId;
-                points = _activeRuleset.RulesetItemCategoryRules
-                                            .Where(rule => rule.ItemCategoryId == categoryId)
-                                            .Select(rule => rule.Points)
-                                            .FirstOrDefault();
-            }
-            else
-            {
-                var actionType = destruction.ActionType;
-                points = GetActionRulePoints(actionType);
-            }
+            //int points;
+
+            //if (GetActionDefersToItemCategoryRule(destruction.ActionType))
+            //{
+            //    var categoryId = destruction.Weapon.ItemCategoryId;
+            //    points = _activeRuleset.RulesetItemCategoryRules
+            //                                .Where(rule => rule.ItemCategoryId == categoryId)
+            //                                .Select(rule => rule.Points)
+            //                                .FirstOrDefault();
+            //}
+            //else
+            //{
+            //    var actionType = destruction.ActionType;
+            //    points = GetActionRulePoints(actionType);
+            //}
 
             var victimUpdate = new ScrimEventAggregate()
             {
@@ -253,21 +271,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<int> ScoreVehicleTeamDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
-            int points;
+            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
+            var points = scoringResult.Points;
 
-            if (GetDeferToItemCategoryPoints(destruction.ActionType))
-            {
-                var categoryId = destruction.Weapon.ItemCategoryId;
-                points = _activeRuleset.RulesetItemCategoryRules
-                                            .Where(rule => rule.ItemCategoryId == categoryId)
-                                            .Select(rule => rule.Points)
-                                            .FirstOrDefault();
-            }
-            else
-            {
-                var actionType = destruction.ActionType;
-                points = GetActionRulePoints(actionType);
-            }
+            //int points;
+
+            //if (GetActionDefersToItemCategoryRule(destruction.ActionType))
+            //{
+            //    var categoryId = destruction.Weapon.ItemCategoryId;
+            //    points = _activeRuleset.RulesetItemCategoryRules
+            //                                .Where(rule => rule.ItemCategoryId == categoryId)
+            //                                .Select(rule => rule.Points)
+            //                                .FirstOrDefault();
+            //}
+            //else
+            //{
+            //    var actionType = destruction.ActionType;
+            //    points = GetActionRulePoints(actionType);
+            //}
 
             var attackerUpdate = new ScrimEventAggregate()
             {
@@ -333,7 +354,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public async Task<int> ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
             var actionType = revive.ActionType;
-            var points = GetActionRulePoints(actionType);
+            var scoringResult = GetActionRulePoints(actionType);
+            var points = scoringResult.Points;
 
             var medicUpdate = new ScrimEventAggregate()
             {
@@ -357,7 +379,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public async Task<int> ScoreAssistEvent(ScrimAssistActionEvent assist)
         {
             var actionType = assist.ActionType;
-            var points = GetActionRulePoints(actionType);
+            var scoringResult = GetActionRulePoints(actionType);
+            var points = scoringResult.Points;
 
             var attackerUpdate = new ScrimEventAggregate()
             {
@@ -429,11 +452,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<int> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective)
         {
+            //var actionType = objective.ActionType;
+            //var points = _activeRuleset.RulesetActionRules
+            //                            .Where(rule => rule.ScrimActionType == actionType)
+            //                            .Select(rule => rule.Points)
+            //                            .FirstOrDefault();
+
             var actionType = objective.ActionType;
-            var points = _activeRuleset.RulesetActionRules
-                                        .Where(rule => rule.ScrimActionType == actionType)
-                                        .Select(rule => rule.Points)
-                                        .FirstOrDefault();
+            var scoringResult = GetActionRulePoints(actionType);
+            var points = scoringResult.Points;
 
             var playerUpdate = new ScrimEventAggregate()
             {
@@ -468,7 +495,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var type = control.ControlType;
 
             var actionType = control.ActionType;
-            var points = GetActionRulePoints(actionType);
+            var scoringResult = GetActionRulePoints(actionType);
+            var points = scoringResult.Points;
 
             var teamUpdate = new ScrimEventAggregate()
             {
@@ -506,21 +534,86 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _teamsManager.SetPlayerOnlineStatus(characterId, false);
         }
         #endregion Misc. Non-Scored Events
-    
-        private int GetActionRulePoints(ScrimActionType actionType)
+
+        #region Rule Handling
+        private ScrimEventScoringResult GetDeathOrDestructionEventPoints(ScrimActionType actionType, int? itemCategoryId, int? itemId)
+        {
+            var actionRule = GetActionRule(actionType);
+
+            if (actionRule == null)
+            {
+                //return 0;
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.Default, 0, false);
+            }
+            
+            if (!actionRule.DeferToItemCategoryRules || itemCategoryId == null)
+            {
+                //return actionRule.Points;
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.ActionTypeRule, actionRule.Points, false);
+            }
+
+            var itemCategoryRule = GetItemCategoryRule((int)itemCategoryId);
+
+            if (itemCategoryRule == null)
+            {
+                //return actionRule.Points;
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.ActionTypeRule, actionRule.Points, false);
+            }
+
+            if (!actionRule.DeferToItemCategoryRules || itemId == null)
+            {
+                //return itemCategoryRule.Points;
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemCategoryRule, itemCategoryRule.Points, itemCategoryRule.IsBanned);
+            }
+
+            var itemRule = GetItemRule((int)itemId);
+
+            if (itemRule == null)
+            {
+                //return itemCategoryRule.Points;
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemCategoryRule, itemCategoryRule.Points, itemCategoryRule.IsBanned);
+            }
+
+            //return itemRule.Points;
+            return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemRule, itemRule.Points, itemRule.IsBanned);
+        }
+
+        private RulesetActionRule GetActionRule(ScrimActionType actionType)
         {
             return _activeRuleset.RulesetActionRules
                                     .Where(rule => rule.ScrimActionType == actionType)
-                                    .Select(rule => rule.Points)
                                     .FirstOrDefault();
         }
 
-        private bool GetDeferToItemCategoryPoints(ScrimActionType actionType)
+        private RulesetItemCategoryRule GetItemCategoryRule(int itemCategoryId)
         {
-            return _activeRuleset.RulesetActionRules
-                                    .Where(rule => rule.ScrimActionType == actionType)
-                                    .Select(rule => rule.DeferToItemCategoryRules)
+            return _activeRuleset.RulesetItemCategoryRules
+                                    .Where(rule => rule.ItemCategoryId == itemCategoryId)
                                     .FirstOrDefault();
         }
+
+        private RulesetItemRule GetItemRule(int itemId)
+        {
+            return _activeRuleset.RulesetItemRules
+                                    .Where(rule => rule.ItemId == itemId)
+                                    .FirstOrDefault();
+        }
+
+        private ScrimEventScoringResult GetActionRulePoints(ScrimActionType actionType)
+        {
+            var actionRule = _activeRuleset.RulesetActionRules
+                                                .Where(rule => rule.ScrimActionType == actionType)
+                                                //.Select(rule => rule.Points)
+                                                .FirstOrDefault();
+
+            if (actionRule == null)
+            {
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.Default, 0, false);
+
+            }
+
+            return new ScrimEventScoringResult(ScrimEventScorePointsSource.ActionTypeRule, actionRule.Points, false);
+        }
+        #endregion Rule Handling
     }
 }
