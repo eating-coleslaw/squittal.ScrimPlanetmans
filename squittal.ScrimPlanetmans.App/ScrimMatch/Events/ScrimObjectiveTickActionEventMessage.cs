@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
@@ -9,6 +10,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         public ScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEvent objectiveTickEvent)
         {
             ObjectiveTickEvent = objectiveTickEvent;
+
+            Timestamp = objectiveTickEvent.Timestamp;
+
+            LogLevel = objectiveTickEvent.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMinor;
 
             Info = GetInfo(objectiveTickEvent);
         }

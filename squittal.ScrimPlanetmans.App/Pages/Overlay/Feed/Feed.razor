@@ -71,7 +71,7 @@
     #endregion InitializationMethods
 
     #region Event Handling
-    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e)
     {
         var deathEvent = e.Message.DeathEvent;
 

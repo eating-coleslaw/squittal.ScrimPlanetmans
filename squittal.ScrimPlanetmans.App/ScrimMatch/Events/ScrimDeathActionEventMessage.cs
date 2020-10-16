@@ -1,22 +1,28 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
     public class ScrimDeathActionEventMessage : ScrimActionEventMessage
     {
         public ScrimDeathActionEvent DeathEvent { get; set; }
-        //public string Info { get; set; }
 
         public ScrimDeathActionEventMessage(ScrimDeathActionEvent deathEvent)
         {
             DeathEvent = deathEvent;
 
+            Timestamp = deathEvent.Timestamp;
+
             if (deathEvent.ActionType == ScrimActionType.OutsideInterference)
             {
+                LogLevel = EventMessageLogLevel.MatchEventWarning;
+
                 Info = GetOutsideInterferenceInfo(deathEvent);
             }
             else
             {
+                LogLevel = deathEvent.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMajor;
+
                 switch (deathEvent.DeathType)
                 {
                     case DeathEventType.Kill:

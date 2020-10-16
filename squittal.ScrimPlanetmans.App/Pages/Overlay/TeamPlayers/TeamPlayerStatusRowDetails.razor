@@ -156,7 +156,7 @@
         return; // TODO: add special styling/animation for this event?
     }
 
-    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e)
     {
         var deathEvent = e.Message.DeathEvent;
 

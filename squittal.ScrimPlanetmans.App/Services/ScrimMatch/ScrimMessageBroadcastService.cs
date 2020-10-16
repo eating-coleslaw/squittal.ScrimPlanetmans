@@ -48,8 +48,11 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<ScrimKillfeedEventEventArgs> RaiseScrimKillfeedEvent;
         public delegate void ScrimKillfeedEventMessageEventHandler(object sender, ScrimKillfeedEventEventArgs e);
 
-        public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
-        public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
+
+        public event EventHandler<ScrimActionEventEventArgs<ScrimDeathActionEventMessage>> RaiseScrimDeathActionEvent;
+        public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e);
+        //public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
+        //public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
 
         public event EventHandler<ScrimVehicleDestructionActionEventEventArgs> RaiseScrimVehicleDestructionActionEvent;
         public delegate void ScrimVehicleDestructionActionEventMessageEventHandler(object sender, ScrimVehicleDestructionActionEventEventArgs e);
@@ -224,16 +227,28 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaiseScrimKillfeedEvent?.Invoke(this, e);
         }
 
+
         public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
         {
-            OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
+            OnRaiseScrimDeathActionEvent(new ScrimActionEventEventArgs<ScrimDeathActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
+        protected virtual void OnRaiseScrimDeathActionEvent(ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e)
         {
             RaiseScrimDeathActionEvent?.Invoke(this, e);
         }
+        
+        //public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
+        //{
+        //    OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
+
+        //    TrySaveToLogFile(message.Info);
+        //}
+        //protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
+        //{
+        //    RaiseScrimDeathActionEvent?.Invoke(this, e);
+        //}
 
         public void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message)
         {

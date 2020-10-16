@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
@@ -10,12 +11,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         {
             ReviveEvent = reviveEvent;
 
+            Timestamp = reviveEvent.Timestamp;
+
             if (reviveEvent.ActionType == ScrimActionType.OutsideInterference)
             {
+                LogLevel = EventMessageLogLevel.MatchEventWarning;
+                
                 Info = GetOutsideInterferenceInfo(reviveEvent);
             }
             else
             {
+                LogLevel = reviveEvent.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMajor;
+
                 Info = GetReviveInfo(reviveEvent);
             }
         }

@@ -1,4 +1,5 @@
 ﻿@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.Models.MessageLogs;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Collections.Concurrent;
@@ -9,7 +10,19 @@
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
 <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
-    @if (_streamLogs.Any())
+    @if (_streamLogMessages.Any())
+    {
+        foreach (var log in _streamLogMessages)
+        {
+            <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log.Message</p>
+        }
+
+        if (_streamLogMessages.Count() > _maxLogCount)
+        {
+            <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing @_maxLogCount / @_streamLogMessages.Count)</p>
+        }
+    }
+    @*@if (_streamLogs.Any())
     {
         foreach (var log in _streamLogs)
         {
@@ -20,7 +33,7 @@
         {
             <p style="font-size: 10.5px; margin: 0;">...max log entries reach (showing @_maxLogCount / @_streamLogs.Count)</p>
         }
-    }
+    }*@
 </div>
 
 
@@ -28,6 +41,9 @@
     private List<MarkupString> _streamLogs { get; set; } = new List<MarkupString>();
 
     private ConcurrentQueue<MarkupString> _logQueue = new ConcurrentQueue<MarkupString>();
+
+    private List<TimestampedLogMessage> _streamLogMessages { get; set; } = new List<TimestampedLogMessage>();
+    private ConcurrentQueue<TimestampedLogMessage> _logMessageQueue = new ConcurrentQueue<TimestampedLogMessage>();
 
     private int _maxLogCount = 200;
 
@@ -64,40 +80,64 @@
         ReceiveMessage(e.Message);
     }
 
-    private void ReceiveDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    private void ReceiveDeathActionEvent(object sender, ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e)
     {
-        var info = e.Message.Info;
-        LogMessage(info);
+        //var info = e.Message.Info;
+
+        var message = e.Message;
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        //LogMessage(info);
     }
 
     private void ReceiveVehicleDestructionActionEvent(object sender, ScrimVehicleDestructionActionEventEventArgs e)
     {
-        var info = e.Message.Info;
-        LogMessage(info);
+        //var info = e.Message.Info;
+
+        var message = e.Message;
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        //LogMessage(info);
     }
 
     private void ReceiveReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
     {
-        var info = e.Message.Info;
-        LogMessage(info);
+        //var info = e.Message.Info;
+
+        var message = e.Message;
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        //LogMessage(info);
     }
 
     private void ReceiveAssistActionEvent(object sender, ScrimAssistActionEventEventArgs e)
     {
-        var info = e.Message.Info;
-        LogMessage(info);
+        //var info = e.Message.Info;
+
+        var message = e.Message;
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        //LogMessage(info);
     }
 
     private void ReceiveObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
     {
-        var info = e.Message.Info;
-        LogMessage(info);
+        //var info = e.Message.Info;
+
+        var message = e.Message;
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        //LogMessage(info);
     }
 
     private void ReceiveScrimFacilityControlActionEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
     {
-        var info = e.Message.Info;
-        LogMessage(info);
+        //var info = e.Message.Info;
+
+        var message = e.Message;
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        //LogMessage(info);
     }
 
 
@@ -135,31 +175,69 @@
         return jMsg;
     }
 
-    private void LogMessage(string message)
+    private void LogMessage(MarkupString message, DateTime timestamp)
     {
-        var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
-
+        var time = timestamp.ToString("hh:mm:ss tt");
+        //var time = timestamp.ToString("hh:mm:ss.fff tt");
         var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
 
-        _logQueue.Enqueue(newLogMessage);
+        //_logQueue.Enqueue(newLogMessage);
+        _logMessageQueue.Enqueue(new TimestampedLogMessage(timestamp, newLogMessage));
 
         UpdatePage();
     }
+
+    private void LogMessage(string message)
+    {
+        var timestamp = DateTime.Now;
+
+        var time = timestamp.ToString("hh:mm:ss tt");
+        //var time = timestamp.ToString("hh:mm:ss.fff tt");
+        //var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
+
+        var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
+
+        //_logQueue.Enqueue(newLogMessage);
+        _logMessageQueue.Enqueue(new TimestampedLogMessage(timestamp, newLogMessage));
+
+        UpdatePage();
+    }
+
+    //private void UpdatePage()
+    //{
+    //    InvokeAsync(() =>
+    //    {
+    //        lock (_streamLogs)
+    //        {
+    //            MarkupString localString;
+
+    //            while (_logQueue.TryDequeue(out localString))
+    //            {
+    //                _streamLogs.Add(localString);
+    //            }
+
+    //            _streamLogs = _streamLogs.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+
+    //            StateHasChanged();
+    //        }
+    //    });
+    //}
 
     private void UpdatePage()
     {
         InvokeAsync(() =>
         {
-            lock (_streamLogs)
+            lock (_streamLogMessages)
             {
-                MarkupString localString;
+                TimestampedLogMessage localString;
 
-                while (_logQueue.TryDequeue(out localString))
+                while (_logMessageQueue.TryDequeue(out localString))
                 {
-                    _streamLogs.Add(localString);
+                    _streamLogMessages.Add(localString);
                 }
 
-                _streamLogs = _streamLogs.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+                //_streamLogMessages = _streamLogMessages.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+                _streamLogMessages = _streamLogMessages.OrderByDescending(m => m.Timestamp).Take(_maxLogCount).ToList();
 
                 StateHasChanged();
             }

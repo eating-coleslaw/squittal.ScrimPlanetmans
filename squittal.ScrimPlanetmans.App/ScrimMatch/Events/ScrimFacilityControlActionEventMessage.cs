@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
@@ -12,6 +13,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             FacilityControl = facilityControl;
 
             Info = GetInfo();
+
+            Timestamp = facilityControl.Timestamp;
+
+            LogLevel = facilityControl.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMajor;
         }
 
         private string GetInfo()
