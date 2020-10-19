@@ -51,28 +51,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public event EventHandler<ScrimMessageEventArgs<ScrimDeathActionEventMessage>> RaiseScrimDeathActionEvent;
         public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e);
-        //public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
-        //public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
 
         public event EventHandler<ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage>> RaiseScrimVehicleDestructionActionEvent;
         public delegate void ScrimVehicleDestructionActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage> e);
-        //public event EventHandler<ScrimVehicleDestructionActionEventEventArgs> RaiseScrimVehicleDestructionActionEvent;
-        //public delegate void ScrimVehicleDestructionActionEventMessageEventHandler(object sender, ScrimVehicleDestructionActionEventEventArgs e);
 
         public event EventHandler<ScrimMessageEventArgs<ScrimReviveActionEventMessage>> RaiseScrimReviveActionEvent;
         public delegate void ScrimReviveActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e);
-        //public event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
-        //public delegate void ScrimReviveActionEventMessageEventHandler(object sender, ScrimReviveActionEventEventArgs e);
 
         public event EventHandler<ScrimMessageEventArgs<ScrimAssistActionEventMessage>> RaiseScrimAssistActionEvent;
         public delegate void ScrimAssistActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimAssistActionEventMessage> e);
-        //public event EventHandler<ScrimAssistActionEventEventArgs> RaiseScrimAssistActionEvent;
-        //public delegate void ScrimAssistActionEventMessageEventHandler(object sender, ScrimAssistActionEventEventArgs e);
 
         public event EventHandler<ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage>> RaiseScrimObjectiveTickActionEvent;
         public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e);
-        //public event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
-        //public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimObjectiveTickActionEventEventArgs e);
 
         public event EventHandler<ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage>> RaiseScrimFacilityControlActionEvent;
         public delegate void ScrimFacilityControlActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e);
@@ -247,17 +237,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaiseScrimDeathActionEvent?.Invoke(this, e);
         }
         
-        //public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
-        //{
-        //    OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
-
-        //    TrySaveToLogFile(message.Info);
-        //}
-        //protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
-        //{
-        //    RaiseScrimDeathActionEvent?.Invoke(this, e);
-        //}
-
         public void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message)
         {
             OnRaiseScrimVehicleDestructionActionEvent(new ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage>(message));
@@ -269,17 +248,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaiseScrimVehicleDestructionActionEvent?.Invoke(this, e);
         }
         
-        //public void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message)
-        //{
-        //    OnRaiseScrimVehicleDestructionActionEvent(new ScrimVehicleDestructionActionEventEventArgs(message));
-
-        //    TrySaveToLogFile(message.Info);
-        //}
-        //protected virtual void OnRaiseScrimVehicleDestructionActionEvent(ScrimVehicleDestructionActionEventEventArgs e)
-        //{
-        //    RaiseScrimVehicleDestructionActionEvent?.Invoke(this, e);
-        //}
-
         public void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message)
         {
             OnRaiseScrimReviveActionEvent(new ScrimMessageEventArgs<ScrimReviveActionEventMessage>(message));

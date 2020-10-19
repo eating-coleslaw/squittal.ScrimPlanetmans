@@ -28,7 +28,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<ScrimMessageEventArgs<ScrimKillfeedEventMessage>> RaiseScrimKillfeedEvent;
         
         event EventHandler<ScrimMessageEventArgs<ScrimDeathActionEventMessage>> RaiseScrimDeathActionEvent;
-        //event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
         event EventHandler<ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage>> RaiseScrimVehicleDestructionActionEvent;
         event EventHandler<ScrimMessageEventArgs<ScrimReviveActionEventMessage>> RaiseScrimReviveActionEvent;
         event EventHandler<ScrimMessageEventArgs<ScrimAssistActionEventMessage>> RaiseScrimAssistActionEvent;

@@ -9,7 +9,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         {
             Message = s;
 
-            Timestamp = DateTime.UtcNow;
+            CreatedTime = DateTime.UtcNow;
 
             LogLevel = ScrimMessageLogLevel.EngineInformation;
         }
@@ -18,13 +18,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         {
             Message = s;
 
-            Timestamp = DateTime.UtcNow;
+            CreatedTime = DateTime.UtcNow;
 
             LogLevel = logLevel;
         }
 
         public string Message { get; }
-        public DateTime Timestamp { get; }
+        public DateTime CreatedTime { get; }
 
         public ScrimMessageLogLevel LogLevel { get; }
     }

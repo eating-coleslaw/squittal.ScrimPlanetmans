@@ -29,8 +29,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private DateTime _prevTickTime;
         private int _resumeDelayMs;
 
-        public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
-        public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
+        public delegate void MatchTimerTickEventHandler(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e);
 
 
         private MatchTimerStatus Status { get; set; } = new MatchTimerStatus();
@@ -377,7 +377,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        protected virtual void OnRaiseMatchTimerTickEvent(MatchTimerTickEventArgs e)
+        protected virtual void OnRaiseMatchTimerTickEvent(ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             RaiseMatchTimerTickEvent?.Invoke(this, e);
         }
