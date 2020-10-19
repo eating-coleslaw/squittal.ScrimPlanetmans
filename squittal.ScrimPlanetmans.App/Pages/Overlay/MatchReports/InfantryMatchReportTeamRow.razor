@@ -88,7 +88,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var team = e.Message.Team;
 
@@ -104,7 +104,7 @@
         }
     }
 
-    private void ReceiveTeamAliasChangeEvent(object sender, TeamAliasChangeEventArgs e)
+    private void ReceiveTeamAliasChangeEvent(object sender, ScrimMessageEventArgs<TeamAliasChangeMessage> e)
     {
         var message = e.Message;
 

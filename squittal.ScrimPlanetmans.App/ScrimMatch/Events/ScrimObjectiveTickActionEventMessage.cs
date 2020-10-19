@@ -13,7 +13,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             Timestamp = objectiveTickEvent.Timestamp;
 
-            LogLevel = objectiveTickEvent.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMinor;
+            LogLevel = objectiveTickEvent.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMinor;
 
             Info = GetInfo(objectiveTickEvent);
         }

@@ -15,13 +15,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             if (reviveEvent.ActionType == ScrimActionType.OutsideInterference)
             {
-                LogLevel = EventMessageLogLevel.MatchEventWarning;
+                LogLevel = ScrimMessageLogLevel.MatchEventWarning;
                 
                 Info = GetOutsideInterferenceInfo(reviveEvent);
             }
             else
             {
-                LogLevel = reviveEvent.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMajor;
+                LogLevel = reviveEvent.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMajor;
 
                 Info = GetReviveInfo(reviveEvent);
             }

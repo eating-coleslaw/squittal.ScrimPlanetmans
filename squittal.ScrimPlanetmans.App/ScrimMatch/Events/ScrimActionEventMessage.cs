@@ -9,30 +9,30 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
     {
         public string Info { get; set; }
         public DateTime Timestamp { get; set; }
-        public EventMessageLogLevel LogLevel { get; set; }
+        public ScrimMessageLogLevel LogLevel { get; set; }
 
         public string GetEnumValueName(ScrimActionType action)
         {
             return Enum.GetName(typeof(ScrimActionType), action);
         }
 
-        public string GetLogLevelEnumValueName(EventMessageLogLevel logLevel)
+        public string GetLogLevelEnumValueName(ScrimMessageLogLevel logLevel)
         {
-            return Enum.GetName(typeof(EventMessageLogLevel), logLevel);
+            return Enum.GetName(typeof(ScrimMessageLogLevel), logLevel);
         }
 
         public MarkupString GetLogLevelInfoMarkupString()
         {
             return LogLevel switch
             {
-                EventMessageLogLevel.EngineError => GetWarningMarkupString(Info),
-                EventMessageLogLevel.EngineInformation => GetMutedMarkupString(Info),
-                EventMessageLogLevel.EngineWarning => GetWarningMarkupString(Info),
-                EventMessageLogLevel.MatchEventInformation => (MarkupString)Info,
-                EventMessageLogLevel.MatchEventMinor => GetMutedMarkupString(Info),
-                EventMessageLogLevel.MatchEventMajor => (MarkupString)Info,
-                EventMessageLogLevel.MatchEventRuleBreak => GetErrorMarkupString(Info),
-                EventMessageLogLevel.MatchEventWarning => GetWarningMarkupString(Info),
+                ScrimMessageLogLevel.EngineError => GetWarningMarkupString(Info),
+                ScrimMessageLogLevel.EngineInformation => GetMutedMarkupString(Info),
+                ScrimMessageLogLevel.EngineWarning => GetWarningMarkupString(Info),
+                ScrimMessageLogLevel.MatchEventInformation => (MarkupString)Info,
+                ScrimMessageLogLevel.MatchEventMinor => GetMutedMarkupString(Info),
+                ScrimMessageLogLevel.MatchEventMajor => (MarkupString)Info,
+                ScrimMessageLogLevel.MatchEventRuleBreak => GetErrorMarkupString(Info),
+                ScrimMessageLogLevel.MatchEventWarning => GetWarningMarkupString(Info),
                 _ => (MarkupString)Info
             };
         }
@@ -57,11 +57,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         {
             if (points >= 0)
             {
-                return $"+{points.ToString()}";
+                return $"+{points}";
             }
             else
             {
-                return $"{points.ToString()}";
+                return $"{points}";
             }
         }
     }

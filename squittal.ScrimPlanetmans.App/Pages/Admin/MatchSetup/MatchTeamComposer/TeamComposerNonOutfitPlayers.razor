@@ -276,7 +276,7 @@
         MessageService.BroadcastSimpleMessage(message);
     }
 
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         var message = e.Message;
 
@@ -292,7 +292,7 @@
         ProcessPlayerChangesQueue();
     }
 
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var player = e.Message.Player;
 
@@ -317,7 +317,7 @@
         ProcessPlayerChangesQueue();
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
     {
         var player = e.Message.Player;
 
@@ -342,7 +342,7 @@
         ProcessPlayerChangesQueue();
     }
 
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
     {
         var player = e.Message.Player;
 

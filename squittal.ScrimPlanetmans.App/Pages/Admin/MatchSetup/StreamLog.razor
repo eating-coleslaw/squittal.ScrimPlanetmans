@@ -80,7 +80,7 @@
         ReceiveMessage(e.Message);
     }
 
-    private void ReceiveDeathActionEvent(object sender, ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e)
+    private void ReceiveDeathActionEvent(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
     {
         //var info = e.Message.Info;
 
@@ -90,7 +90,7 @@
         //LogMessage(info);
     }
 
-    private void ReceiveVehicleDestructionActionEvent(object sender, ScrimVehicleDestructionActionEventEventArgs e)
+    private void ReceiveVehicleDestructionActionEvent(object sender, ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage> e)
     {
         //var info = e.Message.Info;
 
@@ -100,7 +100,7 @@
         //LogMessage(info);
     }
 
-    private void ReceiveReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    private void ReceiveReviveActionEvent(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e)
     {
         //var info = e.Message.Info;
 
@@ -110,7 +110,7 @@
         //LogMessage(info);
     }
 
-    private void ReceiveAssistActionEvent(object sender, ScrimAssistActionEventEventArgs e)
+    private void ReceiveAssistActionEvent(object sender, ScrimMessageEventArgs<ScrimAssistActionEventMessage> e)
     {
         //var info = e.Message.Info;
 
@@ -120,7 +120,7 @@
         //LogMessage(info);
     }
 
-    private void ReceiveObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    private void ReceiveObjectiveTickActionEvent(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e)
     {
         //var info = e.Message.Info;
 
@@ -130,7 +130,7 @@
         //LogMessage(info);
     }
 
-    private void ReceiveScrimFacilityControlActionEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+    private void ReceiveScrimFacilityControlActionEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
     {
         //var info = e.Message.Info;
 

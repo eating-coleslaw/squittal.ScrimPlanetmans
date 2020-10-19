@@ -16,7 +16,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             Timestamp = facilityControl.Timestamp;
 
-            LogLevel = facilityControl.IsBanned ? EventMessageLogLevel.MatchEventRuleBreak : EventMessageLogLevel.MatchEventMajor;
+            LogLevel = facilityControl.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMajor;
         }
 
         private string GetInfo()

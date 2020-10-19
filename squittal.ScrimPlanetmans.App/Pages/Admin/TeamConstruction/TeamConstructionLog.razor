@@ -44,12 +44,12 @@
     #endregion Initialization Methods
 
     #region  Event Handling
-    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e)
     {
         ReceiveMessage(e.Message.Info);
     }
 
-    public void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    public void ReceiveConstructedTeamInfoChangeEvent(object sender, ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage> e)
     {
         ReceiveMessage(e.Message.Info);
     }

@@ -119,7 +119,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var player = e.Message.Player;
         var overlayData = e.Message.OverlayMessageData;
@@ -152,7 +152,7 @@
         }
     }
 
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var overlayData = e.Message.OverlayMessageData;
 
@@ -166,7 +166,7 @@
         }
     }
 
-    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
     {
         var player = e.Message.Player;
 

@@ -183,6 +183,8 @@
             cts.Cancel();
             cts.Dispose();
         }
+
+        MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
     }
 
     protected override void OnInitialized()
@@ -287,7 +289,7 @@
     #endregion Initializtion Methods
 
     #region Event Handling
-    private async void HandleRulesetRuleChangeEvent(object sender, RulesetRuleChangeEventArgs e)
+    private async void HandleRulesetRuleChangeEvent(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
     {
         var ruleset = e.Message.Ruleset;
 

@@ -71,7 +71,7 @@
     #endregion InitializationMethods
 
     #region Event Handling
-    private void ReceiveScrimDeathActionEvent(object sender, ScrimActionEventEventArgs<ScrimDeathActionEventMessage> e)
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
     {
         var deathEvent = e.Message.DeathEvent;
 
@@ -87,7 +87,7 @@
         UpdateRenderedEvents();
     }
 
-    private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    private void ReceiveScrimReviveActionEvent(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e)
     {
         var reviveEvent = e.Message.ReviveEvent;
 
@@ -103,7 +103,7 @@
         UpdateRenderedEvents();
     }
 
-    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e)
     {
         var objectiveTickEvent = e.Message.ObjectiveTickEvent;
 

@@ -2,9 +2,9 @@
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
-    public class ScrimActionEventEventArgs<T> : EventArgs
+    public class ScrimMessageEventArgs<T> : EventArgs
     {
-        public ScrimActionEventEventArgs(T m)
+        public ScrimMessageEventArgs(T m)
         {
             Message = m;
         }

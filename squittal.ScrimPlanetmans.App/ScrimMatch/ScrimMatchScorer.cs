@@ -28,12 +28,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseRulesetRuleChangeEvent += OnRulesetRuleChangeEvent;
         }
 
-        private async void OnActiveRulesetChangeEvent(object sender, ActiveRulesetChangeEventArgs e)
+        private async void OnActiveRulesetChangeEvent(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> e)
         {
             await SetActiveRulesetAsync();
         }
 
-        private async void OnRulesetRuleChangeEvent(object sender, RulesetRuleChangeEventArgs e)
+        private async void OnRulesetRuleChangeEvent(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
         {
             if (_activeRuleset.Id == e.Message.Ruleset.Id)
             {
@@ -51,21 +51,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #region Death Events
         public async Task<ScrimEventScoringResult> ScoreDeathEvent(ScrimDeathActionEvent death)
         {
-            switch (death.DeathType)
+            return death.DeathType switch
             {
-                case DeathEventType.Kill:
-                    return await ScoreKill(death);
-
-                case DeathEventType.Suicide:
-                    return await ScoreSuicide(death);
-
-                case DeathEventType.Teamkill:
-                    return await ScoreTeamkill(death);
-
-                default:
-                    //return 0;
-                    return new ScrimEventScoringResult(ScrimEventScorePointsSource.Default, 0, false);
-            }
+                DeathEventType.Kill => await ScoreKill(death),
+                DeathEventType.Suicide => await ScoreSuicide(death),
+                DeathEventType.Teamkill => await ScoreTeamkill(death),
+                _ => new ScrimEventScoringResult(ScrimEventScorePointsSource.Default, 0, false)
+            };
         }
 
         private async Task<ScrimEventScoringResult> ScoreKill(ScrimDeathActionEvent death)
