@@ -7,7 +7,7 @@ namespace squittal.ScrimPlanetmans.Services
 {
     public class SqlScriptRunner : ISqlScriptRunner
     {
-        private readonly string _sqlDirectory = "Data/SQL";
+        private readonly string _sqlDirectory = "Data\\SQL";
         private readonly string _basePath;
         private readonly string _scriptDirectory;
 
@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.Services
             _scriptDirectory = Path.Combine(_basePath, _sqlDirectory);
         }
 
-        public void RunSqlScript(string fileName)
+        public void RunSqlScript(string fileName, bool minimalLogging = false)
         {
             var scriptPath = Path.Combine(_scriptDirectory, fileName);
             
@@ -34,6 +34,11 @@ namespace squittal.ScrimPlanetmans.Services
                 string scriptText = scriptFileInfo.OpenText().ReadToEnd();
                 
                 _server.ConnectionContext.ExecuteNonQuery(scriptText);
+
+                if (!minimalLogging)
+                {
+                    _logger.LogInformation($"Successfully ran sql script at {scriptPath}");
+                }
             }
             catch (Exception ex)
             {
@@ -56,7 +61,7 @@ namespace squittal.ScrimPlanetmans.Services
                         continue;
                     }
 
-                    RunSqlScript(file);
+                    RunSqlScript(file, true);
                 }
             }
             catch (Exception ex)
