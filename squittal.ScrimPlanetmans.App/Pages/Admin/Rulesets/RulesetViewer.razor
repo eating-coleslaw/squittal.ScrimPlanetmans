@@ -26,10 +26,13 @@
             </h5>
 
             <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
-            <p style="margin-bottom: 0px; text-align: left;">@_renderedRuleset.DateCreated.ToString("f")</p>
+            <p style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</p>
+            @*<p style="margin-bottom: 0px; text-align: left;">@_renderedRuleset.DateCreated.ToString("f")</p>*@
+
 
             <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
-            <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>
+            <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? (GetLocalizedDateTimeString((DateTime)_renderedRuleset.DateLastModified)) : "--")</p>
+            @*<p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>*@
 
         </div>
 
@@ -211,6 +214,15 @@
     private bool IsActiveRuleset(int rulesetId)
     {
         return RulesetDataService.ActiveRulesetId == rulesetId;
+    }
+
+    private string GetLocalizedDateTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("f")}";
     }
 
     private void InvokeAsyncStateHasChanged()
