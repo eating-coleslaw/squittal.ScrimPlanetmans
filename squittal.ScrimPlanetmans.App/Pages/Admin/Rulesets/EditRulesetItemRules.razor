@@ -83,7 +83,7 @@
                                     @foreach (var itemCategory in _deferredItemCategories.Where(c => c.Domain == domain))
                                     {
                                         @*<option value=@itemCategory.ItemCategoryId.ToString() label="@itemCategory.ItemCategory.Name">@itemCategory.ItemCategory.Name (@itemCategory.ItemCategoryId)</option>*@
-                                        <option value=@itemCategory.Id.ToString() label="@itemCategory.Name">@itemCategory.Name (@itemCategory.Id)</option>
+                                        <option value=@itemCategory.Id.ToString() label="@itemCategory.Name [@itemCategory.Id]">@itemCategory.Name [@itemCategory.Id]</option>
                                     }
                                 }
                             </InputSelect>
