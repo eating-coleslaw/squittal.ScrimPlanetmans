@@ -60,6 +60,120 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             _itemCategoryService = itemCategoryService;
             _messageService = messageService;
             _logger = logger;
+
+            _itemCategoryService.RaiseStoreRefreshEvent += async (s, e) => await HandleItemCategoryStoreRefreshEvent(s, e);
+            _itemService.RaiseStoreRefreshEvent += async (s, e) => await HandleItemStoreRefreshEvent(s, e);
+        }
+
+        private async Task HandleItemCategoryStoreRefreshEvent(object sender, StoreRefreshMessageEventArgs e)
+        {
+            //await Task.CompletedTask;
+
+            /*
+             * 1. Get list of Item Category IDs in the database
+             * 2. Get list of Ruleset IDs in the database (?include default ruleset ID?)
+             * 3. Foreach Ruleset ID:
+             *      3a. Determine list of Item Category IDs that are missing an Item Category rule for the ruleset
+             *      3b. Build collection of RulesetItemCategoryRules from the list of missing Item Category IDs
+             *      3c. Call SaveRulesetItemCategoryRules with the collection of RulesetItemCategoryRules
+             
+             *      3d. ??? Remove rules for Item Categories that don't exist anymore ??? I think the FK contrainsts already handle this
+             
+             * 4. ???
+            */
+
+            var refreshSource = Enum.GetName(typeof(StoreRefreshSource), e.RefreshSource);
+            _logger.LogInformation($"Updating rulesets post-Item Category Store Refresh. Source: {refreshSource}");
+
+            var storeItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
+
+            if (storeItemCategoryIds == null)
+            {
+                return;
+            }
+
+            var storeRulesets = await GetAllRulesetsAsync(CancellationToken.None);
+
+            foreach (var ruleset in storeRulesets)
+            {
+                var rulesetItemCategoryRules = await GetRulesetItemCategoryRulesAsync(ruleset.Id, CancellationToken.None);
+
+                var missingItemCategoryIds = storeItemCategoryIds.Where(id => !rulesetItemCategoryRules.Any(rule => rule.ItemCategoryId == id)).ToList();
+
+                if (!missingItemCategoryIds.Any())
+                {
+                    continue;
+                }
+
+                var newRules = missingItemCategoryIds.Select(id => BuildRulesetItemCategoryRule(ruleset.Id, id, 0));
+
+                await SaveRulesetItemCategoryRules(ruleset.Id, newRules);
+
+                _logger.LogInformation($"Updated Item Category Rules for Ruleset {ruleset.Id} post-Item Category Store Refresh. Source: {refreshSource}. New Rules: {newRules.Count()}");
+            }
+
+            _logger.LogInformation($"Finished updating rulesets post-Item Category Store Refresh. Source: {refreshSource}");
+        }
+
+        private async Task HandleItemStoreRefreshEvent(object sender, StoreRefreshMessageEventArgs e)
+        {
+            //await Task.CompletedTask;
+
+            /*
+             * 1. Get list of weapon Item IDs in the database
+             * 2. Get list of Ruleset IDs in the database (?include default ruleset ID?)
+             * 3. Foreach Ruleset ID:
+             *      3a. Determine list of RulesetItemCategoryRules that have "Defer to Item Rules" = True
+             *      3b. Narrow list of Item Ids to those with Item Categories that defer to item rules
+             *      3c. Narrow list of Item Ids to those missing an Item rule for the ruleset
+             *      3d. Build collection of RulesetItemRules from the narrowed list of Item IDs
+             *      3e. Call SaveRulesetItemRules with the collection of RulesetItemRules
+             *      
+             *      3f. ??? Remove rules for Items that don't exist anymore ??? I think the FK contrainsts already handle this
+             *      
+             * 4. ???
+            */
+
+            var refreshSource = Enum.GetName(typeof(StoreRefreshSource), e.RefreshSource);
+            _logger.LogInformation($"Updating rulesets post-Item Store Refresh. Source: {refreshSource}");
+
+            var storeWeapons = await _itemService.GetAllWeaponItemsAsync();
+
+            if (storeWeapons == null)
+            {
+                return;
+            }
+
+            var storeRulesets = await GetAllRulesetsAsync(CancellationToken.None);
+
+            foreach (var ruleset in storeRulesets)
+            {
+                var deferredItemCategoryRules = await GetItemCategoriesDeferringToItemRules(ruleset.Id, CancellationToken.None);
+
+                if (!deferredItemCategoryRules.Any())
+                {
+                    continue;
+                }
+
+                var deferredToWeapons = storeWeapons.Where(w => deferredItemCategoryRules.Any(rule => rule.Id == w.ItemCategoryId)).ToList(); //.Select(w => w.Id); 
+
+                var rulesetItemRules = await GetRulesetItemRulesAsync(ruleset.Id, CancellationToken.None);
+
+                var missingItemIds = deferredToWeapons.Where(w => !rulesetItemRules.Any(rule => rule.ItemId == w.Id)).ToList();
+
+                if (!missingItemIds.Any())
+                {
+                    continue;
+                }
+
+                var newRules = missingItemIds.Select(w => BuildRulesetItemRule(ruleset.Id, w.Id, (int)w.ItemCategoryId, 0));
+
+                await SaveRulesetItemRules(ruleset.Id, newRules);
+
+                _logger.LogInformation($"Updated Item Rules for Ruleset {ruleset.Id} post-Item Category Store Refresh. Source: {refreshSource}. New Rules: {newRules.Count()}");
+            }
+
+            _logger.LogInformation($"Finished updating rulesets post-Item Store Refresh. Source: {refreshSource}");
         }
 
         #region GET methods
@@ -224,6 +338,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        #region GET Ruleset Rules
         public async Task<IEnumerable<RulesetActionRule>> GetRulesetActionRulesAsync(int rulesetId, CancellationToken cancellationToken)
         {
             try
@@ -529,6 +644,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 return null;
             }
         }
+        #endregion GET Ruleset Rules
+
         #endregion GET methods
 
 

@@ -27,6 +27,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly SemaphoreSlim _weaponCategoryMapSetUpSemaphore = new SemaphoreSlim(1);
         public string BackupSqlScriptFileName => "CensusBackups\\dbo.ItemCategory.Table.sql";
 
+        public event EventHandler<StoreRefreshMessageEventArgs> RaiseStoreRefreshEvent;
+        public delegate void StoreRefreshMessageEventHandler(object sender, StoreRefreshMessageEventArgs e);
+
+        protected virtual void OnRaiseStoreRefreshEvent(StoreRefreshMessageEventArgs e)
+        {
+            RaiseStoreRefreshEvent?.Invoke(this, e);
+        }
+
+        private void SendStoreRefreshEventMessage(StoreRefreshSource refreshSource)
+        {
+            OnRaiseStoreRefreshEvent(new StoreRefreshMessageEventArgs(refreshSource));
+        }
 
         private static readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
         {
@@ -48,7 +60,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             142, // Consolidated Decal
             143, // Attachments
             145, // ANT Utility
-            146, // Bount Contract
+            146, // Bounty Contract
             148  // ANT Harvesting Tool
         };
 
@@ -125,6 +137,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             15  // Flamethrower MAX
         };
 
+
         public ItemCategoryService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, ISqlScriptRunner sqlScriptRunner, ILogger<ItemCategoryService> logger)
         {
             _dbContextHelper = dbContextHelper;
@@ -133,6 +146,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _logger = logger;
         }
 
+        #region GET methods
         public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
         {
             if (ItemCategoriesMap == null || !ItemCategoriesMap.Any())
@@ -194,6 +208,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             return category;
         }
+        #endregion GET methods
 
         public async Task SetUpItemCategoriesListAsync()
         {
@@ -282,6 +297,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return _nonWeaponItemCategoryIds;
         }
 
+        #region Store Management methods
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
             bool anyCategories = false;
@@ -317,18 +333,28 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                     await SetUpWeaponCategoriesListAsync();
 
+                    // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
+                    //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
+
                     return;
                 }
             }
+
+            //var refreshSource = StoreRefreshSource.CensusApi;
 
             var success = await RefreshStoreFromCensus();
 
             if (!success && canUseBackupScript)
             {
                 RefreshStoreFromBackup();
+
+                //refreshSource = StoreRefreshSource.BackupSqlScript;
             }
 
             await SetUpWeaponCategoriesListAsync();
+
+            // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
+            //SendStoreRefreshEventMessage(refreshSource);
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -350,6 +376,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
+
+                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -459,6 +487,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         public void RefreshStoreFromBackup()
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
+
+        #endregion Store Management methods
     }
 }

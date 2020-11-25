@@ -29,6 +29,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         
         public string BackupSqlScriptFileName => "CensusBackups\\dbo.Item.Table.sql";
 
+        public event EventHandler<StoreRefreshMessageEventArgs> RaiseStoreRefreshEvent;
+        public delegate void StoreRefreshMessageEventHandler(object sender, StoreRefreshMessageEventArgs e);
+
+        protected virtual void OnRaiseStoreRefreshEvent(StoreRefreshMessageEventArgs e)
+        {
+            RaiseStoreRefreshEvent?.Invoke(this, e);
+        }
+
+        private void SendStoreRefreshEventMessage(StoreRefreshSource refreshSource)
+        {
+            OnRaiseStoreRefreshEvent(new StoreRefreshMessageEventArgs(refreshSource));
+        }
 
         public ItemService(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService,
             CensusItem censusItem, ISqlScriptRunner sqlScriptRunner, ILogger<ItemService> logger)
@@ -190,19 +202,29 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                     //await SetUpItemsListAsync();
                     await SetUpWeaponsMapAsync();
 
+                    // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
+                    //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
+
                     return;
                 }
             }
+
+            //var refreshSource = StoreRefreshSource.CensusApi;
 
             var success = await RefreshStoreFromCensus();
 
             if (!success && canUseBackupScript)
             {
                 RefreshStoreFromBackup();
+
+                //refreshSource = StoreRefreshSource.BackupSqlScript;
             }
 
             //await SetUpItemsListAsync();
             await SetUpWeaponsMapAsync();
+
+            // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
+            //SendStoreRefreshEventMessage(refreshSource);
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -225,6 +247,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(items.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Items store: {items.Count()} entries");
+
+                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -300,6 +324,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         public void RefreshStoreFromBackup()
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
     }
 }
