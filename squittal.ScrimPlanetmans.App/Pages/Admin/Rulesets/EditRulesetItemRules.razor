@@ -60,17 +60,9 @@
                         </div>
                     }
 
-                    @*<div class="tabbed-button-container" style="">
-                            <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
-                            <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
-                            <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
-                            <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
-                        </div>*@
-
                     <div style="margin-top: 4px; margin-bottom: 12px;">
                         @if (_itemCategoryDomains != null && _deferredItemCategories != null)
                         {
-                            @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_selectedItemCategoryIdString>*@
                             <div style="display: inline; margin-right: 4px;">Item Category:</div><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_selectedItemCategoryIdString" ValueChanged="@((string id) => OnSelectItemCategoryId(id))" ValueExpression="@(() => _selectedItemCategoryIdString)">
                                 <option value=@_noSelectedItemCategoryValue>None</option>
 
@@ -78,10 +70,8 @@
                                 {
                                     <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@GetItemCategoryDomainDescription(domain)</optgroup>
 
-                                    @*@foreach (var itemCategory in _deferredItemCategories.Where(c => c.ItemCategory.Domain == domain))*@
                                     @foreach (var itemCategory in _deferredItemCategories.Where(c => c.Domain == domain))
                                     {
-                                        @*<option value=@itemCategory.ItemCategoryId.ToString() label="@itemCategory.ItemCategory.Name">@itemCategory.ItemCategory.Name (@itemCategory.ItemCategoryId)</option>*@
                                         <option value=@itemCategory.Id.ToString() label="@itemCategory.Name [@itemCategory.Id]">@itemCategory.Name [@itemCategory.Id]</option>
                                     }
                                 }
@@ -150,7 +140,6 @@
 
     private IEnumerable<RulesetItemRule> _itemRules { get; set; }
 
-    //private IEnumerable<RulesetItemCategoryRule> _deferredItemCategories { get; set; }
     private IEnumerable<ItemCategory> _deferredItemCategories { get; set; }
     private IEnumerable<ItemCategoryDomain> _itemCategoryDomains { get; set; }
 
@@ -238,9 +227,6 @@
             var itemRulesTask = RulesetDataService.GetRulesetItemRulesAsync(_renderedRulesetId, cts.Token);
             TaskList.Add(itemRulesTask);
 
-            //cts.Token.ThrowIfCancellationRequested();
-
-            //var deferredItemCategoriesTask = RulesetDataService.GetRulesetItemCategoryRulesDeferringToItemRules(_renderedRulesetId, cts.Token);
             var deferredItemCategoriesTask = RulesetDataService.GetItemCategoriesDeferringToItemRules(_renderedRulesetId, cts.Token);
             TaskList.Add(deferredItemCategoriesTask);
 
@@ -253,7 +239,6 @@
 
             if (_deferredItemCategories != null)
             {
-                //_itemCategoryDomains = _deferredItemCategories.Select(c => c.ItemCategory.Domain).Distinct().ToList();
                 _itemCategoryDomains = _deferredItemCategories.Select(c => c.Domain).Distinct().ToList();
             }
 
@@ -264,7 +249,6 @@
 
             _changesCount = 0;
 
-            //if (!_deferredItemCategories.Any(e => e.ItemCategoryId == _selectedItemCategoryId))
             if (!_deferredItemCategories.Any(e => e.Id == _selectedItemCategoryId))
             {
                 OnSelectItemCategoryId(_noSelectedItemCategoryValue.ToString());
@@ -299,7 +283,6 @@
 
         var changeType = e.Message.RuleChangeType;
 
-        //if (changeType != RulesetRuleChangeType.ItemCategoryRule && changeType != RulesetRuleChangeType.ItemRule)
         if (changeType != RulesetRuleChangeType.ItemCategoryRule)
         {
             return;
@@ -307,8 +290,6 @@
         else if (_changesCount == 0)
         {
             await LoadRulesAsync();
-
-            //await OnRefreshRules();
         }
         else
         {
@@ -430,12 +411,6 @@
             InvokeAsyncStateHasChanged();
 
             await RulesetDataService.SaveRulesetItemRules(_renderedRulesetId, _changedRules.Values.AsEnumerable());
-
-            //foreach (var idRulePair in _changedRules)
-            //{
-            //    _itemRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().Points = idRulePair.Value.Points;
-            //    _itemRules.Where(r => r.ItemCategoryId == idRulePair.Key).FirstOrDefault().IsBanned = idRulePair.Value.IsBanned;
-            //}
 
             _originalRulePoints.Clear();
             _originalRuleBans.Clear();

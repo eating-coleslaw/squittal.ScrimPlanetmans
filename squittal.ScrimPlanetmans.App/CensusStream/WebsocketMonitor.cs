@@ -155,8 +155,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var subscribedWorldIdString = SubscribedWorldId == null ? "null" : ((int)SubscribedWorldId).ToString();
 
             _logger.LogInformation($"SubscribedWorldId changed: {oldWorldIdString} => {subscribedWorldIdString}");
-
-            //SubscribedWorldId = worldId;
         }
         #endregion Subscription Setup
 
@@ -400,9 +398,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             SetFacilitySubscription(matchConfiguration.FacilityId);
             SetWorldSubscription(matchConfiguration.WorldId);
-
-            //SubscribedFacilityId = matchConfiguration.FacilityId;
-            //SubscribedWorldId = matchConfiguration.WorldId;
 
             if (matchConfiguration.SaveEventsToDatabase)
             {
