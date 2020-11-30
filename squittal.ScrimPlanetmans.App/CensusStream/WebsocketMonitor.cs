@@ -127,6 +127,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             var oldFacilityId = SubscribedFacilityId;
 
+            if (facilityId == oldFacilityId)
+            {
+                return;
+            }
+
             SubscribedFacilityId = facilityId;
 
             var oldFacilityIdString = oldFacilityId == null ? "null" : ((int)oldFacilityId).ToString();
@@ -139,6 +144,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             var oldWorldId = SubscribedWorldId;
 
+            if (worldId == oldWorldId)
+            {
+                return;
+            }
+
             SubscribedWorldId = worldId;
 
             var oldWorldIdString = oldWorldId == null ? "null" : ((int)oldWorldId).ToString();
@@ -146,7 +156,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _logger.LogInformation($"SubscribedWorldId changed: {oldWorldIdString} => {subscribedWorldIdString}");
 
-            SubscribedWorldId = worldId;
+            //SubscribedWorldId = worldId;
         }
         #endregion Subscription Setup
 
@@ -356,7 +366,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                         ? $"FacilityControl payload matching World & Facility detected. {idsString}. Payload={payload}"
                                         : $"FacilityControl payload matching World but not Facility detected. {idsString}. Payload={payload}";
 
-                _logger.LogInformation(matchMessage);
+                //_logger.LogInformation(matchMessage);
+                _logger.LogDebug(matchMessage);
             }
 
             return (matchesFacility && matchesWorld);
