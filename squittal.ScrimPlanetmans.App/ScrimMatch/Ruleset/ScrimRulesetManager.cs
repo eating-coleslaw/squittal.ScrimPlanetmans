@@ -28,6 +28,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly int _defaultRulesetId = 1;
 
+        private readonly AutoResetEvent _activateRulesetAutoEvent = new AutoResetEvent(true);
 
         public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IItemService itemService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
         {
@@ -37,6 +38,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _rulesetDataService = rulesetDataService;
             _messageService = messageService;
             _logger = logger;
+
+            _messageService.RaiseRulesetRuleChangeEvent += async (s, e) => await HandleRulesetRuleChangeMesssage(s, e);
         }
 
         public async Task<IEnumerable<Ruleset>> GetRulesetsAsync(CancellationToken cancellationToken)
@@ -64,12 +67,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<Ruleset> ActivateRulesetAsync(int rulesetId)
         {
+            _activateRulesetAutoEvent.WaitOne();
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                Ruleset currentActiveRuleset =null;
+                Ruleset currentActiveRuleset = null;
                 
                 if (ActiveRuleset != null)
                 {
@@ -77,6 +82,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 
                     if (rulesetId == currentActiveRuleset.Id)
                     {
+                        _activateRulesetAutoEvent.Set();
+
                         return currentActiveRuleset;
                     }
                 }
@@ -85,6 +92,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (newActiveRuleset == null)
                 {
+                    _activateRulesetAutoEvent.Set();
+                    
                     return null;
                 }
 
@@ -98,11 +107,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 _messageService.BroadcastActiveRulesetChangeMessage(message);
 
+                _activateRulesetAutoEvent.Set();
+
                 return ActiveRuleset;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
+
+                _activateRulesetAutoEvent.Set();
+
                 return null;
             }
         }
@@ -135,22 +149,59 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task SetUpActiveRulesetAsync()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
+            _activateRulesetAutoEvent.WaitOne();
 
-            var ruleset = ActiveRuleset;
-
-            if (ruleset == null)
+            try
             {
-                _logger.LogError($"Failed to set up active ruleset: no ruleset found");
-                return;
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var currentActiveRuleset = ActiveRuleset;
+
+                if (currentActiveRuleset == null)
+                {
+                    _logger.LogError($"Failed to set up active ruleset: no ruleset found");
+
+                    _activateRulesetAutoEvent.Set();
+
+                    return;
+                }
+
+                var tempRuleset = await _rulesetDataService.GetRulesetFromIdAsync(currentActiveRuleset.Id, CancellationToken.None);
+
+                if (tempRuleset == null)
+                {
+                    _logger.LogError($"Failed to set up active ruleset: temp ruleset is null");
+
+                    _activateRulesetAutoEvent.Set();
+
+                    return;
+                }
+
+                ActiveRuleset = tempRuleset;
+
+                _rulesetDataService.SetActiveRulesetId(ActiveRuleset.Id);
+
+                _logger.LogInformation($"Active ruleset collections loaded: {ActiveRuleset.Name}");
+
+                _activateRulesetAutoEvent.Set();
             }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to set up active ruleset: {ex}");
 
-            ActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(ruleset.Id, CancellationToken.None);
+                _activateRulesetAutoEvent.Set();
+            }
+        }
 
-            _rulesetDataService.SetActiveRulesetId(ActiveRuleset.Id);
+        private async Task HandleRulesetRuleChangeMesssage(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
+        {
+            var changedRulesetId = e.Message.Ruleset.Id;
 
-            _logger.LogInformation($"Active ruleset collections loaded: {ActiveRuleset.Name}");
+            if (changedRulesetId == ActiveRuleset.Id)
+            {
+                await SetUpActiveRulesetAsync();
+            }
         }
 
         public async Task<Ruleset> GetDefaultRulesetAsync()
