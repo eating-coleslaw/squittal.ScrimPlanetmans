@@ -58,7 +58,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                         ? $"[{player.OutfitAlias}] "
                                         : string.Empty;
 
-                return $"{actionDisplay} KILL: {outfitDisplay}{playerName} <{weaponName}> {otherCharacterId}";
+                return $"{actionDisplay} KILL: {outfitDisplay}{playerName} {{{weaponName}}} {otherCharacterId}";
             }
             else
             {
