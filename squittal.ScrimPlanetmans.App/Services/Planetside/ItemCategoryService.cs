@@ -333,28 +333,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                     await SetUpWeaponCategoriesListAsync();
 
-                    // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
-                    //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
-
                     return;
                 }
             }
-
-            //var refreshSource = StoreRefreshSource.CensusApi;
 
             var success = await RefreshStoreFromCensus();
 
             if (!success && canUseBackupScript)
             {
                 RefreshStoreFromBackup();
-
-                //refreshSource = StoreRefreshSource.BackupSqlScript;
             }
 
             await SetUpWeaponCategoriesListAsync();
-
-            // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
-            //SendStoreRefreshEventMessage(refreshSource);
         }
 
         public async Task<bool> RefreshStoreFromCensus()

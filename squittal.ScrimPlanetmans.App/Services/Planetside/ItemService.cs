@@ -199,32 +199,20 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyItems = await dbContext.Items.AnyAsync();
                 if (anyItems)
                 {
-                    //await SetUpItemsListAsync();
                     await SetUpWeaponsMapAsync();
-
-                    // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
-                    //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                     return;
                 }
             }
-
-            //var refreshSource = StoreRefreshSource.CensusApi;
 
             var success = await RefreshStoreFromCensus();
 
             if (!success && canUseBackupScript)
             {
                 RefreshStoreFromBackup();
-
-                //refreshSource = StoreRefreshSource.BackupSqlScript;
             }
 
-            //await SetUpItemsListAsync();
             await SetUpWeaponsMapAsync();
-
-            // TODO: trigger "Store Refreshed" event to be picked up by RulesetDataService
-            //SendStoreRefreshEventMessage(refreshSource);
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -233,7 +221,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             try
             {
-                //items = await _censusItem.GetAllItems();
                 items = await _censusItem.GetAllWeaponItems();
             }
             catch
@@ -309,7 +296,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<int> GetCensusCountAsync()
         {
-            //return await _censusItem.GetItemsCount();
             return await _censusItem.GetWeaponItemsCount();
         }
 
