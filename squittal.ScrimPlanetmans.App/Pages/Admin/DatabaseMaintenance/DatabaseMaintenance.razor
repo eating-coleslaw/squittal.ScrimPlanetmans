@@ -18,7 +18,6 @@
 
                 @if (_comparisons != null && _comparisons.Any())
                 {
-                    @*<table class="table-responsive-sm table-striped-light sans-serif-font">*@
                     <table class="table-responsive-sm table-striped-light mono-font ">
                         <thead>
                             <tr>
@@ -54,7 +53,6 @@
                         <div style="margin-bottom: 0.2rem; display: inline-block;">
                             <span style="margin-bottom: 0.2rem;">Select SQL File:</span>
 
-                            @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem; margin-bottom: 0.2rem;" Value="@_selectedAdHocSqlFile" ValueChanged="@((string s) => HandleOnChangeConstructedTeamSelection(s))" ValueExpression="@(() => _inputConstructedTeamFactionSelection.ConstructedTeamStringId)">*@
                             <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem; margin-bottom: 0.2rem;" @bind-Value="@_selectedAdHocSqlFile">
                                 <option value=@string.Empty style="font-style: italic;">No File Selected</option>
 
@@ -96,20 +94,7 @@
                         <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="ClearAdHocInfoString" title="Close message">
                             <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
                         </button>
-                        @*<button type="submit" @onclick="ClearAdHocInfoString" class="btn btn-outline-primary" style="display: inline-block;">
-                            <span class="oi oi-media-play"></span>
-                        </button>*@
                     </div>
-                    
-                        <!--<div style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 2px 8px 2px 8px; display: inline-block;">
-                            <span style="margin-right: 8px; margin-left: 4px;">@_adHocInfo</span>
-                            <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="ClearAdHocInfoString" title="Close message">
-                                <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                            </button>-->
-                            @*<button type="submit" @onclick="ClearAdHocInfoString" class="btn btn-outline-primary" style="display: inline-block;">
-                                <span class="oi oi-media-play"></span>
-                            </button>*@
-                        <!--</div>-->
                 }
 
             </div>
