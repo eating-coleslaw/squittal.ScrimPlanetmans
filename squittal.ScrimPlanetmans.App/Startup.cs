@@ -44,7 +44,7 @@ namespace squittal.ScrimPlanetmans.App
                                                 maxRetryDelay: TimeSpan.FromSeconds(30),
                                                 errorNumbersToAdd: null);
                                         })
-                        .EnableSensitiveDataLogging(true));
+                        .EnableSensitiveDataLogging(false));
 
 
             services.AddCensusServices(options =>
@@ -87,7 +87,6 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IConstructedTeamService, ConstructedTeamService>();
 
             services.AddSingleton<IRulesetDataService, RulesetDataService>();
-            //services.AddTransient<IRulesetDataService, RulesetDataService>();
 
             services.AddTransient<IScrimMatchReportDataService, ScrimMatchReportDataService>();
 
