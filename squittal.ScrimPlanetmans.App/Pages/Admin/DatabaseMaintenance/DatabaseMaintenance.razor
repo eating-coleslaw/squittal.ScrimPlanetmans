@@ -10,31 +10,108 @@
 
         <div class="col-lg-7" style="margin-left: auto; margin-right: auto; margin-top: 16px;">
 
-            <div class="header-card-container default">
+            <div class="header-card-container default sans-serif-font">
 
-            <h5>Database Maintenance</h5>
+                <h4 class="sans-serif-font">Database Maintenance</h4>
 
-            @if (_comparisons != null && _comparisons.Any())
-            {
-                <table class="table-responsive-sm table-striped-light mono-font ">
-                    <thead>
-                        <tr>
-                            <th style="vertical-align: bottom;">Collection</th>
-                            <th colspan="2" style="text-align: right;">Database<br/>Count</th>
-                            <th colspan="2" style="text-align: right;">Census<br />Count</th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
+                <h5 class="sans-serif-font" style="margin: 0;">Planetside Collections</h5>
 
-                    <tbody>
-                        @foreach (var comparison in _comparisons)
+                @if (_comparisons != null && _comparisons.Any())
+                {
+                    @*<table class="table-responsive-sm table-striped-light sans-serif-font">*@
+                    <table class="table-responsive-sm table-striped-light mono-font ">
+                        <thead>
+                            <tr>
+                                <th style="vertical-align: bottom;">Collection</th>
+                                <th colspan="2" style="text-align: right;">Database<br />Count</th>
+                                <th colspan="2" style="text-align: right;">Census<br />Count</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var comparison in _comparisons)
+                            {
+                                <DatabaseMaintenanceComparisonRow i_comparison="@comparison" />
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                <h5 style="margin: 0.5rem 0 0 0;">Run Ad-Hoc SQL Scripts</h5>
+
+                <p style="margin: 0 0 0.1rem 0; font-size: 0.9rem;" class="sans-serif-font">
+                    <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; vertical-align: baseline;" @onclick="UpdateAdHocSqlFileNames">Refresh</button>
+                </p>
+
+                @if (_adhocSqlFiles.Any())
+                {
+                    <EditForm Model="@_selectedAdHocSqlFile" style="display: inline-block; font-size: 0.9rem;"  class="sans-serif-font">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div style="margin-bottom: 0.2rem; display: inline-block;">
+                            <span style="margin-bottom: 0.2rem;">Select SQL File:</span>
+
+                            @*<InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem; margin-bottom: 0.2rem;" Value="@_selectedAdHocSqlFile" ValueChanged="@((string s) => HandleOnChangeConstructedTeamSelection(s))" ValueExpression="@(() => _inputConstructedTeamFactionSelection.ConstructedTeamStringId)">*@
+                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem; margin-bottom: 0.2rem;" @bind-Value="@_selectedAdHocSqlFile">
+                                <option value=@string.Empty style="font-style: italic;">No File Selected</option>
+
+                                @foreach (var fileName in _adhocSqlFiles)
+                                {
+                                    <option value=@fileName label="@fileName"></option>
+                                }
+                            </InputSelect>
+
+                            @if (!string.IsNullOrWhiteSpace(_selectedAdHocSqlFile))
+                            {
+                                <button type="submit" class="btn btn-outline-primary" @onclick="TryRunSelectedAdHocSqlFile" style="display: inline-block;">
+                                    <span class="oi oi-media-play"></span>Run
+                                </button>
+                            }
+                            else
+                            {
+                                <button disabled type="submit" class="btn btn-outline-primary disabled" style="display: inline-block;">
+                                    <span class="oi oi-media-play"></span>Run
+                                </button>
+                            }
+                        </div>
+
+                    </EditForm>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_adHocInfo))
+                {
+                    <div style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 2px 8px 2px 8px; display: inline-block;">
+                        @if (_adHocWasSuccess == true)
                         {
-                            <DatabaseMaintenanceComparisonRow i_comparison="@comparison" />
+                            <span class="oi oi-check" style="font-size: 0.7rem; top: 0; color: var(--sq-ov-semantic-green);"></span>
                         }
-                    </tbody>
-                </table>
-            }
+                        else
+                        {
+                            <span class="oi oi-warning" style="font-size: 0.7rem; top: 0; color: var(--sq-ov-semantic-red);"></span>
+                        }
+                        <span style="margin-right: 8px; margin-left: 4px;">@_adHocInfo</span>
+                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="ClearAdHocInfoString" title="Close message">
+                            <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                        </button>
+                        @*<button type="submit" @onclick="ClearAdHocInfoString" class="btn btn-outline-primary" style="display: inline-block;">
+                            <span class="oi oi-media-play"></span>
+                        </button>*@
+                    </div>
+                    
+                        <!--<div style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 2px 8px 2px 8px; display: inline-block;">
+                            <span style="margin-right: 8px; margin-left: 4px;">@_adHocInfo</span>
+                            <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="ClearAdHocInfoString" title="Close message">
+                                <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                            </button>-->
+                            @*<button type="submit" @onclick="ClearAdHocInfoString" class="btn btn-outline-primary" style="display: inline-block;">
+                                <span class="oi oi-media-play"></span>
+                            </button>*@
+                        <!--</div>-->
+                }
+
             </div>
         </div>
     </div>
@@ -44,9 +121,52 @@
 @code {
     private List<CensusStoreDataComparisonRow> _comparisons = new List<CensusStoreDataComparisonRow>();
 
+    private List<string> _adhocSqlFiles = new List<string>();
+
+    private string _selectedAdHocSqlFile = string.Empty;
+
+    private string _adHocInfo = string.Empty;
+
+    private bool? _adHocWasSuccess = null;
 
     protected override void OnInitialized()
     {
         _comparisons = DbMaintenance.Comparisons;
+
+        UpdateAdHocSqlFileNames();
+    }
+
+    private void UpdateAdHocSqlFileNames()
+    {
+        var fileNames = DbMaintenance.GetAdHocSqlFileNames();
+        _adhocSqlFiles = fileNames.ToList();
+    }
+
+    private void TryRunSelectedAdHocSqlFile()
+    {
+        if (string.IsNullOrWhiteSpace(_selectedAdHocSqlFile))
+        {
+            return;
+        }
+
+        var success = DbMaintenance.TryRunAdHocSqlScript(_selectedAdHocSqlFile, out var info);
+
+        if (success)
+        {
+            ClearAdHocInfoString();
+            _adHocInfo = info;
+            _adHocWasSuccess = true;
+        }
+        else
+        {
+            _adHocInfo = info;
+            _adHocWasSuccess = false;
+        }
+    }
+
+    private void ClearAdHocInfoString()
+    {
+        _adHocInfo = string.Empty;
+        _adHocWasSuccess = null;
     }
 }

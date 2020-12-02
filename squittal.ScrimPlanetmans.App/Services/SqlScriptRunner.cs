@@ -10,6 +10,7 @@ namespace squittal.ScrimPlanetmans.Services
         private readonly string _sqlDirectory = "Data\\SQL";
         private readonly string _basePath;
         private readonly string _scriptDirectory;
+        private readonly string _adhocScriptDirectory;
 
         private readonly Server _server = new Server("(LocalDB)\\MSSQLLocalDB");
 
@@ -21,6 +22,8 @@ namespace squittal.ScrimPlanetmans.Services
 
             _basePath = AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
             _scriptDirectory = Path.Combine(_basePath, _sqlDirectory);
+
+            _adhocScriptDirectory = Path.GetFullPath(Path.Combine(_basePath, "..", "..", "..", "..\\sql_adhoc"));
         }
 
         public void RunSqlScript(string fileName, bool minimalLogging = false)
@@ -43,6 +46,37 @@ namespace squittal.ScrimPlanetmans.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Error running sql script {scriptPath}: {ex}");
+            }
+        }
+
+        public bool TryRunAdHocSqlScript(string fileName, out string info, bool minimalLogging = false)
+        {
+            var scriptPath = Path.Combine(_adhocScriptDirectory, fileName);
+
+            try
+            {
+                var scriptFileInfo = new FileInfo(scriptPath);
+
+                string scriptText = scriptFileInfo.OpenText().ReadToEnd();
+
+                _server.ConnectionContext.ExecuteNonQuery(scriptText);
+
+                info = $"Successfully ran sql script at {scriptPath}";
+
+                if (!minimalLogging)
+                {
+                    _logger.LogInformation(info);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                info = $"Error running sql script {scriptPath}: {ex}";
+
+                _logger.LogError(info);
+
+                return false;
             }
         }
 
