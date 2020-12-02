@@ -85,6 +85,10 @@
     <Compile Remove="Migrations\20201009141541_RemoveRulesetRuleForeignKeys.Designer.cs" />
     <Compile Remove="Migrations\20201009142315_RemoveRulesetRuleForeignKeys.cs" />
     <Compile Remove="Migrations\20201009142315_RemoveRulesetRuleForeignKeys.Designer.cs" />
+    <Compile Remove="Migrations\20201011174957_AddIsDeprecatedToMapRegionModel.cs" />
+    <Compile Remove="Migrations\20201011174957_AddIsDeprecatedToMapRegionModel.Designer.cs" />
+    <Compile Remove="Migrations\20201011190616_AddIsCurrentToMapRegionModel.cs" />
+    <Compile Remove="Migrations\20201011190616_AddIsCurrentToMapRegionModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -136,6 +140,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_ItemCategoryDomainAndIsWeapon.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_MapRegionsTable.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetActionRuleDeferToItemCategoryRules.sql">

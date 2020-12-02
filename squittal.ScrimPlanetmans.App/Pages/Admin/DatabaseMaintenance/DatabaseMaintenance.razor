@@ -53,7 +53,7 @@
                         <div style="margin-bottom: 0.2rem; display: inline-block;">
                             <span style="margin-bottom: 0.2rem;">Select SQL File:</span>
 
-                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem; margin-bottom: 0.2rem;" @bind-Value="@_selectedAdHocSqlFile">
+                            <InputSelect style="margin-right: 5px; width: 350px; padding: 0.1rem; margin-bottom: 0.2rem;" @bind-Value="@_selectedAdHocSqlFile">
                                 <option value=@string.Empty style="font-style: italic;">No File Selected</option>
 
                                 @foreach (var fileName in _adhocSqlFiles)

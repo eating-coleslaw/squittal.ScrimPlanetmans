@@ -87,20 +87,12 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task SetUpScrimmableMapRegionsAsync()
         {
-            //var realZones = new List<int> { 2, 4, 6, 8 };
-            //var scrimFacilityTypes = new List<int> { 5, 6}; // Small Outpost, Large Outpost
-
             await _mapSetUpSemaphore.WaitAsync();
 
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
-
-                //var storeRegions = await dbContext.MapRegions
-                //                                    .Where(region => realZones.Contains(region.ZoneId)
-                //                                                        && scrimFacilityTypes.Contains(region.FacilityTypeId))
-                //                                    .ToListAsync();
 
                 var storeRegions = await GetAllStoredScrimmableZoneMapRegionsAsync();
 
@@ -158,33 +150,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             if (onlyQueryCensusIfEmpty)
             {
-                //using var factory = _dbContextHelper.GetFactory();
-                //var dbContext = factory.GetDbContext();
-
-                //var anyMapRegions = await dbContext.MapRegions.AnyAsync();
-
-                //if (anyMapRegions)
-                //{
-                //    await SetUpScrimmableMapRegionsAsync();
-
-                //    return;
-                //}
-
                 if (await GetStoreCountAsync() > 0)
                 {
                     await SetUpScrimmableMapRegionsAsync();
 
                     return;
                 }
-
             }
 
-            var success = await RefreshStoreFromCensus();
-
-            if (!success && canUseBackupScript)
+            // Always use backup script if available to get old bases that aren't in the Census API
+            if (canUseBackupScript)
             {
                 RefreshStoreFromBackup();
             }
+
+            await RefreshStoreFromCensus();
 
             await SetUpScrimmableMapRegionsAsync();
         }
@@ -225,59 +205,84 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            //var storedEntities = await dbContext.MapRegions.ToListAsync();
-
             var storeEntities = await GetAllStoreMapRegionsAsync();
 
-            //foreach (var censusEntity in censusEntities.Where(e => e.FacilityId != 0))
-            foreach (var censusEntity in censusEntities)
+            var allEntities = new List<MapRegion>(censusEntities.Select(e => new MapRegion() { Id = e.Id, FacilityId = e.FacilityId }));
+
+            allEntities.AddRange(storeEntities
+                                    .Where(s => !allEntities.Any(c => c.Id == s.Id && c.FacilityId == s.FacilityId))
+                                    .Select(e => new MapRegion() { Id = e.Id, FacilityId = e.FacilityId }));
+
+            foreach (var entity in allEntities)
             {
-                var storeEntity = storeEntities.FirstOrDefault(e => e.Id == censusEntity.Id && e.FacilityId == censusEntity.FacilityId);
-                var storeMapRegion = storeEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
+                var censusEntity = censusEntities.FirstOrDefault(e => e.Id == entity.Id && e.FacilityId == entity.FacilityId);
+                var censusMapRegion = censusEntities.FirstOrDefault(e => e.Id == entity.Id);
 
-                if (storeEntity == null)
+                var storeEntity = storeEntities.FirstOrDefault(e => e.Id == entity.Id && e.FacilityId == entity.FacilityId);
+                var storeMapRegion = storeEntities.FirstOrDefault(e => e.Id == entity.Id);
+
+                if (censusEntity != null)
                 {
-                    // Brand New MapRegion
-                    if (storeMapRegion == null)
+                    if (storeEntity == null)
                     {
-                        createdEntities.Add(censusEntity);
-                    }
-                    // Existing MapRegion overwritten with new FacilityID
-                    else if (censusEntity.FacilityId != 0)
-                    {
-                        createdEntities.Add(censusEntity);
+                        // Brand New MapRegion
+                        if (storeMapRegion == null)
+                        {
+                            censusEntity.IsDeprecated = false;
+                            censusEntity.IsCurrent = true;
+                    
+                            createdEntities.Add(censusEntity);
+                        }
+                        // Existing MapRegion overwritten with new FacilityID
+                        else if (censusEntity.FacilityId != 0)
+                        {
+                            censusEntity.IsDeprecated = false;
+                            censusEntity.IsCurrent = true;
+                        
+                            createdEntities.Add(censusEntity);
 
-                        storeEntity = storeMapRegion;
-                        storeEntity.IsDeprecated = true;
-                        storeEntity.IsCurrent = false;
+                            storeEntity = storeMapRegion;
+                            storeEntity.IsDeprecated = true;
+                            storeEntity.IsCurrent = false;
 
-                        dbContext.MapRegions.Update(storeEntity);
+                            dbContext.MapRegions.Update(storeEntity);
+                        }
+                        // Existing MapRegion is Deleted with no replacement, but still shows up in the Census API
+                        else
+                        {
+                            storeEntity = storeMapRegion;
+                            storeEntity.IsDeprecated = true;
+                            storeEntity.IsCurrent = true;
+
+                            dbContext.MapRegions.Update(storeEntity);
+                        }
                     }
-                    // Existing MapRegion is Deleted with no replacement
+                    // Existing MapRegion updated somehow
                     else
                     {
-                        storeEntity = storeMapRegion;
-                        storeEntity.IsDeprecated = true;
+                        storeEntity = censusEntity;
+
+                        storeEntity.IsDeprecated = false;
                         storeEntity.IsCurrent = true;
 
                         dbContext.MapRegions.Update(storeEntity);
                     }
                 }
-                else //if (censusEntity.FacilityId != 0)
+                // Existing MapRegion is Deleted with no replacement, and doesn't show up in the Census API
+                else
                 {
-                    // Existing MapRegion updated somehow
-                    storeEntity = censusEntity;
+                    if (storeEntity != null)
+                    {
+                        storeEntity.IsDeprecated = true;
+                        storeEntity.IsCurrent = (censusMapRegion != null && censusMapRegion.Id == storeEntity.Id) ? false : true;
 
-                    storeEntity.IsDeprecated = false;
-                    storeEntity.IsCurrent = true;
-
-                    dbContext.MapRegions.Update(storeEntity);
+                        dbContext.MapRegions.Update(storeEntity);
+                    }
                 }
             }
 
             if (createdEntities.Any())
             {
-                //await dbContext.MapRegions.AddRangeAsync(createdEntities);
                 dbContext.MapRegions.AddRange(createdEntities);
             }
 

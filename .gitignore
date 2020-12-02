@@ -344,3 +344,4 @@ match_logs/*.txt
 rulesets/*.json
 /_stream test images
 /sql_adhoc/test_file.sql
+*.sql

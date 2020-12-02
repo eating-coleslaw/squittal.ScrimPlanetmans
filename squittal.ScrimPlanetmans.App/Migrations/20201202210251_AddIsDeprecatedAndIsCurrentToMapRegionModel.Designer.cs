@@ -10,8 +10,8 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20201011190616_AddIsCurrentToMapRegionModel")]
-    partial class AddIsCurrentToMapRegionModel
+    [Migration("20201202210251_AddIsDeprecatedAndIsCurrentToMapRegionModel")]
+    partial class AddIsDeprecatedAndIsCurrentToMapRegionModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -924,14 +924,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsCurrent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeprecated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<int>("ZoneId")
                         .HasColumnType("int");
