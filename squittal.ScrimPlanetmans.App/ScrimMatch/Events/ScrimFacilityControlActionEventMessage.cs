@@ -31,7 +31,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             var pointsDisplay = GetPointsDisplay(FacilityControl.Points);
 
-            return $"Team {teamOrdinal} {actionDisplay} {controlTypeDisplay}: {pointsDisplay} {facilityName} [{facilityId}]";
+            var bannedDisplay = FacilityControl.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {teamOrdinal} {actionDisplay} {controlTypeDisplay}: {pointsDisplay} {facilityName} [{facilityId}]";
         }
     }
 }

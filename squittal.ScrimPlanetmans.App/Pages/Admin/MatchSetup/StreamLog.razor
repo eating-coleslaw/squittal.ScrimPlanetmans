@@ -1,6 +1,6 @@
-﻿@using Newtonsoft.Json.Linq;
-@using squittal.ScrimPlanetmans.Models.MessageLogs;
+﻿@using squittal.ScrimPlanetmans.Models.MessageLogs;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Collections.Concurrent;
 
@@ -9,6 +9,16 @@
 @implements IDisposable
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Stream Log</p>
+
+@*<div style="margin: 0.2rem 0; font-size: 12px;" title="Unselect to hide OutsideInterference messages">
+    <EditForm Model="@_displayOutsideInterferenceMessages">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <InputCheckbox id="showInterferenceCheckBox" @bind-Value="_displayOutsideInterferenceMessages" style="position: relative; top: 1px; font-size: 12px;" /> Outside Inferference
+    </EditForm>
+</div>*@
+
 <div style="height: 300px; overflow-y: auto; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
     @if (_streamLogMessages.Any())
     {
@@ -28,6 +38,8 @@
 @code {
     private List<TimestampedLogMessage> _streamLogMessages { get; set; } = new List<TimestampedLogMessage>();
     private ConcurrentQueue<TimestampedLogMessage> _logMessageQueue = new ConcurrentQueue<TimestampedLogMessage>();
+
+    private bool _displayOutsideInterferenceMessages = true;
 
     private int _logCount;
     private int _maxLogCount = 200;
@@ -74,37 +86,55 @@
     private void ReceiveDeathActionEvent(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
     {
         var message = e.Message;
-        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        var isOutsideInterference = message.DeathEvent.ActionType == ScrimActionType.OutsideInterference;
+
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp, isOutsideInterference);
     }
 
     private void ReceiveVehicleDestructionActionEvent(object sender, ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage> e)
     {
         var message = e.Message;
-        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        var isOutsideInterference = message.DestructionEvent.ActionType == ScrimActionType.OutsideInterference;
+
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp, isOutsideInterference);
     }
 
     private void ReceiveReviveActionEvent(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e)
     {
         var message = e.Message;
-        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        var isOutsideInterference = message.ReviveEvent.ActionType == ScrimActionType.OutsideInterference;
+
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp, isOutsideInterference);
     }
 
     private void ReceiveAssistActionEvent(object sender, ScrimMessageEventArgs<ScrimAssistActionEventMessage> e)
     {
         var message = e.Message;
-        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        var isOutsideInterference = message.AssistEvent.ActionType == ScrimActionType.OutsideInterference;
+
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp, isOutsideInterference);
     }
 
     private void ReceiveObjectiveTickActionEvent(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e)
     {
         var message = e.Message;
-        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        var isOutsideInterference = message.ObjectiveTickEvent.ActionType == ScrimActionType.OutsideInterference;
+
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp, isOutsideInterference);
     }
 
     private void ReceiveScrimFacilityControlActionEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
     {
         var message = e.Message;
-        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp);
+
+        var isOutsideInterference = message.FacilityControl.ActionType == ScrimActionType.OutsideInterference;
+
+        LogMessage(message.GetLogLevelInfoMarkupString(), message.Timestamp, isOutsideInterference);
     }
 
 
@@ -133,8 +163,13 @@
     //}
     #endregion Message Parsing
 
-    private void LogMessage(MarkupString message, DateTime timestamp)
+    private void LogMessage(MarkupString message, DateTime timestamp, bool isOutsideInterference)
     {
+        if (isOutsideInterference && !_displayOutsideInterferenceMessages)
+        {
+            return;
+        }
+
         var time = GetLocalizedTimeString(timestamp);
 
         var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";

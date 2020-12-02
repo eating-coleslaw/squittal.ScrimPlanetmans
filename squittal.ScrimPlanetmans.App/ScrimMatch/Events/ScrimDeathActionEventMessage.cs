@@ -97,7 +97,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = deathEvent.Weapon != null ? deathEvent.Weapon.Name : "Unknown weapon";
             var headshot = deathEvent.IsHeadshot ? "_" : "^";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {headshot} {{{weaponName}}} {victimOutfit}{victimName}";
+            var bannedDisplay = deathEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {headshot} {{{weaponName}}} {victimOutfit}{victimName}";
         }
 
         private string GetTeamkillInfo(ScrimDeathActionEvent deathEvent)
@@ -121,7 +123,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var pointsDisplay = GetPointsDisplay(deathEvent.Points);
             var weaponName = deathEvent.Weapon != null ? deathEvent.Weapon.Name : "Unknown weapon";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}}";
+            var bannedDisplay = deathEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}}";
         }
 
         //private string GetEnumValueName(ScrimActionType action)

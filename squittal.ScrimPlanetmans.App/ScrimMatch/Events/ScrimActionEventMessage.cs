@@ -50,7 +50,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
         private MarkupString GetErrorMarkupString(string info)
         {
-            return (MarkupString)$"<span style=\"color: red; font-weight: 700;\">{info}</span>";
+            //return (MarkupString)$"<span style=\"color: red; font-weight: 700;\">{info}</span>";
+            return (MarkupString)$"<span style=\"color: var(--sq-ov-semantic-red); font-weight: 700;\">{info}</span>";
         }
 
         public string GetPointsDisplay(int points)

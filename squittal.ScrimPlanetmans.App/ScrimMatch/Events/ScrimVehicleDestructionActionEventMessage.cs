@@ -101,7 +101,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
             var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}} {victimVehicleName} ({victimOutfit}{victimName})";
+            var bannedDisplay = destructionEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}} {victimVehicleName} ({victimOutfit}{victimName})";
         }
 
         private string GetTeamkillInfo(ScrimVehicleDestructionActionEvent destructionEvent)
@@ -127,7 +129,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
             var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) {{{weaponName}}}";
+            var bannedDisplay = destructionEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) {{{weaponName}}}";
         }
     }
 }

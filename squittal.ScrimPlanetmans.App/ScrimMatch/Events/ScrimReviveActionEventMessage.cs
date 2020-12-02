@@ -80,7 +80,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             var actionDisplay = GetEnumValueName(reviveEvent.ActionType);
 
-            return $"Team {medicTeam} {actionDisplay}: {medicOutfit}{medicName} [revived] {revivedOutfit}{revivedName}";
+            var bannedDisplay = reviveEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {medicTeam} {actionDisplay}: {medicOutfit}{medicName} [revived] {revivedOutfit}{revivedName}";
         }
     }
 }

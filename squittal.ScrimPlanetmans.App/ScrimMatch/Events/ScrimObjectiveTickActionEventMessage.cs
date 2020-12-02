@@ -33,7 +33,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var actionDisplay = GetEnumValueName(objectiveTickEvent.ActionType);
             var pointsDisplay = GetPointsDisplay(objectiveTickEvent.Points);
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName}";
+            var bannedDisplay = objectiveTickEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName}";
         }
     }
 }
