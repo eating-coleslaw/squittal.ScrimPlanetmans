@@ -60,7 +60,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         }
     }
 
-    //public class ScrimDamageAssistActionEvent : ScrimExperienceGainActionEvent
     public class ScrimAssistActionEvent : ScrimExperienceGainActionEvent
     {
         public Player AttackerPlayer { get; set; }

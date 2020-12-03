@@ -47,7 +47,6 @@
     #region Initilization Methods
     protected override void OnInitialized()
     {
-        //MessageService.RaiseSimpleMessageEvent += ReceiveSimpleMessageEvent;
         MessageService.RaiseScrimDeathActionEvent += ReceiveDeathActionEvent;
         MessageService.RaiseScrimVehicleDestructionActionEvent += ReceiveVehicleDestructionActionEvent;
 
@@ -59,7 +58,6 @@
 
     public void Dispose()
     {
-        //MessageService.RaiseSimpleMessageEvent -= ReceiveSimpleMessageEvent;
         MessageService.RaiseScrimDeathActionEvent -= ReceiveDeathActionEvent;
         MessageService.RaiseScrimVehicleDestructionActionEvent += ReceiveVehicleDestructionActionEvent;
 
@@ -71,18 +69,6 @@
     #endregion Initilization Methods
 
     #region  Event Handling
-    //private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
-    //{
-    //    var message = e.Message;
-
-    //    var payload = TryParseMessagePayload(message);
-    //    if (payload == null)
-    //    {
-    //        LogMessage((MarkupString)message, e.CreatedTime);
-    //        return;
-    //    }
-    //}
-
     private void ReceiveDeathActionEvent(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
     {
         var message = e.Message;
@@ -139,29 +125,6 @@
 
 
     #endregion Event Handling
-
-    #region Message Parsing
-    //private JToken TryParseMessagePayload(string message)
-    //{
-    //    if (message == null)
-    //    {
-    //        return null;
-    //    }
-
-    //    JToken jMsg;
-
-    //    try
-    //    {
-    //        jMsg = JToken.Parse(message).SelectToken("payload");
-    //    }
-    //    catch (Exception)
-    //    {
-    //        return null;
-    //    }
-
-    //    return jMsg;
-    //}
-    #endregion Message Parsing
 
     private void LogMessage(MarkupString message, DateTime timestamp, bool isOutsideInterference)
     {

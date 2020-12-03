@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.CensusStream
@@ -12,6 +11,5 @@ namespace squittal.ScrimPlanetmans.CensusStream
         void EnabledScoring();
         void EnabledEventStoring();
         void DisableEventStoring();
-        //void Process(JToken jPayload);
     }
 }

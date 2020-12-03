@@ -26,10 +26,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.HasOne(rule => rule.Item)
                 .WithOne();
 
-            //builder.HasOne(rule => rule.ItemCategory)
-            //    .WithMany();
-            //.HasForeignKey(Ruleset)
-
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.IsBanned).HasDefaultValue(false);
         }

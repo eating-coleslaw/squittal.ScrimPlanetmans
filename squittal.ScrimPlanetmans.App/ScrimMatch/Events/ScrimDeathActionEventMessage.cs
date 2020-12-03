@@ -127,22 +127,5 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}}";
         }
-
-        //private string GetEnumValueName(ScrimActionType action)
-        //{
-        //    return Enum.GetName(typeof(ScrimActionType), action);
-        //}
-
-        //private string GetPointsDisplay(int points)
-        //{
-        //    if (points >= 0)
-        //    {
-        //        return $"+{points.ToString()}";
-        //    }
-        //    else
-        //    {
-        //        return $"{points.ToString()}";
-        //    }
-        //}
     }
 }

@@ -44,13 +44,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
         private MarkupString GetWarningMarkupString(string info)
         {
-            //return (MarkupString)$"<span style=\"color: var(--sq-red); font-weight: 500;\">{info}</span>";
             return (MarkupString)$"<span style=\"color: var(--sq-ov-semantic-red); font-weight: 500;\">{info}</span>";
         }
 
         private MarkupString GetErrorMarkupString(string info)
         {
-            //return (MarkupString)$"<span style=\"color: red; font-weight: 700;\">{info}</span>";
             return (MarkupString)$"<span style=\"color: var(--sq-ov-semantic-red); font-weight: 700;\">{info}</span>";
         }
 

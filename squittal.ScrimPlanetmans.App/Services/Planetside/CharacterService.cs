@@ -3,21 +3,15 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusServices.Models;
 using squittal.ScrimPlanetmans.Models.Planetside;
 
-//using System.Linq;
-//using Microsoft.EntityFrameworkCore;
-//using squittal.ScrimPlanetmans.Data;
-
 namespace squittal.ScrimPlanetmans.Services.Planetside
 {
     public class CharacterService : ICharacterService
     {
-        //private readonly IDbContextHelper _dbContextHelper;
         private readonly IOutfitService _outfitService;
         private readonly CensusCharacter _censusCharacter;
 
-        public CharacterService(/*IDbContextHelper dbContextHelper,*/ IOutfitService outfitService, CensusCharacter censusCharacter)
+        public CharacterService(IOutfitService outfitService, CensusCharacter censusCharacter)
         {
-            //_dbContextHelper = dbContextHelper;
             _outfitService = outfitService;
             _censusCharacter = censusCharacter;
         }
@@ -42,39 +36,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 // TODO: add logging to this service
                 return null;
             }
-
-            /*
-
-            using (var factory = _dbContextHelper.GetFactory())
-            {
-                var dbContext = factory.GetDbContext();
-
-                //IQueryable<Character> characterQuery = dbContext.Characters.Where(e => e.Id == characterId);
-
-                var storeCharacter =  await dbContext.Characters
-                                                .AsNoTracking()
-                                                .FirstOrDefaultAsync(e => e.Id == characterId);
-
-                if (storeCharacter != null)
-                {
-                    return storeCharacter;
-                }
-
-                var character = await _censusCharacter.GetCharacter(characterId);
-
-                if (character == null)
-                {
-                    return null;
-                }
-
-                var censusEntity = ConvertToDbModel(character);
-
-                dbContext.Add(censusEntity);
-                await dbContext.SaveChangesAsync();
-
-                return censusEntity;
-            }
-            */
         }
 
         public async Task<Character> GetCharacterByNameAsync(string characterName)
@@ -114,7 +75,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 isOnline = false;
             }
-            //bool isOnline = censusModel.OnlineStatus > 0 ? true : false;
 
             return new Character
             {

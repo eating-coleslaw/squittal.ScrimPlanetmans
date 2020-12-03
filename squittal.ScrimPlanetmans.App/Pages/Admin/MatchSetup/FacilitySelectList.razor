@@ -15,8 +15,6 @@
 else
 {
 <EditForm Model="@_matchConfiguration">
-    @*<div class="styled-select" style="margin-left: 0; width: 250px;">*@
-        @*<select class="btn-sm" style="margin-right: 5px; width: 249px;" id="facilitySelect" @onchange="OnFacilityIdChange" placeholder="Select scrim base...">*@
         <InputSelect class="btn-sm" style="margin-right: 5px; width: 249px;"  @bind-Value=@_matchConfiguration.FacilityIdString>
 
             <option value=@_noFacilitIdValue>No Base</option>
