@@ -740,6 +740,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ActionRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
+
+                    _logger.LogInformation($"Saved Action Rule updates for Ruleset {rulesetId}");
                 }
                 catch (Exception ex)
                 {
@@ -778,8 +780,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     foreach (var rule in ruleUpdates)
                     {
-                        _logger.LogInformation($"Processing rule for Item Category ID {rule.ItemCategoryId}");
-
                         var storeEntity = storeRules.Where(r => r.ItemCategoryId == rule.ItemCategoryId).FirstOrDefault();
 
                         if (storeEntity == null)
@@ -897,6 +897,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
+
+                    _logger.LogInformation($"Saved Item Rule updates for Ruleset {rulesetId}");
                 }
                 catch (Exception ex)
                 {
@@ -976,6 +978,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.FacilityRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
+
+                    _logger.LogInformation($"Saved Facility Rule updates for Ruleset {rulesetId}");
                 }
                 catch (Exception ex)
                 {
@@ -1789,6 +1793,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     }
 
                     ruleset.RulesetItemRules = new List<RulesetItemRule>(rulesetItemRules);
+
+                    var itemRulesTask = SaveRulesetItemRules(ruleset.Id, ruleset.RulesetItemRules);
+                    TaskList.Add(itemRulesTask);
                 }
                 
                 if (jsonRuleset.RulesetFacilityRules != null && jsonRuleset.RulesetFacilityRules.Any())
@@ -1891,6 +1898,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
+
+                    _logger.LogInformation($"Saved Facility Rule updates for Ruleset {rulesetId}");
                 }
                 catch (Exception ex)
                 {
@@ -1937,7 +1946,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private RulesetItemCategoryRule ConvertToDbModel(int rulesetId, JsonRulesetItemCategoryRule jsonRule)
         {
-            return BuildRulesetItemCategoryRule(rulesetId, jsonRule.ItemCategoryId, jsonRule.Points);
+            return BuildRulesetItemCategoryRule(rulesetId, jsonRule.ItemCategoryId, jsonRule.Points, jsonRule.IsBanned, jsonRule.DeferToItemRules);
         }
 
         private RulesetItemRule ConvertToDbModel(int rulesetId, JsonRulesetItemRule jsonRule, int itemCategoryId)
