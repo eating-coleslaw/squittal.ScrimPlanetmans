@@ -324,7 +324,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdActionRules.Any())
             {
-                //await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
                 dbContext.RulesetActionRules.AddRange(createdActionRules);
             }
             #endregion Action rules
@@ -381,7 +380,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdItemCategoryRules.Any())
             {
-                //await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
                 dbContext.RulesetItemCategoryRules.AddRange(createdItemCategoryRules);
             }
             #endregion Item Category Rules
@@ -389,7 +387,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             #region Item Rules
             var defaultItemRules = GetDefaultItemRules();
             var createdItemRules = new List<RulesetItemRule>();
-            //var allItemIds = await _itemService.GetItemIdsAsync();
             var allWeaponItems = await _itemService.GetAllWeaponItemsAsync();
 
             var allItemIds = new List<int>(defaultItemRules.Select(r => r.ItemId));
@@ -432,26 +429,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     }
                     else if (isWeaponItem && categoryDefersToItems)
                     {
-                        //var categoryId = allWeaponItems.Where(i => i.Id == itemId).Select(i => i.ItemCategoryId).FirstOrDefault();
-
-                        //if (categoryId != null)
-                        //{
                         var defaultPoints = allItemCategoryRules.Where(r => r.ItemCategoryId == categoryId).Select(r => r.Points).FirstOrDefault();
 
                         var newEntity = BuildRulesetItemRule(defaultRulesetId, itemId, (int)categoryId, defaultPoints, false);
 
                         createdItemRules.Add(newEntity);
                         allItemRules.Add(newEntity);
-                        //}
                     }
                 }
                 else
                 {
-                    //if (!isWeaponItem || (defaultEntity == null && !categoryDefersToItems) )
-                    //{
-                    //    dbContext.RulesetItemRules.Remove(storeEntity);
-                    //}
-
                     if (defaultEntity != null)
                     {
                         if (categoryId != null && categoryId != defaultEntity.ItemCategoryId)
@@ -470,39 +457,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     {
                         dbContext.RulesetItemRules.Remove(storeEntity);
                     }
-                    //else
-                    //{
-                    //    var defaultPoints = allItemCategoryRules.Where(r => r.ItemCategoryId == categoryId).Select(r => r.Points).FirstOrDefault();
-
-                    //    var newEntity = BuildRulesetItemRule(defaultRulesetId, itemId, (int)categoryId, defaultPoints, false);
-
-                    //    createdItemRules.Add(newEntity);
-                    //    allItemRules.Add(newEntity);
-                    //}
-                    
-                    //var categoryId = allWeaponItems.Where(i => i.Id == itemId).Select(i => i.ItemCategoryId).FirstOrDefault();
-
-                    //if (isWeaponItem && categoryId != null)
-                    //{
-                    //    storeEntity.Points = defaultEntity != null
-                    //                            ? defaultEntity.Points
-                    //                            : allItemCategoryRules.Where(r => r.ItemCategoryId == categoryId).Select(r => r.Points).FirstOrDefault(); ;
-
-                    //    storeEntity.IsBanned = defaultEntity != null ? defaultEntity.IsBanned : false;
-
-                    //    dbContext.RulesetItemRules.Update(storeEntity);
-                    //    allItemRules.Add(storeEntity);
-                    //}
-                    //else
-                    //{
-                    //    dbContext.RulesetItemRules.Remove(storeEntity);
-                    //}
                 }
             }
 
             if (createdItemRules.Any())
             {
-                //await dbContext.RulesetItemRules.AddRangeAsync(createdItemRules);
                 dbContext.RulesetItemRules.AddRange(createdItemRules);
             }
             #endregion Item Rules
@@ -537,17 +496,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         dbContext.RulesetFacilityRules.Remove(storeEntity);
                         allFacilityRules.Remove(storeEntity);
                     }
-                    else
-                    {
-                        //storeEntity = defaultEntity;
-                        //dbContext.RulesetFacilityRules.Update(storeEntity);
-                    }
                 }
             }
 
             if (createdFacilityRules.Any())
             {
-                //await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
                 dbContext.RulesetFacilityRules.AddRange(createdFacilityRules);
             }
             #endregion Facility Rules
