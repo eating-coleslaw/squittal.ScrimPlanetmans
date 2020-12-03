@@ -304,7 +304,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.AddCharacterSubscriptions(_teamsManager.GetAllPlayerIds());
         }
 
-        private async Task OnMatchTimerTick(object sender, MatchTimerTickEventArgs e)
+        private async Task OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             var message = e.Message;
 
@@ -351,7 +351,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _latestTimerTickMessage = value;
         }
 
-        private void OnTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+        private void OnTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
         {
             if (MatchConfiguration.IsManualWorldId)
             {
@@ -385,7 +385,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private void OnTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+        private void OnTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
         {
             if (MatchConfiguration.IsManualWorldId)
             {
@@ -426,7 +426,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private async Task OnFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+        private async Task OnFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
         {
             if (!MatchConfiguration.EndRoundOnFacilityCapture)
             {

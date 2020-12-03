@@ -18,6 +18,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int ScoredDeaths { get; set; }
         public int ZeroPointDeaths { get; set; }
         public int TeamKillDeaths { get; set; }
+        public int TrickleDeaths { get; set; }
 
         public int DamageAssists { get; set; }
 

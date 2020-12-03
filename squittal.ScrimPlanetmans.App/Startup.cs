@@ -43,7 +43,9 @@ namespace squittal.ScrimPlanetmans.App
                                                 maxRetryCount: 5,
                                                 maxRetryDelay: TimeSpan.FromSeconds(30),
                                                 errorNumbersToAdd: null);
-                                        }));
+                                        })
+                        .EnableSensitiveDataLogging(false));
+
 
             services.AddCensusServices(options =>
                 options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
@@ -83,6 +85,7 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IScrimMatchScorer, ScrimMatchScorer>();
 
             services.AddSingleton<IConstructedTeamService, ConstructedTeamService>();
+
             services.AddSingleton<IRulesetDataService, RulesetDataService>();
 
             services.AddTransient<IScrimMatchReportDataService, ScrimMatchReportDataService>();

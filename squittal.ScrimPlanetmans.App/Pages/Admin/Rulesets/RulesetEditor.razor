@@ -2,6 +2,8 @@
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Rulesets;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
@@ -9,6 +11,7 @@
 
 @inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
+@inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
 
 @implements IDisposable
@@ -40,10 +43,10 @@
                 </h5>
 
                 <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
-                <p style="margin-bottom: 0px; text-align: left;">@_renderedRuleset.DateCreated.ToString("f")</p>
+                <p style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</p>
 
                 <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
-                <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>
+                <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedLastModifiedDateTime != null ? (GetLocalizedDateTimeString((DateTime)_renderedLastModifiedDateTime)) : "--")</p>
 
             </div>
 
@@ -68,7 +71,7 @@
                                 <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to export this ruleset? This action may overwrite an existing file.</p>
 
                                 <div style="text-align: right; margin-top: 12px;">
-                                    <button title ="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetCancel">
+                                    <button title="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetCancel">
                                         <span class="oi oi-x" style="top: 0;"></span>Cancel
                                     </button>
 
@@ -120,7 +123,7 @@
                 else
                 {
                     <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
-                    
+
                         <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: smaller; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
@@ -148,11 +151,13 @@
 
         @if (!_isDeletingRuleset)
         {
-            <div style="display: flex;">
+            <div class="row" style="margin-left: 0; margin-right: 0;">
 
                 <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
 
                 <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+
+                <EditRulesetItemRules i_rulesetId="@_renderedRulesetId" />
 
                 <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
 
@@ -191,6 +196,8 @@
 
     private bool _showExportConfirmationForm { get; set; } = false;
 
+    private DateTime? _renderedLastModifiedDateTime { get; set; }
+
     private CancellationTokenSource cts;
 
 
@@ -198,6 +205,8 @@
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
+
+        MessageService.RaiseRulesetRuleChangeEvent += HandleRulesetRuleChangeEvent;
 
         _renderedRulesetId = i_rulesetId;
 
@@ -210,6 +219,8 @@
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;
+
+        MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
 
         if (cts != null)
         {
@@ -258,13 +269,11 @@
         {
             var TaskList = new List<Task>();
 
-            //_renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
             var rulesetTask = RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
             TaskList.Add(rulesetTask);
 
             cts.Token.ThrowIfCancellationRequested();
 
-            //_canDeleteRuleset = await RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
             var canDeleteTask = RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
             TaskList.Add(canDeleteTask);
 
@@ -276,6 +285,8 @@
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
             _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+
+            _renderedLastModifiedDateTime = _renderedRuleset.DateLastModified;
         }
         catch
         {
@@ -301,6 +312,25 @@
 
             StateHasChanged();
         }
+    }
+
+    private void HandleRulesetRuleChangeEvent(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        if (_renderedLastModifiedDateTime == ruleset.DateLastModified)
+        {
+            return;
+        }
+
+        _renderedLastModifiedDateTime = ruleset.DateLastModified;
+
+        InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
 
@@ -478,6 +508,15 @@
     private bool IsActiveRuleset(int rulesetId)
     {
         return RulesetDataService.ActiveRulesetId == rulesetId;
+    }
+
+    private string GetLocalizedDateTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("f")}";
     }
 
     private void InvokeAsyncStateHasChanged()

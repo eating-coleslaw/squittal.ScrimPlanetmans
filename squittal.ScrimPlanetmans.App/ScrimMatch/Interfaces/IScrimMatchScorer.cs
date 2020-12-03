@@ -6,14 +6,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IScrimMatchScorer
     {
-        Task<int> ScoreDeathEvent(ScrimDeathActionEvent death);
-        Task<int> ScoreVehicleDestructionEvent(ScrimVehicleDestructionActionEvent destruction);
-        int ScoreFacilityControlEvent(ScrimFacilityControlActionEvent control);
+        Task<ScrimEventScoringResult> ScoreDeathEvent(ScrimDeathActionEvent death);
+        Task<ScrimEventScoringResult> ScoreVehicleDestructionEvent(ScrimVehicleDestructionActionEvent destruction);
+        ScrimEventScoringResult ScoreFacilityControlEvent(ScrimFacilityControlActionEvent control);
         void HandlePlayerLogin(PlayerLogin login);
         void HandlePlayerLogout(PlayerLogout login);
         Task SetActiveRulesetAsync();
-        Task<int> ScoreReviveEvent(ScrimReviveActionEvent revive);
-        Task<int> ScoreAssistEvent(ScrimAssistActionEvent assist);
-        Task<int> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective);
+        Task<ScrimEventScoringResult> ScoreReviveEvent(ScrimReviveActionEvent revive);
+        Task<ScrimEventScoringResult> ScoreAssistEvent(ScrimAssistActionEvent assist);
+        Task<ScrimEventScoringResult> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective);
     }
 }

@@ -1,6 +1,5 @@
 ﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models.Planetside;
-@using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Rulesets;
 @using System.Text.RegularExpressions;
@@ -10,7 +9,7 @@
 
 @implements IDisposable
 
-<div class="sq-mini-card-4 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+<div class="sq-mini-card-3 default" style="min-width: 420px; background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
     <h5>Item Category Rules</h5>
 
     @if (_isLoadingRules)
@@ -36,6 +35,8 @@
                                 <tr>
                                     <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                     <th style="padding-bottom: 2px;">Points</th>
+                                    <th style="padding-bottom: 2px;">Banned?</th>
+                                    <th style="padding-bottom: 2px;">Defer to<br />Item Rules?</th>
                                 </tr>
                             </thead>
 
@@ -45,6 +46,8 @@
                                     <tr class="sans-serif-font">
                                         <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
                                         <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points); text-align: right; width: 50px; color: var(--sq-black);">@itemCategoryRule.Points</td>
+                                        <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.IsBanned);">@itemCategoryRule.IsBanned</td>
+                                        <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">@itemCategoryRule.DeferToItemRules</td>
                                     </tr>
                                 }
                             </tbody>
@@ -179,6 +182,13 @@
     private double GetValueOpacity(int value)
     {
         return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetBoolValueOpacity(bool value)
+    {
+        return (value == true)
             ? 1.0
             : 0.5;
     }

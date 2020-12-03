@@ -175,7 +175,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e)
     {
         var message = e.Message;
 

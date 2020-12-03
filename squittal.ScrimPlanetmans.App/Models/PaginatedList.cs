@@ -18,8 +18,6 @@ namespace squittal.ScrimPlanetmans.Models
 
         public PaginatedList(List<T> contents, int count, int pageIndex = 1, int pageSize = 10)
         {
-            //var count = contents.Count();
-
             PageCount = (int)Math.Ceiling(count / (double)pageSize);
 
             if (pageIndex < 0)

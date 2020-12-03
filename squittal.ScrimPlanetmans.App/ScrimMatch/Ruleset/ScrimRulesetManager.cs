@@ -19,6 +19,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     {
         private readonly IDbContextHelper _dbContextHelper;
         private readonly IItemCategoryService _itemCategoryService;
+        private readonly IItemService _itemService;
         private readonly IRulesetDataService _rulesetDataService;
         private readonly IScrimMessageBroadcastService _messageService;
         public ILogger<ScrimRulesetManager> _logger;
@@ -27,14 +28,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly int _defaultRulesetId = 1;
 
+        private readonly AutoResetEvent _activateRulesetAutoEvent = new AutoResetEvent(true);
 
-        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
+        public ScrimRulesetManager(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService, IItemService itemService, IRulesetDataService rulesetDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimRulesetManager> logger)
         {
             _dbContextHelper = dbContextHelper;
             _itemCategoryService = itemCategoryService;
+            _itemService = itemService;
             _rulesetDataService = rulesetDataService;
             _messageService = messageService;
             _logger = logger;
+
+            _messageService.RaiseRulesetRuleChangeEvent += async (s, e) => await HandleRulesetRuleChangeMesssage(s, e);
         }
 
         public async Task<IEnumerable<Ruleset>> GetRulesetsAsync(CancellationToken cancellationToken)
@@ -62,12 +67,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task<Ruleset> ActivateRulesetAsync(int rulesetId)
         {
+            _activateRulesetAutoEvent.WaitOne();
+
             try
             {
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                Ruleset currentActiveRuleset =null;
+                Ruleset currentActiveRuleset = null;
                 
                 if (ActiveRuleset != null)
                 {
@@ -75,6 +82,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 
                     if (rulesetId == currentActiveRuleset.Id)
                     {
+                        _activateRulesetAutoEvent.Set();
+
                         return currentActiveRuleset;
                     }
                 }
@@ -83,6 +92,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (newActiveRuleset == null)
                 {
+                    _activateRulesetAutoEvent.Set();
+                    
                     return null;
                 }
 
@@ -96,11 +107,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 _messageService.BroadcastActiveRulesetChangeMessage(message);
 
+                _activateRulesetAutoEvent.Set();
+
                 return ActiveRuleset;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
+
+                _activateRulesetAutoEvent.Set();
+
                 return null;
             }
         }
@@ -133,22 +149,59 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task SetUpActiveRulesetAsync()
         {
-            using var factory = _dbContextHelper.GetFactory();
-            var dbContext = factory.GetDbContext();
+            _activateRulesetAutoEvent.WaitOne();
 
-            var ruleset = ActiveRuleset;
-
-            if (ruleset == null)
+            try
             {
-                _logger.LogError($"Failed to set up active ruleset: no ruleset found");
-                return;
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var currentActiveRuleset = ActiveRuleset;
+
+                if (currentActiveRuleset == null)
+                {
+                    _logger.LogError($"Failed to set up active ruleset: no ruleset found");
+
+                    _activateRulesetAutoEvent.Set();
+
+                    return;
+                }
+
+                var tempRuleset = await _rulesetDataService.GetRulesetFromIdAsync(currentActiveRuleset.Id, CancellationToken.None);
+
+                if (tempRuleset == null)
+                {
+                    _logger.LogError($"Failed to set up active ruleset: temp ruleset is null");
+
+                    _activateRulesetAutoEvent.Set();
+
+                    return;
+                }
+
+                ActiveRuleset = tempRuleset;
+
+                _rulesetDataService.SetActiveRulesetId(ActiveRuleset.Id);
+
+                _logger.LogInformation($"Active ruleset collections loaded: {ActiveRuleset.Name}");
+
+                _activateRulesetAutoEvent.Set();
             }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to set up active ruleset: {ex}");
 
-            ActiveRuleset = await _rulesetDataService.GetRulesetFromIdAsync(ruleset.Id, CancellationToken.None);
+                _activateRulesetAutoEvent.Set();
+            }
+        }
 
-            _rulesetDataService.SetActiveRulesetId(ActiveRuleset.Id);
+        private async Task HandleRulesetRuleChangeMesssage(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
+        {
+            var changedRulesetId = e.Message.Ruleset.Id;
 
-            _logger.LogInformation($"Active ruleset collections loaded: {ActiveRuleset.Name}");
+            if (changedRulesetId == ActiveRuleset.Id)
+            {
+                await SetUpActiveRulesetAsync();
+            }
         }
 
         public async Task<Ruleset> GetDefaultRulesetAsync()
@@ -181,13 +234,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var storeActionRules = new List<RulesetActionRule>();
             var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
+            var storeItemRules = new List<RulesetItemRule>();
             var storeFacilityRules = new List<RulesetFacilityRule>();
 
             if (storeRuleset != null)
             {
+                // TODO: use Task.WhenAll for this 
+
                 storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
                 storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+
+                storeItemRules = await dbContext.RulesetItemRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
                 storeFacilityRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
 
@@ -266,7 +324,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdActionRules.Any())
             {
-                await dbContext.RulesetActionRules.AddRangeAsync(createdActionRules);
+                dbContext.RulesetActionRules.AddRange(createdActionRules);
             }
             #endregion Action rules
 
@@ -307,6 +365,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     if (isWeaponItemCategoryId)
                     {
                         storeEntity.Points = defaultEntity != null ? defaultEntity.Points : 0;
+                        storeEntity.IsBanned = defaultEntity != null ? defaultEntity.IsBanned : false;
+                        storeEntity.DeferToItemRules = defaultEntity != null ? defaultEntity.DeferToItemRules : false;
 
                         dbContext.RulesetItemCategoryRules.Update(storeEntity);
                         allItemCategoryRules.Add(storeEntity);
@@ -320,9 +380,91 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (createdItemCategoryRules.Any())
             {
-                await dbContext.RulesetItemCategoryRules.AddRangeAsync(createdItemCategoryRules);
+                dbContext.RulesetItemCategoryRules.AddRange(createdItemCategoryRules);
             }
             #endregion Item Category Rules
+
+            #region Item Rules
+            var defaultItemRules = GetDefaultItemRules();
+            var createdItemRules = new List<RulesetItemRule>();
+            var allWeaponItems = await _itemService.GetAllWeaponItemsAsync();
+
+            var allItemIds = new List<int>(defaultItemRules.Select(r => r.ItemId));
+            if (storeItemRules != null)
+            {
+                allItemIds.AddRange(storeItemRules.Where(r => !allItemIds.Contains(r.ItemId)).Select(r => r.ItemId));
+            }
+
+            if (allWeaponItems != null)
+            {
+                allItemIds.AddRange(allWeaponItems.Where(r => !allItemIds.Contains(r.Id)).Select(r => r.Id));
+            }
+
+            var allItemRules = new List<RulesetItemRule>();
+
+            foreach (var itemId in allItemIds)
+            {
+                var isWeaponItem = (allWeaponItems.Any(r => r.Id == itemId));
+
+                var storeEntity = storeItemRules?.FirstOrDefault(r => r.ItemId == itemId);
+                var defaultEntity = defaultItemRules.FirstOrDefault(r => r.ItemId == itemId);
+
+                var categoryId = allWeaponItems.Where(i => i.Id == itemId).Select(i => i.ItemCategoryId).FirstOrDefault();
+
+                var categoryDefersToItems = false;
+
+                if (categoryId != null)
+                {
+                    categoryDefersToItems = allItemCategoryRules.Any(r => r.ItemCategoryId == categoryId && r.DeferToItemRules);
+                }
+
+                if (storeEntity == null)
+                {
+                    if (defaultEntity != null)
+                    {
+                        defaultEntity.RulesetId = defaultRulesetId;
+
+                        createdItemRules.Add(defaultEntity);
+                        allItemRules.Add(defaultEntity);
+                    }
+                    else if (isWeaponItem && categoryDefersToItems)
+                    {
+                        var defaultPoints = allItemCategoryRules.Where(r => r.ItemCategoryId == categoryId).Select(r => r.Points).FirstOrDefault();
+
+                        var newEntity = BuildRulesetItemRule(defaultRulesetId, itemId, (int)categoryId, defaultPoints, false);
+
+                        createdItemRules.Add(newEntity);
+                        allItemRules.Add(newEntity);
+                    }
+                }
+                else
+                {
+                    if (defaultEntity != null)
+                    {
+                        if (categoryId != null && categoryId != defaultEntity.ItemCategoryId)
+                        {
+                            defaultEntity.ItemCategoryId = (int)categoryId;
+                        }
+                        
+                        defaultEntity.RulesetId = defaultRulesetId;
+
+                        storeEntity = defaultEntity;
+
+                        dbContext.RulesetItemRules.Update(storeEntity);
+                        allItemRules.Add(storeEntity);
+                    }
+                    else if (!isWeaponItem || !categoryDefersToItems)
+                    {
+                        dbContext.RulesetItemRules.Remove(storeEntity);
+                    }
+                }
+            }
+
+            if (createdItemRules.Any())
+            {
+                dbContext.RulesetItemRules.AddRange(createdItemRules);
+            }
+            #endregion Item Rules
 
             #region Facility Rules
             var defaultFacilityRules = GetDefaultFacilityRules();
@@ -354,23 +496,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         dbContext.RulesetFacilityRules.Remove(storeEntity);
                         allFacilityRules.Remove(storeEntity);
                     }
-                    else
-                    {
-                        //storeEntity = defaultEntity;
-                        //dbContext.RulesetFacilityRules.Update(storeEntity);
-                    }
                 }
             }
 
             if (createdFacilityRules.Any())
             {
-                await dbContext.RulesetFacilityRules.AddRangeAsync(createdFacilityRules);
+                dbContext.RulesetFacilityRules.AddRange(createdFacilityRules);
             }
             #endregion Facility Rules
 
 
             storeRuleset.RulesetActionRules = allActionRules;
             storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
+            storeRuleset.RulesetItemRules = allItemRules;
             storeRuleset.RulesetFacilityRules = allFacilityRules;
 
             if (rulesetExistsInDb)
@@ -389,19 +527,151 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return new RulesetItemCategoryRule[]
             {
-                BuildRulesetItemCategoryRule(2, 1),   // Knife
-                BuildRulesetItemCategoryRule(3, 1),   // Pistol
-                BuildRulesetItemCategoryRule(5, 1),   // SMG
-                BuildRulesetItemCategoryRule(6, 1),   // LMG
-                BuildRulesetItemCategoryRule(7, 1),   // Assault Rifle
-                BuildRulesetItemCategoryRule(8, 1),   // Carbine
-                BuildRulesetItemCategoryRule(11, 1),  // Sniper Rifle
-                BuildRulesetItemCategoryRule(12, 1),  // Scout Rifle
-                BuildRulesetItemCategoryRule(19, 1),  // Battle Rifle
-                BuildRulesetItemCategoryRule(24, 1),  // Crossbow
-                BuildRulesetItemCategoryRule(100, 1), // Infantry
-                BuildRulesetItemCategoryRule(102, 1), // Infantry Weapons
-                BuildRulesetItemCategoryRule(157, 1)  // Hybrid Rifle
+                BuildRulesetItemCategoryRule(2, 1, false, true),    // Knife
+                BuildRulesetItemCategoryRule(3, 1, false, true),    // Pistol
+                BuildRulesetItemCategoryRule(4, 1, false, true),    // Shotgun
+                BuildRulesetItemCategoryRule(5, 1, false, true),    // SMG
+                BuildRulesetItemCategoryRule(6, 1, false, true),    // LMG
+                BuildRulesetItemCategoryRule(7, 1, false, true),    // Assault Rifle
+                BuildRulesetItemCategoryRule(8, 1, false, true),    // Carbine
+                BuildRulesetItemCategoryRule(11, 1, false, true),   // Sniper Rifle
+                BuildRulesetItemCategoryRule(13, 0, false, true),   // Rocket Launcher
+                BuildRulesetItemCategoryRule(24, 1, false, false),  // Crossbow
+                BuildRulesetItemCategoryRule(100, 1, false, false), // Infantry (Nothing)
+                BuildRulesetItemCategoryRule(157, 1, false, true),  // Hybrid Rifle (NSX-A Kuwa)
+
+                // Universal Bans
+                BuildRulesetItemCategoryRule(12, 0, true, false),  // Scout Rifle
+                BuildRulesetItemCategoryRule(14, 0, true, false),  // Heavy Weapon
+                BuildRulesetItemCategoryRule(19, 0, true, false),  // Battle Rifle
+                BuildRulesetItemCategoryRule(102, 1, true, false)  // Infantry Weapons (AI Mana Turrets)
+            };
+        }
+
+        private IEnumerable<RulesetItemRule> GetDefaultItemRules()
+        {
+            return new RulesetItemRule[]
+            {
+                // One-Hit Knives
+                BuildRulesetItemRule(271, 2, 0, true),     // Carver
+                BuildRulesetItemRule(285, 2, 0, true),     // Ripper
+                BuildRulesetItemRule(286, 2, 0, true),     // Lumine Edge
+                BuildRulesetItemRule(6005453, 2, 0, true), // Carver AE 
+                BuildRulesetItemRule(6005452, 2, 0, true), // Ripper AE 
+                BuildRulesetItemRule(6005451, 2, 0, true), // Lumine Edge AE 
+                BuildRulesetItemRule(6009600, 2, 0, true), // NS Firebug 
+
+                // Directive Rewards
+                BuildRulesetItemRule(800623, 18, 0, true),   // C-4 ARX 
+                BuildRulesetItemRule(77822, 7, 0, true),     // Gauss Prime 
+                BuildRulesetItemRule(1909, 7, 0, true),      // Darkstar 
+                BuildRulesetItemRule(1904, 7, 0, true),      // T1A Unity 
+                BuildRulesetItemRule(1919, 8, 0, true),      // Eclipse VE3A 
+                BuildRulesetItemRule(1869, 8, 0, true),      // 19A Fortuna 
+                BuildRulesetItemRule(1914, 8, 0, true),      // TRAC-Shot 
+                BuildRulesetItemRule(6005967, 157, 0, true), // NSX-A Kuwa 
+                BuildRulesetItemRule(6009583, 17, 0, true),  // Infernal Grenade 
+                BuildRulesetItemRule(6003418, 17, 0, true),  // NSX Fujin 
+                BuildRulesetItemRule(802025, 2, 0, true),    // Auraxium Slasher 
+                BuildRulesetItemRule(800626, 2, 0, true),    // Auraxium Force-Blade 
+                BuildRulesetItemRule(800624, 2, 0, true),    // Auraxium Mag-Cutter 
+                BuildRulesetItemRule(800625, 2, 0, true),    // Auraxium Chainblade 
+                BuildRulesetItemRule(803699, 6, 0, true),    // NS-15 Gallows (Bounty Directive) 
+                BuildRulesetItemRule(1894, 6, 0, true),      // Betelgeuse 54-A 
+                BuildRulesetItemRule(1879, 6, 0, true),      // NC6A GODSAW 
+                BuildRulesetItemRule(1924, 6, 0, true),      // T9A "Butcher" 
+                BuildRulesetItemRule(6005969, 3, 0, true),   // NSX-A Yawara (NSX Pistol) 
+                BuildRulesetItemRule(1959, 3, 0, true),      // The Immortal 
+                BuildRulesetItemRule(1889, 3, 0, true),      // The Executive 
+                BuildRulesetItemRule(1954, 3, 0, true),      // The President 
+                BuildRulesetItemRule(1964, 13, 0, true),     // The Kraken 
+                BuildRulesetItemRule(1939, 4, 0, true),      // Chaos 
+                BuildRulesetItemRule(1884, 4, 0, true),      // The Brawler 
+                BuildRulesetItemRule(1934, 4, 0, true),      // Havoc 
+                BuildRulesetItemRule(6005968, 5, 0, true),   // NSX-A Kappa 
+                BuildRulesetItemRule(1949, 5, 0, true),      // Skorpios 
+                BuildRulesetItemRule(1899, 5, 0, true),      // Tempest 
+                BuildRulesetItemRule(1944, 5, 0, true),      // Shuriken 
+                BuildRulesetItemRule(1979, 11, 0, true),     // Parsec VX3-A 
+                BuildRulesetItemRule(1969, 11, 0, true),     // The Moonshot 
+                BuildRulesetItemRule(1974, 11, 0, true),     // Bighorn .50M 
+
+                // Semi-Auto Snipers
+                BuildRulesetItemRule(6008652, 11, 0, true), // NSX "Ivory" Daimyo 
+                BuildRulesetItemRule(6008670, 11, 0, true), // NSX "Networked" Daimyo 
+                BuildRulesetItemRule(804255, 11, 0, true),  // NSX Daimyo 
+                BuildRulesetItemRule(26002, 11, 0, true),   // Phantom VA23 
+                BuildRulesetItemRule(7337, 11, 0, true),    // Phaseshift VX-S 
+                BuildRulesetItemRule(89, 11, 0, true),      // VA39 Spectre 
+                BuildRulesetItemRule(24000, 11, 0, true),   // Gauss SPR 
+                BuildRulesetItemRule(24002, 11, 0, true),   // Impetus 
+                BuildRulesetItemRule(88, 11, 0, true),      // 99SV 
+                BuildRulesetItemRule(25002, 11, 0, true),   // KSR-35 
+
+                // Gen-1 SMGs
+                BuildRulesetItemRule(29000, 5, 0, true),    // Eridani SX5 
+                BuildRulesetItemRule(6002772, 5, 0, true),  // Eridani SX5-AE 
+                BuildRulesetItemRule(29005, 5, 0, true),    // Eridani SX5G 
+                BuildRulesetItemRule(27000, 5, 0, true),    // AF-4 Cyclone 
+                BuildRulesetItemRule(6002824, 5, 0, true),  // AF-4AE Cyclone 
+                BuildRulesetItemRule(27005, 5, 0, true),    // AF-4G Cyclone 
+                BuildRulesetItemRule(28000, 5, 0, true),    // SMG-46 Armistice 
+                BuildRulesetItemRule(6002800, 5, 0, true),  // SMG-46AE Armistice 
+                BuildRulesetItemRule(28005, 5, 0, true),    // SMG-46G Armistice 
+
+                // Gen-3 SMGs
+                BuildRulesetItemRule(6003925, 5, 0, true), // VE-S Canis 
+                BuildRulesetItemRule(6003850, 5, 0, true), // MGR-S1 Gladius 
+                BuildRulesetItemRule(6003879, 5, 0, true), // MG-S1 Jackal 
+
+                // Anti-Personnel Explosives
+                BuildRulesetItemRule(650, 18, 0, true),     // Tank Mine 
+                BuildRulesetItemRule(6005961, 18, 0, true), // Tank Mine 
+                BuildRulesetItemRule(6005962, 18, 0, true), // Tank Mine 
+                BuildRulesetItemRule(1045, 18, 0, true),    // Proximity Mine 
+                BuildRulesetItemRule(1044, 18, 0, true),    // Bouncing Betty 
+                BuildRulesetItemRule(429, 18, 0, true),     // Claymore 
+                BuildRulesetItemRule(6005243, 18, 0, true), // F.U.S.E. (Anti-Infantry) 
+                BuildRulesetItemRule(6005963, 18, 0, true), // Proximity Mine 
+                BuildRulesetItemRule(6005422, 18, 0, true), // Proximity Mine 
+
+                // A7 Weapons
+                BuildRulesetItemRule(6003943, 3, 0, true),  // NS-357 IA 
+                BuildRulesetItemRule(6003793, 3, 0, true),  // NS-44L Showdown 
+                BuildRulesetItemRule(6004992, 11, 0, true), // NS-AM8 Shortbow 
+
+                // Campaign Reward Weapons
+                BuildRulesetItemRule(6009524, 17, 0, true), // Condensate Grenade 
+                BuildRulesetItemRule(6009515, 2, 0, true),  // NS Icebreaker 
+                BuildRulesetItemRule(6009516, 2, 0, true),  // NS Icebreaker 
+                BuildRulesetItemRule(6009517, 2, 0, true),  // NS Icebreaker 
+                BuildRulesetItemRule(6009518, 2, 0, true),  // NS Icebreaker 
+                BuildRulesetItemRule(6009463, 2, 0, true),  // NS Icebreaker 
+
+                // Misc. Weapons
+                BuildRulesetItemRule(6050, 17, 0, true),    // Decoy Grenade 
+                BuildRulesetItemRule(6004750, 17, 0, true), // Flamewake Grenade 
+                BuildRulesetItemRule(6009459, 17, 0, true), // Lightning Grenade 
+                BuildRulesetItemRule(6005472, 17, 0, true), // NSX Raijin 
+                BuildRulesetItemRule(6005304, 17, 0, true), // Smoke Grenade 
+                BuildRulesetItemRule(882, 17, 0, true),     // Sticky Grenade 
+                BuildRulesetItemRule(880, 17, 0, true),     // Sticky Grenade 
+                BuildRulesetItemRule(881, 17, 0, true),     // Sticky Grenade 
+                BuildRulesetItemRule(6005328, 17, 0, true), // Sticky Grenade 
+                BuildRulesetItemRule(804795, 2, 0, true),   // NSX Amaterasu 
+
+                // NSX Weapons
+                BuildRulesetItemRule(44705, 17, 0, true),  // Plasma Grenade (NSX Defector Grenade Printer) 
+                BuildRulesetItemRule(6008687, 2, 0, true), // Defector Claws 
+
+                // Proposed Bans
+                BuildRulesetItemRule(75490, 3, 0, true),  // NS Patriot Flare Gun 
+                BuildRulesetItemRule(75521, 3, 0, true),  // VS Patriot Flare Gun 
+                BuildRulesetItemRule(803009, 3, 0, true), // VS Triumph Flare Gun 
+                BuildRulesetItemRule(75517, 3, 0, true),  // NC Patriot Flare Gun 
+                BuildRulesetItemRule(803007, 3, 0, true), // NC Triumph Flare Gun 
+                BuildRulesetItemRule(75519, 3, 0, true),  // TR Patriot Flare Gun 
+                BuildRulesetItemRule(803008, 3, 0, true)  // TR Triumph Flare Gun 
             };
         }
 
@@ -481,22 +751,49 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
         {
             return new RulesetItemCategoryRule
             {
                 RulesetId = rulesetId,
                 ItemCategoryId = itemCategoryId,
-                Points = points
+                Points = points,
+                IsBanned = isBanned,
+                DeferToItemRules = deferToItemRules
             };
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int itemCategoryId, int points = 0)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
         {
             return new RulesetItemCategoryRule
             {
                 ItemCategoryId = itemCategoryId,
-                Points = points
+                Points = points,
+                IsBanned = isBanned,
+                DeferToItemRules = deferToItemRules
+            };
+        }
+
+        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        {
+            return new RulesetItemRule
+            {
+                RulesetId = rulesetId,
+                ItemId = itemId,
+                ItemCategoryId = itemCategoryId,
+                Points = points,
+                IsBanned = isBanned
+            };
+        }
+
+        private RulesetItemRule BuildRulesetItemRule(int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        {
+            return new RulesetItemRule
+            {
+                ItemId = itemId,
+                ItemCategoryId = itemCategoryId,
+                Points = points,
+                IsBanned = isBanned
             };
         }
 

@@ -16,7 +16,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             OverlayMessageData = new OverlayMessageData();
 
-            //Info = $"Team {team.TeamOrdinal} [{team.Alias}] Stat Update";
             Info = GetInfo();
         }
 

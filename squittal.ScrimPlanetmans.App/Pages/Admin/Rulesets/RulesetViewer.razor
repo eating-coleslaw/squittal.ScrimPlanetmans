@@ -2,11 +2,14 @@
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Rulesets;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using System.Threading;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
+@inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
 
 @implements IDisposable
@@ -26,18 +29,18 @@
             </h5>
 
             <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
-            <p style="margin-bottom: 0px; text-align: left;">@_renderedRuleset.DateCreated.ToString("f")</p>
+            <p style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</p>
 
             <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
-            <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedRuleset.DateLastModified != null ? ((DateTime)_renderedRuleset.DateLastModified).ToString("f") : "--")</p>
+            <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedLastModifiedDateTime != null ? (GetLocalizedDateTimeString((DateTime)_renderedLastModifiedDateTime)) : "--")</p>
 
         </div>
 
         <div style="display: block; font-size: 1rem; margin-top: 4px; margin-bottom: 12px;">
-            
+
             @if (!_renderedRuleset.IsDefault)
             {
-                <NavLink class="nav-link" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; margin-bottom: 4px;">Open in Editor</NavLink>
+                <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: 0.9rem; margin-top: -4px; margin-bottom: 4px;">Open in Editor</NavLink>
             }
 
             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
@@ -51,11 +54,13 @@
             </p>
         </div>
 
-        <div style="display: flex;">
+        <div class="row" style="margin-left: 0; margin-right: 0;">
 
             <ViewRulesetActionRules i_rulesetId="@_renderedRulesetId" />
 
             <ViewRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+
+            <ViewRulesetItemRules i_rulesetId="@_renderedRulesetId" />
 
             <ViewRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
 
@@ -82,6 +87,8 @@
 
     private bool _isLoadingRuleset { get; set; } = false;
 
+    private DateTime? _renderedLastModifiedDateTime { get; set; }
+
     private CancellationTokenSource cts;
 
 
@@ -89,11 +96,15 @@
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
+
+        MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
     }
 
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;
+
+        MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
 
         if (cts != null)
         {
@@ -145,6 +156,8 @@
             _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
 
             cts.Token.ThrowIfCancellationRequested();
+
+            _renderedLastModifiedDateTime = _renderedRuleset.DateLastModified;
         }
         catch
         {
@@ -170,6 +183,23 @@
 
             StateHasChanged();
         }
+    }
+
+    private void HandleRulesetRuleChangeEvent(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        if (_renderedLastModifiedDateTime == ruleset.DateLastModified)
+        {
+            return;
+        }
+
+        InvokeAsyncStateHasChanged();
     }
     #endregion Event Handling
 
@@ -209,6 +239,15 @@
     private bool IsActiveRuleset(int rulesetId)
     {
         return RulesetDataService.ActiveRulesetId == rulesetId;
+    }
+
+    private string GetLocalizedDateTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("f")}";
     }
 
     private void InvokeAsyncStateHasChanged()

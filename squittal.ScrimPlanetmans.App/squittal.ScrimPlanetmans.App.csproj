@@ -77,6 +77,18 @@
     <Compile Remove="Migrations\20200824191359_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
     <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.cs" />
     <Compile Remove="Migrations\20200824191632_AddRulesetMatchTitleRemoveIsActive.Designer.cs" />
+    <Compile Remove="Migrations\20201001173644_AddRulesetItemRules.cs" />
+    <Compile Remove="Migrations\20201001173644_AddRulesetItemRules.Designer.cs" />
+    <Compile Remove="Migrations\20201002184137_AddRulesetItemRuleModel.cs" />
+    <Compile Remove="Migrations\20201002184137_AddRulesetItemRuleModel.Designer.cs" />
+    <Compile Remove="Migrations\20201009141541_RemoveRulesetRuleForeignKeys.cs" />
+    <Compile Remove="Migrations\20201009141541_RemoveRulesetRuleForeignKeys.Designer.cs" />
+    <Compile Remove="Migrations\20201009142315_RemoveRulesetRuleForeignKeys.cs" />
+    <Compile Remove="Migrations\20201009142315_RemoveRulesetRuleForeignKeys.Designer.cs" />
+    <Compile Remove="Migrations\20201011174957_AddIsDeprecatedToMapRegionModel.cs" />
+    <Compile Remove="Migrations\20201011174957_AddIsDeprecatedToMapRegionModel.Designer.cs" />
+    <Compile Remove="Migrations\20201011190616_AddIsCurrentToMapRegionModel.cs" />
+    <Compile Remove="Migrations\20201011190616_AddIsCurrentToMapRegionModel.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -97,43 +109,49 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Data\SQL\dbo.FacilityType.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.FacilityType.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.Faction.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.Faction.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.Item.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.Item.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.ItemCategory.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.ItemCategory.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.Loadout.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.Loadout.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.MapRegion.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.MapRegion.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.Profile.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.Profile.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.Vehicle.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.Vehicle.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.World.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.World.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Data\SQL\dbo.Zone.Table.sql">
+    <None Update="Data\SQL\CensusBackups\dbo.Zone.Table.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_ItemCategoryDomainAndIsWeapon.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_MapRegionsTable.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetActionRuleDeferToItemCategoryRules.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_ScrimMatchRulesetId.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\MigrationHelpers\Delete_NonWeaponItems.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\Views\View_ScrimMatchInfo.sql">
@@ -151,10 +169,16 @@
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerHeadToHeadStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerRoundStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryPlayerWeaponStats.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryTeamRoundStats.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\Views\View_ScrimMatchReportInfantryTeamStats.sql">

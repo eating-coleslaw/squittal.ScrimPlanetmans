@@ -401,6 +401,67 @@ td .net.stats-value {
 }
 
 
+tr.clickable-row {
+}
+
+    tr.clickable-row:hover {
+        cursor: pointer;
+        /*border: 1px solid var(--sq-light-blue-gray);*/
+        /*background-color: var(--sq-bg-white-lit) !important;*/
+        background-color: var(--sq-ps2-primary-light-alpha-60) !important;
+    }
+
+    /*tr.clickable-row.active:first-of-type {*/
+        /*border-bottom: 1px solid var(--sq-ov-ps2-primary-light);*/
+        /*border-top: 8px solid transparent;*/
+        /*border-top: 8px solid white;*/
+        /*border-top: none;
+    }*/
+    
+    tr.clickable-row.active {
+        border-bottom: 1px solid var(--sq-ov-ps2-primary-light);
+        /*border-top: 8px solid transparent;*/
+        border-top: 8px solid white;
+    }
+
+/*tr.expanded-row:nth-of-type(2n+1) {
+    border-bottom: 1px solid var(--sq-ov-ps2-primary-lightest);
+}*/
+
+.expanded-row + tr:not(.expanded-row) {
+    border-top: 1px solid var(--sq-ov-ps2-primary-lightest);
+}
+
+tr.expanded-row.last-of-group {
+    border-bottom: 1px solid var(--sq-ov-ps2-primary-lightest);
+}
+
+.dotted-background {
+    background-color: var(--sq-ov-ps2-primary) !important;
+    /*background-image: linear-gradient(45deg, transparent 15%, transparent 35%, white 25%, white 65%, transparent 65%, transparent), linear-gradient(135deg, transparent 15%, transparent 35%, white 25%, white 65%, transparent 65%, transparent);*/
+    /*background-image: linear-gradient(45deg, transparent 35%, white 35%, white 65%, transparent 65%, transparent), linear-gradient(135deg, transparent 35%, white 35%, white 65%, transparent 65%, transparent);*/
+    background-image: linear-gradient(45deg, transparent 38%, white 38%, white 62%, transparent 62%, transparent), linear-gradient(135deg, transparent 38%, white 38%, white 62%, transparent 62%, transparent);
+    /*background-size: 12px 16px;*/
+    /*background-size: 8px 8px;*/
+    background-size: 6px 6px;
+    /*background-position: 15px 15px, 15px 15px;*/
+    /*background-position: 8px 8px, 8px 8px;*/
+    /*background-position: 8px 8px, 8px 0px;*/
+    background-position: 6px 6px, 6px 6px;
+}
+
+.striped-background {
+    background-color: var(--sq-ov-ps2-primary) !important;
+    /*background-image: repeating-linear-gradient(-45deg, transparent, transparent 6px, white 6px, white 12px );*/
+    /*background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, white 3px, white 6px );*/
+    /*background-image: linear-gradient(135deg, transparent, transparent 25%, white 25%, white 50%, transparent 50%, transparent 75%, white 75%, white 100%);*/
+    /*background-size: 100% 100%;*/
+    /*height: 100%;*/
+    /**/
+    background-image: repeating-linear-gradient(135deg, transparent, transparent 3px, white 3px, white 7px, transparent 7px, transparent 10px, white 10px, white 15px);
+    background-size: calc(100% + 20px) 50px;
+}
+
 /****************************
 
     squittal.LivePlanetmans
@@ -460,10 +521,14 @@ No-Link Brand Header
         }
 
         .nolink-header a.external {
-            position: absolute;
+            /*position: absolute;
             right: 0;
             top: 0;
-            padding: 0.25rem 1rem;
+            padding: 0.25rem 1rem;*/
+            position: relative;
+            left: 12px;
+            bottom: 5px;
+            padding: 0;
             color: var(--sq-logo-purple);
         }
 
@@ -511,6 +576,13 @@ No-Link Brand Header
             color: transparent;
             mix-blend-mode: saturation;
         }
+
+    .nolink-header .header-clock {
+        font-size: 1rem;
+        vertical-align: text-top;
+        display: inline;
+        color: var(--sq-logo-purple);
+    }
 
 
 .col-lg-6 {
@@ -1553,7 +1625,8 @@ max-width: 38%;
 .sq-mini-card-3 {
     /*flex: 0 0 calc(30% - 0.5rem) !important;*/
     /*flex: 0 0 calc(25% - 0.5rem) !important;*/
-    flex: 0 0 calc(28% - 0.5rem) !important;
+    /*flex: 0 0 calc(28% - 0.5rem) !important;*/
+    flex: 0 0 calc(25% - 0.75rem) !important;
 }
 
     .sq-mini-card-3:first-child {

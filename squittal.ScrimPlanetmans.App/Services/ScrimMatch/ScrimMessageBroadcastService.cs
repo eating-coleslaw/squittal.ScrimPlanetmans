@@ -17,83 +17,84 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
         public delegate void SimpleMessageEventHandler(object sender, SimpleMessageEventArgs e);
 
-        public event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
-        public delegate void TeamPlayerChangeEventHandler(object sender, TeamPlayerChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamPlayerChangeMessage>> RaiseTeamPlayerChangeEvent;
+        public delegate void TeamPlayerChangeEventHandler(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e);
         
-        public event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
-        public delegate void TeamOutfitChangeEventHandler(object sender, TeamOutfitChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamOutfitChangeMessage>> RaiseTeamOutfitChangeEvent;
+        public delegate void TeamOutfitChangeEventHandler(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e);
         
-        public event EventHandler<TeamConstructedTeamChangeEventArgs> RaiseTeamConstructedTeamChangeEvent;
-        public delegate void TeamConstructedTeamChangeEventHandler(object sender, TeamConstructedTeamChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamConstructedTeamChangeMessage>> RaiseTeamConstructedTeamChangeEvent;
+        public delegate void TeamConstructedTeamChangeEventHandler(object sender, ScrimMessageEventArgs<TeamConstructedTeamChangeMessage> e);
 
-        public event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
-        public delegate void TeamAliasChangeEventHandler(object sender, TeamAliasChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamAliasChangeMessage>> RaiseTeamAliasChangeEvent;
+        public delegate void TeamAliasChangeEventHandler(object sender, ScrimMessageEventArgs<TeamAliasChangeMessage> e);
         
-        public event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
-        public delegate void TeamFactionChangeEventHandler(object sender, TeamFactionChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamFactionChangeMessage>> RaiseTeamFactionChangeEvent;
+        public delegate void TeamFactionChangeEventHandler(object sender, ScrimMessageEventArgs<TeamFactionChangeMessage> e);
 
-        public event EventHandler<TeamLockStatusChangeEventArgs> RaiseTeamLockStatusChangeEvent;
-        public delegate void TeamLockStatusChangeEventHandler(object sender, TeamLockStatusChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamLockStatusChangeMessage>> RaiseTeamLockStatusChangeEvent;
+        public delegate void TeamLockStatusChangeEventHandler(object sender, ScrimMessageEventArgs<TeamLockStatusChangeMessage> e);
         
-        public event EventHandler<PlayerNameDisplayChangeEventArgs> RaisePlayerNameDisplayChangeEvent;
-        public delegate void PlayerNameDisplayChangeEventHandler(object sender, PlayerNameDisplayChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<PlayerNameDisplayChangeMessage>> RaisePlayerNameDisplayChangeEvent;
+        public delegate void PlayerNameDisplayChangeEventHandler(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e);
 
 
-        public event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
-        public delegate void PlayerStatUpdateMessageEventHandler(object sender, PlayerStatUpdateEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<PlayerStatUpdateMessage>> RaisePlayerStatUpdateEvent;
+        public delegate void PlayerStatUpdateMessageEventHandler(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e);
 
-        public event EventHandler<TeamStatUpdateEventArgs> RaiseTeamStatUpdateEvent;
-        public delegate void TeamStatUpdateMessageEventHandler(object sender, TeamStatUpdateEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<TeamStatUpdateMessage>> RaiseTeamStatUpdateEvent;
+        public delegate void TeamStatUpdateMessageEventHandler(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e);
         
-        public event EventHandler<ScrimKillfeedEventEventArgs> RaiseScrimKillfeedEvent;
-        public delegate void ScrimKillfeedEventMessageEventHandler(object sender, ScrimKillfeedEventEventArgs e);
-
-        public event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
-        public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimDeathActionEventEventArgs e);
-
-        public event EventHandler<ScrimVehicleDestructionActionEventEventArgs> RaiseScrimVehicleDestructionActionEvent;
-        public delegate void ScrimVehicleDestructionActionEventMessageEventHandler(object sender, ScrimVehicleDestructionActionEventEventArgs e);
-
-        public event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
-        public delegate void ScrimReviveActionEventMessageEventHandler(object sender, ScrimReviveActionEventEventArgs e);
-
-        public event EventHandler<ScrimAssistActionEventEventArgs> RaiseScrimAssistActionEvent;
-        public delegate void ScrimAssistActionEventMessageEventHandler(object sender, ScrimAssistActionEventEventArgs e);
-
-        public event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
-        public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimObjectiveTickActionEventEventArgs e);
-
-        public event EventHandler<ScrimFacilityControlActionEventEventArgs> RaiseScrimFacilityControlActionEvent;
-        public delegate void ScrimFacilityControlActionEventMessageEventHandler(object sender, ScrimFacilityControlActionEventEventArgs e);
-
-        public event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
-        public delegate void PlayerLoginEventHandler(object sender, PlayerLoginEventArgs e);
-
-        public event EventHandler<PlayerLogoutEventArgs> RaisePlayerLogoutEvent;
-        public delegate void PlayerLogoutEventHandler(object sender, PlayerLogoutEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ScrimKillfeedEventMessage>> RaiseScrimKillfeedEvent;
+        public delegate void ScrimKillfeedEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimKillfeedEventMessage> e);
 
 
-        public event EventHandler<MatchStateUpdateEventArgs> RaiseMatchStateUpdateEvent;
-        public delegate void MatchStateUpdateEventHandler(object sender, MatchStateUpdateEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ScrimDeathActionEventMessage>> RaiseScrimDeathActionEvent;
+        public delegate void ScrimDeathActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e);
 
-        public event EventHandler<MatchConfigurationUpdateEventArgs> RaiseMatchConfigurationUpdateEvent;
-        public delegate void MatchConfigurationUpdateEventHandler(object sender, MatchConfigurationUpdateEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage>> RaiseScrimVehicleDestructionActionEvent;
+        public delegate void ScrimVehicleDestructionActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage> e);
 
-        public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
-        public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ScrimReviveActionEventMessage>> RaiseScrimReviveActionEvent;
+        public delegate void ScrimReviveActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<ScrimAssistActionEventMessage>> RaiseScrimAssistActionEvent;
+        public delegate void ScrimAssistActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimAssistActionEventMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage>> RaiseScrimObjectiveTickActionEvent;
+        public delegate void ScrimObjectiveTickActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage>> RaiseScrimFacilityControlActionEvent;
+        public delegate void ScrimFacilityControlActionEventMessageEventHandler(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<PlayerLoginMessage>> RaisePlayerLoginEvent;
+        public delegate void PlayerLoginEventHandler(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<PlayerLogoutMessage>> RaisePlayerLogoutEvent;
+        public delegate void PlayerLogoutEventHandler(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e);
+
+
+        public event EventHandler<ScrimMessageEventArgs<MatchStateUpdateMessage>> RaiseMatchStateUpdateEvent;
+        public delegate void MatchStateUpdateEventHandler(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<MatchConfigurationUpdateMessage>> RaiseMatchConfigurationUpdateEvent;
+        public delegate void MatchConfigurationUpdateEventHandler(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e);
+
+        public event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
+        public delegate void MatchTimerTickEventHandler(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e);
         
-        public event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
-        public delegate void ConstructedTeamMemberChangeEventHandler(object sender, ConstructedTeamMemberChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage>> RaiseConstructedTeamMemberChangeEvent;
+        public delegate void ConstructedTeamMemberChangeEventHandler(object sender, ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e);
         
-        public event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
-        public delegate void ConstructedTeamInfoChangeEventHandler(object sender, ConstructedTeamInfoChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage>> RaiseConstructedTeamInfoChangeEvent;
+        public delegate void ConstructedTeamInfoChangeEventHandler(object sender, ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage> e);
 
 
-        public event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
-        public delegate void ActiveRulesetChangeMessageEventHandler(object sender, ActiveRulesetChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<ActiveRulesetChangeMessage>> RaiseActiveRulesetChangeEvent;
+        public delegate void ActiveRulesetChangeMessageEventHandler(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> e);
         
-        public event EventHandler<RulesetRuleChangeEventArgs> RaiseRulesetRuleChangeEvent;
-        public delegate void ActiveRulesetRuleChangeEventHandler(object sender, RulesetRuleChangeEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<RulesetRuleChangeMessage>> RaiseRulesetRuleChangeEvent;
+        public delegate void ActiveRulesetRuleChangeEventHandler(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e);
 
         #endregion Handler Events & Delegates
 
@@ -140,22 +141,22 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Match State Change
         public void BroadcastMatchStateUpdateMessage(MatchStateUpdateMessage message)
         {
-            OnRaiseMatchStateUpdateEvent(new MatchStateUpdateEventArgs(message));
+            OnRaiseMatchStateUpdateEvent(new ScrimMessageEventArgs<MatchStateUpdateMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseMatchStateUpdateEvent(MatchStateUpdateEventArgs e)
+        protected virtual void OnRaiseMatchStateUpdateEvent(ScrimMessageEventArgs<MatchStateUpdateMessage> e)
         {
             RaiseMatchStateUpdateEvent?.Invoke(this, e);
         }
 
         public void BroadcastMatchConfigurationUpdateMessage(MatchConfigurationUpdateMessage message)
         {
-            OnRaiseMatchConfigurationUpdateEvent(new MatchConfigurationUpdateEventArgs(message));
+            OnRaiseMatchConfigurationUpdateEvent(new ScrimMessageEventArgs<MatchConfigurationUpdateMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseMatchConfigurationUpdateEvent(MatchConfigurationUpdateEventArgs e)
+        protected virtual void OnRaiseMatchConfigurationUpdateEvent(ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
         {
             RaiseMatchConfigurationUpdateEvent?.Invoke(this, e);
         }
@@ -164,9 +165,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Match Timer Tick
         public void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message)
         {
-            OnRaiseMatchTimerTickEvent(new MatchTimerTickEventArgs(message));
+            OnRaiseMatchTimerTickEvent(new ScrimMessageEventArgs<MatchTimerTickMessage>(message));
         }
-        protected virtual void OnRaiseMatchTimerTickEvent(MatchTimerTickEventArgs e)
+        protected virtual void OnRaiseMatchTimerTickEvent(ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             RaiseMatchTimerTickEvent?.Invoke(this, e);
         }
@@ -175,22 +176,22 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Player Login / Logout
         public void BroadcastPlayerLoginMessage(PlayerLoginMessage message)
         {
-            OnRaisePlayerLoginEvent(new PlayerLoginEventArgs(message));
+            OnRaisePlayerLoginEvent(new ScrimMessageEventArgs<PlayerLoginMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaisePlayerLoginEvent(PlayerLoginEventArgs e)
+        protected virtual void OnRaisePlayerLoginEvent(ScrimMessageEventArgs<PlayerLoginMessage> e)
         {
             RaisePlayerLoginEvent?.Invoke(this, e);
         }
 
         public void BroadcastPlayerLogoutMessage(PlayerLogoutMessage message)
         {
-            OnRaisePlayerLogoutEvent(new PlayerLogoutEventArgs(message));
+            OnRaisePlayerLogoutEvent(new ScrimMessageEventArgs<PlayerLogoutMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaisePlayerLogoutEvent(PlayerLogoutEventArgs e)
+        protected virtual void OnRaisePlayerLogoutEvent(ScrimMessageEventArgs<PlayerLogoutMessage> e)
         {
             RaisePlayerLogoutEvent?.Invoke(this, e);
         }
@@ -199,93 +200,94 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Player Stat Update & Scrim Events
         public void BroadcastPlayerStatUpdateMessage(PlayerStatUpdateMessage message)
         {
-            OnRaisePlayerStatUpdateEvent(new PlayerStatUpdateEventArgs(message));
+            OnRaisePlayerStatUpdateEvent(new ScrimMessageEventArgs<PlayerStatUpdateMessage>(message));
         }
-        protected virtual void OnRaisePlayerStatUpdateEvent(PlayerStatUpdateEventArgs e)
+        protected virtual void OnRaisePlayerStatUpdateEvent(ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
         {
             RaisePlayerStatUpdateEvent?.Invoke(this, e);
         }
 
         public void BroadcastTeamStatUpdateMessage(TeamStatUpdateMessage message)
         {
-            OnRaiseTeamStatUpdateEvent(new TeamStatUpdateEventArgs(message));
+            OnRaiseTeamStatUpdateEvent(new ScrimMessageEventArgs<TeamStatUpdateMessage>(message));
         }
-        protected virtual void OnRaiseTeamStatUpdateEvent(TeamStatUpdateEventArgs e)
+        protected virtual void OnRaiseTeamStatUpdateEvent(ScrimMessageEventArgs<TeamStatUpdateMessage> e)
         {
             RaiseTeamStatUpdateEvent?.Invoke(this, e);
         }
         
         public void BroadcastScrimKillfeedEventMessage(ScrimKillfeedEventMessage message)
         {
-            OnRaiseScrimKillfeedEventEvent(new ScrimKillfeedEventEventArgs(message));
+            OnRaiseScrimKillfeedEventEvent(new ScrimMessageEventArgs<ScrimKillfeedEventMessage>(message));
         }
-        protected virtual void OnRaiseScrimKillfeedEventEvent(ScrimKillfeedEventEventArgs e)
+        protected virtual void OnRaiseScrimKillfeedEventEvent(ScrimMessageEventArgs<ScrimKillfeedEventMessage> e)
         {
             RaiseScrimKillfeedEvent?.Invoke(this, e);
         }
 
+
         public void BroadcastScrimDeathActionEventMessage(ScrimDeathActionEventMessage message)
         {
-            OnRaiseScrimDeathActionEvent(new ScrimDeathActionEventEventArgs(message));
+            OnRaiseScrimDeathActionEvent(new ScrimMessageEventArgs<ScrimDeathActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimDeathActionEvent(ScrimDeathActionEventEventArgs e)
+        protected virtual void OnRaiseScrimDeathActionEvent(ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
         {
             RaiseScrimDeathActionEvent?.Invoke(this, e);
         }
-
+        
         public void BroadcastScrimVehicleDestructionActionEventMessage(ScrimVehicleDestructionActionEventMessage message)
         {
-            OnRaiseScrimVehicleDestructionActionEvent(new ScrimVehicleDestructionActionEventEventArgs(message));
+            OnRaiseScrimVehicleDestructionActionEvent(new ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimVehicleDestructionActionEvent(ScrimVehicleDestructionActionEventEventArgs e)
+        protected virtual void OnRaiseScrimVehicleDestructionActionEvent(ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage> e)
         {
             RaiseScrimVehicleDestructionActionEvent?.Invoke(this, e);
         }
-
+        
         public void BroadcastScrimReviveActionEventMessage(ScrimReviveActionEventMessage message)
         {
-            OnRaiseScrimReviveActionEvent(new ScrimReviveActionEventEventArgs(message));
+            OnRaiseScrimReviveActionEvent(new ScrimMessageEventArgs<ScrimReviveActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimReviveActionEvent(ScrimReviveActionEventEventArgs e)
+        protected virtual void OnRaiseScrimReviveActionEvent(ScrimMessageEventArgs<ScrimReviveActionEventMessage> e)
         {
             RaiseScrimReviveActionEvent?.Invoke(this, e);
         }
 
         public void BroadcastScrimAssistActionEventMessage(ScrimAssistActionEventMessage message)
         {
-            OnRaiseScrimAssistActionEvent(new ScrimAssistActionEventEventArgs(message));
+            OnRaiseScrimAssistActionEvent(new ScrimMessageEventArgs<ScrimAssistActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimAssistActionEvent(ScrimAssistActionEventEventArgs e)
+        protected virtual void OnRaiseScrimAssistActionEvent(ScrimMessageEventArgs<ScrimAssistActionEventMessage> e)
         {
             RaiseScrimAssistActionEvent?.Invoke(this, e);
         }
 
         public void BroadcastScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEventMessage message)
         {
-            OnRaiseScrimObjectiveTickActionEvent(new ScrimObjectiveTickActionEventEventArgs(message));
+            OnRaiseScrimObjectiveTickActionEvent(new ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimObjectiveTickActionEvent(ScrimObjectiveTickActionEventEventArgs e)
+        protected virtual void OnRaiseScrimObjectiveTickActionEvent(ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e)
         {
             RaiseScrimObjectiveTickActionEvent?.Invoke(this, e);
         }
         
         public void BroadcastScrimFacilityControlActionEventMessage(ScrimFacilityControlActionEventMessage message)
         {
-            OnRaiseScrimFacilityControlActionEvent(new ScrimFacilityControlActionEventEventArgs(message));
+            OnRaiseScrimFacilityControlActionEvent(new ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseScrimFacilityControlActionEvent(ScrimFacilityControlActionEventEventArgs e)
+        protected virtual void OnRaiseScrimFacilityControlActionEvent(ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
         {
             RaiseScrimFacilityControlActionEvent?.Invoke(this, e);
         }
@@ -308,33 +310,33 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Team Player/Outfit/Constructed Team Changes
         public void BroadcastTeamPlayerChangeMessage(TeamPlayerChangeMessage message)
         {
-            OnRaiseTeamPlayerChangeEvent(new TeamPlayerChangeEventArgs(message));
+            OnRaiseTeamPlayerChangeEvent(new ScrimMessageEventArgs<TeamPlayerChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseTeamPlayerChangeEvent(TeamPlayerChangeEventArgs e)
+        protected virtual void OnRaiseTeamPlayerChangeEvent(ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
         {
             RaiseTeamPlayerChangeEvent?.Invoke(this, e);
         }
 
         public void BroadcastTeamOutfitChangeMessage(TeamOutfitChangeMessage message)
         {
-            OnRaiseTeamOutfitChangeEvent(new TeamOutfitChangeEventArgs(message));
+            OnRaiseTeamOutfitChangeEvent(new ScrimMessageEventArgs<TeamOutfitChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseTeamOutfitChangeEvent(TeamOutfitChangeEventArgs e)
+        protected virtual void OnRaiseTeamOutfitChangeEvent(ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
         {
             RaiseTeamOutfitChangeEvent?.Invoke(this, e);
         }
         
         public void BroadcastTeamConstructedTeamChangeMessage(TeamConstructedTeamChangeMessage message)
         {
-            OnRaiseTeamConstructedTeamChangeEvent(new TeamConstructedTeamChangeEventArgs(message));
+            OnRaiseTeamConstructedTeamChangeEvent(new ScrimMessageEventArgs<TeamConstructedTeamChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseTeamConstructedTeamChangeEvent(TeamConstructedTeamChangeEventArgs e)
+        protected virtual void OnRaiseTeamConstructedTeamChangeEvent(ScrimMessageEventArgs<TeamConstructedTeamChangeMessage> e)
         {
             RaiseTeamConstructedTeamChangeEvent?.Invoke(this, e);
         }
@@ -342,44 +344,44 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public void BroadcastTeamAliasChangeMessage(TeamAliasChangeMessage message)
         {
-            OnRaiseTeamAliasChangeEvent(new TeamAliasChangeEventArgs(message));
+            OnRaiseTeamAliasChangeEvent(new ScrimMessageEventArgs<TeamAliasChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseTeamAliasChangeEvent(TeamAliasChangeEventArgs e)
+        protected virtual void OnRaiseTeamAliasChangeEvent(ScrimMessageEventArgs<TeamAliasChangeMessage> e)
         {
             RaiseTeamAliasChangeEvent?.Invoke(this, e);
         }
 
         public void BroadcastTeamFactionChangeMessage(TeamFactionChangeMessage message)
         {
-            OnRaiseTeamFactionChangeEvent(new TeamFactionChangeEventArgs(message));
+            OnRaiseTeamFactionChangeEvent(new ScrimMessageEventArgs<TeamFactionChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseTeamFactionChangeEvent(TeamFactionChangeEventArgs e)
+        protected virtual void OnRaiseTeamFactionChangeEvent(ScrimMessageEventArgs<TeamFactionChangeMessage> e)
         {
             RaiseTeamFactionChangeEvent?.Invoke(this, e);
         }
         
         public void BroadcastTeamLockStatusChangeMessage(TeamLockStatusChangeMessage message)
         {
-            OnRaiseTeamLockStatusChangeEvent(new TeamLockStatusChangeEventArgs(message));
+            OnRaiseTeamLockStatusChangeEvent(new ScrimMessageEventArgs<TeamLockStatusChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseTeamLockStatusChangeEvent(TeamLockStatusChangeEventArgs e)
+        protected virtual void OnRaiseTeamLockStatusChangeEvent(ScrimMessageEventArgs<TeamLockStatusChangeMessage> e)
         {
             RaiseTeamLockStatusChangeEvent?.Invoke(this, e);
         }
         
         public void BroadcastPlayerNameDisplayChangeMessage(PlayerNameDisplayChangeMessage message)
         {
-            OnRaisePlayerNameDisplayChangeEvent(new PlayerNameDisplayChangeEventArgs(message));
+            OnRaisePlayerNameDisplayChangeEvent(new ScrimMessageEventArgs<PlayerNameDisplayChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaisePlayerNameDisplayChangeEvent(PlayerNameDisplayChangeEventArgs e)
+        protected virtual void OnRaisePlayerNameDisplayChangeEvent(ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
         {
             RaisePlayerNameDisplayChangeEvent?.Invoke(this, e);
         }
@@ -388,22 +390,22 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Constructed Team Messages
         public void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message)
         {
-            OnRaiseConstructedTeamMemberChangeEvent(new ConstructedTeamMemberChangeEventArgs(message));
+            OnRaiseConstructedTeamMemberChangeEvent(new ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseConstructedTeamMemberChangeEvent(ConstructedTeamMemberChangeEventArgs e)
+        protected virtual void OnRaiseConstructedTeamMemberChangeEvent(ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e)
         {
             RaiseConstructedTeamMemberChangeEvent?.Invoke(this, e);
         }
         
         public void BroadcastConstructedTeamInfoChangeMessage(ConstructedTeamInfoChangeMessage message)
         {
-            OnRaiseConstructedTeamInfoChangeEvent(new ConstructedTeamInfoChangeEventArgs(message));
+            OnRaiseConstructedTeamInfoChangeEvent(new ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage>(message));
 
             TrySaveToLogFile(message.Info);
         }
-        protected virtual void OnRaiseConstructedTeamInfoChangeEvent(ConstructedTeamInfoChangeEventArgs e)
+        protected virtual void OnRaiseConstructedTeamInfoChangeEvent(ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage> e)
         {
             RaiseConstructedTeamInfoChangeEvent?.Invoke(this, e);
         }
@@ -413,18 +415,18 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #region Ruleset Messages
         public void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message)
         {
-            OnRaiseActiveRulesetChangeEvent(new ActiveRulesetChangeEventArgs(message));
+            OnRaiseActiveRulesetChangeEvent(new ScrimMessageEventArgs<ActiveRulesetChangeMessage>(message));
         }
-        protected virtual void OnRaiseActiveRulesetChangeEvent(ActiveRulesetChangeEventArgs e)
+        protected virtual void OnRaiseActiveRulesetChangeEvent(ScrimMessageEventArgs<ActiveRulesetChangeMessage> e)
         {
             RaiseActiveRulesetChangeEvent?.Invoke(this, e);
         }
         
         public void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message)
         {
-            OnRaiseRulesetRuleChangeEvent(new RulesetRuleChangeEventArgs(message));
+            OnRaiseRulesetRuleChangeEvent(new ScrimMessageEventArgs<RulesetRuleChangeMessage>(message));
         }
-        protected virtual void OnRaiseRulesetRuleChangeEvent(RulesetRuleChangeEventArgs e)
+        protected virtual void OnRaiseRulesetRuleChangeEvent(ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
         {
             RaiseRulesetRuleChangeEvent?.Invoke(this, e);
         }

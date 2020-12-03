@@ -17,7 +17,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<FacilityTypeService> _logger;
 
-        public string BackupSqlScriptFileName => "dbo.FacilityType.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.FacilityType.Table.sql";
 
         public FacilityTypeService(IDbContextHelper dbContextHelper, CensusFacility censusFacility, ISqlScriptRunner sqlScriptRunner, ILogger<FacilityTypeService> logger)
         {

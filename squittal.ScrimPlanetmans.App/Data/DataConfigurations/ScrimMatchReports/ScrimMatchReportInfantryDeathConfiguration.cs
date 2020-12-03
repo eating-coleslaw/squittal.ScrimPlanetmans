@@ -20,6 +20,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(p => p.EmpGrenadeAssists).HasDefaultValue(0);
             builder.Property(p => p.FlashGrenadeAssists).HasDefaultValue(0);
             builder.Property(p => p.SpotAssists).HasDefaultValue(0);
+            builder.Property(p => p.IsTrickleDeath).HasDefaultValue(false);
 
         }
     }

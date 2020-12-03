@@ -188,7 +188,7 @@
     }
 
     #region Event Handling
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var message = e.Message;
 
@@ -216,7 +216,7 @@
         }
     }
 
-    private void ReceiveFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+    private void ReceiveFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
     {
         var message = e.Message;
 
@@ -245,7 +245,7 @@
         }
     }
 
-    private void ReceiveTeamAliasChangeEvent(object sender, TeamAliasChangeEventArgs e)
+    private void ReceiveTeamAliasChangeEvent(object sender, ScrimMessageEventArgs<TeamAliasChangeMessage> e)
     {
         var message = e.Message;
 
@@ -271,7 +271,7 @@
         }
     }
 
-    private void ReceiveMatchStateUpdateEvent(object sender, MatchStateUpdateEventArgs e)
+    private void ReceiveMatchStateUpdateEvent(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e)
     {
         var message = e.Message;
 
@@ -303,7 +303,7 @@
 
 
 
-    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
+    private void ReceiveTeamFactionChangeEvent(object sender, ScrimMessageEventArgs<TeamFactionChangeMessage> e)
     {
         var message = e.Message;
 

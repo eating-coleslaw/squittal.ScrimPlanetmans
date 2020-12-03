@@ -38,8 +38,37 @@ ALTER VIEW View_ScrimMatchReportInfantryDeaths AS
        MAX(COALESCE(grenade_sums.ConcussionGrenadeAssists, 0) ) ConcussionGrenadeAssists,
        MAX(COALESCE(grenade_sums.EmpGrenadeAssists, 0)) EmpGrenadeAssists,
        MAX(COALESCE(grenade_sums.FlashGrenadeAssists, 0)) FlashGrenadeAssists,
-       MAX(COALESCE(spot_sums.SpotAssists, 0) ) SpotAssists
-    FROM [PlanetmansDbContext].[dbo].ScrimDeath deaths
+       MAX(COALESCE(spot_sums.SpotAssists, 0) ) SpotAssists,
+       CAST( MAX( CASE WHEN deaths.AttackerLoadoutId IN ( 3, 10, 17) AND deaths.VictimLoadoutId IN ( 3, 10, 17)
+                         THEN CASE WHEN deaths.NextEventTimeDiff >= 9 AND deaths.PrevEventTimeDiff > 6 THEN 1
+                                   ELSE 0 END
+                       WHEN deaths.NextEventTimeDiff >= 6 AND deaths.PrevEventTimeDiff > 3 THEN 1
+                       ELSE 0 END ) AS BIT ) IsTrickleDeath,
+       MAX( deaths.NextEventTimeDiff ) SecondsToNextDeathEvent,
+       MAX( deaths.PrevEventTimeDiff ) SecondsFromPreviousDeathEvent
+    FROM ( SELECT ScrimMatchId,
+                  ScrimMatchRound,
+                  Timestamp,
+                  ActionType,
+                  DeathType,
+                  AttackerTeamOrdinal,
+                  AttackerCharacterId,
+                  AttackerNameFull,
+                  AttackerLoadoutId,
+                  AttackerFactionId,
+                  VictimTeamOrdinal,
+                  VictimCharacterId,
+                  VictimNameFull,
+                  VictimLoadoutId,
+                  VictimFactionId,
+                  DATEDIFF(SECOND, Timestamp, LAG( Timestamp ) OVER ( PARTITION BY ScrimMatchId, ScrimMatchRound ORDER BY Timestamp DESC ) ) NextEventTimeDiff,
+                  DATEDIFF(SECOND, LEAD( Timestamp ) OVER ( PARTITION BY ScrimMatchId, ScrimMatchRound ORDER BY Timestamp DESC ), Timestamp ) PrevEventTimeDiff,
+                  WeaponId,
+                  IsHeadshot,
+                  Points,
+                  ZoneId,
+                  WorldId
+            FROM [PlanetmansDbContext].[dbo].ScrimDeath ) deaths
       LEFT OUTER JOIN ( SELECT damages.ScrimMatchId,
                                 damages.Timestamp,
                                 damages.VictimCharacterId,

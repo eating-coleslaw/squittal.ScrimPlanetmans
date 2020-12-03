@@ -270,8 +270,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
-                        var points = await _scorer.ScoreDeathEvent(deathEvent);
-                        deathEvent.Points = points;
+                        var scoringResult = await _scorer.ScoreDeathEvent(deathEvent);
+                        deathEvent.Points = scoringResult.Points;
+                        deathEvent.IsBanned = scoringResult.IsBanned;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
                         var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -494,7 +495,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 destructionEvent.VictimVehicle = new ScrimActionVehicleInfo(victimVehicle);
             }
 
-
             try
             {
                 if (isValidAttackerId == true)
@@ -542,8 +542,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
-                        var points = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
-                        destructionEvent.Points = points;
+                        var scoringResult = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
+                        destructionEvent.Points = scoringResult.Points;
+                        destructionEvent.IsBanned = scoringResult.IsBanned;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
                         var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -988,8 +989,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreReviveEvent(reviveEvent);
-                    reviveEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreReviveEvent(reviveEvent);
+                    reviveEvent.Points = scoringResult.Points;
+                    reviveEvent.IsBanned = scoringResult.IsBanned;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1092,8 +1094,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreAssistEvent(assistEvent);
-                    assistEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreAssistEvent(assistEvent);
+                    assistEvent.Points = scoringResult.Points;
+                    assistEvent.IsBanned = scoringResult.IsBanned;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1267,8 +1270,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreObjectiveTickEvent(controlEvent);
-                    controlEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreObjectiveTickEvent(controlEvent);
+                    controlEvent.Points = scoringResult.Points;
+                    controlEvent.IsBanned = scoringResult.IsBanned;
                 }
             }
 
@@ -1308,16 +1312,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (type == FacilityControlType.Unknown)
             {
+                _logger.LogInformation($"FacilityControl payload had Unknow FacilityControlType: worldId={payload.WorldId} facilityId={payload.FacilityId}");
+                
                 return;
             }
 
             var controllingTeamOrdinal = _teamsManager.GetFirstTeamWithFactionId(newFactionId);
             if (controllingTeamOrdinal == null)
             {
+                _logger.LogInformation($"Could not resolve controlling team for {type} FacilityControl payload: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
+
                 return;
             }
 
             var actionType = GetFacilityControlActionType(type);
+
+            _logger.LogInformation($"FacilityControl payload has FacilityControlType of {type} & ScrimActionType of {actionType} ({(int)actionType}) for Team {controllingTeamOrdinal}: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
 
             // "Outside Influence" doesn't really apply to base captures
             if (actionType == ScrimActionType.None)
@@ -1345,8 +1355,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (_isScoringEnabled)
             {
-                var points = _scorer.ScoreFacilityControlEvent(controlEvent);
-                controlEvent.Points = points;
+                var scoringResult = _scorer.ScoreFacilityControlEvent(controlEvent);
+                controlEvent.Points = scoringResult.Points;
+                controlEvent.IsBanned = scoringResult.IsBanned;
 
                 var currentMatchId = _scrimMatchService.CurrentMatchId;
                 var currentRound = _scrimMatchService.CurrentMatchRound;

@@ -26,6 +26,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
     {
         ActionRule,
         ItemCategoryRule,
-        FacilityRule
+        FacilityRule,
+        ItemRule
     }
 }

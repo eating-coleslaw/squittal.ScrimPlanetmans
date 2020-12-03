@@ -562,7 +562,7 @@
     #endregion Match & Subscription State Buttons
 
     #region  Event Handling
-    private void ReceiveMatchStateUpdateMessageEvent(object sender, MatchStateUpdateEventArgs e)
+    private void ReceiveMatchStateUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e)
     {
         var message = e.Message;
 
@@ -580,7 +580,7 @@
         });
     }
 
-    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, MatchConfigurationUpdateEventArgs e)
+    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
     {
         var message = e.Message;
 

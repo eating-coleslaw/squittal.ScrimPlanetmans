@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private ConcurrentDictionary<int, Zone> ZonesMap { get; set; } = new ConcurrentDictionary<int, Zone>();
         private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
         
-        public string BackupSqlScriptFileName => "dbo.Zone.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Zone.Table.sql";
 
         public ZoneService(IDbContextHelper dbContextHelper, CensusZone censusZone, ISqlScriptRunner sqlScriptRunner, ILogger<ZoneService> logger)
         {

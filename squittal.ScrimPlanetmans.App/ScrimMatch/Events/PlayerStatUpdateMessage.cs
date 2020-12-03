@@ -16,7 +16,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             OverlayMessageData = new OverlayMessageData();
 
-            //Info = $"Player Stat Update: {player.NameDisplay} [{player.Id}]";
             Info = Info = $"Player Stat Update: {player.NameDisplay} [{player.Id}]";
         }
 

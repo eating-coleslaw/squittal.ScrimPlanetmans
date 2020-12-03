@@ -11,14 +11,6 @@
 
     protected override bool TryParseValueFromString(string value, out OutfitAlias result, out string validationErrorMessage)
     {
-        //Match match = Regex.Match(value);
-        //if (!match.Success)
-        //{
-        //    validationErrorMessage = "Invalid outfit alias";
-        //    result = new OutfitAlias();
-        //    return false;
-        //}
-
         validationErrorMessage = null;
         result = new OutfitAlias(value);
         return true;

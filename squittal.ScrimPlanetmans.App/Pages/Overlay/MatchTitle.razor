@@ -41,7 +41,7 @@
     }
     #endregion Initialization Methods
 
-    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, MatchConfigurationUpdateEventArgs e)
+    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
     {
         var message = e.Message;
 

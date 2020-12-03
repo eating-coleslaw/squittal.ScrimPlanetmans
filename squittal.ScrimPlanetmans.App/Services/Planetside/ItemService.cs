@@ -27,8 +27,20 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private ConcurrentDictionary<int, Item> WeaponsMap { get; set; } = new ConcurrentDictionary<int, Item>();
         private readonly SemaphoreSlim _weaponMapSetUpSemaphore = new SemaphoreSlim(1);
         
-        public string BackupSqlScriptFileName => "dbo.Item.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Item.Table.sql";
 
+        public event EventHandler<StoreRefreshMessageEventArgs> RaiseStoreRefreshEvent;
+        public delegate void StoreRefreshMessageEventHandler(object sender, StoreRefreshMessageEventArgs e);
+
+        protected virtual void OnRaiseStoreRefreshEvent(StoreRefreshMessageEventArgs e)
+        {
+            RaiseStoreRefreshEvent?.Invoke(this, e);
+        }
+
+        private void SendStoreRefreshEventMessage(StoreRefreshSource refreshSource)
+        {
+            OnRaiseStoreRefreshEvent(new StoreRefreshMessageEventArgs(refreshSource));
+        }
 
         public ItemService(IDbContextHelper dbContextHelper, IItemCategoryService itemCategoryService,
             CensusItem censusItem, ISqlScriptRunner sqlScriptRunner, ILogger<ItemService> logger)
@@ -52,7 +64,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return item;
         }
 
-        public async Task<IEnumerable<Item>> GetItemsByCategoryId(int categoryId)
+        public async Task<IEnumerable<Item>> GetItemsByCategoryIdAsync(int categoryId)
         {
             if (ItemsMap == null || ItemsMap.Count == 0)
             {
@@ -101,6 +113,21 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 _itemMapSetUpSemaphore.Release();
             }
+        }
+
+        public async Task<IEnumerable<Item>> GetAllWeaponItemsAsync()
+        {
+            if (WeaponsMap == null || WeaponsMap.Count == 0)
+            {
+                await SetUpWeaponsMapAsync();
+            }
+
+            if (WeaponsMap == null || WeaponsMap.Count == 0)
+            {
+                return null;
+            }
+
+            return WeaponsMap.Values.ToList();
         }
 
         public async Task<Item> GetWeaponItemAsync(int id)
@@ -172,7 +199,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var anyItems = await dbContext.Items.AnyAsync();
                 if (anyItems)
                 {
-                    //await SetUpItemsListAsync();
                     await SetUpWeaponsMapAsync();
 
                     return;
@@ -186,7 +212,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 RefreshStoreFromBackup();
             }
 
-            //await SetUpItemsListAsync();
             await SetUpWeaponsMapAsync();
         }
 
@@ -196,11 +221,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             try
             {
-                items = await _censusItem.GetAllItems();
+                items = await _censusItem.GetAllWeaponItems();
             }
             catch
             {
-                _logger.LogError("Census API query failed: get all Items. Refreshing store from backup...");
+                _logger.LogError("Census API query failed: get all weapon Items. Refreshing store from backup...");
                 return false;
             }
 
@@ -209,6 +234,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(items.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Items store: {items.Count()} entries");
+
+                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -269,7 +296,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task<int> GetCensusCountAsync()
         {
-            return await _censusItem.GetItemsCount();
+            return await _censusItem.GetWeaponItemsCount();
         }
 
         public async Task<int> GetStoreCountAsync()
@@ -283,6 +310,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         public void RefreshStoreFromBackup()
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
     }
 }

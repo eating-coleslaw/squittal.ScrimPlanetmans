@@ -24,8 +24,6 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Ignore(e => e.ScrimMatch);
             builder.Ignore(e => e.SpotterParticipatingPlayer);
             builder.Ignore(e => e.VictimParticipatingPlayer);
-            //builder.Ignore(e => e.SpotterFaction);
-            //builder.Ignore(e => e.VictimFaction);
             builder.Ignore(e => e.World);
             builder.Ignore(e => e.Zone);
         }

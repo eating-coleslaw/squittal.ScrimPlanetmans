@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private ConcurrentDictionary<int, World> WorldsMap { get; set; } = new ConcurrentDictionary<int, World>();
         private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
-        public string BackupSqlScriptFileName => "dbo.World.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.World.Table.sql";
 
 
         public WorldService(IDbContextHelper dbContextHelper, CensusWorld censusWorld, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
