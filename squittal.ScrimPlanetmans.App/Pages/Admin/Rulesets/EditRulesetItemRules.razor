@@ -13,7 +13,7 @@
 
 @implements IDisposable
 
-<div class="sq-mini-card-3 default" style="background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+<div class="sq-mini-card-3 default" style="min-width: 420px; background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
     @if (_changesCount > 0)
     {
         <h5>Item Rules<span style="padding-left: 4px; font-weight: 400; font-size: 0.8rem;">(@_changesCount Changes)</span></h5>
@@ -81,15 +81,15 @@
 
                     @if (_selectedItemCategoryId == _noSelectedItemCategoryValue)
                     {
-                        <p>Select an Item Category to edit Item Rules</p>
+                        <p class="sans-serif-font" style="font-size: 0.9rem;">Select an Item Category to edit Item Rules</p>
                     }
                     else if (_itemRules == null || !_itemRules.Any())
                     {
-                        <p>There are no Item Rules for this Ruleset</p>
+                        <p class="sans-serif-font" style="font-size: 0.9rem;">There are no Item Rules for this Ruleset</p>
                     }
                     else if (!_itemRules.Any(r => r.ItemCategoryId == _selectedItemCategoryId))
                     {
-                        <p>There are no Item Rules for this Item Category</p>
+                        <p class="sans-serif-font" style="font-size: 0.9rem;">There are no Item Rules for this Item Category</p>
                     }
                     else
                     {
@@ -127,7 +127,10 @@
         }
         else
         {
-            <p>No item rules...</p>
+            <div class="sans-serif-font" style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 4px 8px 4px 8px; font-size: 0.9rem; margin: 4px 0 8px 0;">
+                There are no Item Rules for this Ruleset. Enable "Defer to Item Rules" for an Item Category Rule to begin editing Item Rules.
+            </div>            
+            @*<p class="sans-serif-font" style="margin-left: 16px; font-size: 0.9rem;">There are no Item Rules for this Ruleset. Enable "Defer to Item Rules" for an Item Category Rule to begin editing Item Rules.</p>*@
         }
     }
 </div>
@@ -235,7 +238,7 @@
             cts.Token.ThrowIfCancellationRequested();
 
             _itemRules = itemRulesTask.Result.ToList();
-            _deferredItemCategories = deferredItemCategoriesTask.Result.ToList();
+            _deferredItemCategories = deferredItemCategoriesTask.Result.OrderBy(c => c.Name).ToList();
 
             if (_deferredItemCategories != null)
             {
