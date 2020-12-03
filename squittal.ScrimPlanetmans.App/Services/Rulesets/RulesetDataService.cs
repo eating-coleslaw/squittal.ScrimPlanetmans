@@ -493,7 +493,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var allFacilities = await _facilityService.GetScrimmableMapRegionsAsync();
-                
+
+                allFacilities = allFacilities?.Where(f => !f.IsDeprecated && f.IsCurrent);
+
                 if (usedFacilities == null)
                 {
                     return allFacilities?.Select(a => ConvertToFacilityRule(rulesetId, a)).ToList();
