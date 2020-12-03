@@ -79,6 +79,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
             var storeRulesets = await GetAllRulesetsAsync(CancellationToken.None);
 
+            if (storeRulesets == null || !storeRulesets.Any())
+            {
+                _logger.LogInformation($"Finished updating rulesets post-Item Category Store Refresh. No store rulesets found. Source: {refreshSource}");
+
+                return;
+            }
+
             foreach (var ruleset in storeRulesets)
             {
                 var rulesetItemCategoryRules = await GetRulesetItemCategoryRulesAsync(ruleset.Id, CancellationToken.None);
@@ -113,6 +120,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
 
             var storeRulesets = await GetAllRulesetsAsync(CancellationToken.None);
+
+            if (storeRulesets == null || !storeRulesets.Any())
+            {
+                _logger.LogInformation($"Finished updating rulesets post-Item Store Refresh. No store rulesets found. Source: {refreshSource}");
+
+                return;
+            }
 
             foreach (var ruleset in storeRulesets)
             {
