@@ -21,42 +21,41 @@
     {
         @if (_itemRules != null && _itemRules.Any())
         {
-            
-                <div class="sq-content" style="margin-top: 8px;">
+            <div class="sq-content" style="margin-top: 8px;">
 
-                    <div style="margin-top: 4px; margin-bottom: 12px;">
-                        @if (_itemCategoryDomains != null && _deferredItemCategories != null)
-                        {
-                            <EditForm Model="@_selectedItemCategoryIdString">
-                                <div style="display: inline; margin-right: 4px;">Item Category:</div><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_selectedItemCategoryIdString" ValueChanged="@((string id) => OnSelectItemCategoryId(id))" ValueExpression="@(() => _selectedItemCategoryIdString)">
-                                    <option value=@_noSelectedItemCategoryValue>None</option>
+                <div class="sans-serif-font" style="font-size: 0.9rem; margin-top: 4px; margin-bottom: 12px;">
+                    @if (_itemCategoryDomains != null && _deferredItemCategories != null)
+                    {
+                        <EditForm Model="@_selectedItemCategoryIdString">
+                            <div style="display: inline; margin-right: 4px;">Item Category:</div><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_selectedItemCategoryIdString" ValueChanged="@((string id) => OnSelectItemCategoryId(id))" ValueExpression="@(() => _selectedItemCategoryIdString)">
+                                <option value=@_noSelectedItemCategoryValue>None</option>
 
-                                    @foreach (var domain in _itemCategoryDomains)
+                                @foreach (var domain in _itemCategoryDomains)
+                                {
+                                    <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-style: normal;">@GetItemCategoryDomainDescription(domain)</optgroup>
+
+                                    @foreach (var itemCategory in _deferredItemCategories.Where(c => c.Domain == domain))
                                     {
-                                        <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@GetItemCategoryDomainDescription(domain)</optgroup>
-
-                                        @foreach (var itemCategory in _deferredItemCategories.Where(c => c.ItemCategory.Domain == domain))
-                                        {
-                                            <option value=@itemCategory.ItemCategoryId.ToString() label="@itemCategory.ItemCategory.Name">@itemCategory.ItemCategory.Name (@itemCategory.ItemCategoryId)</option>
-                                        }
+                                        <option value=@itemCategory.Id.ToString() label="@itemCategory.Name [@itemCategory.Id]">@itemCategory.Name [@itemCategory.Id]</option>
                                     }
-                                </InputSelect>
-                            </EditForm>
-                        }
-                    </div>
+                                }
+                            </InputSelect>
+                        </EditForm>
+                    }
+                </div>
 
 
                 @if (_selectedItemCategoryId == _noSelectedItemCategoryValue)
                 {
-                    <p>Select an Item Category to edit Item Rules</p>
+                    <p class="sans-serif-font" style="font-size: 0.9rem;">Select an Item Category to view Item Rules</p>
                 }
                 else if (_itemRules == null || !_itemRules.Any())
                 {
-                    <p>There are no Item Rules for this Ruleset</p>
+                    <p class="sans-serif-font" style="font-size: 0.9rem;">There are no Item Rules for this Ruleset</p>
                 }
                 else if (!_itemRules.Any(r => r.ItemCategoryId == _selectedItemCategoryId))
                 {
-                    <p>There are no Item Rules for this Item Category</p>
+                    <p class="sans-serif-font" style="font-size: 0.9rem;">There are no Item Rules for this Item Category</p>
                 }
                 else
                 {
@@ -87,7 +86,9 @@
         }
         else
         {
-            <p>No item rules...</p>
+            <div class="sans-serif-font" style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 4px 8px 4px 8px; font-size: 0.9rem; margin: 4px 0 8px 0;">
+                There are no Item Rules for this Ruleset.
+            </div>
         }
     }
 </div>
@@ -100,7 +101,9 @@
 
     private IEnumerable<RulesetItemRule> _itemRules { get; set; }
 
-    private IEnumerable<RulesetItemCategoryRule> _deferredItemCategories { get; set; }
+    //private IEnumerable<RulesetItemCategoryRule> _deferredItemCategories { get; set; }
+    //private IEnumerable<ItemCategoryDomain> _itemCategoryDomains { get; set; }
+    private IEnumerable<ItemCategory> _deferredItemCategories { get; set; }
     private IEnumerable<ItemCategoryDomain> _itemCategoryDomains { get; set; }
 
     bool _isLoadingRules { get; set; } = false;
@@ -168,17 +171,41 @@
 
         try
         {
-            _itemRules = await RulesetDataService.GetRulesetItemRulesAsync(_renderedRulesetId, cts.Token);
+            //_itemRules = await RulesetDataService.GetRulesetItemRulesAsync(_renderedRulesetId, cts.Token);
+
+            //cts.Token.ThrowIfCancellationRequested();
+
+            //_deferredItemCategories = await RulesetDataService.GetRulesetItemCategoryRulesDeferringToItemRules(_renderedRulesetId, cts.Token);
+
+            //cts.Token.ThrowIfCancellationRequested();
+
+            //if (_deferredItemCategories != null)
+            //{
+            //    _itemCategoryDomains = _deferredItemCategories.Select(c => c.ItemCategory.Domain).Distinct().ToList();
+            //}
+            var TaskList = new List<Task>();
+
+            var itemRulesTask = RulesetDataService.GetRulesetItemRulesAsync(_renderedRulesetId, cts.Token);
+            TaskList.Add(itemRulesTask);
+
+            var deferredItemCategoriesTask = RulesetDataService.GetItemCategoriesDeferringToItemRules(_renderedRulesetId, cts.Token);
+            TaskList.Add(deferredItemCategoriesTask);
+
+            await Task.WhenAll(TaskList);
 
             cts.Token.ThrowIfCancellationRequested();
 
-            _deferredItemCategories = await RulesetDataService.GetRulesetItemCategoryRulesDeferringToItemRules(_renderedRulesetId, cts.Token);
-
-            cts.Token.ThrowIfCancellationRequested();
+            _itemRules = itemRulesTask.Result.ToList();
+            _deferredItemCategories = deferredItemCategoriesTask.Result.OrderBy(c => c.Name).ToList();
 
             if (_deferredItemCategories != null)
             {
-                _itemCategoryDomains = _deferredItemCategories.Select(c => c.ItemCategory.Domain).Distinct().ToList();
+                _itemCategoryDomains = _deferredItemCategories.Select(c => c.Domain).Distinct().ToList();
+            }
+
+            if (!_deferredItemCategories.Any(e => e.Id == _selectedItemCategoryId))
+            {
+                OnSelectItemCategoryId(_noSelectedItemCategoryValue.ToString());
             }
         }
         catch
