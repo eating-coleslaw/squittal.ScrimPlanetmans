@@ -1880,9 +1880,14 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetFacilityRules.AddRange(newEntities);
                     }
 
-                    await dbContext.SaveChangesAsync();
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+                    if (storeRuleset != null)
+                    {
+                        storeRuleset.DateLastModified = DateTime.UtcNow;
+                        dbContext.Rulesets.Update(storeRuleset);
+                    }
 
-                    var storeRuleset = await UpdateRulesetDateLastModified(rulesetId, DateTime.UtcNow);
+                    await dbContext.SaveChangesAsync();
 
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
