@@ -55,12 +55,12 @@
 
                     @if (_showReloadRulesPrompt)
                     {
-                        <div class="text-danger" style="border: 1px solid var(--sq-gray);">
-                            One or more Item Category or Item Rules have been altered.<button type="button" title="Reset changes to original values" class="btn btn-link" style="padding: 0;" @onclick="OnRefreshRules">Refresh</button> to discard your changes and recieve these updates.
+                        <div class="text-danger sans-serif-font" style="border: 1px solid var(--sq-ov-semantic-red); border-radius: 0.1rem; padding: 4px 8px 4px 8px; font-size: 0.9rem; margin: 4px 0 8px 0;">
+                            One or more Item Category or Item Rules have been altered.<button type="button"  @onclick="OnRefreshRules" title="Reset changes to original values" class="btn btn-link" style="padding: 0 0 0 2px; font-size: 0.9rem; vertical-align: baseline;">Refresh</button> to discard your changes and recieve these updates.
                         </div>
                     }
 
-                    <div style="margin-top: 4px; margin-bottom: 12px;">
+                    <div class="sans-serif-font" style="font-size: 0.9rem; margin-top: 4px; margin-bottom: 12px;">
                         @if (_itemCategoryDomains != null && _deferredItemCategories != null)
                         {
                             <div style="display: inline; margin-right: 4px;">Item Category:</div><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_selectedItemCategoryIdString" ValueChanged="@((string id) => OnSelectItemCategoryId(id))" ValueExpression="@(() => _selectedItemCategoryIdString)">
@@ -68,7 +68,7 @@
 
                                 @foreach (var domain in _itemCategoryDomains)
                                 {
-                                    <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@GetItemCategoryDomainDescription(domain)</optgroup>
+                                    <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-style: normal;">@GetItemCategoryDomainDescription(domain)</optgroup>
 
                                     @foreach (var itemCategory in _deferredItemCategories.Where(c => c.Domain == domain))
                                     {
@@ -283,7 +283,7 @@
 
         var changeType = e.Message.RuleChangeType;
 
-        if (changeType != RulesetRuleChangeType.ItemCategoryRule)
+        if (changeType != RulesetRuleChangeType.ItemCategoryRule && changeType != RulesetRuleChangeType.ItemRule)
         {
             return;
         }
@@ -418,6 +418,8 @@
             _changesCount = 0;
 
             _isSavingRules = false;
+
+            _showReloadRulesPrompt = false;
 
             await LoadRulesAsync();
 
