@@ -8,7 +8,7 @@ namespace squittal.ScrimPlanetmans.App.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            var sqlFile = "Data/SQL/MigrationHelpers/Delete_NonWeaponItems.sql";
+            var sqlFile = "Data/SQL/MigrationHelpers/Backfill_ItemsTable.sql";
             var basePath = AppDomain.CurrentDomain.RelativeSearchPath ?? AppDomain.CurrentDomain.BaseDirectory;
             var filePath = Path.Combine(basePath, sqlFile);
             migrationBuilder.Sql(File.ReadAllText(filePath));
