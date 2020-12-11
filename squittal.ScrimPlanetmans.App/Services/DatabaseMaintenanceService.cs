@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using squittal.ScrimPlanetmans.Logging;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Services.Planetside;
 
@@ -17,6 +18,8 @@ namespace squittal.ScrimPlanetmans.Services
         private readonly IWorldService _worldService;
         private readonly IFactionService _factionService;
         private readonly IVehicleService _vehicleService;
+
+        private readonly ISqlScriptRunner _adhocScriptRunner;
 
         private readonly CensusStoreDataComparisonRow _mapRegions;
         private readonly CensusStoreDataComparisonRow _facilityTypes;
@@ -43,7 +46,8 @@ namespace squittal.ScrimPlanetmans.Services
             IZoneService zoneService,
             IWorldService worldService,
             IFactionService factionService,
-            IVehicleService vehicleService
+            IVehicleService vehicleService,
+            ISqlScriptRunner adhocScriptRunner
             )
         {
             _facilityService = facilityService;
@@ -56,6 +60,7 @@ namespace squittal.ScrimPlanetmans.Services
             _worldService = worldService;
             _factionService = factionService;
             _vehicleService = vehicleService;
+            _adhocScriptRunner = adhocScriptRunner;
 
             _mapRegions = new CensusStoreDataComparisonRow("Map Regions", _facilityService);
             _facilityTypes = new CensusStoreDataComparisonRow("Facility Types", _facilityTypeService);
@@ -127,6 +132,16 @@ namespace squittal.ScrimPlanetmans.Services
             }
 
             await Task.WhenAll(TaskList);
+        }
+
+        public IEnumerable<string> GetAdHocSqlFileNames()
+        {
+            return SqlScriptFileHandler.GetAdHocSqlFileNames();
+        }
+
+        public bool TryRunAdHocSqlScript(string fileName, out string info)
+        {
+            return _adhocScriptRunner.TryRunAdHocSqlScript(fileName, out info);
         }
     }
 }

@@ -13,5 +13,7 @@ namespace squittal.ScrimPlanetmans.Models.Planetside
         public int FacilityTypeId { get; set; }
         public string FacilityType { get; set; }
         public int ZoneId { get; set; }
+        public bool IsDeprecated { get; set; }
+        public bool IsCurrent { get; set; }
     }
 }

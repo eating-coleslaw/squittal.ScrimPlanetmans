@@ -41,6 +41,7 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<Ruleset> Rulesets { get; set; }
         public DbSet<RulesetActionRule> RulesetActionRules { get; set; }
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
+        public DbSet<RulesetItemRule> RulesetItemRules { get; set; }
         public DbSet<RulesetFacilityRule> RulesetFacilityRules { get; set; }
         
         public DbSet<DeathType> DeathTypes { get; set; }
@@ -110,6 +111,7 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new RulesetConfiguration());
             builder.ApplyConfiguration(new RulesetActionRuleConfiguration());
             builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
+            builder.ApplyConfiguration(new RulesetItemRuleConfiguration());
             builder.ApplyConfiguration(new RulesetFacilityRuleConfiguration());
             
             builder.ApplyConfiguration(new DeathTypeConfiguration());

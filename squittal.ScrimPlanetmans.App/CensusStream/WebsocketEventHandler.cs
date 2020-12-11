@@ -272,8 +272,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
-                        var points = await _scorer.ScoreDeathEvent(deathEvent);
-                        deathEvent.Points = points;
+                        var scoringResult = await _scorer.ScoreDeathEvent(deathEvent);
+                        deathEvent.Points = scoringResult.Points;
+                        deathEvent.IsBanned = scoringResult.IsBanned;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
                         var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -496,7 +497,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 destructionEvent.VictimVehicle = new ScrimActionVehicleInfo(victimVehicle);
             }
 
-
             try
             {
                 if (isValidAttackerId == true)
@@ -544,8 +544,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
-                        var points = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
-                        destructionEvent.Points = points;
+                        var scoringResult = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
+                        destructionEvent.Points = scoringResult.Points;
+                        destructionEvent.IsBanned = scoringResult.IsBanned;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
                         var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -990,8 +991,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreReviveEvent(reviveEvent);
-                    reviveEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreReviveEvent(reviveEvent);
+                    reviveEvent.Points = scoringResult.Points;
+                    reviveEvent.IsBanned = scoringResult.IsBanned;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1094,8 +1096,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreAssistEvent(assistEvent);
-                    assistEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreAssistEvent(assistEvent);
+                    assistEvent.Points = scoringResult.Points;
+                    assistEvent.IsBanned = scoringResult.IsBanned;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1269,8 +1272,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreObjectiveTickEvent(controlEvent);
-                    controlEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreObjectiveTickEvent(controlEvent);
+                    controlEvent.Points = scoringResult.Points;
+                    controlEvent.IsBanned = scoringResult.IsBanned;
                 }
             }
 
@@ -1353,8 +1357,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (_isScoringEnabled)
             {
-                var points = _scorer.ScoreFacilityControlEvent(controlEvent);
-                controlEvent.Points = points;
+                var scoringResult = _scorer.ScoreFacilityControlEvent(controlEvent);
+                controlEvent.Points = scoringResult.Points;
+                controlEvent.IsBanned = scoringResult.IsBanned;
 
                 var currentMatchId = _scrimMatchService.CurrentMatchId;
                 var currentRound = _scrimMatchService.CurrentMatchRound;

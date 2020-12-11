@@ -724,7 +724,7 @@
         MessageService.BroadcastSimpleMessage(message);
     }
 
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         var message = e.Message;
 
@@ -749,7 +749,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    private void ReceiveTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
     {
         var message = e.Message;
         var outfit = message.Outfit;
@@ -775,7 +775,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
+    private void ReceiveTeamConstructedTeamChangeEvent(object sender, ScrimMessageEventArgs<TeamConstructedTeamChangeMessage> e)
     {
         var message = e.Message;
 
@@ -883,7 +883,7 @@
         }
     }
 
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var message = e.Message;
         var player = message.Player;
@@ -903,7 +903,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var message = e.Message;
         var team = message.Team;
@@ -916,7 +916,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveTeamAliasChangeEvent(object sender, TeamAliasChangeEventArgs e)
+    private void ReceiveTeamAliasChangeEvent(object sender, ScrimMessageEventArgs<TeamAliasChangeMessage> e)
     {
         var message = e.Message;
 
@@ -933,7 +933,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
+    private void ReceiveTeamFactionChangeEvent(object sender, ScrimMessageEventArgs<TeamFactionChangeMessage> e)
     {
         var message = e.Message;
 
@@ -953,7 +953,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveTeamLockStatusChangeEvent(object sender, TeamLockStatusChangeEventArgs e)
+    private void ReceiveTeamLockStatusChangeEvent(object sender, ScrimMessageEventArgs<TeamLockStatusChangeMessage> e)
     {
         var teamOrdinal = e.Message.TeamOrdinal;
         var newIsLocked = e.Message.IsLocked;

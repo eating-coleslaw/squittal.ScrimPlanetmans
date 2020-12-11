@@ -8,6 +8,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public DateTime Timestamp { get; set; }
         public ScrimActionType ActionType { get; set; }
+        public bool IsBanned { get; set; } = false;
 
         public int? ZoneId { get; set; }
     }
@@ -59,7 +60,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         }
     }
 
-    //public class ScrimDamageAssistActionEvent : ScrimExperienceGainActionEvent
     public class ScrimAssistActionEvent : ScrimExperienceGainActionEvent
     {
         public Player AttackerPlayer { get; set; }

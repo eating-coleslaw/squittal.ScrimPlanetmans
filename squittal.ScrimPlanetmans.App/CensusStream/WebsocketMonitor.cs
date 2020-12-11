@@ -127,6 +127,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             var oldFacilityId = SubscribedFacilityId;
 
+            if (facilityId == oldFacilityId)
+            {
+                return;
+            }
+
             SubscribedFacilityId = facilityId;
 
             var oldFacilityIdString = oldFacilityId == null ? "null" : ((int)oldFacilityId).ToString();
@@ -141,6 +146,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
         public void SetWorldSubscription(int worldId)
         {
             var oldWorldId = SubscribedWorldId;
+
+            if (worldId == oldWorldId)
+            {
+                return;
+            }
 
             SubscribedWorldId = worldId;
 
@@ -302,7 +312,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (CharacterSubscriptions.Contains(characterId))
                 {
-                    _logger.LogDebug($"[cid] Payload receive for message: {message.ToString()}");
+                    _logger.LogDebug($"[cid] Payload receive for message: {message}");
                     return true;
                 }
             }
@@ -313,7 +323,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             {
                 if (CharacterSubscriptions.Contains(attackerId))
                 {
-                    _logger.LogDebug($"[aid] Payload receive for message: {message.ToString()}");
+                    _logger.LogDebug($"[aid] Payload receive for message: {message}");
                 }
                 return CharacterSubscriptions.Contains(attackerId);
             }
@@ -363,7 +373,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                                         ? $"FacilityControl payload matching World & Facility detected. {idsString}"
                                         : $"FacilityControl payload matching World but not Facility detected. {idsString}";
 
-                _logger.LogInformation(matchMessage);
+                //_logger.LogInformation(matchMessage);
+                _logger.LogDebug(matchMessage);
             }
 
             return (matchesFacility && matchesWorld);
@@ -372,7 +383,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         #endregion Message Payload Handling
 
         #region Send/Receive Broadcast Events
-        private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+        private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
         {
             var message = e.Message;
             var player = message.Player;
@@ -389,16 +400,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
         }
 
-        private void ReceiveMatchConfigurationUpdateEvent(object sender, MatchConfigurationUpdateEventArgs e)
+        private void ReceiveMatchConfigurationUpdateEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
         {
             var message = e.Message;
             var matchConfiguration = message.MatchConfiguration;
 
             SetFacilitySubscription(matchConfiguration.FacilityId);
             SetWorldSubscription(matchConfiguration.WorldId);
-
-            //SubscribedFacilityId = matchConfiguration.FacilityId;
-            //SubscribedWorldId = matchConfiguration.WorldId;
 
             if (matchConfiguration.SaveEventsToDatabase)
             {

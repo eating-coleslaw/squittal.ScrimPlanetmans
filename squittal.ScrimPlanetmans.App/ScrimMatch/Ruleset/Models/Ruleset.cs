@@ -20,17 +20,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsDefault { get; set; }
         public bool IsCustomDefault { get; set; }
 
-        //public string FileName { get; set; }
         public string SourceFile { get; set; }
 
-        //public bool IsFavorite { get; set; }
 
         public string DefaultMatchTitle { get; set; } = string.Empty;
         public int DefaultRoundLength { get; set; } = 900;
-        //public int DefaultRounds { get; set; } == 2
 
-        public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }
+        public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
+        public ICollection<RulesetItemRule> RulesetItemRules { get; set; }
         public ICollection<RulesetFacilityRule> RulesetFacilityRules { get; set; }
 
     }

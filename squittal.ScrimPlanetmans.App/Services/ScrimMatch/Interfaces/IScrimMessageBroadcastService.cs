@@ -13,40 +13,40 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         event EventHandler<SimpleMessageEventArgs> RaiseSimpleMessageEvent;
 
-        event EventHandler<TeamPlayerChangeEventArgs> RaiseTeamPlayerChangeEvent;
-        event EventHandler<TeamOutfitChangeEventArgs> RaiseTeamOutfitChangeEvent;
-        event EventHandler<TeamConstructedTeamChangeEventArgs> RaiseTeamConstructedTeamChangeEvent;
-        event EventHandler<TeamAliasChangeEventArgs> RaiseTeamAliasChangeEvent;
-        event EventHandler<TeamFactionChangeEventArgs> RaiseTeamFactionChangeEvent;
-        event EventHandler<TeamLockStatusChangeEventArgs> RaiseTeamLockStatusChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamPlayerChangeMessage>> RaiseTeamPlayerChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamOutfitChangeMessage>> RaiseTeamOutfitChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamConstructedTeamChangeMessage>> RaiseTeamConstructedTeamChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamAliasChangeMessage>> RaiseTeamAliasChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamFactionChangeMessage>> RaiseTeamFactionChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamLockStatusChangeMessage>> RaiseTeamLockStatusChangeEvent;
 
-        event EventHandler<PlayerNameDisplayChangeEventArgs> RaisePlayerNameDisplayChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<PlayerNameDisplayChangeMessage>> RaisePlayerNameDisplayChangeEvent;
 
-        event EventHandler<PlayerStatUpdateEventArgs> RaisePlayerStatUpdateEvent;
-        event EventHandler<TeamStatUpdateEventArgs> RaiseTeamStatUpdateEvent;
+        event EventHandler<ScrimMessageEventArgs<PlayerStatUpdateMessage>> RaisePlayerStatUpdateEvent;
+        event EventHandler<ScrimMessageEventArgs<TeamStatUpdateMessage>> RaiseTeamStatUpdateEvent;
 
-        event EventHandler<ScrimKillfeedEventEventArgs> RaiseScrimKillfeedEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimKillfeedEventMessage>> RaiseScrimKillfeedEvent;
         
-        event EventHandler<ScrimDeathActionEventEventArgs> RaiseScrimDeathActionEvent;
-        event EventHandler<ScrimVehicleDestructionActionEventEventArgs> RaiseScrimVehicleDestructionActionEvent;
-        event EventHandler<ScrimReviveActionEventEventArgs> RaiseScrimReviveActionEvent;
-        event EventHandler<ScrimAssistActionEventEventArgs> RaiseScrimAssistActionEvent;
-        event EventHandler<ScrimObjectiveTickActionEventEventArgs> RaiseScrimObjectiveTickActionEvent;
-        event EventHandler<ScrimFacilityControlActionEventEventArgs> RaiseScrimFacilityControlActionEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimDeathActionEventMessage>> RaiseScrimDeathActionEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimVehicleDestructionActionEventMessage>> RaiseScrimVehicleDestructionActionEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimReviveActionEventMessage>> RaiseScrimReviveActionEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimAssistActionEventMessage>> RaiseScrimAssistActionEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage>> RaiseScrimObjectiveTickActionEvent;
+        event EventHandler<ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage>> RaiseScrimFacilityControlActionEvent;
 
-        event EventHandler<PlayerLoginEventArgs> RaisePlayerLoginEvent;
-        event EventHandler<PlayerLogoutEventArgs> RaisePlayerLogoutEvent;
+        event EventHandler<ScrimMessageEventArgs<PlayerLoginMessage>> RaisePlayerLoginEvent;
+        event EventHandler<ScrimMessageEventArgs<PlayerLogoutMessage>> RaisePlayerLogoutEvent;
 
-        event EventHandler<MatchStateUpdateEventArgs> RaiseMatchStateUpdateEvent;
-        event EventHandler<MatchConfigurationUpdateEventArgs> RaiseMatchConfigurationUpdateEvent;
+        event EventHandler<ScrimMessageEventArgs<MatchStateUpdateMessage>> RaiseMatchStateUpdateEvent;
+        event EventHandler<ScrimMessageEventArgs<MatchConfigurationUpdateMessage>> RaiseMatchConfigurationUpdateEvent;
 
-        event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
+        event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
         
-        event EventHandler<ConstructedTeamMemberChangeEventArgs> RaiseConstructedTeamMemberChangeEvent;
-        event EventHandler<ConstructedTeamInfoChangeEventArgs> RaiseConstructedTeamInfoChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage>> RaiseConstructedTeamMemberChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage>> RaiseConstructedTeamInfoChangeEvent;
 
-        event EventHandler<ActiveRulesetChangeEventArgs> RaiseActiveRulesetChangeEvent;
-        event EventHandler<RulesetRuleChangeEventArgs> RaiseRulesetRuleChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<ActiveRulesetChangeMessage>> RaiseActiveRulesetChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<RulesetRuleChangeMessage>> RaiseRulesetRuleChangeEvent;
 
 
         void BroadcastSimpleMessage(string message);

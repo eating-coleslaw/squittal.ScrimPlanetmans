@@ -25,8 +25,6 @@ namespace squittal.ScrimPlanetmans.Data.Models
         public ScrimActionType ActionType { get; set; }
         public FacilityControlType ControlType { get; set; }
 
-        //public string FacilityName { get; set; }
-
         public int ControllingFactionId { get; set; }
 
         public int? ZoneId { get; set; }

@@ -1,4 +1,5 @@
 ﻿@using Newtonsoft.Json.Linq;
+@using squittal.ScrimPlanetmans.Models.MessageLogs;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Collections.Concurrent;
@@ -9,24 +10,26 @@
 
 <p style="margin: 0 0 0.1rem 0; font-size: 12px; color: var(--sq-logo-purple);">Admin Log</p>
 <div style="height: 225px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--sq-light-blue-gray-alpha); background-color: white;">
-    @if (_adminLogs.Any())
+    @if (_adminLogMessages.Any())
     {
-        foreach (var log in _adminLogs)
+        foreach (var log in _adminLogMessages)
         {
-            <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log</p>
+            <p style="font-size: 10.5px; margin: 0 0 0.1rem 0;">@log.Message</p>
         }
 
-        if (_adminLogs.Count() > _maxLogCount)
+        if (_logCount > _maxLogCount)
         {
-            <p style="font-size: 10.5px; margin: 0;">...max log entries reach showing (showing @_maxLogCount / @_adminLogs.Count)</p>
+            <p style="font-size: 10.5px; margin: 0;">...max log entries reached (showing @_maxLogCount / @_adminLogMessages.Count)</p>
         }
     }
 </div>
+
+
 @code {
-    private List<MarkupString> _adminLogs { get; set; } = new List<MarkupString>();
+    private List<TimestampedLogMessage> _adminLogMessages { get; set; } = new List<TimestampedLogMessage>();
+    private ConcurrentQueue<TimestampedLogMessage> _logMessageQueue = new ConcurrentQueue<TimestampedLogMessage>();
 
-    private ConcurrentQueue<MarkupString> _logQueue = new ConcurrentQueue<MarkupString>();
-
+    private int _logCount;
     private int _maxLogCount = 200;
 
     #region Initialization Methods
@@ -59,63 +62,60 @@
     #region  Event Handling
     private void ReceiveSimpleMessageEvent(object sender, SimpleMessageEventArgs e)
     {
-        ReceiveMessage(e.Message);
-    }
+        var message = e.Message;
 
-    private void ReceiveMatchStateUpdateMessageEvent(object sender, MatchStateUpdateEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-
-    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-
-    private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-
-    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
-    {
-        var info = e.Message.Info;
-        LogMessage(info);
-    }
-    #endregion
-
-    #region Message Parsing
-    private void ReceiveMessage(string message)
-    {
         var payload = TryParseMessagePayload(message);
         if (payload == null)
         {
-            LogMessage(message);
+            LogMessage((MarkupString)message, e.CreatedTime);
             return;
         }
     }
 
+    private void ReceiveMatchStateUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+
+    private void ReceiveTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+
+    private void ReceiveTeamConstructedTeamChangeEvent(object sender, ScrimMessageEventArgs<TeamConstructedTeamChangeMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
+    {
+        var info = e.Message.Info;
+        LogMessage((MarkupString)info, e.CreatedTime);
+    }
+    #endregion
+
+    #region Message Parsing
     private JToken TryParseMessagePayload(string message)
     {
         if (message == null)
@@ -131,22 +131,33 @@
         }
         catch (Exception)
         {
-            //Console.WriteLine($"(91097) Failed to parse message: {message}");
             return null;
         }
 
         return jMsg;
     }
-    #endregion
+    #endregion Message Parsing
 
-
-    private void LogMessage(string message)
+    private void LogMessage(MarkupString message, DateTime timestamp)
     {
-        var time = DateTime.Now.ToString("hh:mm:ss.fff tt");
+        var time = GetLocalizedTimeString(timestamp);
 
         var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
 
-        _logQueue.Enqueue(newLogMessage);
+        _logMessageQueue.Enqueue(new TimestampedLogMessage(timestamp, newLogMessage));
+
+        UpdatePage();
+    }
+
+    private void LogMessage(string message)
+    {
+        var timestamp = DateTime.Now;
+
+        var time = GetLocalizedTimeString(timestamp);
+
+        var newLogMessage = (MarkupString)$"<span style=\"font-weight: 600;\">{time}:</span>  {message}";
+
+        _logMessageQueue.Enqueue(new TimestampedLogMessage(timestamp, newLogMessage));
 
         UpdatePage();
     }
@@ -155,19 +166,30 @@
     {
         InvokeAsync(() =>
         {
-            lock (_adminLogs)
+            lock (_adminLogMessages)
             {
-                MarkupString localString;
+                TimestampedLogMessage localString;
 
-                while (_logQueue.TryDequeue(out localString))
+                while (_logMessageQueue.TryDequeue(out localString))
                 {
-                    _adminLogs.Add(localString);
+                    _adminLogMessages.Add(localString);
                 }
 
-                _adminLogs = _adminLogs.Reverse<MarkupString>().Take(_maxLogCount).ToList();
+                _logCount = _adminLogMessages.Count();
+                
+                _adminLogMessages = _adminLogMessages.OrderByDescending(m => m.Timestamp).Take(_maxLogCount).ToList();
 
                 StateHasChanged();
             }
         });
+    }
+
+    private string GetLocalizedTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("hh:mm:ss tt")}";
     }
 }
