@@ -15,11 +15,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IWebsocketMonitor _wsMonitor;
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IScrimMatchDataService _matchDataService;
+        private readonly IScrimRulesetManager _rulesetManager;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
         private readonly IStatefulTimer _timer;
 
         public MatchConfiguration MatchConfiguration { get; set; } = new MatchConfiguration();
+        public Ruleset MatchRuleset { get; private set; }
 
         private bool _isRunning = false;
 
@@ -35,13 +37,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
 
         public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer,
-            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
+            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, IScrimRulesetManager rulesetManager, ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
             _timer = timer;
             _messageService = messageService;
             _matchDataService = matchDataService;
+            _rulesetManager = rulesetManager;
             _logger = logger;
 
             _messageService.RaiseMatchTimerTickEvent += async (s, e) => await OnMatchTimerTick(s, e);
@@ -71,7 +74,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
 
 
-        public async Task ClearMatch()
+        public async Task ClearMatch(bool isRematch)
         {
             if (_isRunning)
             {
@@ -79,10 +82,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             _wsMonitor.DisableScoring();
-            _wsMonitor.RemoveAllCharacterSubscriptions();
+            if (!isRematch)
+            {
+                _wsMonitor.RemoveAllCharacterSubscriptions();
+            }
             _messageService.DisableLogging();
 
+            var previousWorldId = MatchConfiguration.WorldIdString;
+            var previousIsManualWorldId = MatchConfiguration.IsManualWorldId;
+
             MatchConfiguration = new MatchConfiguration();
+
+            if (isRematch)
+            {
+                MatchConfiguration.TrySetWorldId(previousWorldId, previousIsManualWorldId);
+            }
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
@@ -94,7 +108,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _latestTimerTickMessage = null;
 
-            _teamsManager.ClearAllTeams();
+            if (isRematch)
+            {
+                _teamsManager.ResetAllTeamsMatchData();
+            }
+            else
+            {
+                _teamsManager.ClearAllTeams();
+            }
 
             SendMatchStateUpdateMessage();
             SendMatchConfigurationUpdateMessage();
@@ -110,6 +131,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
 
             SendMatchConfigurationUpdateMessage(); // TODO: why was this commented out before?
+        }
+
+        public bool TrySetMatchRuleset(Ruleset matchRuleset)
+        {
+            if (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning)
+            {
+                MatchRuleset = matchRuleset;
+                _matchDataService.CurrentMatchRulesetId = matchRuleset.Id;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public async Task EndRound()
@@ -136,6 +171,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task InitializeNewMatch()
         {
+            TrySetMatchRuleset(_rulesetManager.ActiveRuleset);
+
             _matchStartTime = DateTime.UtcNow;
 
             if (MatchConfiguration.SaveLogFiles == true)
@@ -148,7 +185,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 {
                     Id = matchId,
                     StartTime = _matchStartTime,
-                    Title = MatchConfiguration.Title
+                    Title = MatchConfiguration.Title,
+                    RulesetId = MatchRuleset.Id
                 };
 
                 await _matchDataService.SaveToCurrentMatch(scrimMatch);
@@ -266,7 +304,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.AddCharacterSubscriptions(_teamsManager.GetAllPlayerIds());
         }
 
-        private async Task OnMatchTimerTick(object sender, MatchTimerTickEventArgs e)
+        private async Task OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             var message = e.Message;
 
@@ -313,7 +351,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _latestTimerTickMessage = value;
         }
 
-        private void OnTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+        private void OnTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
         {
             if (MatchConfiguration.IsManualWorldId)
             {
@@ -347,7 +385,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private void OnTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+        private void OnTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
         {
             if (MatchConfiguration.IsManualWorldId)
             {
@@ -388,7 +426,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private async Task OnFacilityControlEvent(object sender, ScrimFacilityControlActionEventEventArgs e)
+        private async Task OnFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
         {
             if (!MatchConfiguration.EndRoundOnFacilityCapture)
             {

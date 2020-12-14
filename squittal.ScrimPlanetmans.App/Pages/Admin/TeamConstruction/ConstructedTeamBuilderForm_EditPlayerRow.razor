@@ -52,7 +52,7 @@
         }
         else
         {
-            <td title="@_renderedCharacter.NameFull [@(_renderedCharacterId)]">
+            <td title="@GetCharacterCellTitle()">
                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@_renderedCharacter.NameDisplay</span>
                 @if (_renderedCharacter.PrestigeLevel != 0)
                 {
@@ -72,14 +72,14 @@
             <td>@_renderedWorldName</td>
 
 
-            @if (_renderedShowRemoveControls)
-            {
-                <td style="width: 15px; text-align: right;">
-                    <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleRemovePlayer" title="Remove Character from Team">
-                        <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
-                    </button>
-                </td>
-            }
+            <td style="width: 15px; text-align: right;">
+                @if (_renderedShowRemoveControls && _renderedCharacter.IsDeleteAllowed)
+                {
+                        <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleRemovePlayer" title="Remove Character from Team">
+                            <span class="oi oi-x" style="font-size: 0.7rem; top: 0;"></span>
+                        </button>
+                }
+            </td>
         }
     </tr>
 }
@@ -131,9 +131,16 @@
     {
         if (i_character != null && i_character.WorldId != _renderedWorldId)
         {
-            _renderedWorldId = (int)i_character.WorldId;
+            World renderedWorld = null;
 
-            var renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
+            if (i_character.WorldId != null)
+            {
+                _renderedWorldId = (int)i_character.WorldId;
+
+                renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
+            }
+
+            //var renderedWorld = await WorldService.GetWorldAsync(_renderedWorldId);
 
             _renderedWorldName = renderedWorld == null ? "Unknown World" : renderedWorld.Name;
 
@@ -168,7 +175,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    private void ReceiveConstructedTeamMemberChangeEvent(object sender, ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e)
     {
         var message = e.Message;
 
@@ -194,7 +201,10 @@
     #region UI & Form Controls
     private async void HandleRemovePlayer()
     {
-        await ConstructedTeamsService.TryRemoveCharacterFromConstructedTeam(_renderedTeamId, _renderedCharacterId);
+        if (_renderedCharacter.IsDeleteAllowed)
+        {
+            await ConstructedTeamsService.TryRemoveCharacterFromConstructedTeam(_renderedTeamId, _renderedCharacterId);
+        }
     }
 
     private void HandleShowEditAliasForm()
@@ -244,6 +254,19 @@
     #endregion UI & Form Controls
 
     #region Helper Methods
+    private string GetCharacterCellTitle()
+    {
+        if (_renderedCharacter.NameFull == $"uc{_renderedCharacter.CharacterId}")
+        {
+            return $"Unknown Character [{_renderedCharacter.CharacterId}]";
+        }
+        else
+        {
+            return $"{_renderedCharacter.NameFull} [{_renderedCharacterId}]";
+        }
+    }
+
+
     private string GetFactionAbbreviationFromId(int factionId)
     {
         return FactionService.GetFactionAbbrevFromId(factionId);

@@ -545,7 +545,7 @@
     /*****************
      *  Event Handling
      *****************/
-    private void ReceiveTeamOutfitChangeEvent(object sender, TeamOutfitChangeEventArgs e)
+    private void ReceiveTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
     {
         var message = e.Message;
 
@@ -568,7 +568,7 @@
 
     }
 
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         var message = e.Message;
 
@@ -641,7 +641,7 @@
         }
     }
 
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var message = e.Message;
         var player = message.Player;
@@ -672,7 +672,7 @@
         });
     }
 
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var message = e.Message;
         var team = message.Team;
@@ -688,7 +688,7 @@
         });
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
     {
         var player = e.Message.Player;
 
@@ -713,7 +713,7 @@
         });
     }
 
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
     {
         var player = e.Message.Player;
 
@@ -739,7 +739,7 @@
         });
     }
 
-    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
     {
         var player = e.Message.Player;
 

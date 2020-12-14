@@ -18,7 +18,6 @@
 
 @implements IDisposable
 
-@*<div class="killfeed @(_legacyUi ? "legacy" : string.Empty)" id="killfeedContainer">*@
 <div class="killfeed" id="killfeedContainer">
     <table>
         <tbody id="killfeed" class="killfeedBody">
@@ -37,8 +36,6 @@
     [Parameter]
     public bool i_legacyUi { get; set; } = false;
 
-    private int _maxKillfeedRows = 4;
-
     private ScrimKillfeedEvent[] _renderedEvents { get; set; } = new ScrimKillfeedEvent[4];
 
     private bool _legacyUi { get; set; } = false;
@@ -51,7 +48,6 @@
     {
         MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
-        //MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
     }
 
     public void Dispose()
@@ -75,9 +71,14 @@
     #endregion InitializationMethods
 
     #region Event Handling
-    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
     {
         var deathEvent = e.Message.DeathEvent;
+
+        if (DoesEventInvolveBenchedPlayers(deathEvent.AttackerPlayer, deathEvent.VictimPlayer))
+        {
+            return;
+        }
 
         var killfeedEvent = ConvertToKillfeedEvent(deathEvent);
 
@@ -86,9 +87,14 @@
         UpdateRenderedEvents();
     }
 
-    private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    private void ReceiveScrimReviveActionEvent(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e)
     {
         var reviveEvent = e.Message.ReviveEvent;
+
+        if (DoesEventInvolveBenchedPlayers(reviveEvent.MedicPlayer, reviveEvent.RevivedPlayer))
+        {
+            return;
+        }
 
         var killfeedEvent = ConvertToKillfeedEvent(reviveEvent);
 
@@ -97,15 +103,16 @@
         UpdateRenderedEvents();
     }
 
-    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e)
     {
         var objectiveTickEvent = e.Message.ObjectiveTickEvent;
 
-        //var killfeedEvent = ConvertToKillfeedEvent(objectiveTickEvent);
-
-        //_eventsQueue.Enqueue(killfeedEvent);
-
         UpdateRenderedEvents();
+    }
+
+    private bool DoesEventInvolveBenchedPlayers(Player player1, Player player2)
+    {
+        return ((player1 != null && player1.IsBenched) || (player2 != null && player2.IsBenched));
     }
 
     #endregion Event Handling

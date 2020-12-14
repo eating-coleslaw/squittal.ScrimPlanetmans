@@ -10,10 +10,16 @@ namespace squittal.ScrimPlanetmans.Models.Forms
     {
         public DateTime? SearchStartDate { get; set; } = _defaultSearchStartDate; // new DateTime(2012,11, 20); // PlanetSide 2 release date
         public DateTime? SearchEndDate { get; set; } = _defaultSearchEndDate; //DateTime.UtcNow.AddDays(1);
+
+        public int RulesetId { get => GetRulesetIdFromString(); }
+        public string RulesetIdString { get; set; } = _defaultRulesetIdString;
+
         public int WorldId { get => GetWorldIdFromString(); }
         public string WorldIdString { get; set; } = _defaultSearchWorldIdString; //"19";
+
         public int FacilityId { get => GetFacilityIdFromString(); }
         public string FacilityIdString { get; set; } = _defaultSearchFacilityIdString; //"0";
+        
         public int MinimumRoundCount { get; set; } = _defaultSearchMinimumRoundCount; //2;
 
         public string InputSearchTerms { get; set; } = _defaultSearchInputTerms; // string.Empty;
@@ -24,6 +30,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         private readonly AutoResetEvent _searchTermsAutoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _worldAutoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _facilityAutoEvent = new AutoResetEvent(true);
+        private readonly AutoResetEvent _rulesetAutoEvent = new AutoResetEvent(true);
 
         private static readonly DateTime _defaultSearchStartDate = new DateTime(2012, 11, 20); // PlanetSide 2 release date
         private static readonly DateTime _defaultSearchEndDate = DateTime.UtcNow.AddDays(1);
@@ -31,6 +38,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         private static readonly string _defaultSearchFacilityIdString = "0"; // Any Facility
         private static readonly int _defaultSearchMinimumRoundCount = 2;
         private static readonly string _defaultSearchInputTerms = string.Empty;
+        private static readonly string _defaultRulesetIdString = "0"; // Any Ruleset
         
 
         public bool IsDefaultFilter => GetIsDefaultFilter();
@@ -44,7 +52,8 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                    && FacilityIdString == _defaultSearchFacilityIdString
                    && SearchStartDate == _defaultSearchStartDate && SearchEndDate == _defaultSearchEndDate
                    && InputSearchTerms == _defaultSearchInputTerms
-                   && !SearchTermsList.Any() && !AliasSearchTermsList.Any();
+                   && !SearchTermsList.Any() && !AliasSearchTermsList.Any()
+                   && RulesetIdString == _defaultRulesetIdString;
         }
 
         public void ParseSearchTermsString()
@@ -101,6 +110,15 @@ namespace squittal.ScrimPlanetmans.Models.Forms
             _worldAutoEvent.Set();
         }
 
+        public void SetRulesetId(string rulesetIdString)
+        {
+            _rulesetAutoEvent.WaitOne();
+
+            RulesetIdString = rulesetIdString;
+
+            _rulesetAutoEvent.Set();
+        }
+
         public bool SetFacilityId(int facilityId)
         {
             if (facilityId <= 0)
@@ -142,6 +160,18 @@ namespace squittal.ScrimPlanetmans.Models.Forms
             else
             {
                 return 19; // Default to Jaeger
+            }
+        }
+
+        private int GetRulesetIdFromString()
+        {
+            if (int.TryParse(RulesetIdString, out int intId))
+            {
+                return intId;
+            }
+            else
+            {
+                return 0; // Default to Any Ruleset
             }
         }
     }

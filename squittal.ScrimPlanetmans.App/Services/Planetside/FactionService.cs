@@ -17,7 +17,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<FactionService> _logger;
 
-        public string BackupSqlScriptFileName => "dbo.Faction.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Faction.Table.sql";
 
 
         public FactionService(IDbContextHelper dbContextHelper, CensusFaction censusFaction, ISqlScriptRunner sqlScriptRunner, ILogger<FactionService> logger)

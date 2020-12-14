@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace squittal.ScrimPlanetmans.Data
         private readonly IFacilityService _facilityService;
         private readonly IWorldService _worldService;
         private readonly IZoneService _zoneService;
+        private readonly IDbSeeder _dbSeeder;
         private readonly ILogger<ApplicationDataLoader> _logger;
 
 
@@ -25,6 +27,7 @@ namespace squittal.ScrimPlanetmans.Data
             IFacilityService facilityService,
             IWorldService worldService,
             IZoneService zoneService,
+            IDbSeeder dbSeeder,
             ILogger<ApplicationDataLoader> logger)
         {
             _itemCategoryService = itemCategoryService;
@@ -33,31 +36,50 @@ namespace squittal.ScrimPlanetmans.Data
             _facilityService = facilityService;
             _worldService = worldService;
             _zoneService = zoneService;
+            _dbSeeder = dbSeeder;
             _logger = logger;
         }
 
         public async Task OnApplicationStartup(CancellationToken cancellationToken)
         {
-            List<Task> TaskList = new List<Task>();
+            try
+            {
 
-            var weaponCategoriesListTask = _itemCategoryService.SetUpWeaponCategoriesListAsync();
-            TaskList.Add(weaponCategoriesListTask);
+                await _dbSeeder.SeedDatabase(cancellationToken);
 
-            var activeRulesetTask = _rulesetManager.SetupActiveRuleset();
-            TaskList.Add(activeRulesetTask);
+                cancellationToken.ThrowIfCancellationRequested();
 
-            var scrimmableMapRegionsTask = _facilityService.SetUpScrimmableMapRegionsAsync();
-            TaskList.Add(scrimmableMapRegionsTask);
+                List<Task> TaskList = new List<Task>();
 
-            var worldsTask = _worldService.SetUpWorldsMap();
-            TaskList.Add(worldsTask);
+                var seedDefaultRulesetTask = _rulesetManager.SeedDefaultRuleset();
+                TaskList.Add(seedDefaultRulesetTask);
 
-            var zonesTask = _zoneService.SetupZonesMapAsync();
-            TaskList.Add(zonesTask);
+                var weaponCategoriesListTask = _itemCategoryService.SetUpWeaponCategoriesListAsync();
+                TaskList.Add(weaponCategoriesListTask);
 
-            await Task.WhenAll(TaskList);
+                var scrimmableMapRegionsTask = _facilityService.SetUpScrimmableMapRegionsAsync();
+                TaskList.Add(scrimmableMapRegionsTask);
 
-            await _matchScorer.SetActiveRuleset();
+                var worldsMapTask = _worldService.SetUpWorldsMap();
+                TaskList.Add(worldsMapTask);
+
+                var zonesTask = _zoneService.SetupZonesMapAsync();
+                TaskList.Add(zonesTask);
+
+                await Task.WhenAll(TaskList);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await _rulesetManager.ActivateDefaultRulesetAsync();
+
+                await _rulesetManager.SetUpActiveRulesetAsync();
+
+                await _matchScorer.SetActiveRulesetAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed loading application data: {ex}");
+            }
         }
 
         public async Task OnApplicationShutdown(CancellationToken cancellationToken)

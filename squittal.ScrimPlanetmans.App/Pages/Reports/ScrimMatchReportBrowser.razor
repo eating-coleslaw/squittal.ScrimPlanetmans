@@ -8,6 +8,7 @@
 @using squittal.ScrimPlanetmans.Models.Forms;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
@@ -50,9 +51,24 @@
                         }
 
                         <div style="margin-bottom: 8px; display: block;">
+                            
+                            @if (_rulesets != null)
+                            { 
+                            <div style="margin-left: 0; margin-right: 16px; margin-bottom: 0.5rem; display: inline-block;">Ruleset: 
+                                <InputSelect TValue="string" style="width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.RulesetIdString" ValueChanged="@((string s) => _searchFilter.SetRulesetId(s))" ValueExpression="@(() => _searchFilter.RulesetIdString)">
+                                <option value=@_anyRulesetIdValue>Any Ruleset</option>
+
+                                    @foreach (var ruleset in _rulesets)
+                                    {
+                                            <option value=@ruleset.Id.ToString() label="@ruleset.Name">@ruleset.Name (@ruleset.Id.ToString())</option>
+                                    }
+                            </InputSelect>
+                            </div>
+                            }
+                            
                             @if (_worlds != null)
                             { 
-                                <InputSelect TValue="string" style="margin-left: 55px; margin-right: 4px; width: 125px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.WorldIdString" ValueChanged="@((string s) => _searchFilter.SetWorldId(s))" ValueExpression="@(() => _searchFilter.WorldIdString)">
+                                <InputSelect TValue="string" style="margin-left: 0; margin-right: 4px; width: 125px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.WorldIdString" ValueChanged="@((string s) => _searchFilter.SetWorldId(s))" ValueExpression="@(() => _searchFilter.WorldIdString)">
                                     <option value=@_anyWorldIdValue>All Servers</option>
 
                                     @foreach (var world in _worlds)
@@ -62,7 +78,7 @@
                                 </InputSelect>
                             }
 
-                            <InputSelect TValue="string" style="width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.FacilityIdString" ValueChanged="@((string s) => _searchFilter.SetFacilityId(s))" ValueExpression="@(() => _searchFilter.FacilityIdString)">
+                            <InputSelect TValue="string" style="margin-right: 16px; width: 175px; padding: 0.1rem; display: inline-block;" Value="@_searchFilter.FacilityIdString" ValueChanged="@((string s) => _searchFilter.SetFacilityId(s))" ValueExpression="@(() => _searchFilter.FacilityIdString)">
                                 <option value=@_anyFacilityIdValue>Any Facility</option>
                                 <option value=@_noFacilitIdFilterValue>No Filter</option>
 
@@ -80,7 +96,7 @@
                                 }
                             </InputSelect>
                     
-                            <div style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block;">From: <InputDate style="" @bind-Value="_searchFilter.SearchStartDate" /></div>
+                            <div style="margin-left: 0; margin-right: 16px; margin-bottom: 0.5rem; display: inline-block;">From: <InputDate style="" @bind-Value="_searchFilter.SearchStartDate" /></div>
                             <div style="margin-left: 8px; margin-bottom: 0.5rem; display: inline-block;">To: <InputDate style="" @bind-Value="_searchFilter.SearchEndDate" /></div>
 
                             <div title="Minimum match rounds played (inclusive)" style="margin-left: 16px; margin-bottom: 0.5rem; display: inline-block; vertical-align: top;">Min. Rounds: <InputNumber style="width: 50px;" min="1" type="text" id="roundSecondsTotal" @bind-Value="_searchFilter.MinimumRoundCount" /></div>
@@ -98,6 +114,7 @@
                             <th style="font-weight: 300;">Title</th>
                             <th style="font-weight: 300;">Server</th>
                             <th style="font-weight: 300;">Facility</th>
+                            <th style="font-weight: 300;">Ruleset</th>
                             <th style="font-weight: 300;">Rounds</th>
                             <th style="font-weight: 300;"></th>
                         </tr>
@@ -137,6 +154,7 @@
                                     {
                                         <td style="font-style: italic;">None</td>
                                     }
+                                    <td>@match.RulesetName</td>
                                     <td>@match.RoundCount</td>
                                     <td>
                                         <NavLink class="nav-link" target="_blank" href=@($"ScrimMatch/{match.ScrimMatchId}") style="padding: 4px 8px;">Open</NavLink>
@@ -242,6 +260,9 @@
     private IEnumerable<World> _worlds { get; set; }
     private string _anyWorldIdValue { get; set; } = "0";
 
+    private IEnumerable<Ruleset> _rulesets { get; set; }
+    private string _anyRulesetIdValue { get; set; } = "0";
+
     private bool _isLoadingSearchFilterData { get; set; } = true;
 
     private bool _isFilteredResults { get; set; } = false;
@@ -285,10 +306,9 @@
         _renderedPageIndex = i_pageIndex;
 
         _isLoadingSearchFilterData = true;
+        InvokeAsyncStateHasChanged();
 
-        await LoadScrimMatchListAsync();
-
-        await LoadPlayedFacilitiesListAsync();
+        await LoadFilterDataAsync();
 
         var worlds = await WorldService.GetAllWorldsAsync();
         _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
@@ -367,7 +387,7 @@
         _isLoadingScrimMatchList = false;
     }
 
-    private async Task LoadPlayedFacilitiesListAsync()
+    private async Task LoadFilterDataAsync()
     {
         // If a process is already underway, cancel it
         if (ctsFilters != null)
@@ -382,11 +402,13 @@
         try
         {
 
-            var playedFacilities = await ReportDataService.GetScrimMatchBrowserFacilityIdsListAsync(CancellationToken.None);
-
+            var playedFacilities = await ReportDataService.GetScrimMatchBrowserFacilityIdsListAsync(ctsFilters.Token);
             ctsFilters.Token.ThrowIfCancellationRequested();
 
             var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+
+            _rulesets = await ReportDataService.GetScrimMatchBrowseRulesetIdsListAsync(ctsFilters.Token);
+            ctsFilters.Token.ThrowIfCancellationRequested();
 
             _mapRegions = mapRegions.Where(r => playedFacilities.Contains(r.FacilityId)).OrderBy(r => r.FacilityName).ToList();
 
@@ -438,7 +460,7 @@
             await LoadScrimMatchListAsync();
             _isFilteredResults = true;
         }
-        
+
         if (_searchFilter.IsDefaultFilter || !_isFilteredResults)
         {
             _isFilteredResults = false;

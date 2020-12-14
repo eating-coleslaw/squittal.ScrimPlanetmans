@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
@@ -10,12 +11,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         {
             ReviveEvent = reviveEvent;
 
+            Timestamp = reviveEvent.Timestamp;
+
             if (reviveEvent.ActionType == ScrimActionType.OutsideInterference)
             {
+                LogLevel = ScrimMessageLogLevel.MatchEventWarning;
+                
                 Info = GetOutsideInterferenceInfo(reviveEvent);
             }
             else
             {
+                LogLevel = reviveEvent.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMajor;
+
                 Info = GetReviveInfo(reviveEvent);
             }
         }
@@ -73,7 +80,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
             var actionDisplay = GetEnumValueName(reviveEvent.ActionType);
 
-            return $"Team {medicTeam} {actionDisplay}: {medicOutfit}{medicName} [revived] {revivedOutfit}{revivedName}";
+            var bannedDisplay = reviveEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {medicTeam} {actionDisplay}: {medicOutfit}{medicName} [revived] {revivedOutfit}{revivedName}";
         }
     }
 }

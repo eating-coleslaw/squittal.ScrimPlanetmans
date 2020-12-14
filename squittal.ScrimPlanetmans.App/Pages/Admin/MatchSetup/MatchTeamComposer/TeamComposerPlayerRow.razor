@@ -55,7 +55,6 @@
         }
         else
         {
-            @*<td title="@Player.NameFull [@(Player.Id)]">*@
             <td title="@GetPlayerNameElementTitle()">
                 <span style="text-overflow: ellipsis; overflow: hidden; max-width: 200px;">@Player.NameDisplay</span>
                 @if (Player.PrestigeLevel != 0)
@@ -74,21 +73,21 @@
             </td>
         }
 
-        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Kills);">@(Player.EventAggregate.Kills)</td>
-        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Deaths);">@(Player.EventAggregate.Deaths)</td>
-        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Points);">@(Player.EventAggregate.Points)</td>
-        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.NetScore);">@(Player.EventAggregate.NetScore)</td>
+        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Kills); text-align: right;">@(Player.EventAggregate.Kills)</td>
+        <td style="opacity: @GetStatOpacity(Player.EventAggregate.Deaths); text-align: right;">@(Player.EventAggregate.Deaths)</td>
+        <td style="opacity: @GetStatOpacity(Player.EventAggregate.NetScore); text-align: right;">@(Player.EventAggregate.NetScore)</td>
+        <td style="font-weight: 700; font-size: larger; opacity: @GetStatOpacity(Player.EventAggregate.Points); text-align: right;">@(Player.EventAggregate.Points)</td>
 
         <td style="width: 15px; text-align: right;">
             @if (Player.IsBenched)
             {
-                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player In. Benched players are hidden from the streaming overlay">
+                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player In. Benched players are not scored and are hidden from the streaming overlay">
                     <span class="oi oi-account-login" style="font-size: 0.8rem; top: 1px;"></span>
                 </button>
             }
             else
             {
-                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player Out. Benched players are hidden from the streaming overlay">
+                <button style="padding: 0; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" @onclick="HandleSubstitutePlayer" title="Substitute Player Out. Benched players are not scored and are hidden from the streaming overlay">
                     <span class="oi oi-account-logout" style="font-size: 0.8rem; top: 1px;"></span>
                 </button>
             }
@@ -159,7 +158,6 @@
     {
         var paramsChanged = false;
 
-        //base.OnParametersSet();
         if (_renderedPlayer != Player)
         {
             _renderedPlayer = Player;
@@ -185,7 +183,7 @@
     #endregion
 
     #region Event Handling
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         if (e.Message.ChangeType != TeamPlayerChangeType.Add)
         {
@@ -195,22 +193,22 @@
         InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
     {
         InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
     {
         InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
 
-    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
     {
         InvokeStateHasChangedIfPlayer(e.Message.Player);
     }
@@ -233,11 +231,6 @@
     private async void RemovePlayer()
     {
         await ScrimTeamsManager.RemoveCharacterFromTeamAndDb(Player.Id);
-        //if (ScrimTeamsManager.RemoveCharacterFromTeam(characterId))
-        //{
-        //    _teamPlayers.RemoveAll(p => p.Id == characterId);
-        //    _teamNonOutfitPlayers.RemoveAll(p => p.Id == characterId);
-        //}
     }
 
     private void HandleSubstitutePlayer()
@@ -288,8 +281,8 @@
     private string GetPlayerNameElementTitle()
     {
         return !Player.IsOutfitless
-                    ? $"{Player.NameDisplay} [{Player.Id}]"
-                    : $"{Player.NameDisplay} [{Player.Id}\nServer: {_renderedWorldName}";
+                    ? $"{Player.NameFull} [{Player.Id}]"
+                    : $"{Player.NameFull} [{Player.Id}\nServer: {_renderedWorldName}";
     }
 
     private double GetStatOpacity(int value)

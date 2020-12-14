@@ -330,6 +330,11 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("RulesetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(-1);
+
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
@@ -337,6 +342,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RulesetId")
+                        .IsUnique();
 
                     b.ToTable("ScrimMatch");
                 });
@@ -913,6 +921,12 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int>("FacilityTypeId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeprecated")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ZoneId")
                         .HasColumnType("int");
 
@@ -1036,10 +1050,15 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<DateTime?>("DateLastModified")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<string>("DefaultMatchTitle")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
+
+                    b.Property<int>("DefaultRoundLength")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(900);
 
                     b.Property<bool>("IsCustomDefault")
                         .ValueGeneratedOnAdd()
@@ -1054,6 +1073,11 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceFile")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("");
 
                     b.HasKey("Id");
 
@@ -1078,9 +1102,33 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
+                    b.Property<int>("ScrimActionTypeDomain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(-1);
+
                     b.HasKey("RulesetId", "ScrimActionType");
 
                     b.ToTable("RulesetActionRule");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetFacilityRule", b =>
+                {
+                    b.Property<int>("RulesetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FacilityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MapRegionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RulesetId", "FacilityId");
+
+                    b.HasIndex("MapRegionId", "FacilityId")
+                        .IsUnique();
+
+                    b.ToTable("RulesetFacilityRule");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemCategoryRule", b =>
@@ -1091,6 +1139,16 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int>("ItemCategoryId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("DeferToItemRules")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsBanned")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("Points")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -1098,7 +1156,39 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.HasKey("RulesetId", "ItemCategoryId");
 
+                    b.HasIndex("ItemCategoryId")
+                        .IsUnique();
+
                     b.ToTable("RulesetItemCategoryRule");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemRule", b =>
+                {
+                    b.Property<int>("RulesetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsBanned")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("ItemCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("RulesetId", "ItemId");
+
+                    b.HasIndex("ItemId")
+                        .IsUnique();
+
+                    b.ToTable("RulesetItemRule");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimAction", b =>
@@ -1108,6 +1198,9 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Domain")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1144,6 +1237,15 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatch", b =>
+                {
+                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
+                        .WithOne()
+                        .HasForeignKey("squittal.ScrimPlanetmans.Data.Models.ScrimMatch", "RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimMatchTeamPointAdjustment", b =>
                 {
                     b.HasOne("squittal.ScrimPlanetmans.Data.Models.ScrimMatchTeamResult", "ScrimMatchTeamResult")
@@ -1156,16 +1258,52 @@ namespace squittal.ScrimPlanetmans.App.Migrations
             modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetActionRule", b =>
                 {
                     b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
-                        .WithMany("ActionRules")
+                        .WithMany("RulesetActionRules")
                         .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetFacilityRule", b =>
+                {
+                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
+                        .WithMany("RulesetFacilityRules")
+                        .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("squittal.ScrimPlanetmans.Models.Planetside.MapRegion", "MapRegion")
+                        .WithOne()
+                        .HasForeignKey("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetFacilityRule", "MapRegionId", "FacilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemCategoryRule", b =>
                 {
+                    b.HasOne("squittal.ScrimPlanetmans.Models.Planetside.ItemCategory", "ItemCategory")
+                        .WithOne()
+                        .HasForeignKey("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemCategoryRule", "ItemCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
-                        .WithMany("ItemCategoryRules")
+                        .WithMany("RulesetItemCategoryRules")
+                        .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemRule", b =>
+                {
+                    b.HasOne("squittal.ScrimPlanetmans.Models.Planetside.Item", "Item")
+                        .WithOne()
+                        .HasForeignKey("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetItemRule", "ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
+                        .WithMany("RulesetItemRules")
                         .HasForeignKey("RulesetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

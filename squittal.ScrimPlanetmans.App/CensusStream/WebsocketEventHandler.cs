@@ -135,18 +135,20 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     case "PlayerLogin":
                         var loginParam = jPayload.ToObject<PlayerLoginPayload>(_payloadDeserializer);
-                        await Task.Run(()=>
-                        {
-                            Process(loginParam);
-                        });
+                        await Process(loginParam);
+                        //await Task.Run(()=>
+                        //{
+                        //    Process(loginParam);
+                        //});
                         break;
 
                     case "PlayerLogout":
                         var logoutParam = jPayload.ToObject<PlayerLogoutPayload>(_payloadDeserializer);
-                        await Task.Run(() =>
-                        {
-                            Process(logoutParam);
-                        });
+                        await Process(logoutParam);
+                        //await Task.Run(() =>
+                        //{
+                        //    Process(logoutParam);
+                        //});
                         break;
 
                     case "GainExperience":
@@ -177,7 +179,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("Death", typeof(DeathPayload))]
         private async Task<ScrimDeathActionEvent> Process(DeathPayload payload)
         {
-            if (!_deathFilter.TryFilterNewPayload(payload))
+            if (!await _deathFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Death payload detected, excluded");
                 return null;
@@ -191,6 +193,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             Player attackerPlayer;
             Player victimPlayer;
+
+            bool involvesBenchedPlayer = false;
 
             ScrimDeathActionEvent deathEvent = new ScrimDeathActionEvent
             {
@@ -233,6 +237,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         _teamsManager.SetPlayerLoadoutId(attackerId, deathEvent.AttackerLoadoutId);
 
+                        involvesBenchedPlayer = involvesBenchedPlayer || attackerPlayer.IsBenched;
                     }
                 }
 
@@ -247,6 +252,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     if (victimPlayer != null)
                     {
                         _teamsManager.SetPlayerLoadoutId(victimId, deathEvent.VictimLoadoutId);
+
+                        involvesBenchedPlayer = involvesBenchedPlayer || victimPlayer.IsBenched;
                     }
                 }
 
@@ -263,10 +270,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         deathEvent.AttackerLoadoutId = deathEvent.VictimLoadoutId;
                     }
 
-                    if (_isScoringEnabled)
+                    if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
-                        var points = await _scorer.ScoreDeathEvent(deathEvent);
-                        deathEvent.Points = points;
+                        var scoringResult = await _scorer.ScoreDeathEvent(deathEvent);
+                        deathEvent.Points = scoringResult.Points;
+                        deathEvent.IsBanned = scoringResult.IsBanned;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
                         var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -429,7 +437,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("VehicleDestroy", typeof(VehicleDestroyPayload))]
         private async Task<ScrimVehicleDestructionActionEvent> Process(VehicleDestroyPayload payload)
         {
-            if (!_vehicleDestroyFilter.TryFilterNewPayload(payload))
+            if (!await _vehicleDestroyFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Vehicle Destroy payload detected, excluded");
                 return null;
@@ -443,6 +451,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             Player attackerPlayer;
             Player victimPlayer;
+
+            bool involvesBenchedPlayer = false;
 
             // Don't bother tracking players destroying unclaimed vehicles
             if (!isValidVictimId)
@@ -487,7 +497,6 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 destructionEvent.VictimVehicle = new ScrimActionVehicleInfo(victimVehicle);
             }
 
-
             try
             {
                 if (isValidAttackerId == true)
@@ -502,6 +511,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     {
                         _teamsManager.SetPlayerLoadoutId(attackerId, destructionEvent.AttackerLoadoutId);
 
+                        involvesBenchedPlayer = involvesBenchedPlayer || attackerPlayer.IsBenched;
                     }
                 }
 
@@ -511,6 +521,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     victimPlayer = _teamsManager.GetPlayerFromId(victimId);
                     destructionEvent.VictimPlayer = victimPlayer;
+
+                    if (victimPlayer != null)
+                    {
+                        involvesBenchedPlayer = involvesBenchedPlayer || victimPlayer.IsBenched;
+                    }
                 }
 
                 destructionEvent.DeathType = GetVehicleDestructionDeathType(destructionEvent);
@@ -527,10 +542,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         destructionEvent.AttackerVehicle = destructionEvent.VictimVehicle;
                     }
 
-                    if (_isScoringEnabled)
+                    if (_isScoringEnabled && !involvesBenchedPlayer)
                     {
-                        var points = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
-                        destructionEvent.Points = points;
+                        var scoringResult = await _scorer.ScoreVehicleDestructionEvent(destructionEvent);
+                        destructionEvent.Points = scoringResult.Points;
+                        destructionEvent.IsBanned = scoringResult.IsBanned;
 
                         var currentMatchId = _scrimMatchService.CurrentMatchId;
                         var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -795,9 +811,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         #region Login / Logout Payloads
         [CensusEventHandler("PlayerLogin", typeof(PlayerLoginPayload))]
-        private PlayerLogin Process(PlayerLoginPayload payload)
+        private async Task<PlayerLogin> Process(PlayerLoginPayload payload)
         {
-            if (!_loginFilter.TryFilterNewPayload(payload))
+            if (!await _loginFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Player Login payload detected, excluded");
                 return null;
@@ -824,9 +840,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
         }
 
         [CensusEventHandler("PlayerLogout", typeof(PlayerLogoutPayload))]
-        private PlayerLogout Process(PlayerLogoutPayload payload)
+        private async Task<PlayerLogout> Process(PlayerLogoutPayload payload)
         {
-            if (!_logoutFilter.TryFilterNewPayload(payload))
+            if (!await _logoutFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Player Logout payload detected, excluded");
                 return null;
@@ -857,7 +873,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("GainExperience", typeof(GainExperiencePayload))]
         private async Task Process(GainExperiencePayload payload)
         {
-            if (!_experienceFilter.TryFilterNewPayload(payload))
+            if (!await _experienceFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Gain Experience payload detected, excluded");
                 return;
@@ -939,6 +955,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player medicPlayer;
             Player revivedPlayer;
 
+            bool involvesBenchedPlayer = false;
+
             if (isValidMedicId == true)
             {
                 reviveEvent.MedicCharacterId = medicId;
@@ -946,7 +964,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 medicPlayer = _teamsManager.GetPlayerFromId(medicId);
                 reviveEvent.MedicPlayer = medicPlayer;
 
-                _teamsManager.SetPlayerLoadoutId(medicId, reviveEvent.LoadoutId);
+                if (medicPlayer != null)
+                {
+                    _teamsManager.SetPlayerLoadoutId(medicId, reviveEvent.LoadoutId);
+
+                    involvesBenchedPlayer = involvesBenchedPlayer || medicPlayer.IsBenched;
+                }
             }
 
             if (isValidRevivedId == true)
@@ -955,16 +978,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 revivedPlayer = _teamsManager.GetPlayerFromId(revivedId);
                 reviveEvent.RevivedPlayer = revivedPlayer;
+
+                if (revivedPlayer != null)
+                {
+                    involvesBenchedPlayer = involvesBenchedPlayer || revivedPlayer.IsBenched;
+                }
             }
 
             reviveEvent.ActionType = GetReviveScrimActionType(reviveEvent);
 
             if (reviveEvent.ActionType != ScrimActionType.OutsideInterference)
             {
-                if (_isScoringEnabled)
+                if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreReviveEvent(reviveEvent);
-                    reviveEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreReviveEvent(reviveEvent);
+                    reviveEvent.Points = scoringResult.Points;
+                    reviveEvent.IsBanned = scoringResult.IsBanned;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1031,6 +1060,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
             Player attackerPlayer;
             Player victimPlayer;
 
+            bool involvesBenchedPlayer = false;
+
             if (isValidattackerId == true)
             {
                 assistEvent.AttackerCharacterId = attackerId;
@@ -1038,7 +1069,12 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
                 assistEvent.AttackerPlayer = attackerPlayer;
 
-                _teamsManager.SetPlayerLoadoutId(attackerId, assistEvent.LoadoutId);
+                if (attackerPlayer != null)
+                {
+                    _teamsManager.SetPlayerLoadoutId(attackerId, assistEvent.LoadoutId);
+
+                    involvesBenchedPlayer = involvesBenchedPlayer || attackerPlayer.IsBenched;
+                }
             }
 
             if (isValidvictimId == true)
@@ -1047,16 +1083,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                 victimPlayer = _teamsManager.GetPlayerFromId(victimId);
                 assistEvent.VictimPlayer = victimPlayer;
+
+                if (victimPlayer != null)
+                {
+                    involvesBenchedPlayer = involvesBenchedPlayer || victimPlayer.IsBenched;
+                }
             }
 
             assistEvent.ActionType = GetAssistScrimActionType(assistEvent);
 
             if (assistEvent.ActionType != ScrimActionType.OutsideInterference)
             {
-                if (_isScoringEnabled)
+                if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreAssistEvent(assistEvent);
-                    assistEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreAssistEvent(assistEvent);
+                    assistEvent.Points = scoringResult.Points;
+                    assistEvent.IsBanned = scoringResult.IsBanned;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1224,12 +1266,15 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             controlEvent.ActionType = GetObjectiveTickScrimActionType(controlEvent);
 
+            var involvesBenchedPlayer = player.IsBenched;
+
             if (controlEvent.ActionType != ScrimActionType.Unknown)
             {
-                if (_isScoringEnabled)
+                if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
-                    var points = await _scorer.ScoreObjectiveTickEvent(controlEvent);
-                    controlEvent.Points = points;
+                    var scoringResult = await _scorer.ScoreObjectiveTickEvent(controlEvent);
+                    controlEvent.Points = scoringResult.Points;
+                    controlEvent.IsBanned = scoringResult.IsBanned;
                 }
             }
 
@@ -1256,7 +1301,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private async Task Process(FacilityControlPayload payload)
         {
-            if (!_facilityControlFilter.TryFilterNewPayload(payload))
+            if (!await _facilityControlFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Facility Control payload detected, excluded");
                 return;
@@ -1269,16 +1314,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (type == FacilityControlType.Unknown)
             {
+                _logger.LogInformation($"FacilityControl payload had Unknow FacilityControlType: worldId={payload.WorldId} facilityId={payload.FacilityId}");
+                
                 return;
             }
 
             var controllingTeamOrdinal = _teamsManager.GetFirstTeamWithFactionId(newFactionId);
             if (controllingTeamOrdinal == null)
             {
+                _logger.LogInformation($"Could not resolve controlling team for {type} FacilityControl payload: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
+
                 return;
             }
 
-            var actionType = GetFacilityControlActionType(type, (int)controllingTeamOrdinal);
+            var actionType = GetFacilityControlActionType(type);
+
+            _logger.LogInformation($"FacilityControl payload has FacilityControlType of {type} & ScrimActionType of {actionType} ({(int)actionType}) for Team {controllingTeamOrdinal}: worldId={payload.WorldId} facilityId={payload.FacilityId} newFactionId={newFactionId} oldFactionId={oldFactionId}");
 
             // "Outside Influence" doesn't really apply to base captures
             if (actionType == ScrimActionType.None)
@@ -1306,8 +1357,9 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (_isScoringEnabled)
             {
-                var points = _scorer.ScoreFacilityControlEvent(controlEvent);
-                controlEvent.Points = points;
+                var scoringResult = _scorer.ScoreFacilityControlEvent(controlEvent);
+                controlEvent.Points = scoringResult.Points;
+                controlEvent.IsBanned = scoringResult.IsBanned;
 
                 var currentMatchId = _scrimMatchService.CurrentMatchId;
                 var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1361,24 +1413,22 @@ namespace squittal.ScrimPlanetmans.CensusStream
             }
         }
 
-        private ScrimActionType GetFacilityControlActionType(FacilityControlType type, int teamOrdinal)
+        private ScrimActionType GetFacilityControlActionType(FacilityControlType type)
         {
             if (type == FacilityControlType.Unknown)
             {
                 return ScrimActionType.None;
             }
             
-            var team = _teamsManager.GetTeam(teamOrdinal);
-
-            var roundControlVictories = team.EventAggregateTracker.RoundStats.BaseControlVictories;
+            var matchRoundControlVictories = _teamsManager.GetCurrentMatchRoundBaseControlsCount();
 
             // Only the first defense in a round should ever count. After that, base always trades hands via captures
-            if (type == FacilityControlType.Defense && roundControlVictories != 0)
+            if (type == FacilityControlType.Defense && matchRoundControlVictories != 0)
             {
                 return ScrimActionType.None;
             }
 
-            return (roundControlVictories == 0)
+            return (matchRoundControlVictories == 0)
                         ? ScrimActionType.FirstBaseCapture
                         : ScrimActionType.SubsequentBaseCapture;
         }

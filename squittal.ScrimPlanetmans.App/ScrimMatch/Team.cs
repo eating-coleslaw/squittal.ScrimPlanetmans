@@ -2,7 +2,6 @@
 using squittal.ScrimPlanetmans.Models.Planetside;
 using System.Collections.Generic;
 using System.Linq;
-using squittal.ScrimPlanetmans.Data.Models;
 
 using System.Collections.Concurrent;
 
@@ -14,6 +13,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public string NameInternal { get; set; } //team1 or team2
         public int TeamOrdinal { get; private set; } //1 or 2
         public int? FactionId { get; set; }
+
+        public bool IsLocked { get; set; } = false;
 
         public ScrimEventAggregate EventAggregate
         {
@@ -31,25 +32,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private ConcurrentDictionary<string, Player> ParticipatingPlayersMap { get; set; } = new ConcurrentDictionary<string, Player>();
 
-        //public List<Outfit> Outfits { get => _outfits; }
         public List<Outfit> Outfits { get; private set; } = new List<Outfit>();
 
         public List<ConstructedTeamMatchInfo> ConstructedTeamsMatchInfo { get; set; } = new List<ConstructedTeamMatchInfo>();
         private ConcurrentDictionary<string, ConstructedTeamMatchInfo> ConstructedTeamsMap { get; set; } = new ConcurrentDictionary<string, ConstructedTeamMatchInfo>();
 
         private ConcurrentDictionary<string, Player> PlayersMap { get; set; } = new ConcurrentDictionary<string, Player>();
-        //public List<string> PlayerIds { get => _playerIds; }
 
         private ConcurrentDictionary<string, Outfit> OutfitsMap { get; set; } = new ConcurrentDictionary<string, Outfit>();
-        //private List<string> _seedOutfitAliases = new List<string>();
-        
-        //private List<string> _seedOutfitIds = new List<string>();
 
         public bool HasCustomAlias { get; private set; } = false;
 
-        //private List<string> _playerIds = new List<string>();
-
-        //private List<Outfit> _outfits = new List<Outfit>();
 
         public Team(string alias, string nameInternal, int teamOrdinal)
         {
@@ -73,21 +66,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        public void ResetAlias(string alias)
+        {
+            Alias = alias;
+            HasCustomAlias = false;
+        }
+
         public bool ContainsPlayer(string characterId)
         {
-            //return _playerIds.Contains(characterId);
             return PlayersMap.ContainsKey(characterId);
         }
 
         public bool ContainsOutfit(string alias)
         {
-            //return _seedOutfitAliases.Contains(alias);
             return OutfitsMap.ContainsKey(alias.ToLower());
         }
 
         public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
         {
-            //return ConstructedTeamsMatchInfo.Any(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
             return ConstructedTeamsMap.ContainsKey(GetConstructedTeamFactionKey(constructedTeamId, factionId));
         }
 
@@ -103,11 +99,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public bool TryAddPlayer(Player player)
         {
-            //if (ContainsPlayer(player.Id))
-            //{
-            //    return false;
-            //}
-
             if(!PlayersMap.TryAdd(player.Id, player))
             {
                 return false;
@@ -115,38 +106,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             Players.Add(player);
 
-            //_playerIds.Add(player.Id);
-
-            //PlayersMap.TryAdd(player.Id, player);
-
             return true;
         }
 
         public bool TryRemovePlayer(string characterId)
         {
-            //if (!ContainsPlayer(characterId))
-            //{
-            //    return false;
-            //}
-
-            //var player = Players.FirstOrDefault(p => p.Id == characterId);
             if (!PlayersMap.TryRemove(characterId, out var player))
             {
                 return false;
             }
 
-            //Players.RemoveAll(p => p.Id == characterId);
             Players.Remove(player);
 
-            //_playerIds.RemoveAll(id => id == characterId);
-            //PlayersMap.TryRemove(characterId, out var playerOut);
-
-            //ParticipatingPlayers.RemoveAll(p => p.Id == characterId);
             ParticipatingPlayers.Remove(player);
 
             ParticipatingPlayersMap.TryRemove(player.Id, out Player removedPlayer);
 
-            //EventAggregateTracker.SubtractFromHistory(player.EventAggregateTracker);
             RemovePlayerObjectiveTicksFromTeamAggregate(player); // TODO: remove this when Objective Ticks are saved to DB
 
             return true;
@@ -186,22 +161,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public bool TryAddOutfit(Outfit outfit)
         {
-            //if (ContainsOutfit(outfit.AliasLower))
-            //{
-            //    return false;
-            //}
-
             if (!OutfitsMap.TryAdd(outfit.AliasLower, outfit))
             {
                 return false;
             }
 
             Outfits.Add(outfit);
-
-            //_seedOutfitAliases.Add(outfit.AliasLower);
-            //OutfitsMap.TryAdd(outfit.AliasLower, outfit);
-            
-            //_seedOutfitIds.Add(outfit.Id);
             
             return true;
         }
@@ -212,20 +177,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 return false;
             }
-            
-            //var outfit = Outfits.FirstOrDefault(o => o.AliasLower == aliasLower);
-            
-            //if (outfit == null)
-            //{
-                //return false;
-            //}
 
             Outfits.RemoveAll(o => o.AliasLower == aliasLower);
-
-            //_seedOutfitAliases.RemoveAll(alias => alias == aliasLower);
-            //OutfitsMap.TryRemove(aliasLower, out var outfitOut);
-            
-            //_seedOutfitIds.RemoveAll(id => id == outfit.Id);
 
             return true;
         }
@@ -240,25 +193,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return false;
             }
 
-            //if (ContainsConstructedTeamFaction(constructedTeam.Id, factionId))
-            //{
-            //    return false;
-            //}
-
             ConstructedTeamsMatchInfo.Add(matchInfo);
-
-            //ConstructedTeamsMap.TryAdd(GetConstructedTeamFactionKey(constructedTeam.Id, factionId), matchInfo);
 
             return true;
         }
 
         public bool TryRemoveConstructedTeamFaction(int constructedTeamId, int factionId)
         {
-            //if (!ContainsConstructedTeamFaction(constructedTeamId, factionId))
-            //{
-            //    return false;
-            //}
-
             if (!ConstructedTeamsMap.TryRemove(GetConstructedTeamFactionKey(constructedTeamId, factionId), out var teamOut))
             {
                 return false;
@@ -266,9 +207,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             ConstructedTeamsMatchInfo.RemoveAll(ctmi => ctmi.ConstructedTeam.Id == constructedTeamId && ctmi.ActiveFactionId == factionId);
 
-            //ConstructedTeamsMap.TryRemove(GetConstructedTeamFactionKey(constructedTeamId, factionId), out var teamOut);
-
             return true;
+        }
+
+        public void ResetMatchData()
+        {
+            ClearEventAggregateHistory();
+
+            ParticipatingPlayers.Clear();
+            ParticipatingPlayersMap.Clear();
         }
 
         public bool UpdateParticipatingPlayer(Player player)
@@ -288,28 +235,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public IEnumerable<Player> GetParticipatingPlayers()
         {
             return ParticipatingPlayersMap.Values.ToList();
-            
-            /*
-            var participatingPlayers = new List<Player>();
-
-            foreach (var playerPair in ParticipatingPlayersMap)
-            {
-                    participatingPlayers.Add(playerPair.Value);
-            }
-
-            //foreach (var playerPair in ParticipatingPlayersMap)
-            //{
-            //    if (playerPair.Value)
-            //    {
-            //        if (PlayersMap.TryGetValue(playerPair.Key, out var player))
-            //        {
-            //            participatingPlayers.Add(player);
-            //        }
-            //    }
-            //}
-
-            return participatingPlayers;
-            */
         }
 
         public IEnumerable<Player> GetOutfitPlayers(string aliasLower)

@@ -10,6 +10,7 @@ using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.ScrimMatch;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
+using squittal.ScrimPlanetmans.Services.Rulesets;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 using System;
@@ -42,7 +43,9 @@ namespace squittal.ScrimPlanetmans.App
                                                 maxRetryCount: 5,
                                                 maxRetryDelay: TimeSpan.FromSeconds(30),
                                                 errorNumbersToAdd: null);
-                                        }));
+                                        })
+                        .EnableSensitiveDataLogging(false));
+
 
             services.AddCensusServices(options =>
                 options.CensusServiceId = Environment.GetEnvironmentVariable("DaybreakGamesServiceKey", EnvironmentVariableTarget.User));
@@ -83,11 +86,12 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSingleton<IConstructedTeamService, ConstructedTeamService>();
 
+            services.AddSingleton<IRulesetDataService, RulesetDataService>();
+
             services.AddTransient<IScrimMatchReportDataService, ScrimMatchReportDataService>();
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 
-            services.AddSingleton<IApplicationDataLoader, ApplicationDataLoader>();
 
             services.AddTransient<IStreamClient, StreamClient>();
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
@@ -95,8 +99,8 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IWebsocketHealthMonitor, WebsocketHealthMonitor>();
 
             services.AddHostedService<WebsocketMonitorHostedService>();
-            services.AddHostedService<DbSeederHostedService>();
 
+            services.AddSingleton<IApplicationDataLoader, ApplicationDataLoader>();
             services.AddHostedService<ApplicationDataLoaderHostedService>();
 
             services.AddTransient<ISqlScriptRunner, SqlScriptRunner>();

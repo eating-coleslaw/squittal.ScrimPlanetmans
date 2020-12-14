@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
@@ -9,6 +10,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         public ScrimObjectiveTickActionEventMessage(ScrimObjectiveTickActionEvent objectiveTickEvent)
         {
             ObjectiveTickEvent = objectiveTickEvent;
+
+            Timestamp = objectiveTickEvent.Timestamp;
+
+            LogLevel = objectiveTickEvent.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMinor;
 
             Info = GetInfo(objectiveTickEvent);
         }
@@ -28,7 +33,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var actionDisplay = GetEnumValueName(objectiveTickEvent.ActionType);
             var pointsDisplay = GetPointsDisplay(objectiveTickEvent.Points);
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName}";
+            var bannedDisplay = objectiveTickEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName}";
         }
     }
 }

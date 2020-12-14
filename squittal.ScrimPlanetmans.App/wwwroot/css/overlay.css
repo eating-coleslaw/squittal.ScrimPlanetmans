@@ -93,7 +93,7 @@ body {
         display: grid;
         /*grid-template-rows: 24px 4px;*/
         /*grid-template-rows: 32px 4px;*/
-/*        grid-template-rows: 30px 4px;*/
+        /*        grid-template-rows: 30px 4px;*/
         grid-template-rows: 29px 5px;
         /**/
         /*background-color: #1F233090;*/
@@ -143,7 +143,6 @@ body {
         background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
         /*grid-column-gap: 8px;*/
-        
     }
 
         .overlay .players.players2 .playerStatusContainer:nth-child(1) {
@@ -163,7 +162,7 @@ body {
         z-index: 1;
         vertical-align: bottom;
         color: var(--sq-ov-ps2-primary-lightest);
-/*        font-size: 1.25rem;*/
+        /*        font-size: 1.25rem;*/
         font-size: 1.2rem;
     }
 
@@ -240,10 +239,10 @@ body {
                 padding: 0 4px 1px 0;
             }
 
-        .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
-            /*color: var(--sq-ov-ps2-primary-alpha-50);*/
-            color:  var(--sq-bg-white-lit-alpha-30);
-        }
+    .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
+        /*color: var(--sq-ov-ps2-primary-alpha-50);*/
+        color: var(--sq-bg-white-lit-alpha-30);
+    }
 
 
     .overlay .players .playerStatusContainer .score .net .value {
@@ -311,7 +310,7 @@ body {
 
     .overlay .players .playerStatusContainer .eventMask {
         grid-area: event;
-/*        height: 4px;*/
+        /*        height: 4px;*/
         height: 6px;
         position: relative;
         overflow: hidden;
@@ -662,11 +661,9 @@ body {
     Scoreboard
 ***********************/
 .overlay .scoreboard {
-    /*grid-area: scoreboard;
-    background-color: aqua;*/
     border-radius: 1px;
     color: rgb(245, 245, 255);
-    max-width: 475px;
+    max-width: calc(475px + 100px);
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
@@ -685,11 +682,8 @@ body {
 
         .overlay .scoreboard .outfitScoresContainer .outfitScoresRow {
             display: inline-block;
-            /*height: 35px;*/
             border-top-width: 2px;
             border-top-style: solid;
-            /*border-top-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
-            /*border-top-color: var(--sq-ps2-primary, rgb(20, 20, 20));*/
             border-top-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
             -moz-transition: border 0.5s cubic-bezier(.86,0,.07,1);
             -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
@@ -728,13 +722,11 @@ body {
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore {
                 text-align: right;
-                /*padding-right: 5px;*/
                 padding-right: 8px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitScore {
                 text-align: left;
-                /*padding-left: 5px;*/
                 padding-left: 8px;
             }
 
@@ -744,8 +736,6 @@ body {
                 width: 70px;
                 font-weight: 500;
                 box-sizing: inherit;
-                /*color: var(--sq-ov-ps2-flavor, rgb(35, 35, 35));*/
-                /*color: var(--sq-ps2-primary-light, rgb(35, 35, 35));*/
                 color: var(--sq-ov-ps2-flavor, rgb(35, 35, 35));
                 -moz-transition: 1s color cubic-bezier(.68,-0.55,.27,1.55);
                 -moz-transition-delay: 1.5s;
@@ -767,20 +757,19 @@ body {
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitAlias {
-                /*padding-left: 3px;*/
                 padding-left: 4px;
                 border-bottom-left-radius: 1px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitAlias {
                 text-align: right;
-                /*padding-right: 3px;*/
                 padding-right: 4px;
                 border-bottom-right-radius: 1px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .wedge {
-                border-bottom: 5px solid transparent !important;
+/*                border-bottom: 5px solid transparent !important;*/
+                border-bottom: 4px solid transparent !important;
                 display: inline;
                 border-left-color: transparent;
                 border-right-color: transparent;
@@ -788,35 +777,26 @@ body {
                 -webkit-transition: border 0.5s cubic-bezier(.86,0,.07,1);
                 transition: border 0.5s cubic-bezier(.86,0,.07,1);
                 box-sizing: inherit;
-                /*border-top: 3px solid var(--sq-ps2-primary);*/
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .wedge {
-                /*border-right-width: 10px;*/
                 border-right-style: solid;
-                /*border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
                 border-right-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 /**/
-                border-right-width: 11px;
+                border-right-width: 14px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .wedge {
-                /*border-left-width: 10px;*/
                 border-left-style: solid;
-                /*border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));*/
                 border-left-color: var(--sq-ov-ps2-primary, rgb(20, 20, 20));
                 /**/
-                border-left-width: 11px;
+                border-left-width: 14px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .factionLabel {
-                font-size: 10px;
+                font-size: 12px;
                 display: inline-block;
                 line-height: 1;
-                /*height: 19px;*/
-                /*padding-top: 8px;*/
-                /*text-align: center;*/
-                /*vertical-align: top;*/
                 width: 0px;
                 position: relative;
                 box-sizing: inherit;
@@ -829,25 +809,60 @@ body {
                 transition: color 0.5s cubic-bezier(.68,-0.55,.27,1.55);
                 /**/
                 height: 32px;
+                top: 1px;
+                color: var(--sq-ov-ps2-flavor);
+                text-shadow: 0px 0px 2px var(--sq-ov-ps2-primary-dark);
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .factionLabel {
                 border-bottom-left-radius: 1px;
-                left: -8.5px;
-                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
-                color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
+                left: -10px;
             }
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .factionLabel {
                 border-bottom-right-radius: 1px;
-                left: 2px;
-                /*color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));*/
-                color: var(--sq-ov-ps2-flavor, rgb(245, 245, 255));
+                left: 3px;
             }
+
+.iconify.capture-flag {
+    font-size: 1.25rem;
+    color: var(--sq-ov-ps2-primary);
+    position: relative;
+    bottom: 2px;
+    filter: drop-shadow(-1px 0px 1px var(--sq-black))
+}
+
+    .iconify.capture-flag.stacked {
+        left: 10px;
+    }
+
+
+.overlay .capture-flag-label {
+    color: var(--sq-ov-ps2-primary);
+    text-shadow: -1px 0px 1px var(--sq-black);
+    font-size: 1rem;
+}
+
+.overlay .capture-flag-container {
+    width: 40px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+    .overlay .capture-flag-container.team1 {
+        text-align: right;
+    }
+
+    .overlay .capture-flag-container.team2 {
+        text-align: left;
+    }
 
 .tr .factionLabel {
     color: var(--sq-ov-ps2-primary-dark) !important;
+    text-shadow: 0px 0px 2px var(--sq-ov-bg-dark-gray-alpha-33) !important;
 }
+
+
 
 
 .inactiveWhiteText {
@@ -945,8 +960,8 @@ body {
     /*bottom: 24px;*/
     /*top: 88px;*/
     top: 72px;
-/*    left: calc(50% - 250px);*/
-/*    left: calc(50% - 245px);*/
+    /*    left: calc(50% - 250px);*/
+    /*    left: calc(50% - 245px);*/
     left: calc(50% - 240px);
 }
 
@@ -1224,10 +1239,10 @@ body {
     /*position: fixed;*/
     top: 88px;
     left: 25%;
-/*    width: 50%;*/
-/*    margin-left: auto;*/
-/*    width: 55%;*/
-/*    margin-left: -2%;*/
+    /*    width: 50%;*/
+    /*    margin-left: auto;*/
+    /*    width: 55%;*/
+    /*    margin-left: -2%;*/
     width: 53%;
     margin-left: -1%;
     margin-right: auto;
@@ -1307,7 +1322,7 @@ body {
 
     .overlay .match-report.no-hsr .stats-row {
         /*display: grid;*/
-/*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
+        /*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
         grid-template-columns: 1fr 65px 110px 70px repeat(4, 90px);
         grid-template-areas: "label score graph net kills deaths assists utils";
         /*grid-gap: 5px;*/
@@ -1337,14 +1352,14 @@ body {
         }
 
         .overlay .match-report .stats-row.adjustments .label {
-            font-style: italic;
+            /*font-style: italic;*/
         }
 
     .overlay .match-report .stats-row-header {
         display: grid;
         /*color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);*/
         color: var(--sq-ov-ps2-primary-light, --sq-ov-bg-dark-gray);
-/*        grid-template-columns: 1fr 155px repeat(6, 90px);*/
+        /*        grid-template-columns: 1fr 155px repeat(6, 90px);*/
         grid-template-columns: 1fr 175px 70px repeat(5, 90px);
         grid-template-areas: "label score net kills deaths hsr assists utils";
         /*grid-gap: 5px;*/
@@ -1357,7 +1372,7 @@ body {
     }
 
     .overlay .match-report.no-hsr .stats-row-header {
-/*        grid-template-columns: 1fr 155px repeat(5, 90px);*/
+        /*        grid-template-columns: 1fr 155px repeat(5, 90px);*/
         grid-template-columns: 1fr 175px 70px repeat(4, 90px);
         grid-template-areas: "label score net kills deaths assists utils";
     }
@@ -1418,7 +1433,7 @@ body {
 
     .overlay .match-report .stats-row.player .ps2-icon {
         display: inline-block;
-/*        vertical-align: middle;*/
+        /*        vertical-align: middle;*/
         margin-right: 8px;
         margin-top: 0px;
         height: 20px;
@@ -1461,9 +1476,9 @@ body {
     }
 
     .overlay .match-report .stats-row .graph .graph-bar {
-/*        height: 18px;*/
+        /*        height: 18px;*/
         height: 17px;
-/*        margin: 3px 0px 3px 0px;*/
+        /*        margin: 3px 0px 3px 0px;*/
         margin: 5px 0 0 0;
         background-color: var(--sq-ov-ps2-primary);
         opacity: 0.9;
@@ -1483,45 +1498,45 @@ body {
         font-size: 1.1rem;
     }
 
-        .overlay .match-report .stats-row .stats-value.net .value {
-            /*overflow: visible;
+    .overlay .match-report .stats-row .stats-value.net .value {
+        /*overflow: visible;
             display: inline;
             vertical-align: bottom;
             font-size: 1.1rem;*/
-        }
-        
-/*        .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net .value {
+    }
+
+    /*        .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net .value {
             grid-area: net;
             overflow: visible;
         }*/
 
-        .overlay .match-report .stats-row .stats-value.net .label {
-            padding-left: 4px;
-            font-size: 1rem;
-            color: var(--sq-ov-semantic-green);
+    .overlay .match-report .stats-row .stats-value.net .label {
+        padding-left: 4px;
+        font-size: 1rem;
+        color: var(--sq-ov-semantic-green);
+    }
+
+        .overlay .match-report .stats-row .stats-value.net .label.neutral {
+            color: var(--sq-ov-semantic-orange);
+            display: inline-block;
+            font-weight: 700;
+            position: relative;
+            /*                top: 4px;*/
+            top: 2px;
+            height: 20px;
         }
 
-            .overlay .match-report .stats-row .stats-value.net .label.neutral {
-                color: var(--sq-ov-semantic-orange);
-                display: inline-block;
-                font-weight: 700;
-                position: relative;
-/*                top: 4px;*/
-                top: 2px;
-                height: 20px;
-            }
-
-            .overlay .match-report .stats-row .stats-value.net .label.negative {
-                color: var(--sq-ov-semantic-red);
-                display: inline-block;
-                transform-origin: center;
-                transform: rotateZ(180deg);
-/*                padding: 0 4px 1px 0;*/
-                padding: 0 4px 0 0;
-                position: relative;
-                top: 6px;
-                height: 20px;
-            }
+        .overlay .match-report .stats-row .stats-value.net .label.negative {
+            color: var(--sq-ov-semantic-red);
+            display: inline-block;
+            transform-origin: center;
+            transform: rotateZ(180deg);
+            /*                padding: 0 4px 1px 0;*/
+            padding: 0 4px 0 0;
+            position: relative;
+            top: 6px;
+            height: 20px;
+        }
 
     .overlay .match-report .stats-row .stats-value.kills, .stats-col-header.kills {
         grid-area: kills;

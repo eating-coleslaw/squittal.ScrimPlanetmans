@@ -25,8 +25,20 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         
         private ConcurrentDictionary<int, ItemCategory> WeaponCategoriesMap { get; set; } = new ConcurrentDictionary<int, ItemCategory>();
         private readonly SemaphoreSlim _weaponCategoryMapSetUpSemaphore = new SemaphoreSlim(1);
-        public string BackupSqlScriptFileName => "dbo.ItemCategory.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.ItemCategory.Table.sql";
 
+        public event EventHandler<StoreRefreshMessageEventArgs> RaiseStoreRefreshEvent;
+        public delegate void StoreRefreshMessageEventHandler(object sender, StoreRefreshMessageEventArgs e);
+
+        protected virtual void OnRaiseStoreRefreshEvent(StoreRefreshMessageEventArgs e)
+        {
+            RaiseStoreRefreshEvent?.Invoke(this, e);
+        }
+
+        private void SendStoreRefreshEventMessage(StoreRefreshSource refreshSource)
+        {
+            OnRaiseStoreRefreshEvent(new StoreRefreshMessageEventArgs(refreshSource));
+        }
 
         private static readonly List<int> _nonWeaponItemCategoryIds = new List<int>()
         {
@@ -48,6 +60,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             142, // Consolidated Decal
             143, // Attachments
             145, // ANT Utility
+            146, // Bounty Contract
             148  // ANT Harvesting Tool
         };
 
@@ -124,6 +137,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             15  // Flamethrower MAX
         };
 
+
         public ItemCategoryService(IDbContextHelper dbContextHelper, CensusItemCategory censusItemCategory, ISqlScriptRunner sqlScriptRunner, ILogger<ItemCategoryService> logger)
         {
             _dbContextHelper = dbContextHelper;
@@ -132,6 +146,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             _logger = logger;
         }
 
+        #region GET methods
         public async Task<IEnumerable<int>> GetItemCategoryIdsAsync()
         {
             if (ItemCategoriesMap == null || !ItemCategoriesMap.Any())
@@ -150,6 +165,16 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             return GetWeaponItemCategoryIds();
+        }
+
+        public async Task<IEnumerable<ItemCategory>> GetItemCategoriesFromIdsAsync(IEnumerable<int> itemCategoryIds)
+        {
+            if (ItemCategoriesMap == null || !ItemCategoriesMap.Any())
+            {
+                await SetUpItemCategoriesListAsync();
+            }
+
+            return ItemCategoriesMap.Where(m => itemCategoryIds.Contains(m.Key)).Select(m => m.Value).ToList();
         }
 
         public IEnumerable<int> GetItemCategoryIds()
@@ -183,6 +208,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
             return category;
         }
+        #endregion GET methods
 
         public async Task SetUpItemCategoriesListAsync()
         {
@@ -271,6 +297,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             return _nonWeaponItemCategoryIds;
         }
 
+        #region Store Management methods
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
             bool anyCategories = false;
@@ -339,6 +366,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
 
                 _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
+
+                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -448,6 +477,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         public void RefreshStoreFromBackup()
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
+
+        #endregion Store Management methods
     }
 }

@@ -46,7 +46,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         InvokeSateHasChangedIfPlayer(e.Message.Player);
     }

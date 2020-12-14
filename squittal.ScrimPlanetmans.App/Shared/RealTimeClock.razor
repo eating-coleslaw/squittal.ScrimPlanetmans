@@ -1,0 +1,51 @@
+﻿@using System.Threading;
+@implements IDisposable
+
+<div class="header-clock">@_renderedTimeString UTC</div>
+
+@code {
+    private string _renderedTimeString { get; set; }
+
+    private Timer _timer { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(HandleTimerTick, null, 0, 1000);
+
+        SetClockDisplay();
+    }
+
+    public void Dispose()
+    {
+        _timer.Dispose();
+    }
+
+    #region Timer Handling
+    private void InitializeTimer()
+    {
+        _timer = new Timer(HandleTimerTick, null, 0, 1000);
+    }
+
+    private void HandleTimerTick(object stateInfo)
+    {
+        SetClockDisplay();
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Timer Handling
+
+    private void SetClockDisplay()
+    {
+        var utcNow = DateTime.UtcNow;
+
+        _renderedTimeString = utcNow.ToString("MMM d, HH:mm:ss");
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

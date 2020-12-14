@@ -13,8 +13,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         
         public int Points { get; set; }
 
+        public bool IsBanned { get; set; }
+
+        public bool DeferToItemRules { get; set; }
+
         public Ruleset Ruleset { get; set; }
         public ItemCategory ItemCategory { get; set; }
-
     }
 }

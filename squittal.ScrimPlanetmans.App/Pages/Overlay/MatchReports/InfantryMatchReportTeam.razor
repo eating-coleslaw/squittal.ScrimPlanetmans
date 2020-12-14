@@ -15,12 +15,7 @@
     <div id="@($"T{_renderedTeamOrdinal}Stats")" class="team-report @($"team{_renderedTeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
         <div id="@($"T{_renderedTeamOrdinal}Stats-header")" class="stats-row-header">
             <div class="score stats-col-header">Total Points</div>
-            @*<div class="net stats-col-header">Net<br/>Score (Δ)</div>*@
-            @*<div class="net stats-col-header">
-                <span style="text-align: right;width: 60%;display: inline-block;padding-right: 4px;">Net<br>Score</span>(Δ)
-            </div>*@
             <div class="net stats-col-header">Net<br>Score</div>
-            @*<div class="net stats-col-header">Net (Δ)</div>*@
 
             <div class="kills stats-col-header">Kills</div>
             <div class="deaths stats-col-header">Deaths</div>
@@ -41,6 +36,8 @@
                 <InfantryMatchReportPlayerStatsRow i_CharacterId=@player.Id i_Player=player i_showHsr=_showHsr/>
             }
         }
+
+        <InfantryMatchReportTeamCapturePointsRow i_TeamOrdinal=i_TeamOrdinal />
 
         <InfantryMatchReportTeamPointAdjustmentsRow i_TeamOrdinal=i_TeamOrdinal />
     </div>
@@ -116,7 +113,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var player = e.Message.Player;
 
@@ -125,7 +122,6 @@
             return;
         }
 
-        //var changeType = (player.IsParticipating || player.IsOnline) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
         var changeType = (player.IsParticipating) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
 
         var changeMessage = new TeamPlayerChangeMessage(player, changeType);
@@ -135,7 +131,7 @@
         UpdateRenderedPlayers();
     }
 
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         var player = e.Message.Player;
 
@@ -149,7 +145,7 @@
         UpdateRenderedPlayers();
     }
 
-    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
+    private void ReceiveTeamFactionChangeEvent(object sender, ScrimMessageEventArgs<TeamFactionChangeMessage> e)
     {
         var message = e.Message;
 
@@ -163,7 +159,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
     {
         return;
     }
@@ -185,7 +181,7 @@
                     }
                     else if (changeMessage.ChangeType == TeamPlayerChangeType.Add)
                     {
-                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating)) // || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player) && (player.IsParticipating))
                         {
                             _renderedPlayers.Add(player);
                         }

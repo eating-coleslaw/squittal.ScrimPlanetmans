@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.Models;
 using squittal.ScrimPlanetmans.Models.Forms;
 using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,6 +108,13 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                 Expression<Func<ScrimMatchInfo, bool>> endDateExpression = m => m.StartTime <= searchFilter.SearchEndDate;
 
                 whereExpression = whereExpression == null ? endDateExpression : whereExpression.And(endDateExpression);
+            }
+
+            if (searchFilter.RulesetId != 0)
+            {
+                Expression<Func<ScrimMatchInfo, bool>> rulesetExpression = m => m.RulesetId == searchFilter.RulesetId;
+
+                whereExpression = whereExpression == null ? rulesetExpression : whereExpression.And(rulesetExpression);
             }
 
             if (searchFilter.FacilityId != -1)
@@ -232,6 +240,61 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
+        public async Task<IEnumerable<Ruleset>> GetScrimMatchBrowseRulesetIdsListAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var distinctRulesetIds = await dbContext.ScrimMatchInfo
+                                                            .Select(m => m.RulesetId)
+                                                            .Distinct()
+                                                            .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!distinctRulesetIds.Any())
+                {
+                    return null;
+                }
+
+                var distinctRulesets = await dbContext.Rulesets
+                                                            .Where(r => distinctRulesetIds.Contains(r.Id))
+                                                            .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return distinctRulesets;
+                
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetScrimMatchBrowserFacilityIdsListAsync");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetScrimMatchBrowserFacilityIdsListAsync");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        private Ruleset ConvertToRulesetModel(ScrimMatchInfo scrimMatchInfo)
+        {
+            return new Ruleset
+            {
+                Id = scrimMatchInfo.RulesetId,
+                Name = scrimMatchInfo.RulesetName
+            };
+        }
+
         public async Task<IEnumerable<ScrimMatchReportInfantryPlayerStats>>  GetHistoricalScrimMatchInfantryPlayerStatsAsync(string scrimMatchId, CancellationToken cancellationToken)
         {
             try
@@ -243,7 +306,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                                         .AsNoTracking()
                                         .Where(e => e.ScrimMatchId == scrimMatchId)
                                         .OrderBy(e => e.NameDisplay)
-                                        .OrderByDescending(e => e.TeamOrdinal)
                                         .ToListAsync(cancellationToken);
 
             }
@@ -265,6 +327,39 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerRoundStats>> GetHistoricalScrimMatchInfantryPlayerRoundStatsAsync(string scrimMatchId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerRoundStats
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId)
+                                        .OrderBy(e => e.NameDisplay)
+                                        .ThenBy(e => e.ScrimMatchRound)
+                                        .ToListAsync(cancellationToken);
+
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayerRoundStatsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayerRoundStatsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         public async Task<IEnumerable<ScrimMatchReportInfantryTeamStats>> GetHistoricalScrimMatchInfantryTeamStatsAsync(string scrimMatchId, CancellationToken cancellationToken)
         {
             try
@@ -276,6 +371,38 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
                                         .AsNoTracking()
                                         .Where(e => e.ScrimMatchId == scrimMatchId)
                                         .OrderBy(e => e.TeamOrdinal)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryTeamStatsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryTeamStatsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+        
+        public async Task<IEnumerable<ScrimMatchReportInfantryTeamRoundStats>> GetHistoricalScrimMatchInfantryTeamRoundStatsAsync(string scrimMatchId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryTeamRoundStats
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId)
+                                        .OrderBy(e => e.TeamOrdinal)
+                                        .ThenBy(e => e.ScrimMatchRound)
                                         .ToListAsync(cancellationToken);
             }
             catch (TaskCanceledException)
@@ -317,6 +444,138 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             catch (OperationCanceledException)
             {
                 _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryDeathsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryPlayerDeathsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryDeaths
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId
+                                                    && ( e.AttackerCharacterId == characterId
+                                                         || e.VictimCharacterId == characterId ) )
+                                        .OrderByDescending(e => e.Timestamp)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryDeathsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryDeathsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerHeadToHeadStats>> GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerHeadToHeadStats
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId
+                                                    && e.PlayerCharacterId == characterId)
+                                        .OrderByDescending(e => e.PlayerTeamOrdinal != e.OpponentTeamOrdinal)
+                                        .ThenBy(e => e.OpponentNameDisplay)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync scrimMatchId {scrimMatchId} characterId {characterId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayerHeadToHeadStatsAsync scrimMatchId {scrimMatchId} characterId {characterId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerClassEventCounts>> GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync(string scrimMatchId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerClassEventCounts
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId)
+                                        .OrderByDescending(e => e.TeamOrdinal)
+                                        .ThenBy(e => e.NameDisplay)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<ScrimMatchReportInfantryPlayerWeaponStats>> GetHistoricalScrimMatchInfantryPlayerWeaponStatsAsync(string scrimMatchId, string characterId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                return await dbContext.ScrimMatchReportInfantryPlayerWeaponStats
+                                        .AsNoTracking()
+                                        .Where(e => e.ScrimMatchId == scrimMatchId
+                                                    && e.CharacterId == characterId)
+                                        .OrderByDescending(e => e.Kills)
+                                        .ThenByDescending(e => e.Deaths)
+                                        .ThenBy(e => e.WeaponName)
+                                        .ToListAsync(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchInfantryPlayeClassEventCountsAsync scrimMatchId {scrimMatchId}");
                 return null;
             }
             catch (Exception ex)
