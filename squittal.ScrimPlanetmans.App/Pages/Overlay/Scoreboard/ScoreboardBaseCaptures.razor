@@ -1,0 +1,81 @@
+﻿@using squittal.ScrimPlanetmans.Models;
+
+@if (_renderedCaptureCount == 1)
+{
+    <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
+        <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
+    </div>
+}
+else if (_renderedCaptureCount == 2)
+{
+    <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
+        <span class="iconify capture-flag stacked" data-icon="ion:flag" data-inline="false"></span><span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
+    </div>
+}
+else if (_renderedCaptureCount >= 3)
+{
+    <div class="capture-flag-container @SqCssHelper.GetFactionClassFromId(_renderedFactionId) @_teamCssClass">
+        <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span><span class="capture-flag-label">x@_renderedCaptureCount</span>
+    </div>
+}
+else
+{
+    <div class="capture-flag-container"></div>
+}
+
+@code {
+    [Parameter]
+    public int i_captureCount { get; set; }
+    private int _renderedCaptureCount { get; set; } = 0;
+
+    [Parameter]
+    public int? i_factionId { get; set; }
+    private int? _renderedFactionId { get; set; } = (int?)null;
+
+    [Parameter]
+    public int i_teamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
+
+    private string _teamCssClass { get; set; } = string.Empty;
+
+    #region Initialization Methods
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        if (i_captureCount != _renderedCaptureCount)
+        {
+            _renderedCaptureCount = i_captureCount;
+            paramsChanged = true;
+        }
+
+        if (i_factionId != _renderedFactionId)
+        {
+            _renderedFactionId = i_factionId;
+            paramsChanged = true;
+        }
+
+        if (i_teamOrdinal != _renderedTeamOrdinal)
+        {
+            _renderedTeamOrdinal = i_teamOrdinal;
+
+            _teamCssClass = $"team{_renderedTeamOrdinal}";
+
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+    #endregion Initialization Methods
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

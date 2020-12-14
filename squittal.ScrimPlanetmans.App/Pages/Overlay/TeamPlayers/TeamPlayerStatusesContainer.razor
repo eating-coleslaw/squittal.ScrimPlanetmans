@@ -88,7 +88,7 @@
     #endregion
 
     #region Event Handling
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         var message = e.Message;
 
@@ -98,17 +98,26 @@
             return;
         }
 
+        TeamPlayerChangeMessage newMessage;
+
         if (message.ChangeType != TeamPlayerChangeType.Remove)
         {
-            message.ChangeType = ShouldShowPlayer(player) ? TeamPlayerChangeType.Add : TeamPlayerChangeType.Remove;
+            newMessage = ShouldShowPlayer(player)
+                            ? new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add)
+                            : new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Remove);
+
+        }
+        else
+        {
+            newMessage = new TeamPlayerChangeMessage(player, message.ChangeType);
         }
 
-        _teamPlayersQueue.Enqueue(message);
+        _teamPlayersQueue.Enqueue(newMessage);
 
         UpdateRenderedPlayers();
     }
 
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var message = e.Message;
         var player = message.Player;
@@ -127,7 +136,7 @@
         UpdateRenderedPlayers();
     }
 
-    private void ReceiveTeamFactionChangeEvent(object sender, TeamFactionChangeEventArgs e)
+    private void ReceiveTeamFactionChangeEvent(object sender, ScrimMessageEventArgs<TeamFactionChangeMessage> e)
     {
         var message = e.Message;
 

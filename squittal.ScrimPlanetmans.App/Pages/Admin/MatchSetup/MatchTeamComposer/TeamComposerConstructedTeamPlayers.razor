@@ -65,10 +65,10 @@
                                     <th style="padding-right: 5px; width: 15px;"></th>
                                     <th style="padding-right: 0px; padding-left: 0px; width: 7px;"></th>
                                     <th></th>
-                                    <th>K</th>
-                                    <th>D</th>
-                                    <th>P</th>
-                                    <th>N</th>
+                                    <th style="text-align: right;">K</th>
+                                    <th style="text-align: right;">D</th>
+                                    <th style="text-align: right;">N</th>
+                                    <th style="text-align: right;">P</th>
                                     <th style="padding-right: 5px; width: 15px;"></th>
                                     @if (_renderedShowRemovals)
                                     {
@@ -94,16 +94,14 @@
                                 <tr style="border-bottom: 1px solid var(--sq-ps2-primary-light)">
                                     @if (!_renderedPlayers.Any(p => !p.IsBenched))
                                     {
-                                        @*<th colspan="2" style="font-weight: 400;">Benched Players</th>*@
                                         <th colspan="3" style="font-weight: 400;">Benched Players</th>
-                                        <th>K</th>
-                                        <th>D</th>
-                                        <th>P</th>
-                                        <th>N</th>
+                                        <th style="text-align: right;">K</th>
+                                        <th style="text-align: right;">D</th>
+                                        <th style="text-align: right;">N</th>
+                                        <th style="text-align: right;">P</th>
                                     }
                                     else
                                     {
-                                        @*<td colspan="6" style="font-weight: 400;">Benched Players</td>*@
                                         <td colspan="7" style="font-weight: 400;">Benched Players</td>
                                     }
 
@@ -150,6 +148,14 @@ else
     public bool i_showRemovals { get; set; } = false;
     private bool _renderedShowRemovals { get; set; } = false;
 
+    [Parameter]
+    public bool i_isTeamLocked { get; set; } = false;
+    private bool _renderedIsTeamLocked { get; set; } = false;
+
+    [Parameter]
+    public bool i_isLockingTeam { get; set; } = false;
+    private bool _renderedIsLockingTeam { get; set; } = false;
+
     private bool _isLoadingMembers { get; set; } = false;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
@@ -157,8 +163,12 @@ else
     private int _renderedPlayersOnlineCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _playerChangesQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
+
     #region UI & Layout Variables
     private bool _extendPlayers = true;
+    private bool _isManualExtendValue = false;
+
+    private int _maxPlayersToExtend { get; set; }
     private int _defaultMaxPlayersToExtend = 12;
     #endregion
 
@@ -182,6 +192,8 @@ else
         MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
 
         MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+
+        SetMaxPlayersToExtend();
     }
 
     public void Dispose()
@@ -205,12 +217,30 @@ else
             paramsChanged = true;
         }
 
+        if (i_isLockingTeam != _renderedIsLockingTeam)
+        {
+            _renderedIsLockingTeam = i_isLockingTeam;
+            paramsChanged = true;
+        }
+
+        if (i_isTeamLocked != _renderedIsTeamLocked)
+        {
+            _renderedIsTeamLocked = i_isTeamLocked;
+
+            SetMaxPlayersToExtend();
+            SetExtendPlayers();
+
+            paramsChanged = true;
+        }
+
         if (i_teamOrdinal != _renderedTeamOrdinal
                 || i_constructedTeamMatchInfo.ConstructedTeam.Id != _renderedConstructedTeamMatchInfo.ConstructedTeam.Id
                 || i_constructedTeamMatchInfo.ActiveFactionId != _renderedConstructedTeamMatchInfo.ActiveFactionId)
         {
             _renderedTeamOrdinal = i_teamOrdinal;
             _renderedConstructedTeamMatchInfo = i_constructedTeamMatchInfo;
+
+            _renderedIsTeamLocked = TeamsManager.GetTeamLockStatus(_renderedTeamOrdinal);
 
             InitializePlayersData();
 
@@ -249,7 +279,7 @@ else
 
                 _playerChangesQueue.Enqueue(changeMessage);
             }
-            else //if (player.IsOnline)
+            else
             {
                 changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
 
@@ -259,14 +289,7 @@ else
 
         ProcessPlayerChangesQueue();
 
-        if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-        {
-            _extendPlayers = false;
-        }
-        else
-        {
-            _extendPlayers = true;
-        }
+        SetExtendPlayers();
 
         message = $"Finished loading Team {_renderedTeamOrdinal} Constructed Team data: [{constructedTeam.Alias}] {constructedTeam.Name} - Faction {_renderedConstructedTeamMatchInfo.ActiveFactionId}";
         LogMessage(message);
@@ -278,7 +301,6 @@ else
     {
         if (!_isLoadingMembers)
         {
-            //TeamsManager.RemoveConstructedTeamFactionFromTeam(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
             await TeamsManager.RemoveConstructedTeamFactionFromTeamAndDb(_renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId);
         }
     }
@@ -288,6 +310,7 @@ else
     private void TogglePlayersVisibility()
     {
         _extendPlayers = !_extendPlayers;
+        _isManualExtendValue = true;
     }
     #endregion UI & Layout Controls
 
@@ -297,7 +320,7 @@ else
         MessageService.BroadcastSimpleMessage(message);
     }
 
-    private void ReceiveTeamPlayerChangeEvent(object sender, TeamPlayerChangeEventArgs e)
+    private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
     {
         var message = e.Message;
 
@@ -313,7 +336,7 @@ else
         ProcessPlayerChangesQueue();
     }
 
-    private void ReceiveTeamConstructedTeamChangeEvent(object sender, TeamConstructedTeamChangeEventArgs e)
+    private void ReceiveTeamConstructedTeamChangeEvent(object sender, ScrimMessageEventArgs<TeamConstructedTeamChangeMessage> e)
     {
         var constructedTeam = e.Message.ConstructedTeam;
         var factionId = e.Message.FactionId;
@@ -335,20 +358,13 @@ else
 
             _renderedConstructedTeamMatchInfo.MembersFactionCount = e.Message.PlayersFound == null ? 0 : e.Message.PlayersFound;
 
-            if (_renderedPlayersCount > _defaultMaxPlayersToExtend)
-            {
-                _extendPlayers = false;
-            }
-            else
-            {
-                _extendPlayers = true;
-            }
+            SetExtendPlayers();
 
             InvokeAsyncStateHasChanged();
         }
     }
 
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var player = e.Message.Player;
 
@@ -359,18 +375,14 @@ else
 
         TeamPlayerChangeMessage changeMessage;
 
-        if (player.IsParticipating)
+        if (player.IsParticipating || _renderedIsTeamLocked)
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
         }
-        else //if (player.IsOnline)
+        else
         {
             changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.Add);
         }
-        //else
-        //{
-        //    changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
-        //}
 
         _playerChangesQueue.Enqueue(changeMessage);
 
@@ -378,7 +390,7 @@ else
 
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
     {
         var player = e.Message.Player;
 
@@ -404,7 +416,7 @@ else
         ProcessPlayerChangesQueue();
     }
 
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
     {
         var player = e.Message.Player;
 
@@ -413,13 +425,18 @@ else
             return;
         }
 
-        // Participating players stay visible even when online
-        if (player.IsParticipating)
+        TeamPlayerChangeMessage changeMessage;
+
+        // Participating players stay visible even when online, but need to process the event to ensure online players count is correct
+        if (player.IsParticipating || _renderedIsTeamLocked)
         {
-            return;
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetActive);
+        }
+        else
+        {
+            changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
         }
 
-        var changeMessage = new TeamPlayerChangeMessage(player, TeamPlayerChangeType.SetInactive);
         _playerChangesQueue.Enqueue(changeMessage);
 
         ProcessPlayerChangesQueue();
@@ -441,7 +458,7 @@ else
 
                     if (changeType == TeamPlayerChangeType.Add)
                     {
-                        if (!_renderedPlayers.Contains(player)) // && (player.IsParticipating || player.IsOnline))
+                        if (!_renderedPlayers.Contains(player))
                         {
                             _renderedPlayers.Add(player);
                             changes += 1;
@@ -462,13 +479,25 @@ else
                     }
                     else if (changeType == TeamPlayerChangeType.SetInactive)
                     {
-                        //_renderedPlayers.Remove(player);
-                        //changes += 1;
                     }
                 }
 
+                var oldPlayersOnlineCount = _renderedConstructedTeamMatchInfo.MembersOnlineCount;
+                var oldFactionMembersCount = _renderedConstructedTeamMatchInfo.MembersFactionCount;
+                var oldPlayersCount = _renderedPlayersCount;
+
                 _renderedConstructedTeamMatchInfo.MembersOnlineCount = _renderedPlayers.Count(m => m.IsOnline);
+                _renderedConstructedTeamMatchInfo.MembersFactionCount = UpdateConstructedTeamFactionMembersCount();
                 _renderedPlayersCount = _renderedPlayers.Count();
+
+                changes += oldPlayersOnlineCount != _renderedConstructedTeamMatchInfo.MembersOnlineCount ? 1 : 0;
+                changes += oldFactionMembersCount != _renderedConstructedTeamMatchInfo.MembersFactionCount ? 1 : 0;
+                changes += oldPlayersCount != _renderedPlayersCount ? 1 : 0;
+
+                var oldExtendPlayers = _extendPlayers;
+                SetExtendPlayers();
+
+                changes += oldExtendPlayers != _extendPlayers ? 1 : 0;
 
                 if (changes > 0)
                 {
@@ -494,6 +523,37 @@ else
         }
 
         return true;
+    }
+
+    private int UpdateConstructedTeamFactionMembersCount()
+    {
+        var count = TeamsManager.GetTeamConstructedTeamFactionPlayers(_renderedTeamOrdinal, _renderedConstructedTeamMatchInfo.ConstructedTeam.Id, _renderedConstructedTeamMatchInfo.ActiveFactionId).Count();
+
+        _renderedConstructedTeamMatchInfo.MembersFactionCount = count;
+
+        return count;
+    }
+
+    private void SetMaxPlayersToExtend()
+    {
+        _maxPlayersToExtend = _defaultMaxPlayersToExtend;
+    }
+
+    private void SetExtendPlayers()
+    {
+        if (_isManualExtendValue)
+        {
+            return;
+        }
+
+        if (_renderedPlayersCount > _maxPlayersToExtend)
+        {
+            _extendPlayers = false;
+        }
+        else
+        {
+            _extendPlayers = true;
+        }
     }
 
     private void InvokeAsyncStateHasChanged()

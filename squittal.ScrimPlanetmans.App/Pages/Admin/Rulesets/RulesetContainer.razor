@@ -1,0 +1,134 @@
+﻿@page "/Ruleset/{i_rulesetId:int}"
+
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimRulesetManager RulesetManager
+@inject IRulesetDataService RulesetDataService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-12" style="margin-left: auto; margin-right: auto; margin-top: 16px;">
+
+            @if (_renderedEditMode)
+            {
+                <RulesetEditor i_rulesetId="@_renderedRulesetId" />
+            }
+            else
+            {
+                <RulesetViewer i_rulesetId="@_renderedRulesetId" />
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+
+    private int _renderedRulesetId { get; set; }
+
+    private Ruleset _activeRuleset { get; set; }
+
+    [Parameter]
+    public bool i_editMode { get; set; } = false;
+    private bool _renderedEditMode { get; set; } = false;
+
+    [Parameter]
+    public bool? _uriEditMode { get; set; }
+
+    private bool _defaultEditMode = false;
+
+
+    #region Initializtion Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var paramsChanged = false;
+
+        if (_renderedRulesetId != i_rulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+            paramsChanged = true;
+        }
+
+        if (UpdateUriParameters())
+        {
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            StateHasChanged();
+        }
+    }
+    #endregion Event Handling
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("edit", out var qEdit))
+        {
+            if (bool.TryParse(qEdit, out bool edit))
+            {
+                if (_uriEditMode != edit)
+                {
+                    _uriEditMode = edit;
+                    i_editMode = edit;
+                    _renderedEditMode = edit;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                if (_uriEditMode != null)
+                {
+                    stateChanged = true;
+                }
+
+                _uriEditMode = null;
+                i_editMode = _defaultEditMode;
+                _renderedEditMode = _defaultEditMode;
+            }
+        }
+
+        return stateChanged;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

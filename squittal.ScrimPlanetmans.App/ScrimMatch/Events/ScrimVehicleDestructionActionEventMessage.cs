@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
@@ -10,12 +11,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         {
             DestructionEvent = destructionEvent;
 
+            Timestamp = destructionEvent.Timestamp;
+
             if (DestructionEvent.ActionType == ScrimActionType.OutsideInterference)
             {
+                LogLevel = ScrimMessageLogLevel.MatchEventWarning;
+                
                 Info = GetOutsideInterferenceInfo(DestructionEvent);
             }
             else
             {
+                LogLevel = destructionEvent.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMajor;
+
                 switch (DestructionEvent.DeathType)
                 {
                     case DeathEventType.Kill:
@@ -94,7 +101,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
             var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}} {victimVehicleName} ({victimOutfit}{victimName})";
+            var bannedDisplay = destructionEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} {{{weaponName}}} {victimVehicleName} ({victimOutfit}{victimName})";
         }
 
         private string GetTeamkillInfo(ScrimVehicleDestructionActionEvent destructionEvent)
@@ -120,7 +129,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             var weaponName = DestructionEvent.Weapon != null ? DestructionEvent.Weapon.Name : "Unknown weapon";
             var victimVehicleName = DestructionEvent.VictimVehicle != null ? DestructionEvent.VictimVehicle.Name : "Unknown vehicle";
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) {{{weaponName}}}";
+            var bannedDisplay = destructionEvent.IsBanned ? "RULE BREAK - " : string.Empty;
+
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} ({victimVehicleName}) {{{weaponName}}}";
         }
     }
 }

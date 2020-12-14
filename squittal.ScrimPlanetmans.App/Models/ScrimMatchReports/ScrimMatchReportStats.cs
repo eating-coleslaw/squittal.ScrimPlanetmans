@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
@@ -17,12 +18,44 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int ScoredDeaths { get; set; }
         public int ZeroPointDeaths { get; set; }
         public int TeamKillDeaths { get; set; }
+        public int TrickleDeaths { get; set; }
+
         public int DamageAssists { get; set; }
-        public int DamageTeamAssists { get; set; }
+
         public int DamageAssistedKills { get; set; }
+        public int DamageAssistedOnlyKills { get; set; }
+        public int GrenadeAssistedKills { get; set; }
+        public int GrenadeAssistedOnlyKills { get; set; }
+        public int SpotAssistedKills { get; set; }
+        public int SpotAssistedOnlyKills { get; set; }
+        public int AssistedKills { get; set; } // Does not include Spot-Assisted Kills
+
+        public int DamageTeamAssists { get; set; }
+
         public int DamageAssistedDeaths { get; set; }
+        public int DamageAssistedOnlyDeaths { get; set; }
+        public int GrenadeAssistedDeaths { get; set; }
+        public int GrenadeAssistedOnlyDeaths { get; set; }
+        public int SpotAssistedDeaths { get; set; }
+        public int SpotAssistedOnlyDeaths { get; set; }
+
+        public int AssistedDeaths => DamageAssistedDeaths + GrenadeAssistedDeaths;
+        public double WeightedAssistedDeaths => DamageAssistedDeaths + GrenadeAssistedDeaths + (SpotAssistedDeaths * 0.25);
+
         public int DamageAssistedEnemyDeaths { get; set; }
+        public int DamageAssistedOnlyEnemyDeaths { get; set; }
+        public int GrenadeAssistedEnemyDeaths { get; set; }
+        public int GrenadeAssistedOnlyEnemyDeaths { get; set; }
+        public int SpotAssistedEnemyDeaths { get; set; }
+        public int SpotAssistedOnlyEnemyDeaths { get; set; }
         public int UnassistedEnemyDeaths { get; set; }
+
+        public int KillDamageDealt { get; set; }
+        public int AssistDamageDealt { get; set; }
+        public int TotalDamageDealt { get; set; }
+
+
+        #region Class-Specific Stats
         public int KillsAsHeavyAssault { get; set; }
         public int KillsAsInfiltrator { get; set; }
         public int KillsAsLightAssault { get; set; }
@@ -49,13 +82,15 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int EventsAsMedic => DeathsAsMedic + KillsAsMedic + DamageAssistsAsMedic;
         public int EventsAsEngineer => DeathsAsEngineer + KillsAsEngineer + DamageAssistsAsEngineer;
         public int EventsAsMax => DeathsAsMax + KillsAsMax + DamageAssistsAsMax;
+        #endregion Class-Specific Stats
 
         public int EnemyDeaths => Deaths - TeamKillDeaths - Suicides;
 
 
         public int OneVsOneCount => UnassistedEnemyDeaths + UnassistedKills;
 
-        public int UnassistedKills => (Kills - DamageAssistedKills);
+        //public int UnassistedKills => (Kills - DamageAssistedKills);
+        public int UnassistedKills => (Kills - AssistedKills);
 
         public int EnemyKillDeathEngagementCount => EnemyDeaths + Kills;
 
@@ -74,6 +109,33 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
                 else
                 {
                     return Math.Round((1 - ((UnassistedKills + DamageAssists) / (double)1.0)) * 100.0, 0);
+                }
+            }
+        }
+
+        public double FavorableEngagementCount =>
+                        UnassistedKills
+                        + UnassistedEnemyDeaths
+                        + AssistedKills
+                        + (SpotAssistedOnlyKills * 0.25)
+                        + ((DamageAssists - WeightedAssistedDeaths) / 2);
+
+        public double WeightedFavorableEngagementPercent3
+        {
+            get
+            {
+                if (EnemyEngagementCount > 0 && FavorableEngagementCount >= 0)
+                {
+                    return (FavorableEngagementCount >= WeightedEnemyEngagementCount) ? 100.0
+                                : Math.Round(FavorableEngagementCount / WeightedEnemyEngagementCount * 100, 0);
+                }
+                else if (FavorableEngagementCount < 0)
+                {
+                    return Math.Round(0 * 100.0, 0);
+                }
+                else
+                {
+                    return Math.Round(FavorableEngagementCount * 100.0, 0);
                 }
             }
         }

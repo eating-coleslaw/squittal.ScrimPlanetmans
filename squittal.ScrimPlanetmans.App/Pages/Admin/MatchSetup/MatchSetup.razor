@@ -2,7 +2,6 @@
 @page "/Admin"
 @page "/MatchSetup"
 
-@using Newtonsoft.Json.Linq;
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.App.Pages.Admin.MatchSetup.MatchTeamComposer;
 @using squittal.ScrimPlanetmans.CensusStream;
@@ -13,16 +12,17 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.Services.Planetside;
+@using System.Threading;
 
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchEngine ScrimMatchEngine
-@inject IScrimTeamsManager ScrimTeamsManager
 @inject IWebsocketMonitor WebsocketMonitor
 @inject IScrimMatchScorer MatchScorer
 @inject IItemService ItemService
 @inject IFacilityService FacilityService
 @inject IZoneService ZoneService
 @inject IWorldService WorldService
+@inject IScrimRulesetManager RulesetManager
 
 @implements IDisposable
 
@@ -46,26 +46,34 @@
         <div class="col-lg-4">
 
             <div class="header-card-container default">
+
                 <div style="display: grid; grid-template-columns: 1fr 115px;">
-                    <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    @if (string.IsNullOrWhiteSpace(_matchConfiguration.Title))
+                    {
+                        <h5>@(_currentRound == 0 ? string.Empty : $"Round {_currentRound}:") @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    }
+                    else
+                    {
+                        <h5>@(_matchConfiguration.Title)@(_currentRound == 0 ? string.Empty : $" - Round {_currentRound}"): @Enum.GetName(typeof(MatchState), _matchState)</h5>
+                    }
                     <div class="mono-font" style="font-size: 18px; text-align: right;">
                         <MatchTimer Debug=false />
                     </div>
                 </div>
 
                 @* TODO: (1) Move buttons to own components, (2) add hover text to buttons *@
-                @if (_isResettingRound || _isClearingMatch || _isStartingRound)
+                @if (_isLoading || _isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isEndingRound || _isLoadingActiveRulesetConfig)
                 {
                     <span class="thin">
                         <SpinnerEllipsis />
                     </span>
                 }
-                else if (_matchState == MatchState.Uninitialized && _currentRound == 0)
+                else if (_matchState == MatchState.Uninitialized && _currentRound == 0 && !_isChangingRuleset)
                 {
                     <button class="btn btn-primary" @onclick="StartMatch">
                         <span class="oi oi-media-play"></span>Start Match
                     </button>
-                    <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                    <button class="btn btn-outline-primary" @onclick="(() => ClearMatch(false))" title="Clear all team data, match data, and match configuration">
                         <span class="oi oi-eject"></span>Clear Match
                     </button>
                 }
@@ -86,7 +94,11 @@
                             <span class="oi oi-media-step-backward"></span>Reset Round
                         </button>
                     }
-                    <button class="btn btn-outline-primary" @onclick="ClearMatch">
+                    <button class="btn btn-outline-primary" @onclick="(() => ClearMatch(true))" title="Set up a new match with the same teams" style="width: 120px;">
+                        <span class="oi oi-media-step-forward"></span>Rematch
+                    </button>
+
+                    <button class="btn btn-outline-primary" @onclick="(() => ClearMatch(false))" title="Set up a new match with new teams" style="width: 120px;">
                         <span class="oi oi-eject"></span>New Match
                     </button>
 
@@ -115,39 +127,64 @@
                     </button>
                 }
 
-                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isResettingRound || _isClearingMatch || _isStartingRound))
+                @if ((_matchState == MatchState.Uninitialized || _matchState == MatchState.Stopped) && !(_isLoading || _isResettingRound || _isClearingMatch || _isStartingRound || _isChangingRuleset || _isLoadingRulesets || _isLoadingActiveRulesetConfig))
                 {
+                    @if (_currentRound == 0 && _rulesets != null && _rulesets.Any() && _selectedRuleset != null && !string.IsNullOrWhiteSpace(_inputSelectRulesetStringId))
+                    {
+                        <EditForm Model="@_inputSelectRulesetStringId" style="display: inline-block; margin-top: 8px;">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_inputSelectRulesetStringId" ValueChanged="@((string s) => OnChangeRulesetSelection(s))" ValueExpression="@(() => _inputSelectRulesetStringId)">
+
+                                <option value=@_selectedRuleset.Id.ToString() label="@($"{_selectedRuleset.Name} [{_selectedRuleset.Id}]")">@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</option>
+
+                                @foreach (var ruleset in _rulesets.Where(r => r.Id != _selectedRuleset.Id))
+                                {
+                                    <option value=@ruleset.Id.ToString() label="@($"{ruleset.Name} [{ruleset.Id}]")">@ruleset.Name [@ruleset.Id.ToString()]</option>
+                                }
+                            </InputSelect>
+                        </EditForm>
+                    }
+
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
-                        <p style="margin-bottom: 0.5rem;">Match Title: <InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" /></p>
-                        <p style="margin-bottom: 0.5rem;">Round Length (seconds): <InputNumber min="1" type="text" id="roundSecondsTotal" @bind-Value="_matchConfiguration.RoundSecondsTotal" /></p>
+                        <p style="margin-bottom: 0.5rem;"><div style="width: 110px; padding-right: 4px; display: inline-block;">Match Title:</div><InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" style="width: 250px;" maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" /></p>
+                        <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Round Length:</span><InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => _matchConfiguration.TrySetRoundLength(s, true))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
 
                         <div style="margin-bottom: 0.2rem;">
                             <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
 
-                            <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
-                                @foreach (var world in _worlds)
-                                {
-                                    <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
-                                }
-                            </InputSelect>
 
-                            <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
-                                <option value=@_noFacilitIdValue>No Base</option>
-
-                                @foreach (var zone in _mapZones)
+                            @if (_worlds != null)
+                            {
+                                <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
+                                    @foreach (var world in _worlds)
                                     {
-                                    <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
-
-                                    @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                        {
-                                        <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                        }
+                                        <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
                                     }
-                            </InputSelect>
+                                </InputSelect>
+                            }
+
+                            @if (_mapZones != null && _mapRegions != null && _zones != null)
+                            {
+                                <InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value=@_matchConfiguration.FacilityIdString>
+                                    <option value=@_noFacilitIdValue>No Base</option>
+
+                                    @foreach (var zone in _mapZones)
+                                            {
+                                        <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
+
+                                        @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
+                                                {
+                                            <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
+                                                }
+                                            }
+                                </InputSelect>
+                            }
                         </div>
 
-                        <p style="margin-bottom: 0.2rem;">End Round on Base Capture: <InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture" />@($"{(_matchConfiguration.EndRoundOnFacilityCapture ? " Yes" : " No")}")</p>
+                        <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
                     </EditForm>
                 }
 
@@ -176,6 +213,23 @@
     private string _roundSecondsInput = string.Empty;
     private MatchConfiguration _matchConfiguration { get; set; }
 
+    #region Ruleset Select List Variables
+    private IEnumerable<Ruleset> _rulesets { get; set; }
+
+    private Ruleset _inputSelectRuleset { get; set; }
+
+    private string _inputSelectRulesetStringId { get; set; }
+
+    private Ruleset _activeRuleset { get; set; }
+    private Ruleset _selectedRuleset { get; set; }
+
+    private bool _isLoading { get; set; } = false;
+    private bool _isLoadingRulesets { get; set; } = false;
+    private bool _isChangingRuleset { get; set; } = false;
+    private bool _isLoadingActiveRulesetConfig { get; set; } = false;
+
+    #endregion Ruleset Select List Variables
+
     #region Facility & World Select List Variables
     private IEnumerable<MapRegion> _mapRegions { get; set; }
     private List<int> _mapZones { get; set; } = new List<int>();
@@ -192,6 +246,8 @@
     private bool _isStartingRound { get; set; } = false;
     private bool _isClearingMatch { get; set; } = false;
     private bool _isResettingRound { get; set; } = false;
+    private bool _isEndingRound { get; set; } = false;
+
     private bool _isDeleteDataEnabled { get; set; } = false;
 
     private bool _isRunning = false;
@@ -201,19 +257,38 @@
     private string _matchId = string.Empty;
 
     #region Initialization Methods
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await GetCensusStreamStatus();
+        if (firstRender)
+        {
+            _isLoading = true;
 
-        _zones = await ZoneService.GetAllZones();
+            var TaskList = new List<Task>();
 
-        var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
-        _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+            var censusStreamStatusTask = GetCensusStreamStatus();
+            TaskList.Add(censusStreamStatusTask);
 
-        _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            var zonesTask = ZoneService.GetAllZones();
+            TaskList.Add(zonesTask);
 
-        var worlds = await WorldService.GetAllWorldsAsync();
-        _worlds = worlds.OrderBy(worlds => worlds.Name).ToList();
+            var worldsTask = WorldService.GetAllWorldsAsync();
+            TaskList.Add(worldsTask);
+
+            var rulesetsTask = SetUpRulesetsAsync();
+            TaskList.Add(rulesetsTask);
+
+            var activeRulesetConfigTask = SetUpActiveRulesetConfigAsync();
+            TaskList.Add(activeRulesetConfigTask);
+
+            await Task.WhenAll(TaskList);
+
+            _worlds = worldsTask.Result.OrderBy(worlds => worlds.Name).ToList();
+
+            _zones = zonesTask.Result;
+
+            _isLoading = false;
+            InvokeAsyncStateHasChanged();
+        }
     }
 
     protected override void OnInitialized()
@@ -240,6 +315,70 @@
     {
         MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateMessageEvent;
+    }
+
+    private async Task SetUpRulesetsAsync()
+    {
+        _isLoadingRulesets = true;
+        InvokeAsyncStateHasChanged();
+
+        _rulesets = await RulesetManager.GetRulesetsAsync(CancellationToken.None);
+
+        _isLoadingRulesets = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private async Task SetUpActiveRulesetConfigAsync()
+    {
+        _isLoadingActiveRulesetConfig = true;
+
+        _activeRuleset = await RulesetManager.GetActiveRulesetAsync();
+
+        if (_activeRuleset != null)
+        {
+            _selectedRuleset = _activeRuleset;
+            _inputSelectRulesetStringId = _activeRuleset.Id.ToString();
+
+            if (_matchConfiguration != null)
+            {
+                _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
+
+                var oldTitle = _matchConfiguration.Title;
+                var newTitle = _activeRuleset.DefaultMatchTitle;
+
+                if (newTitle == null)
+                {
+                    newTitle = string.Empty;
+                }
+
+                if (_matchConfiguration.TrySetTitle(newTitle, true))
+                {
+                    if (newTitle != oldTitle)
+                    {
+                        _matchConfiguration.Title = newTitle;
+                        MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+                    }
+                }
+            }
+
+            if (_activeRuleset.RulesetFacilityRules.Any())
+            {
+                var mapRegions = _activeRuleset.RulesetFacilityRules.Select(r => r.MapRegion).ToList();
+                _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+
+                _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            }
+            else
+            {
+                var mapRegions = await FacilityService.GetScrimmableMapRegionsAsync();
+
+                _mapRegions = mapRegions.OrderBy(r => r.FacilityName).ToList();
+                _mapZones = _mapRegions.Select(r => r.ZoneId).Distinct().ToList();
+            }
+        }
+
+        _isLoadingActiveRulesetConfig = false;
+        InvokeAsyncStateHasChanged();
     }
     #endregion Initialization Methods
 
@@ -272,6 +411,7 @@
         LogAdminMessage($"Removed all characters from Stream Monitor!");
     }
 
+    #region Match Controls
     private async void StartMatch()
     {
         if (_isStartingRound)
@@ -281,15 +421,11 @@
 
         _isStartingRound = true;
 
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
-
-        SubscribeToCensus();
+        InvokeAsyncStateHasChanged();
 
         ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
-        await ScrimMatchEngine.Start();
+
+        await Task.Run(() => ScrimMatchEngine.Start());
 
         _isRunning = ScrimMatchEngine.IsRunning();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -299,17 +435,17 @@
 
         _isStartingRound = false;
 
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        InvokeAsyncStateHasChanged();
     }
 
     private async void EndRound()
     {
-        if (ScrimMatchEngine.GetMatchState() == MatchState.Running)
+        if (ScrimMatchEngine.GetMatchState() == MatchState.Running && !_isEndingRound)
         {
-            await ScrimMatchEngine.EndRound();
+            _isEndingRound = true;
+            InvokeAsyncStateHasChanged();
+
+            await Task.Run(() => ScrimMatchEngine.EndRound());
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -317,10 +453,8 @@
 
             _isDeleteDataEnabled = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            _isEndingRound = false;
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -336,10 +470,7 @@
 
             _isDeleteDataEnabled = false;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -355,39 +486,39 @@
 
             _isDeleteDataEnabled = false;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
         }
     }
 
-    private async void ClearMatch()
+    private async void ClearMatch(bool isRematch)
     {
         if (ScrimMatchEngine.GetMatchState() == MatchState.Stopped || ScrimMatchEngine.GetMatchState() == MatchState.Uninitialized && !_isResettingRound && !_isClearingMatch)
         {
             _isClearingMatch = true;
             _isDeleteDataEnabled = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
 
-            await ScrimMatchEngine.ClearMatch();
+            await Task.Run(() => ScrimMatchEngine.ClearMatch(isRematch));
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            _matchConfiguration = new MatchConfiguration();
+            //_matchConfiguration = new MatchConfiguration();
+            _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
+
+            _matchConfiguration.RoundSecondsTotal = _activeRuleset.DefaultRoundLength;
+            _matchConfiguration.Title = (_activeRuleset.DefaultMatchTitle == null) ? string.Empty : _activeRuleset.DefaultMatchTitle;
 
             _isClearingMatch = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
+        }
+        else
+        {
+            _isClearingMatch = false;
+            InvokeAsyncStateHasChanged();
         }
     }
 
@@ -398,12 +529,9 @@
             _isResettingRound = true;
             _isDeleteDataEnabled = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
 
-            await ScrimMatchEngine.ResetRound();
+            await Task.Run(() => ScrimMatchEngine.ResetRound());
 
             _isRunning = ScrimMatchEngine.IsRunning();
             _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -411,26 +539,30 @@
 
             _isResettingRound = false;
 
-            await InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            InvokeAsyncStateHasChanged();
         }
     }
+    #endregion Match Controls
 
     private void OnChangeMatchTitle(string newTitle)
     {
         var oldTitle = _matchConfiguration.Title;
-        if (newTitle != oldTitle)
+
+        if (_matchConfiguration.TrySetTitle(newTitle, true))
         {
-            _matchConfiguration.Title = newTitle;
-            MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+            if (newTitle != oldTitle)
+            {
+                _matchConfiguration.Title = newTitle;
+                MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+            }
+
         }
+
     }
     #endregion Match & Subscription State Buttons
 
     #region  Event Handling
-    private void ReceiveMatchStateUpdateMessageEvent(object sender, MatchStateUpdateEventArgs e)
+    private void ReceiveMatchStateUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e)
     {
         var message = e.Message;
 
@@ -448,7 +580,7 @@
         });
     }
 
-    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, MatchConfigurationUpdateEventArgs e)
+    private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
     {
         var message = e.Message;
 
@@ -462,6 +594,47 @@
 
 
     #endregion
+
+    #region Ruleset Form Controls
+    private async void OnChangeRulesetSelection(string rulesetStringId)
+    {
+        _isChangingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (!int.TryParse(rulesetStringId, out var rulesetId))
+        {
+            _isChangingRuleset = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
+        if (rulesetId == _selectedRuleset.Id || rulesetId == _activeRuleset.Id)
+        {
+            _isChangingRuleset = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
+        var newActiveRuleset = await RulesetManager.ActivateRulesetAsync(rulesetId);
+
+        if (newActiveRuleset == null || newActiveRuleset.Id == _activeRuleset.Id)
+        {
+            _isChangingRuleset = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
+        _activeRuleset = newActiveRuleset;
+        _selectedRuleset = newActiveRuleset;
+        _inputSelectRulesetStringId = newActiveRuleset.Id.ToString();
+
+        await SetUpActiveRulesetConfigAsync();
+
+        _isChangingRuleset = false;
+        InvokeAsyncStateHasChanged();
+
+    }
+    #endregion Ruleset Form Controls
 
     #region Log Messages
     private void LogAdminMessage(string message)
@@ -478,7 +651,15 @@
 
     private void SetWebsocketConnectionErrorMessage()
     {
-            _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket";
+        _errorBannerMessage = "Failed to connect to the Planetside 2 Websocket";
     }
     #endregion Error Messages
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 }

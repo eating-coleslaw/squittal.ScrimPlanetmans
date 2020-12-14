@@ -10,7 +10,6 @@
                 2 => "nc",
                 3 => "tr",
                 4 => "ns",
-                //_ => "ns",
                 _ => "default",
             };
             return cssClass;
@@ -32,7 +31,6 @@
         {
             if (isParticipating)
             {
-                //return "🗦";
                 return "∙";
             }
             else

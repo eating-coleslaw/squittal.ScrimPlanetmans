@@ -272,7 +272,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private async void ReceiveConstructedTeamMemberChangeEvent(object sender, ConstructedTeamMemberChangeEventArgs e)
+    private async void ReceiveConstructedTeamMemberChangeEvent(object sender, ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e)
     {
         var message = e.Message;
 
@@ -293,7 +293,7 @@
         InvokeAsyncStateHasChanged();
     }
 
-    private void ReceiveConstructedTeamInfoChangeEvent(object sender, ConstructedTeamInfoChangeEventArgs e)
+    private void ReceiveConstructedTeamInfoChangeEvent(object sender, ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage> e)
     {
         var message = e.Message;
         var team = message.ConstructedTeam;

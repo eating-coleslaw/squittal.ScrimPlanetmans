@@ -127,7 +127,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var message = e.Message;
         var player = message.Player;
@@ -146,17 +146,17 @@
         }
     }
 
-    private void ReceivePlayerLoginEvent(object sender, PlayerLoginEventArgs e)
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
     {
         return; // TODO: add special styling/animation for this event?
     }
 
-    private void ReceivePlayerLogoutEvent(object sender, PlayerLogoutEventArgs e)
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
     {
         return; // TODO: add special styling/animation for this event?
     }
 
-    private void ReceiveScrimDeathActionEvent(object sender, ScrimDeathActionEventEventArgs e)
+    private void ReceiveScrimDeathActionEvent(object sender, ScrimMessageEventArgs<ScrimDeathActionEventMessage> e)
     {
         var deathEvent = e.Message.DeathEvent;
 
@@ -177,7 +177,7 @@
         UpdateRenderedStatus();
     }
 
-    private void ReceiveScrimReviveActionEvent(object sender, ScrimReviveActionEventEventArgs e)
+    private void ReceiveScrimReviveActionEvent(object sender, ScrimMessageEventArgs<ScrimReviveActionEventMessage> e)
     {
         var reviveEvent = e.Message.ReviveEvent;
 
@@ -198,7 +198,7 @@
         UpdateRenderedStatus();
     }
 
-    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimObjectiveTickActionEventEventArgs e)
+    private void ReceiveScrimObjectiveTickActionEvent(object sender, ScrimMessageEventArgs<ScrimObjectiveTickActionEventMessage> e)
     {
         var objectiveTickEvent = e.Message.ObjectiveTickEvent;
         var actionType = objectiveTickEvent.ActionType;
@@ -215,7 +215,7 @@
         UpdateRenderedStatus();
     }
 
-    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
     {
         var player = e.Message.Player;
 

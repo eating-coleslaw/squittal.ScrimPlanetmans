@@ -19,7 +19,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private readonly ISqlScriptRunner _sqlScriptRunner;
         private readonly ILogger<VehicleService> _logger;
 
-        public string BackupSqlScriptFileName => "dbo.Vehicle.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Vehicle.Table.sql";
 
         public VehicleService(IDbContextHelper dbContextHelper, CensusVehicle censusVehicle, ISqlScriptRunner sqlScriptRunner, ILogger<VehicleService> logger)
         {

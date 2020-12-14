@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private ConcurrentDictionary<int, MapRegion> ScrimmableFacilityMapRegionsMap { get; set; } = new ConcurrentDictionary<int, MapRegion>();
         private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
-        public string BackupSqlScriptFileName => "dbo.MapRegion.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.MapRegion.Table.sql";
 
         public FacilityService(IDbContextHelper dbContextHelper, CensusFacility censusFacility, ISqlScriptRunner sqlScriptRunner, ILogger<FacilityService> logger)
         {
@@ -87,9 +87,6 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         public async Task SetUpScrimmableMapRegionsAsync()
         {
-            var realZones = new List<int> { 2, 4, 6, 8 };
-            var scrimFacilityTypes = new List<int> { 5, 6}; // Small Outpost, Large Outpost
-
             await _mapSetUpSemaphore.WaitAsync();
 
             try
@@ -97,10 +94,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var storeRegions = await dbContext.MapRegions
-                                                    .Where(region => realZones.Contains(region.ZoneId)
-                                                                        && scrimFacilityTypes.Contains(region.FacilityTypeId))
-                                                    .ToListAsync();
+                var storeRegions = await GetAllStoredScrimmableZoneMapRegionsAsync();
 
                 foreach (var facilityId in ScrimmableFacilityMapRegionsMap.Keys)
                 {
@@ -132,15 +126,31 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
         }
 
+        private async Task<IEnumerable<MapRegion>> GetAllStoredScrimmableZoneMapRegionsAsync()
+        {
+            var realZones = new List<int> { 2, 4, 6, 8 };
+            var scrimFacilityTypes = new List<int> { 5, 6 }; // Small Outpost, Large Outpost
+
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.MapRegions.Where(region => realZones.Contains(region.ZoneId) && scrimFacilityTypes.Contains(region.FacilityTypeId) && region.IsCurrent)
+                                             .ToListAsync();
+        }
+
+        private async Task<IEnumerable<MapRegion>> GetAllStoreMapRegionsAsync()
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            return await dbContext.MapRegions.ToListAsync();
+        }
+
         public async Task RefreshStore(bool onlyQueryCensusIfEmpty = false, bool canUseBackupScript = false)
         {
             if (onlyQueryCensusIfEmpty)
             {
-                using var factory = _dbContextHelper.GetFactory();
-                var dbContext = factory.GetDbContext();
-
-                var anyMapRegions = await dbContext.MapRegions.AnyAsync();
-                if (anyMapRegions)
+                if (await GetStoreCountAsync() > 0)
                 {
                     await SetUpScrimmableMapRegionsAsync();
 
@@ -148,12 +158,13 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 }
             }
 
-            var success = await RefreshStoreFromCensus();
-
-            if (!success && canUseBackupScript)
+            // Always use backup script if available to get old bases that aren't in the Census API
+            if (canUseBackupScript)
             {
                 RefreshStoreFromBackup();
             }
+
+            await RefreshStoreFromCensus();
 
             await SetUpScrimmableMapRegionsAsync();
         }
@@ -191,33 +202,91 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             var createdEntities = new List<MapRegion>();
 
-            using (var factory = _dbContextHelper.GetFactory())
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            var storeEntities = await GetAllStoreMapRegionsAsync();
+
+            var allEntities = new List<MapRegion>(censusEntities.Select(e => new MapRegion() { Id = e.Id, FacilityId = e.FacilityId }));
+
+            allEntities.AddRange(storeEntities
+                                    .Where(s => !allEntities.Any(c => c.Id == s.Id && c.FacilityId == s.FacilityId))
+                                    .Select(e => new MapRegion() { Id = e.Id, FacilityId = e.FacilityId }));
+
+            foreach (var entity in allEntities)
             {
-                var dbContext = factory.GetDbContext();
+                var censusEntity = censusEntities.FirstOrDefault(e => e.Id == entity.Id && e.FacilityId == entity.FacilityId);
+                var censusMapRegion = censusEntities.FirstOrDefault(e => e.Id == entity.Id);
 
-                var storedEntities = await dbContext.MapRegions.ToListAsync();
+                var storeEntity = storeEntities.FirstOrDefault(e => e.Id == entity.Id && e.FacilityId == entity.FacilityId);
+                var storeMapRegion = storeEntities.FirstOrDefault(e => e.Id == entity.Id);
 
-                foreach (var censusEntity in censusEntities)
+                if (censusEntity != null)
                 {
-                    var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
                     if (storeEntity == null)
                     {
-                        createdEntities.Add(censusEntity);
+                        // Brand New MapRegion
+                        if (storeMapRegion == null)
+                        {
+                            censusEntity.IsDeprecated = false;
+                            censusEntity.IsCurrent = true;
+                    
+                            createdEntities.Add(censusEntity);
+                        }
+                        // Existing MapRegion overwritten with new FacilityID
+                        else if (censusEntity.FacilityId != 0)
+                        {
+                            censusEntity.IsDeprecated = false;
+                            censusEntity.IsCurrent = true;
+                        
+                            createdEntities.Add(censusEntity);
+
+                            storeEntity = storeMapRegion;
+                            storeEntity.IsDeprecated = true;
+                            storeEntity.IsCurrent = false;
+
+                            dbContext.MapRegions.Update(storeEntity);
+                        }
+                        // Existing MapRegion is Deleted with no replacement, but still shows up in the Census API
+                        else
+                        {
+                            storeEntity = storeMapRegion;
+                            storeEntity.IsDeprecated = true;
+                            storeEntity.IsCurrent = true;
+
+                            dbContext.MapRegions.Update(storeEntity);
+                        }
                     }
+                    // Existing MapRegion updated somehow
                     else
                     {
                         storeEntity = censusEntity;
+
+                        storeEntity.IsDeprecated = false;
+                        storeEntity.IsCurrent = true;
+
                         dbContext.MapRegions.Update(storeEntity);
                     }
                 }
-
-                if (createdEntities.Any())
+                // Existing MapRegion is Deleted with no replacement, and doesn't show up in the Census API
+                else
                 {
-                    await dbContext.MapRegions.AddRangeAsync(createdEntities);
-                }
+                    if (storeEntity != null)
+                    {
+                        storeEntity.IsDeprecated = true;
+                        storeEntity.IsCurrent = (censusMapRegion != null && censusMapRegion.Id == storeEntity.Id) ? false : true;
 
-                await dbContext.SaveChangesAsync();
+                        dbContext.MapRegions.Update(storeEntity);
+                    }
+                }
             }
+
+            if (createdEntities.Any())
+            {
+                dbContext.MapRegions.AddRange(createdEntities);
+            }
+
+            await dbContext.SaveChangesAsync();
         }
 
         private MapRegion ConvertToDbModel(CensusMapRegionModel censusModel)
@@ -243,7 +312,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
-            return await dbContext.MapRegions.CountAsync();
+            return await dbContext.MapRegions.CountAsync(e => e.IsCurrent);
         }
 
         public void RefreshStoreFromBackup()

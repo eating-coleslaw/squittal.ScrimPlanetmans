@@ -1,0 +1,256 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using System.Text.RegularExpressions;
+@using System.Threading;
+
+@inject IRulesetDataService RulesetDataService
+
+@implements IDisposable
+
+<div class="sq-mini-card-3 default" style="min-width: 420px; background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+    <h5>Item Rules</h5>
+
+    @if (_isLoadingRules)
+    {
+        <SpinnerEllipsis />
+    }
+    else
+    {
+        @if (_itemRules != null && _itemRules.Any())
+        {
+            <div class="sq-content" style="margin-top: 8px;">
+
+                <div class="sans-serif-font" style="font-size: 0.9rem; margin-top: 4px; margin-bottom: 12px;">
+                    @if (_itemCategoryDomains != null && _deferredItemCategories != null)
+                    {
+                        <EditForm Model="@_selectedItemCategoryIdString">
+                            <div style="display: inline; margin-right: 4px;">Item Category:</div><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" Value="@_selectedItemCategoryIdString" ValueChanged="@((string id) => OnSelectItemCategoryId(id))" ValueExpression="@(() => _selectedItemCategoryIdString)">
+                                <option value=@_noSelectedItemCategoryValue>None</option>
+
+                                @foreach (var domain in _itemCategoryDomains)
+                                {
+                                    <optgroup label="@GetItemCategoryDomainDescription(domain)" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-style: normal;">@GetItemCategoryDomainDescription(domain)</optgroup>
+
+                                    @foreach (var itemCategory in _deferredItemCategories.Where(c => c.Domain == domain))
+                                    {
+                                        <option value=@itemCategory.Id.ToString() label="@itemCategory.Name [@itemCategory.Id]">@itemCategory.Name [@itemCategory.Id]</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </EditForm>
+                    }
+                </div>
+
+
+                @if (_selectedItemCategoryId == _noSelectedItemCategoryValue)
+                {
+                    <p class="sans-serif-font" style="font-size: 0.9rem;">Select an Item Category to view Item Rules</p>
+                }
+                else if (_itemRules == null || !_itemRules.Any())
+                {
+                    <p class="sans-serif-font" style="font-size: 0.9rem;">There are no Item Rules for this Ruleset</p>
+                }
+                else if (!_itemRules.Any(r => r.ItemCategoryId == _selectedItemCategoryId))
+                {
+                    <p class="sans-serif-font" style="font-size: 0.9rem;">There are no Item Rules for this Item Category</p>
+                }
+                else
+                {
+                    <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                                <tr>
+                                    <th style="padding-bottom: 2px;">Item <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                    <th style="padding-bottom: 2px;">Points</th>
+                                    <th style="padding-bottom: 2px;">Banned?</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var itemRule in _itemRules.Where(r => r.ItemCategoryId == _selectedItemCategoryId))
+                                {
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black);">@itemRule.Item.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemRule.ItemId]</span></td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.Points); text-align: right; width: 50px; color: var(--sq-black);">@itemRule.Points</td>
+                                        <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemRule.IsBanned);">@itemRule.IsBanned</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="sans-serif-font" style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 4px 8px 4px 8px; font-size: 0.9rem; margin: 4px 0 8px 0;">
+                There are no Item Rules for this Ruleset.
+            </div>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private IEnumerable<RulesetItemRule> _itemRules { get; set; }
+
+    private IEnumerable<ItemCategory> _deferredItemCategories { get; set; }
+    private IEnumerable<ItemCategoryDomain> _itemCategoryDomains { get; set; }
+
+    bool _isLoadingRules { get; set; } = false;
+
+    private string _selectedItemCategoryIdString { get; set; } = "0";
+    private int _selectedItemCategoryId { get; set; } = 0;
+
+    private int _noSelectedItemCategoryValue = 0;
+
+    private CancellationTokenSource cts;
+
+
+    #region Initializtion Methods
+    public void Dispose()
+    {
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _renderedRulesetId = i_rulesetId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRulesAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (i_rulesetId != _renderedRulesetId)
+        {
+            _renderedRulesetId = i_rulesetId;
+
+            await LoadRulesAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesAsync()
+    {
+        _isLoadingRules = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var TaskList = new List<Task>();
+
+            var itemRulesTask = RulesetDataService.GetRulesetItemRulesAsync(_renderedRulesetId, cts.Token);
+            TaskList.Add(itemRulesTask);
+
+            var deferredItemCategoriesTask = RulesetDataService.GetItemCategoriesDeferringToItemRules(_renderedRulesetId, cts.Token);
+            TaskList.Add(deferredItemCategoriesTask);
+
+            await Task.WhenAll(TaskList);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            _itemRules = itemRulesTask.Result.ToList();
+            _deferredItemCategories = deferredItemCategoriesTask.Result.OrderBy(c => c.Name).ToList();
+
+            if (_deferredItemCategories != null)
+            {
+                _itemCategoryDomains = _deferredItemCategories.Select(c => c.Domain).Distinct().ToList();
+            }
+
+            if (!_deferredItemCategories.Any(e => e.Id == _selectedItemCategoryId))
+            {
+                OnSelectItemCategoryId(_noSelectedItemCategoryValue.ToString());
+            }
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRules = false;
+    }
+    #endregion Initializtion Methods
+
+    private void OnSelectItemCategoryId(string itemCategoryIdString)
+    {
+        if (int.TryParse(itemCategoryIdString, out int parsedInt))
+        {
+            _selectedItemCategoryId = parsedInt;
+            _selectedItemCategoryIdString = itemCategoryIdString;
+        }
+        else
+        {
+            _selectedItemCategoryId = _noSelectedItemCategoryValue;
+            _selectedItemCategoryIdString = _noSelectedItemCategoryValue.ToString();
+        }
+    }
+
+    private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
+    {
+        var name = Enum.GetName(typeof(ItemCategoryDomain), domain);
+
+        return Regex.Replace(name, @"(\p{Ll})(\p{Lu})", "$1 $2");
+    }
+
+
+    #region Helpers
+    private double GetValueOpacity(int value)
+    {
+        return (value != 0)
+            ? 1.0
+            : 0.5;
+    }
+
+    private double GetBoolValueOpacity(bool value)
+    {
+        return (value == true)
+            ? 1.0
+            : 0.5;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    #endregion Helpers
+}

@@ -30,8 +30,7 @@
             <div id="@($"{_player.NameDisplay}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@Math.Round(_renderedEventAggregate.HeadshotRatio, 0)<span style="font-size: small;">%</span></div>
         }
         <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
-        @*<div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.UtilityAssists);">@_renderedEventAggregate.UtilityAssists</div>*@
-        <div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.GrenadeAssists);">@_renderedEventAggregate.GrenadeAssists</div>
+        @*<div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.GrenadeAssists);">@_renderedEventAggregate.GrenadeAssists</div>*@
     </div>
 }
 
@@ -120,26 +119,18 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceivePlayerStatUpdateEvent(object sender, PlayerStatUpdateEventArgs e)
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
     {
         var player = e.Message.Player;
         var overlayData = e.Message.OverlayMessageData;
 
-        if (overlayData.RedrawPointGraph)
+        if (overlayData.RedrawPointGraph && player != _player)
         {
-            if (player == _player)
-            {
-                _renderedEventAggregate = new ScrimEventAggregate();
-                _renderedEventAggregate.Add(_player.EventAggregate);
-            }
-
-            _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+            _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
 
             UpdatePointGraphWidth();
 
             InvokeAsyncStateHasChanged();
-
-            return;
         }
 
         if (player == _player)
@@ -149,7 +140,7 @@
                 _renderedEventAggregate = new ScrimEventAggregate();
                 _renderedEventAggregate.Add(_player.EventAggregate);
 
-                _currentMaxPoints = overlayData.MatchMaxPlayerPoints;
+                _currentMaxPoints = ScrimTeamsManager.MaxPlayerPointsTracker.GetMaxPoints();
 
                 if (redrawGraph)
                 {
@@ -161,7 +152,7 @@
         }
     }
 
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var overlayData = e.Message.OverlayMessageData;
 
@@ -175,7 +166,7 @@
         }
     }
 
-    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, PlayerNameDisplayChangeEventArgs e)
+    private void ReceivePlayerNameDisplayChangeMessageEvent(object sender, ScrimMessageEventArgs<PlayerNameDisplayChangeMessage> e)
     {
         var player = e.Message.Player;
 
@@ -206,6 +197,7 @@
         }
         else if (_renderedEventAggregate.NetScore != newAggregate.NetScore)
         {
+            redrawGraph = true;
             return true;
         }
         else if (_renderedEventAggregate.Kills != newAggregate.Kills)
@@ -220,10 +212,10 @@
         {
             return true;
         }
-        else if (_renderedEventAggregate.GrenadeAssists != newAggregate.GrenadeAssists)
-        {
-            return true;
-        }
+        //else if (_renderedEventAggregate.GrenadeAssists != newAggregate.GrenadeAssists)
+        //{
+        //    return true;
+        //}
         else
         {
             return false;
@@ -236,7 +228,7 @@
 
         var playerPoints = _renderedEventAggregate.Points;
 
-        _pointGraphWidth = (playerPoints > 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
+        _pointGraphWidth = (playerPoints >= 1 && maxPoints > 0) ? Math.Ceiling(90 * ((decimal)playerPoints / (decimal)maxPoints)) : 4;
     }
 
     private double GetStatOpacity(int value)

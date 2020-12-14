@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
+﻿using squittal.ScrimPlanetmans.Models.MessageLogs;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
@@ -9,13 +10,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
         public ScrimAssistActionEventMessage(ScrimAssistActionEvent assistEvent)
         {
             AssistEvent = assistEvent;
+            
+            Timestamp = assistEvent.Timestamp;
 
             if (assistEvent.ActionType == ScrimActionType.OutsideInterference)
             {
+                LogLevel = ScrimMessageLogLevel.MatchEventWarning;
+
                 Info = GetOutsideInterferenceInfo(assistEvent);
             }
             else
             {
+                LogLevel = assistEvent.IsBanned ? ScrimMessageLogLevel.MatchEventRuleBreak : ScrimMessageLogLevel.MatchEventMinor;
+
                 Info = GetAssistInfo(assistEvent);
             }
         }
@@ -77,8 +84,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                                 ? "utility assist"
                                 : "damage assist";
 
+            var bannedDisplay = assistEvent.IsBanned ? "RULE BREAK - " : string.Empty;
 
-            return $"Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} [{typeDisplay}] {victimOutfit}{victimName}";
+            return $"{bannedDisplay}Team {attackerTeam} {actionDisplay}: {pointsDisplay} {attackerOutfit}{attackerName} [{typeDisplay}] {victimOutfit}{victimName}";
         }
     }
 }

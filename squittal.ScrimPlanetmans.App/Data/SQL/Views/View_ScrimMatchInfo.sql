@@ -14,6 +14,8 @@ SELECT config1.ScrimMatchId,
        MAX(StartTime) StartTime,
        MAX(config1.Title) Title,
        MAX(config1.ScrimMatchRound) RoundCount,
+       MAX(ruleset.Id) RulesetId,
+       MAX(ruleset.Name) RulesetName,
        MAX(world.Id) WorldId,
        MAX(world.Name) WorldName,
        MAX(facility.FacilityId) FacilityId,
@@ -26,6 +28,8 @@ SELECT config1.ScrimMatchId,
            AND config1.ScrimMatchRound >= config2.ScrimMatchRound )
     INNER JOIN [PlanetmansDbContext].[dbo].ScrimMatch match
       ON config1.ScrimMatchId = match.Id
+    INNER JOIN [PlanetmansDbContext].[dbo].Ruleset Ruleset
+      ON match.RulesetId = ruleset.Id
     INNER JOIN [PlanetmansDbContext].[dbo].World world
       ON config1.WorldId = world.Id
     LEFT OUTER JOIN [PlanetmansDbContext].[dbo].MapRegion facility

@@ -34,5 +34,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int EmpGrenadeAssists { get; set; }
         public int FlashGrenadeAssists { get; set; }
         public int SpotAssists { get; set; }
+        public bool IsTrickleDeath { get; set; }
+        public int? SecondsToNextDeathEvent { get; set; }
+        public int? SecondsFromPreviousDeathEvent { get; set; }
     }
 }

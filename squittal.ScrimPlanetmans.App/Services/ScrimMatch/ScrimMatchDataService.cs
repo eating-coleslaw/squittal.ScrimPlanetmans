@@ -18,6 +18,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         public string CurrentMatchId { get ; set; }
         public int CurrentMatchRound { get; set; } = 0;
+        public int CurrentMatchRulesetId { get; set; }
 
         private readonly KeyedSemaphoreSlim _scrimMatchLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _scrimMatchRoundConfigurationLock = new KeyedSemaphoreSlim();

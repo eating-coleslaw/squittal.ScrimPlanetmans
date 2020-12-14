@@ -29,8 +29,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private DateTime _prevTickTime;
         private int _resumeDelayMs;
 
-        public event EventHandler<MatchTimerTickEventArgs> RaiseMatchTimerTickEvent;
-        public delegate void MatchTimerTickEventHandler(object sender, MatchTimerTickEventArgs e);
+        public event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
+        public delegate void MatchTimerTickEventHandler(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e);
 
 
         private MatchTimerStatus Status { get; set; } = new MatchTimerStatus();
@@ -41,18 +41,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _logger = logger;
             Status.State = MatchTimerState.Initialized;
         }
-
-        //public StatefulTimer(TimeSpan timeSpan)
-        //{
-        //    _secondsMax = (int)Math.Round((decimal)timeSpan.TotalSeconds, 0);
-
-        //    _status.SecondsMax = _secondsMax;
-
-        //    _status.State = MatchTimerState.Initialized;
-
-        //    // TODO: move Timer instantiation to the Start() method?
-        //    _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, 1000);
-        //}
 
         public void Configure(TimeSpan timeSpan)
         {
@@ -389,7 +377,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        protected virtual void OnRaiseMatchTimerTickEvent(MatchTimerTickEventArgs e)
+        protected virtual void OnRaiseMatchTimerTickEvent(ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             RaiseMatchTimerTickEvent?.Invoke(this, e);
         }

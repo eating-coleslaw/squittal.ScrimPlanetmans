@@ -10,7 +10,7 @@
 
 @if (_team != null)
 {
-    if (_team.EventAggregate.PointsGranted != 0 || _team.EventAggregate.PointsPenalized != 0)
+    if (_team.EventAggregate.PointsPenalized != 0)
     {
         <div id="@($"{_team.Alias}-adjustmentsRow")" class="stats-row adjustments">
             <div id="@($"{_team.Alias}-adjustmentsLabel")" class="label">Point Adjustments</div>
@@ -69,7 +69,7 @@
     #endregion Initialization Methods
 
     #region Event Handling
-    private void ReceiveTeamStatUpdateEvent(object sender, TeamStatUpdateEventArgs e)
+    private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
     {
         var team = e.Message.Team;
 

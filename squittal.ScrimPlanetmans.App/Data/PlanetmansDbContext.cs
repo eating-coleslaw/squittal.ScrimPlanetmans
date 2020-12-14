@@ -41,6 +41,8 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<Ruleset> Rulesets { get; set; }
         public DbSet<RulesetActionRule> RulesetActionRules { get; set; }
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
+        public DbSet<RulesetItemRule> RulesetItemRules { get; set; }
+        public DbSet<RulesetFacilityRule> RulesetFacilityRules { get; set; }
         
         public DbSet<DeathType> DeathTypes { get; set; }
         public DbSet<VehicleClass> VehicleClasses { get; set; }
@@ -68,8 +70,13 @@ namespace squittal.ScrimPlanetmans.Data
         #region Views
         public DbSet<ScrimMatchInfo> ScrimMatchInfo { get; set; }
         public DbSet<ScrimMatchReportInfantryPlayerStats> ScrimMatchReportInfantryPlayerStats { get; set; }
+        public DbSet<ScrimMatchReportInfantryPlayerRoundStats> ScrimMatchReportInfantryPlayerRoundStats { get; set; }
         public DbSet<ScrimMatchReportInfantryTeamStats> ScrimMatchReportInfantryTeamStats { get; set; }
+        public DbSet<ScrimMatchReportInfantryTeamRoundStats> ScrimMatchReportInfantryTeamRoundStats { get; set; }
         public DbSet<ScrimMatchReportInfantryDeath> ScrimMatchReportInfantryDeaths { get; set; }
+        public DbSet<ScrimMatchReportInfantryPlayerHeadToHeadStats> ScrimMatchReportInfantryPlayerHeadToHeadStats { get; set; }
+        public DbSet<ScrimMatchReportInfantryPlayerClassEventCounts> ScrimMatchReportInfantryPlayerClassEventCounts { get; set; }
+        public DbSet<ScrimMatchReportInfantryPlayerWeaponStats> ScrimMatchReportInfantryPlayerWeaponStats { get; set; }
         #endregion Views
 
 
@@ -104,6 +111,8 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new RulesetConfiguration());
             builder.ApplyConfiguration(new RulesetActionRuleConfiguration());
             builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
+            builder.ApplyConfiguration(new RulesetItemRuleConfiguration());
+            builder.ApplyConfiguration(new RulesetFacilityRuleConfiguration());
             
             builder.ApplyConfiguration(new DeathTypeConfiguration());
             builder.ApplyConfiguration(new VehicleClassConfiguration());
@@ -132,8 +141,13 @@ namespace squittal.ScrimPlanetmans.Data
             #region Views
             builder.ApplyConfiguration(new ScrimMatchInfoConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerStatsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerRoundStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryTeamStatsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryTeamRoundStatsConfiguration());
             builder.ApplyConfiguration(new ScrimMatchReportInfantryDeathConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerHeadToHeadStatsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerClassEventCountsConfiguration());
+            builder.ApplyConfiguration(new ScrimMatchReportInfantryPlayerWeaponStatsConfiguration());
             #endregion Views
         }
     }

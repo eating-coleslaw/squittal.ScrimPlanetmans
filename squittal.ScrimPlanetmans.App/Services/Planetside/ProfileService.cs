@@ -23,7 +23,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         private ConcurrentDictionary<int, Profile> LoadoutProfilesMap { get; set; } = new ConcurrentDictionary<int, Profile>();
         private readonly SemaphoreSlim _mapSetUpSemaphore = new SemaphoreSlim(1);
 
-        public string BackupSqlScriptFileName => "dbo.Profile.Table.sql";
+        public string BackupSqlScriptFileName => "CensusBackups\\dbo.Profile.Table.sql";
 
 
         public ProfileService(IDbContextHelper dbContextHelper, CensusProfile censusProfile, ISqlScriptRunner sqlScriptRunner, ILogger<ProfileService> logger)
