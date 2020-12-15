@@ -19,13 +19,20 @@
 
 @if (_team != null)
 {
-    <div class="players @($"players{i_TeamOrdinal}") @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+    <div class="players @($"players{i_TeamOrdinal}") @_compactCssClass @_compact5sCssClass @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
 
         @lock (_renderedPlayers)
         {
             foreach (var player in _renderedPlayers)
             {
-                <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player />
+                if (_renderedCompact)
+                {
+                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player />
+                }
+                else
+                {
+                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player />
+                }
             }
         }
     </div>
@@ -34,14 +41,22 @@
 @code {
     [Parameter]
     public int i_TeamOrdinal { get; set; }
-
     private int _renderedTeamOrdinal { get; set; }
+
+    [Parameter]
+    public bool i_Compact { get; set; }
+    private bool _renderedCompact { get; set; } = false;
 
     private Team _team;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
     private int _renderedPlayersCount { get; set; } = 0;
     private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayersQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
+
+    private string _compactCssClass { get; set; } = string.Empty;
+    private string _compactTrueCssClass = "compact";
+
+    private string _compact5sCssClass { get; set; } = string.Empty;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -65,6 +80,13 @@
             _renderedTeamOrdinal = i_TeamOrdinal;
             InitializeTeamData();
         }
+
+        if (i_Compact != _renderedCompact)
+        {
+            _renderedCompact = i_Compact;
+            SetCompactModeCssClass();
+            InvokeAsyncStateHasChanged();
+        }
     }
 
     private void InitializeTeamData()
@@ -80,6 +102,8 @@
                 _renderedPlayers.AddRange(visiblePlayers);
 
                 _renderedPlayersCount = _renderedPlayers.Count();
+
+                SetCompact5sCssClass();
 
                 StateHasChanged();
             }
@@ -173,6 +197,8 @@
 
                 _renderedPlayersCount = _renderedPlayers.Count();
 
+                SetCompact5sCssClass();
+
                 StateHasChanged();
             }
         });
@@ -181,6 +207,16 @@
     private bool ShouldShowPlayer(Player player)
     {
         return (player.IsActive || player.IsOnline) && !player.IsBenched;
+    }
+
+    private void SetCompactModeCssClass()
+    {
+        _compactCssClass = _renderedCompact ? "compact" : string.Empty;
+    }
+
+    private void SetCompact5sCssClass()
+    {
+        _compact5sCssClass = _renderedPlayersCount == 10 ? "compact-5s" : string.Empty;
     }
 
     private void InvokeAsyncStateHasChanged()

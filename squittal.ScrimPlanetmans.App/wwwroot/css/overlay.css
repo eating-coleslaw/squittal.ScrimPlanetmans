@@ -61,7 +61,7 @@ body {
 ***********************/
 .overlay .players {
     white-space: nowrap;
-    width: calc(22% - 70px - 30px);
+    /*width: calc(22% - 70px - 30px);*/
     box-sizing: border-box;
     /*background-color: mediumorchid;*/
     display: grid;
@@ -75,6 +75,10 @@ body {
     width: calc(22% - 32px - 30px);
 }
 
+    .overlay .players.compact {
+        width: calc(38% - 32px - 30px);
+    }
+
     .overlay .players.players1 {
         /*grid-area: left;*/
         float: left;
@@ -82,11 +86,41 @@ body {
         text-align: left;
     }
 
+        /*.overlay .players.compact.players1 {*/
+            /*grid-area: left;*/
+            /*float: left;*/
+            /*grid-template-columns: repeat(6, 32px 1fr);*/
+            /*grid-template-columns: repeat(6, 1fr);*/
+            /*text-align: left;*/
+        /*}*/
+
     .overlay .players.players2 {
         /*grid-area: right;*/
         float: right;
         grid-template-columns: 1fr 32px;
         text-align: right;
+    }
+
+    .overlay .players.compact.players1,
+    .overlay .players.compact.players2 {
+        /*grid-area: left;*/
+        /*float: left;*/
+        /*grid-template-columns: repeat(6, 1fr 32px);*/
+        grid-template-columns: repeat(6, 1fr);
+        /*text-align: left;*/
+    }
+
+    .overlay .players.compact.compact-5s.players1,
+    .overlay .players.compact.compact-5s.players2 {
+        /*grid-area: left;*/
+        /*float: left;*/
+        /*grid-template-columns: repeat(6, 1fr 32px);*/
+        grid-template-columns: repeat(5, 1fr);
+        /*text-align: left;*/
+    }
+
+    .overlay .players.compact.players2 {
+        direction: rtl;
     }
 
     .overlay .players .playerStatusContainer {
@@ -109,6 +143,12 @@ body {
         grid-column-gap: 16px;
     }
 
+    .overlay .players.compact .playerStatusContainer {
+        grid-column-gap: 4px;
+        grid-template-rows: 26px 5px;
+        direction: ltr;
+    }
+
     .overlay .players.vs .playerStatusContainer {
         border: 1px solid var(--sq-ov-ps2-primary-alpha-75);
     }
@@ -125,12 +165,27 @@ body {
         text-shadow: 0 0 1px var(--sq-black);
     }
 
+        /*.overlay .players.compact.players1 .playerStatusContainer {*/
+            /*grid-template-columns: 1fr 28px;*/
+            /*grid-template-columns: 28px 1fr;
+            grid-template-areas: "loadout name" "event event";
+
+        }*/
+
         .overlay .players.players1 .playerStatusContainer:nth-child(2) {
             border-top-right-radius: 5px;
         }
 
         .overlay .players.players1 .playerStatusContainer:nth-last-child(1) {
             border-bottom-left-radius: 5px;
+        }
+
+        .overlay .players.compact.players1 .playerStatusContainer:nth-child(2) {
+            border-top-right-radius: 0;
+        }
+
+        .overlay .players.compact.players1 .playerStatusContainer:first-child {
+            border-top-left-radius: 5px;
         }
 
     .overlay .players.players2 .playerStatusContainer {
@@ -153,6 +208,27 @@ body {
             border-bottom-right-radius: 5px;
         }
 
+        .overlay .players.compact.players2 .playerStatusContainer:nth-last-child(2) {
+            border-bottom-right-radius: 0;
+        }
+
+        .overlay .players.compact.players2 .playerStatusContainer:nth-child(1) {
+            border-top-left-radius: 0;
+            border-top-right-radius: 5px;
+        }
+
+    .overlay .players.compact.players2 .playerStatusContainer:last-child {
+        /*border-bottom-right-radius: 5px;*/
+        border-bottom-left-radius: 5px;
+    }
+
+    .overlay .players.compact.players1 .playerStatusContainer,
+    .overlay .players.compact.players2 .playerStatusContainer {
+        /*grid-template-columns: 28px 1fr;*/
+        grid-template-columns: 24px 1fr;
+        grid-template-areas: "loadout name" "event event";
+    }
+
     .overlay .players .playerStatusContainer .name {
         grid-area: name;
         /*display: inline-block;*/
@@ -166,6 +242,16 @@ body {
         font-size: 1.2rem;
     }
 
+        .overlay .players.compact .playerStatusContainer .name {
+            /*font-size: 1rem;*/
+            /*font-size: 0.9rem;*/
+            font-size: 0.85rem;
+            text-align: left;
+            padding-left: 2px !important;
+            padding-top: 4px;
+            padding-right: 3px;
+        }
+
     .overlay .players .playerStatusContainer.deadTextPlay .name {
         color: var(--sq-bg-white-lit-alpha-30);
     }
@@ -178,6 +264,10 @@ body {
         display: grid;
         align-items: baseline;
     }
+
+        .overlay .players.compact .playerStatusContainer .score {
+
+        }
 
         .overlay .players .playerStatusContainer .score .points {
             grid-area: points;
@@ -211,6 +301,10 @@ body {
                     "label"
                     "value";*/
     }
+
+        .overlay .players.compact .playerStatusContainer .score .net {
+
+        }
 
         .overlay .players .playerStatusContainer .score .net .label {
             /*grid-area: label;
@@ -302,10 +396,18 @@ body {
         padding-left: 8px;
     }
 
+    .overlay .players.compact.players1 .playerStatusContainer .name {
+        padding-left: 2px;
+    }
+
     /*.overlay .players.players1 .playerStatusContainer .score,*/
     .overlay .players.players2 .playerStatusContainer .name {
         /*padding-right: 4px;*/
         padding-right: 8px;
+    }
+
+    .overlay .players.compact.players2 .playerStatusContainer .name {
+        padding-right: 2px;
     }
 
     .overlay .players .playerStatusContainer .eventMask {
@@ -325,6 +427,15 @@ body {
             border-left-color: transparent;
             border-style: outset;
             border-bottom-color: transparent;
+        }
+
+        .overlay .players.compact .playerStatusContainer .eventMask:empty {
+            /*border-top-color: transparent;*/
+            border-right-color: transparent;
+            border-left-color: transparent;
+            border-style: outset;
+            border-bottom-color: transparent;
+            border-top-color: var(--sq-ov-ps2-primary-dark-alpha-70);
         }
 
     .overlay .players .playerLoadoutIcon {
@@ -347,6 +458,14 @@ body {
         opacity: 0.9;
         position: relative;
         top: 1px;
+    }
+
+    .overlay .players.compact .playerStatusContainer .playerLoadoutIcon {
+        grid-area: loadout;
+        height: 18px;
+        width: 18px;
+        /*justify-self: normal;*/
+        margin-left: 3px;
     }
 
 .ps2-icon.medic {

@@ -1,0 +1,50 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+
+@if (i_player != null)
+{
+    if (i_TeamOrdinal == 1)
+    {
+        @*<TeamPlayerStatusRowLoadout i_player=i_player />*@
+        <TeamPlayerCompactStatusCellDetails i_player=i_player />
+    }
+    else if (i_TeamOrdinal == 2)
+    {
+        @*<TeamPlayerStatusRowDetails i_player=i_player />*@
+        <TeamPlayerCompactStatusCellDetails i_player=i_player />
+    }
+}
+
+
+@code {
+    [Parameter]
+    public Player i_player { get; set; }
+
+    [Parameter]
+    public int i_TeamOrdinal { get; set; }
+
+    private string _renderedPlayerId;
+    private int _renderedTeamOrdinal { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (i_player.Id != _renderedPlayerId)
+        {
+            _renderedPlayerId = i_player.Id;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+
+        if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
+        {
+            _renderedTeamOrdinal = i_TeamOrdinal;
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+}

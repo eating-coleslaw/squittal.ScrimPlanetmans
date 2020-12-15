@@ -11,24 +11,12 @@
 @if (i_player != null)
 {
     <div class="playerStatusContainer @GetContainerCssClass()">
-        @if (_legacyUi)
-        {
-            <div class="score">
-                <div class="points">@_renderedNetScore</div>
-            </div>
-
-        }
-        else
-        {
-            <div class="score">
-                <div class="points">@_renderedPoints</div>
-                <div class="net">
-                    <span class="value">@_renderedNetScore</span><span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
-                </div>
-            </div>
-        }
+        <TeamPlayerCompactStatusCellLoadout i_player=i_player />
+            @*<div class="loadout">
+            </div>*@
 
         <div class="name">@_renderedName</div>
+
         <div class="eventMask">
             @if (_renderedStatus == PlayerStatus.ContestingObjective)
             {
@@ -46,18 +34,8 @@
     [Parameter]
     public Player i_player { get; set; }
 
-    [Parameter]
-    public int i_teamOrdinal { get; set; }
-
-    [Parameter]
-    public bool i_legacyUi { get; set; } = false;
-
     private string _renderedPlayerId;
     private string _renderedName;
-    private int _renderedNetScore;
-    private int _renderedPoints;
-    private bool _legacyUi;
-
 
     private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
     private Timer _timer;
@@ -105,12 +83,6 @@
 
         if (CheckForChanges(i_player))
         {
-            stateHasChanged = true;
-        }
-
-        if (_legacyUi != i_legacyUi)
-        {
-            _legacyUi = i_legacyUi;
             stateHasChanged = true;
         }
 
@@ -424,27 +396,7 @@
             stateHasChanged = true;
         }
 
-        if (player.EventAggregate.NetScore != _renderedNetScore)
-        {
-            _renderedNetScore = player.EventAggregate.NetScore;
-            stateHasChanged = true;
-        }
-
-        if (!i_legacyUi && player.EventAggregate.Points != _renderedPoints)
-        {
-            _renderedPoints = player.EventAggregate.Points;
-            stateHasChanged = true;
-        }
-
         return stateHasChanged;
-
-        //if (stateHasChanged)
-        //{
-        //    InvokeAsync(() =>
-        //    {
-        //        StateHasChanged();
-        //    });
-        //}
     }
 
     private string GetContainerCssClass()
@@ -460,34 +412,6 @@
         else
         {
             return string.Empty;
-        }
-    }
-
-    private string GetNetScoreLabelCssClass()
-    {
-        if (_renderedNetScore == 0)
-        {
-            return "neutral";
-        }
-        else if (_renderedNetScore < 0)
-        {
-            return "negative";
-        }
-        else
-        {
-            return string.Empty;
-        }
-    }
-
-    private string GetNetScoreLabelText()
-    {
-        if (_renderedNetScore == 0)
-        {
-            return "•";
-        }
-        else
-        {
-            return "Δ";
         }
     }
 }

@@ -14,8 +14,8 @@
 
 @if (_players)
 {
-    <TeamPlayerStatusesContainer i_TeamOrdinal=1 />
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact/>
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact/>
 }
 
 @if (_scoreboard)
@@ -54,6 +54,12 @@
 
     [Parameter]
     public bool _showHsr { get; set; } = true;
+
+    [Parameter]
+    public bool _compact { get; set; } = false;
+
+    [Parameter]
+    public bool _objectiveStats { get; set; } = false;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -200,6 +206,40 @@
             else
             {
                 _showHsr = true;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("compact", out var qCompact))
+        {
+            if (bool.TryParse(qCompact, out var compact))
+            {
+                if (compact != _compact)
+                {
+                    _compact = compact;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _compact = false;
+                stateChanged = true;
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("objectiveStats", out var qObjectiveStats))
+        {
+            if (bool.TryParse(qObjectiveStats, out var objectiveStats))
+            {
+                if (objectiveStats != _objectiveStats)
+                {
+                    _objectiveStats = objectiveStats;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _objectiveStats = false;
                 stateChanged = true;
             }
         }

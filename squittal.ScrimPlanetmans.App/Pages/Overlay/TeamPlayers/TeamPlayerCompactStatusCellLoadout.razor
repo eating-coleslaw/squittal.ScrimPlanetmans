@@ -1,0 +1,167 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimMessageBroadcastService MessageService
+
+@implements IDisposable
+
+<div class="playerLoadoutIcon ps2-icon @_loadoutClass"></div>
+
+@code {
+    [Parameter]
+    public Player i_player { get; set; }
+
+    private string _loadoutClass = "unknown";
+
+    private string _renderedPlayerId;
+
+    #region Initialization Methods
+    protected override void OnInitialized()
+    {
+        MessageService.RaisePlayerLoginEvent += ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent += ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent += ReceivePlayerStatUpdateEvent;
+    }
+
+    public void Dispose()
+    {
+        MessageService.RaisePlayerLoginEvent -= ReceivePlayerLoginEvent;
+        MessageService.RaisePlayerLogoutEvent -= ReceivePlayerLogoutEvent;
+
+        MessageService.RaisePlayerStatUpdateEvent -= ReceivePlayerStatUpdateEvent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (i_player.Id != _renderedPlayerId)
+        {
+            _renderedPlayerId = i_player.Id;
+
+            if (TryUpdateLoadoutClass())
+            {
+                InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+        }
+        else
+        {
+            if (TryUpdateLoadoutClass())
+            {
+                InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+        }
+    }
+    #endregion Initialization Methods
+
+    #region Event Handling
+    private void ReceivePlayerStatUpdateEvent(object sender, ScrimMessageEventArgs<PlayerStatUpdateMessage> e)
+    {
+        var message = e.Message;
+        var player = message.Player;
+
+        if (player != i_player)
+        {
+            return;
+        }
+
+        if (TryUpdateLoadoutClass())
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceivePlayerLoginEvent(object sender, ScrimMessageEventArgs<PlayerLoginMessage> e)
+    {
+        var player = e.Message.Player;
+
+        if (player != i_player)
+        {
+            return;
+        }
+
+        if (TryUpdateLoadoutClass())
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void ReceivePlayerLogoutEvent(object sender, ScrimMessageEventArgs<PlayerLogoutMessage> e)
+    {
+        var player = e.Message.Player;
+
+        if (player != i_player)
+        {
+            return;
+        }
+
+        if (TryUpdateLoadoutClass())
+        {
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+    #endregion
+
+    private bool TryUpdateLoadoutClass()
+    {
+        var loadoutId = i_player.LoadoutId;
+        var newLoadoutClass = GetLoadoutIconFromLoadoutId(loadoutId);
+
+        if (newLoadoutClass == _loadoutClass)
+        {
+            return false;
+        }
+        else
+        {
+            _loadoutClass = newLoadoutClass;
+            return true;
+        }
+    }
+
+    private string GetLoadoutIconFromLoadoutId(int? loadoutId)
+    {
+        if (loadoutId == 1 || loadoutId == 8 || loadoutId == 15 || loadoutId == 28)
+        {
+            return "infil";
+        }
+        else if (loadoutId == 3 || loadoutId == 10 || loadoutId == 17 || loadoutId == 29)
+        {
+            return "la";
+        }
+        else if (loadoutId == 4 || loadoutId == 11 || loadoutId == 18 || loadoutId == 30)
+        {
+            return "medic";
+        }
+        else if (loadoutId == 5 || loadoutId == 12 || loadoutId == 19 || loadoutId == 31)
+        {
+            return "engy";
+        }
+        else if (loadoutId == 6 || loadoutId == 13 || loadoutId == 20 || loadoutId == 32)
+        {
+            return "heavy";
+        }
+        else if (loadoutId == 7 || loadoutId == 14 || loadoutId == 21 || loadoutId == 45)
+        {
+            return "max";
+        }
+        else
+        {
+            return "unknown";
+        }
+    }
+}
