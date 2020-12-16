@@ -19,7 +19,7 @@
 
 @if (_team != null)
 {
-    <div class="players @($"players{i_TeamOrdinal}") @_compactCssClass @_compact5sCssClass @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+    <div class="players @($"players{i_TeamOrdinal}") @_compactCssClass @_compactFiveColumnsCssClass @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
 
         @lock (_renderedPlayers)
         {
@@ -54,9 +54,9 @@
     private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayersQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
     private string _compactCssClass { get; set; } = string.Empty;
-    private string _compactTrueCssClass = "compact";
+    //private string _compactTrueCssClass = "compact";
 
-    private string _compact5sCssClass { get; set; } = string.Empty;
+    private string _compactFiveColumnsCssClass { get; set; } = string.Empty;
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -216,7 +216,7 @@
 
     private void SetCompact5sCssClass()
     {
-        _compact5sCssClass = _renderedPlayersCount == 10 ? "compact-5s" : string.Empty;
+        _compactFiveColumnsCssClass = _renderedPlayersCount == 10 ? "compact-5-columns" : string.Empty;
     }
 
     private void InvokeAsyncStateHasChanged()

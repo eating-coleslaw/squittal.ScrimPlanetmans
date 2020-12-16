@@ -110,8 +110,8 @@ body {
         /*text-align: left;*/
     }
 
-    .overlay .players.compact.compact-5s.players1,
-    .overlay .players.compact.compact-5s.players2 {
+    .overlay .players.compact.compact-5-columns.players1,
+    .overlay .players.compact.compact-5-columns.players2 {
         /*grid-area: left;*/
         /*float: left;*/
         /*grid-template-columns: repeat(6, 1fr 32px);*/
