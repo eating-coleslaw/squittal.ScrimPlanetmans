@@ -5,6 +5,7 @@
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using System.Threading;
+@using System.Text.RegularExpressions;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
 
 @using squittal.ScrimPlanetmans.Logging;
@@ -111,35 +112,47 @@
                     }
 
                     @*<p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">*@
-                    <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
-                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
-                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
-                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                    <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
+
+                        <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
                         @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
                         {
-                            <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
                         }
 
-                        <div style="margin-top: 16px; font-weight: 600; display: block;">Overlay Settings</div>
-                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.UseCompactOverlay ? "Yes" : "No")</div>
-                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Displayed Stats Type:</span>@_renderedRuleset.OverlayStatsDisplayType</div>
+                        <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.UseCompactOverlay ? "Yes" : "No")</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.OverlayStatsDisplayType)</div>
                     </p>
                 }
                 else
                 {
                     <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
 
-                        <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: smaller; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
+                        <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: 0.9rem; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                            
-                            <div style="margin-top: 16px; font-weight: 600; display: block;">Overlay Settings</div>
-                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_editFormRuleset.UseCompactOverlay" /><span style="padding-left: 8px;">Use Compact Mode?</span></div>
-                            @*<div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Displayed Stats Type</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;" /></div>*@
+                            <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+
+                            <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
+                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlay" /><span style="padding-left: 8px;">Use Compact Mode?</span></div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;">
+
+                                    @foreach (OverlayStatsDisplayType statsType in Enum.GetValues(typeof(OverlayStatsDisplayType)))
+                                                {
+                                        <option value=@statsType label=@GetOverlayStatsDisplayString(statsType) />
+                                                }
+
+                                </InputSelect>
+                            </div>
 
                             <div style="text-align: right; margin-top: 12px;">
                                 <button type="submit" class="btn btn-primary">
@@ -154,7 +167,7 @@
                         </EditForm>
 
                     </div>
-                }
+                    }
             </div>
         }
 
@@ -294,6 +307,8 @@
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
             _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+            _editFormRuleset.UseCompactOverlay = _renderedRuleset.UseCompactOverlay;
+            _editFormRuleset.OverlayStatsDisplayType = _renderedRuleset.OverlayStatsDisplayType;
 
             _renderedLastModifiedDateTime = _renderedRuleset.DateLastModified;
         }
@@ -378,6 +393,8 @@
                 _editFormRuleset.Name = _renderedRuleset.Name;
                 _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
                 _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+                _editFormRuleset.UseCompactOverlay = _renderedRuleset.UseCompactOverlay;
+                _editFormRuleset.OverlayStatsDisplayType = _renderedRuleset.OverlayStatsDisplayType;
 
                 _showEditForm = false;
 
@@ -404,6 +421,8 @@
         _editFormRuleset.Name = _renderedRuleset.Name;
         _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
         _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+        _editFormRuleset.UseCompactOverlay = _renderedRuleset.UseCompactOverlay;
+        _editFormRuleset.OverlayStatsDisplayType = _renderedRuleset.OverlayStatsDisplayType;
 
         _showEditForm = false;
     }
@@ -417,6 +436,8 @@
             _editFormRuleset.Name = _renderedRuleset.Name;
             _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
             _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+            _editFormRuleset.UseCompactOverlay = _renderedRuleset.UseCompactOverlay;
+            _editFormRuleset.OverlayStatsDisplayType = _renderedRuleset.OverlayStatsDisplayType;
         }
     }
 
@@ -528,10 +549,17 @@
         return $"{dateTimeLocal.ToString("f")}";
     }
 
-    //private string GetOverlayStatsDisplayString(OverlayStatsDisplayType statsType)
-    //{
-    //    var rawString
-    //}
+    private string GetOverlayStatsDisplayString(OverlayStatsDisplayType statsType)
+    {
+        var rawString = Enum.GetName(typeof(OverlayStatsDisplayType), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
 
     private void InvokeAsyncStateHasChanged()
     {
