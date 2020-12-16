@@ -263,29 +263,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 storeItemRules = storeRulesetWithCollections.RulesetItemRules.ToList();
                 storeFacilityRules = storeRulesetWithCollections.RulesetFacilityRules.ToList();
 
-                // TODO: use Task.WhenAll for this 
-                //var TaskList = new List<Task>();
-
-                //var storeActionRulesTask = _rulesetDataService.GetRulesetActionRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                //TaskList.Add(storeActionRulesTask);
-
-                //var storeItemCategoryRulesTask = _rulesetDataService.GetRulesetItemCategoryRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                //TaskList.Add(storeItemCategoryRulesTask);
-
-                //var storeItemRulesTask = _rulesetDataService.GetRulesetItemRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetItemRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                //TaskList.Add(storeItemRulesTask);
-
-                //var storeFacilityRulesTask = _rulesetDataService.GetRulesetFacilityRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
-                //TaskList.Add(storeFacilityRulesTask);
-
-                //await Task.WhenAll(TaskList);
-
-                //storeActionRules = storeActionRulesTask.Result.ToList();
-                //storeItemCategoryRules = storeItemCategoryRulesTask.Result.ToList();
-                //storeItemRules = storeItemRulesTask.Result.ToList();
-                //storeFacilityRules = storeFacilityRulesTask.Result.ToList();
-
-
                 rulesetExistsInDb = true;
                 
                 stopWatchCollections.Stop();
@@ -399,8 +376,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             #region Item Category Rules
             var defaultItemCategoryRules = GetDefaultItemCategoryRules();
             var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
-            //var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
-            //var allWeaponItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
 
             var allItemCategoryRules = new List<RulesetItemCategoryRule>();
 
@@ -459,7 +434,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             #region Item Rules
             var defaultItemRules = GetDefaultItemRules();
             var createdItemRules = new List<RulesetItemRule>();
-            //var allWeaponItems = await _itemService.GetAllWeaponItemsAsync();
 
             var allItemIds = new List<int>(defaultItemRules.Select(r => r.ItemId));
             if (storeItemRules != null)
