@@ -4,7 +4,13 @@
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Scoreboard;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.MatchReports;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Feed;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 
+@inject IScrimRulesetManager RulesetManager 
+@inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
 
 @if (_title)
@@ -12,25 +18,25 @@
     <MatchTitle />
 }
 
-@if (_players)
+@if (_players && _activeStatsDisplayType != null)
 {
-    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact/>
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact/>
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact />
 }
 
 @if (_scoreboard)
 {
-    <ScoreboardContainer i_showFeed=_feed/>
+    <ScoreboardContainer i_showFeed=_feed />
 }
 
-@if (_report)
-{ 
-    <InfantryMatchReport i_showHsr=_showHsr/>
+@if (_report && _activeStatsDisplayType != null)
+{
+    <InfantryMatchReport i_showHsr=_showHsr />
 }
 
 @if (_feed)
 {
-    <Feed i_legacyUi=_legacyUi/>
+    <Feed i_legacyUi=_legacyUi />
 }
 
 @code {
@@ -57,27 +63,57 @@
 
     [Parameter]
     public bool _compact { get; set; } = false;
+    private bool _compactIsManual { get; set; } = false;
 
     [Parameter]
     public bool _objectiveStats { get; set; } = false;
+
+    private Ruleset _activeRuleset { get; set; }
+    private OverlayStatsDisplayType? _activeStatsDisplayType { get; set; }
 
     #region Initialization Methods
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
+
+        MessageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChanged;
+
+        //OverlayStatsDisplayType = OverlayStatsDisplayType.InfantryScores;
     }
 
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;
+
+        MessageService.RaiseActiveRulesetChangeEvent -= OnActiveRulesetChanged;
     }
 
     protected override void OnParametersSet()
     {
         UpdateUriParameters();
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _activeRuleset = await RulesetManager.GetActiveRulesetAsync(false);
+
+            if (!_compactIsManual)
+            {
+                _compact = _activeRuleset.UseCompactOverlay;
+            }
+
+            _activeStatsDisplayType = _activeRuleset.OverlayStatsDisplayType;
+        }
+        catch
+        {
+            // Ignore
+        }
+    }
     #endregion Initialization Methods
 
+    #region Event Handling
     private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
         if (UpdateUriParameters())
@@ -85,6 +121,35 @@
             StateHasChanged();
         }
     }
+
+    private void OnActiveRulesetChanged(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> args)
+    {
+        var ruleset = args.Message.ActiveRuleset;
+
+        var newRulesetCompact = ruleset.UseCompactOverlay;
+        var newRulesetOverlayStatsDisplayType = ruleset.OverlayStatsDisplayType;
+
+        var stateChanged = false;
+
+        if (newRulesetCompact != _compact && !_compactIsManual)
+        {
+            _compact = newRulesetCompact;
+            stateChanged = true;
+        }
+
+        if (newRulesetOverlayStatsDisplayType != _activeStatsDisplayType)
+        {
+            _activeStatsDisplayType = newRulesetOverlayStatsDisplayType;
+            stateChanged = true;
+        }
+
+        if (stateChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    #endregion Event Handling
 
     private bool UpdateUriParameters()
     {
@@ -219,6 +284,8 @@
                     _compact = compact;
                     stateChanged = true;
                 }
+
+                _compactIsManual = true;
             }
             else
             {
@@ -245,5 +312,13 @@
         }
 
         return stateChanged;
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 }
