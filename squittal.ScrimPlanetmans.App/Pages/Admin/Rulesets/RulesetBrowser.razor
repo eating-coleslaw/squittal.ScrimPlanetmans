@@ -69,18 +69,18 @@
                             <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value="@_selectedImportRulesetFileName">
 
                                 @if (string.IsNullOrWhiteSpace(_selectedImportRulesetFileName))
-                                    {
+                                {
                                     <option value=@_selectedImportRulesetFileName label="Select a ruleset to import" style="font-style: italic;">Select a ruleset to import</option>
-                                    }
-                                    else
-                                    {
+                                }
+                                else
+                                {
                                     <option value=@_selectedImportRulesetFileName label="@_selectedImportRulesetFileName">@_selectedImportRulesetFileName</option>
-                                    }
+                                }
 
                                 @foreach (var fileName in _rulesetFileNames.Where(r => r != _selectedImportRulesetFileName))
-                                    {
+                                {
                                     <option value=@fileName label="@fileName">@fileName</option>
-                                    }
+                                }
                             </InputSelect>
 
                             <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openImportedRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
