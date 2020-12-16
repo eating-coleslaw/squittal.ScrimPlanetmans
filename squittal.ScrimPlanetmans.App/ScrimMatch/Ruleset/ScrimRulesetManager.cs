@@ -8,6 +8,7 @@ using squittal.ScrimPlanetmans.Services.Rulesets;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -223,6 +224,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task SeedDefaultRuleset()
         {
+            _logger.LogInformation($"Seeding Default Ruleset...");
+
+            var stopWatchSetup = new Stopwatch();
+            var stopWatchCollections = new Stopwatch();
+            var stopWatchActionRules = new Stopwatch();
+            var stopWatchItemRules = new Stopwatch();
+            var stopWatchItemCategoryRules = new Stopwatch();
+            var stopWatchFacilityRules = new Stopwatch();
+            var stopWatchFinalize = new Stopwatch();
+
+            var stopWatchTotal = Stopwatch.StartNew();
+            stopWatchSetup.Start();
+
+
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
 
@@ -239,17 +254,41 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (storeRuleset != null)
             {
+                stopWatchCollections.Start();
+
+                var storeRulesetWithCollections = await _rulesetDataService.GetRulesetFromIdAsync(storeRuleset.Id, CancellationToken.None, true);
+
+                storeActionRules = storeRulesetWithCollections.RulesetActionRules.ToList();
+                storeItemCategoryRules = storeRulesetWithCollections.RulesetItemCategoryRules.ToList();
+                storeItemRules = storeRulesetWithCollections.RulesetItemRules.ToList();
+                storeFacilityRules = storeRulesetWithCollections.RulesetFacilityRules.ToList();
+
                 // TODO: use Task.WhenAll for this 
+                //var TaskList = new List<Task>();
 
-                storeActionRules = await dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //var storeActionRulesTask = _rulesetDataService.GetRulesetActionRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetActionRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //TaskList.Add(storeActionRulesTask);
 
-                storeItemCategoryRules = await dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //var storeItemCategoryRulesTask = _rulesetDataService.GetRulesetItemCategoryRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetItemCategoryRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //TaskList.Add(storeItemCategoryRulesTask);
 
-                storeItemRules = await dbContext.RulesetItemRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //var storeItemRulesTask = _rulesetDataService.GetRulesetItemRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetItemRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //TaskList.Add(storeItemRulesTask);
 
-                storeFacilityRules = await dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //var storeFacilityRulesTask = _rulesetDataService.GetRulesetFacilityRulesAsync(storeRuleset.Id, CancellationToken.None); // dbContext.RulesetFacilityRules.Where(r => r.RulesetId == storeRuleset.Id).ToListAsync();
+                //TaskList.Add(storeFacilityRulesTask);
+
+                //await Task.WhenAll(TaskList);
+
+                //storeActionRules = storeActionRulesTask.Result.ToList();
+                //storeItemCategoryRules = storeItemCategoryRulesTask.Result.ToList();
+                //storeItemRules = storeItemRulesTask.Result.ToList();
+                //storeFacilityRules = storeFacilityRulesTask.Result.ToList();
+
 
                 rulesetExistsInDb = true;
+                
+                stopWatchCollections.Stop();
             }
             else
             {
@@ -267,6 +306,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             storeRuleset.IsDefault = true;
             storeRuleset.UseCompactOverlay = false;
             storeRuleset.OverlayStatsDisplayType = OverlayStatsDisplayType.InfantryScores;
+
+
+            // Get all async collection requests together
+            var CollectionsTaskList = new List<Task>(); 
+
+            var allItemCategoryIdsTask = _itemCategoryService.GetItemCategoryIdsAsync();
+            CollectionsTaskList.Add(allItemCategoryIdsTask);
+
+            var allWeaponItemCategoryIdsTask = _itemCategoryService.GetWeaponItemCategoryIdsAsync();
+            CollectionsTaskList.Add(allWeaponItemCategoryIdsTask);
+
+            var allWeaponItemsTask = _itemService.GetAllWeaponItemsAsync();
+            CollectionsTaskList.Add(allWeaponItemsTask);
+
+            await Task.WhenAll(CollectionsTaskList);
+
+            var allItemCategoryIds = allItemCategoryIdsTask.Result;
+            var allWeaponItemCategoryIds = allWeaponItemCategoryIdsTask.Result;
+            var allWeaponItems = allWeaponItemsTask.Result;
+
+            stopWatchSetup.Stop();
+
+            stopWatchActionRules.Start();
 
             #region Action rules
             var defaultActionRules = GetDefaultActionRules();
@@ -330,11 +392,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             #endregion Action rules
 
+            stopWatchActionRules.Stop();
+
+            stopWatchItemCategoryRules.Start();
+
             #region Item Category Rules
             var defaultItemCategoryRules = GetDefaultItemCategoryRules();
             var createdItemCategoryRules = new List<RulesetItemCategoryRule>();
-            var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
-            var allWeaponItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
+            //var allItemCategoryIds = await _itemCategoryService.GetItemCategoryIdsAsync();
+            //var allWeaponItemCategoryIds = await _itemCategoryService.GetWeaponItemCategoryIdsAsync();
 
             var allItemCategoryRules = new List<RulesetItemCategoryRule>();
 
@@ -386,10 +452,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             #endregion Item Category Rules
 
+            stopWatchItemCategoryRules.Stop();
+
+            stopWatchItemRules.Start();
+
             #region Item Rules
             var defaultItemRules = GetDefaultItemRules();
             var createdItemRules = new List<RulesetItemRule>();
-            var allWeaponItems = await _itemService.GetAllWeaponItemsAsync();
+            //var allWeaponItems = await _itemService.GetAllWeaponItemsAsync();
 
             var allItemIds = new List<int>(defaultItemRules.Select(r => r.ItemId));
             if (storeItemRules != null)
@@ -468,6 +538,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             #endregion Item Rules
 
+            stopWatchItemRules.Stop();
+
+            stopWatchFacilityRules.Start();
+
             #region Facility Rules
             var defaultFacilityRules = GetDefaultFacilityRules();
 
@@ -507,6 +581,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             #endregion Facility Rules
 
+            stopWatchFacilityRules.Stop();
+
+            stopWatchFinalize.Start();
 
             storeRuleset.RulesetActionRules = allActionRules;
             storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
@@ -523,6 +600,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             await dbContext.SaveChangesAsync();
+
+            stopWatchFinalize.Stop();
+
+            stopWatchTotal.Stop();
+            var elapsedMs = stopWatchTotal.ElapsedMilliseconds;
+
+            var totalTime = $"Finished seeding Default Ruleset (elapsed: {elapsedMs / 1000.0}s)";
+            var setupTime = $"\n\t\t   Setup: {stopWatchSetup.ElapsedMilliseconds / 1000.0}s";
+            var collectionsTime = $"\n\t\t\t   Get Collections: {stopWatchCollections.ElapsedMilliseconds / 1000.0}s";
+            var actionsTime = $"\n\t\t   Action Rules: {stopWatchActionRules.ElapsedMilliseconds / 1000.0}s";
+            var itemCatsTime = $"\n\t\t   Item Category Rules: {stopWatchItemCategoryRules.ElapsedMilliseconds / 1000.0}s";
+            var itemsTime = $"\n\t\t   Item Rules: {stopWatchItemRules.ElapsedMilliseconds / 1000.0}s";
+            var facilitiesTime = $"\n\t\t   Facility Rules: {stopWatchFacilityRules.ElapsedMilliseconds / 1000.0}s";
+            var finalizeTime = $"\n\t\t   Finalize: {stopWatchFinalize.ElapsedMilliseconds / 1000.0}s";
+
+            _logger.LogInformation($"{totalTime}{setupTime}{collectionsTime}{actionsTime}{itemCatsTime}{itemsTime}{facilitiesTime}{finalizeTime}");
         }
 
         private IEnumerable<RulesetItemCategoryRule> GetDefaultItemCategoryRules()
