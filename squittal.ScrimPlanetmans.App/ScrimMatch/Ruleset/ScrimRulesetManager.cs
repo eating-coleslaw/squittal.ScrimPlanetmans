@@ -265,6 +265,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             storeRuleset.DefaultMatchTitle = "PS2 Scrims";
             storeRuleset.IsDefault = true;
+            storeRuleset.UseCompactOverlay = false;
+            storeRuleset.OverlayStatsDisplayType = OverlayStatsDisplayType.InfantryScores;
 
             #region Action rules
             var defaultActionRules = GetDefaultActionRules();

@@ -637,6 +637,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateName = rulesetUpdate.Name;
             var updateRoundLength = rulesetUpdate.DefaultRoundLength;
             var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
+            var updateUseCompactOverlay = rulesetUpdate.UseCompactOverlay;
+            var updateOverlayStatsDisplayType = rulesetUpdate.OverlayStatsDisplayType;
 
             if (!IsValidRulesetName(updateName))
             {
@@ -676,6 +678,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     storeEntity.DefaultRoundLength = updateRoundLength;
                     storeEntity.DefaultMatchTitle = updateMatchTitle;
                     storeEntity.DateLastModified = DateTime.UtcNow;
+                    storeEntity.UseCompactOverlay = updateUseCompactOverlay;
+                    storeEntity.OverlayStatsDisplayType = updateOverlayStatsDisplayType;
 
                     dbContext.Rulesets.Update(storeEntity);
 
@@ -695,6 +699,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        #region Save Ruleset Rules
         /*
          * Upsert New or Modified RulesetActionRules for a specific ruleset.
          */
@@ -1001,6 +1006,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 }
             }
         }
+
+        #endregion Save Ruleset Rules
 
         private async Task<Ruleset> UpdateRulesetDateLastModified(int rulesetId, DateTime dateLastModifiedUtc)
         {
@@ -1949,7 +1956,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 IsCustomDefault = false,
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
                 DefaultRoundLength = jsonRuleset.DefaultRoundLength,
-                SourceFile = sourceFileName
+                SourceFile = sourceFileName,
+                UseCompactOverlay = jsonRuleset.UseCompactOverlay ?? false,
+                OverlayStatsDisplayType = jsonRuleset.OverlayStatsDisplayType ?? OverlayStatsDisplayType.InfantryScores
             };
         }
 
