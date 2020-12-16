@@ -112,6 +112,8 @@ namespace squittal.ScrimPlanetmans.Data
 
                 _sqlScriptRunner.RunSqlDirectoryScripts("Views");
 
+                _logger.LogInformation($"Compiled all SQL Views");
+
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex)
