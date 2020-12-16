@@ -110,6 +110,7 @@
                         }
                     }
 
+                    @*<p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">*@
                     <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: smaller;">
                         <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                         <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
@@ -118,6 +119,10 @@
                         {
                             <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
                         }
+
+                        <div style="margin-top: 16px; font-weight: 600; display: block;">Overlay Settings</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.UseCompactOverlay ? "Yes" : "No")</div>
+                        <div><span style="display: inline-block; width: 140px; margin-right: 4px;">Displayed Stats Type:</span>@_renderedRuleset.OverlayStatsDisplayType</div>
                     </p>
                 }
                 else
@@ -131,6 +136,10 @@
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
                             <div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            
+                            <div style="margin-top: 16px; font-weight: 600; display: block;">Overlay Settings</div>
+                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_editFormRuleset.UseCompactOverlay" /><span style="padding-left: 8px;">Use Compact Mode?</span></div>
+                            @*<div style="margin-bottom: 0.5rem;"><span style="width: 152px; display: inline-block;">Displayed Stats Type</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;" /></div>*@
 
                             <div style="text-align: right; margin-top: 12px;">
                                 <button type="submit" class="btn btn-primary">
@@ -518,6 +527,11 @@
 
         return $"{dateTimeLocal.ToString("f")}";
     }
+
+    //private string GetOverlayStatsDisplayString(OverlayStatsDisplayType statsType)
+    //{
+    //    var rawString
+    //}
 
     private void InvokeAsyncStateHasChanged()
     {
