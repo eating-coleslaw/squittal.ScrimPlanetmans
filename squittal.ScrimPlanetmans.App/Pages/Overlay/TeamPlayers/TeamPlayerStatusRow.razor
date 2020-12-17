@@ -4,12 +4,12 @@
 {
     if (i_TeamOrdinal == 1)
     {
-        <TeamPlayerStatusRowLoadout i_player=i_player/>
-        <TeamPlayerStatusRowDetails i_player=i_player/>
+        <TeamPlayerStatusRowLoadout i_player=i_player />
+        <TeamPlayerStatusRowDetails i_player=i_player i_NoScore=i_NoScore />
     }
     else if (i_TeamOrdinal == 2)
     {
-        <TeamPlayerStatusRowDetails i_player=i_player />
+        <TeamPlayerStatusRowDetails i_player=i_player  i_NoScore=i_NoScore />
         <TeamPlayerStatusRowLoadout i_player=i_player />
     }
 }
@@ -22,29 +22,61 @@
     [Parameter]
     public int i_TeamOrdinal { get; set; }
 
+    [Parameter]
+    public bool i_NoScore { get; set; }
+    //private bool _renderedNoScore { get; set; } = false;
+
     private string _renderedPlayerId;
     private int _renderedTeamOrdinal { get; set; }
 
     protected override void OnParametersSet()
     {
+        var stateChanged = false;
+
         if (i_player.Id != _renderedPlayerId)
         {
             _renderedPlayerId = i_player.Id;
-            
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+
+            stateChanged = true;
+
+            //InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
         }
 
         if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
         {
             _renderedTeamOrdinal = i_TeamOrdinal;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            stateChanged = true;
+
+            //InvokeAsync(() =>
+            //{
+            //    StateHasChanged();
+            //});
         }
+
+        //if (i_NoScore != _renderedNoScore)
+        //{
+        //    _renderedNoScore = i_NoScore;
+
+        //    SetNoScoreCssClass();
+
+        //    stateChanged = true;
+        //}
+
+        if (stateChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 }

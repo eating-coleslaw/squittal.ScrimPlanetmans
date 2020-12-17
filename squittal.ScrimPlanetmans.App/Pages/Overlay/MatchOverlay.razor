@@ -13,6 +13,9 @@
 @inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
 
+@*<p>_activeRuleset: @(_activeRuleset?.Name)</p>*@
+@*<p>_objectStats: @_objectiveStats</p>*@
+
 @if (_title)
 {
     <MatchTitle />
@@ -20,8 +23,8 @@
 
 @if (_players && _activeStatsDisplayType != null)
 {
-    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact />
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_NoScore=_objectiveStats />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_NoScore=_objectiveStats />
 }
 
 @if (_scoreboard)
@@ -65,8 +68,8 @@
     public bool _compact { get; set; } = false;
     private bool _compactIsManual { get; set; } = false;
 
-    [Parameter]
-    public bool _objectiveStats { get; set; } = false;
+    //[Parameter]
+    private bool _objectiveStats { get; set; } = false;
 
     private Ruleset _activeRuleset { get; set; }
     private OverlayStatsDisplayType? _activeStatsDisplayType { get; set; }
@@ -106,6 +109,8 @@
             }
 
             _activeStatsDisplayType = _activeRuleset.OverlayStatsDisplayType;
+
+            _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
         }
         catch
         {
@@ -141,6 +146,9 @@
         if (newRulesetOverlayStatsDisplayType != _activeStatsDisplayType)
         {
             _activeStatsDisplayType = newRulesetOverlayStatsDisplayType;
+
+            _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
+
             stateChanged = true;
         }
 
@@ -176,6 +184,9 @@
             if (ruleset.OverlayStatsDisplayType != _activeStatsDisplayType)
             {
                 _activeStatsDisplayType = ruleset.OverlayStatsDisplayType;
+
+                _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
+
                 stateChanged = true;
             }
         }
@@ -331,22 +342,22 @@
             }
         }
 
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("objectiveStats", out var qObjectiveStats))
-        {
-            if (bool.TryParse(qObjectiveStats, out var objectiveStats))
-            {
-                if (objectiveStats != _objectiveStats)
-                {
-                    _objectiveStats = objectiveStats;
-                    stateChanged = true;
-                }
-            }
-            else
-            {
-                _objectiveStats = false;
-                stateChanged = true;
-            }
-        }
+        //if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("objectiveStats", out var qObjectiveStats))
+        //{
+        //    if (bool.TryParse(qObjectiveStats, out var objectiveStats))
+        //    {
+        //        if (objectiveStats != _objectiveStats)
+        //        {
+        //            _objectiveStats = objectiveStats;
+        //            stateChanged = true;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _objectiveStats = false;
+        //        stateChanged = true;
+        //    }
+        //}
 
         return stateChanged;
     }

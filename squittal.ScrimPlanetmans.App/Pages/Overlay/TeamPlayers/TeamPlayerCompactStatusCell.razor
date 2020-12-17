@@ -4,11 +4,11 @@
 {
     if (i_TeamOrdinal == 1)
     {
-        <TeamPlayerCompactStatusCellDetails i_player=i_player />
+        <TeamPlayerCompactStatusCellDetails i_player=i_player i_NoScore=i_NoScore />
     }
     else if (i_TeamOrdinal == 2)
     {
-        <TeamPlayerCompactStatusCellDetails i_player=i_player />
+        <TeamPlayerCompactStatusCellDetails i_player=i_player i_NoScore=i_NoScore />
     }
 }
 
@@ -19,6 +19,9 @@
 
     [Parameter]
     public int i_TeamOrdinal { get; set; }
+
+    [Parameter]
+    public bool i_NoScore { get; set; }
 
     private string _renderedPlayerId;
     private int _renderedTeamOrdinal { get; set; }

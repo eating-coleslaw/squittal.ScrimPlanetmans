@@ -10,15 +10,15 @@
 
 @if (i_player != null)
 {
-    <div class="playerStatusContainer @GetContainerCssClass()">
-        @if (_legacyUi)
+    <div class="playerStatusContainer @GetContainerCssClass() @_noScoreCssClass">
+        @if (_legacyUi && !_renderedNoScore)
         {
             <div class="score">
                 <div class="points">@_renderedNetScore</div>
             </div>
 
         }
-        else
+        else if (!_renderedNoScore)
         {
             <div class="score">
                 <div class="points">@_renderedPoints</div>
@@ -51,6 +51,12 @@
 
     [Parameter]
     public bool i_legacyUi { get; set; } = false;
+
+    [Parameter]
+    public bool i_NoScore { get; set; }
+    private bool _renderedNoScore { get; set; } = false;
+
+    private string _noScoreCssClass { get; set; } = string.Empty;
 
     private string _renderedPlayerId;
     private string _renderedName;
@@ -111,6 +117,15 @@
         if (_legacyUi != i_legacyUi)
         {
             _legacyUi = i_legacyUi;
+            stateHasChanged = true;
+        }
+
+        if (i_NoScore != _renderedNoScore)
+        {
+            _renderedNoScore = i_NoScore;
+
+            SetNoScoreCssClass();
+
             stateHasChanged = true;
         }
 
@@ -461,6 +476,11 @@
         {
             return string.Empty;
         }
+    }
+
+    private void SetNoScoreCssClass()
+    {
+        _noScoreCssClass = _renderedNoScore ? "noScore" : string.Empty;
     }
 
     private string GetNetScoreLabelCssClass()

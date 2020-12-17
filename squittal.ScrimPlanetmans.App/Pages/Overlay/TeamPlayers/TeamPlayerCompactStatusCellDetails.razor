@@ -10,12 +10,19 @@
 
 @if (i_player != null)
 {
-    <div class="playerStatusContainer @GetContainerCssClass()">
+    <div class="playerStatusContainer @GetContainerCssClass() @_noScoreCssClass">
         <TeamPlayerCompactStatusCellLoadout i_player=i_player />
-            @*<div class="loadout">
-            </div>*@
 
         <div class="name">@_renderedName</div>
+
+        @if (!_renderedNoScore)
+        {
+            <div class="score">
+                <div class="net">
+                    <span class="label @GetNetScoreLabelCssClass()">@GetNetScoreLabelText()</span>
+                </div>
+            </div>
+        }
 
         <div class="eventMask">
             @if (_renderedStatus == PlayerStatus.ContestingObjective)
@@ -34,8 +41,15 @@
     [Parameter]
     public Player i_player { get; set; }
 
+    [Parameter]
+    public bool i_NoScore { get; set; }
+    private bool _renderedNoScore { get; set; } = false;
+
+    private string _noScoreCssClass { get; set; } = string.Empty;
+
     private string _renderedPlayerId;
     private string _renderedName;
+    private int _renderedNetScore;
 
     private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
     private Timer _timer;
@@ -83,6 +97,15 @@
 
         if (CheckForChanges(i_player))
         {
+            stateHasChanged = true;
+        }
+
+        if (i_NoScore != _renderedNoScore)
+        {
+            _renderedNoScore = i_NoScore;
+
+            SetNoScoreCssClass();
+
             stateHasChanged = true;
         }
 
@@ -396,6 +419,12 @@
             stateHasChanged = true;
         }
 
+        if (!_renderedNoScore && player.EventAggregate.NetScore != _renderedNetScore)
+        {
+            _renderedNetScore = player.EventAggregate.NetScore;
+            stateHasChanged = true;
+        }
+
         return stateHasChanged;
     }
 
@@ -412,6 +441,39 @@
         else
         {
             return string.Empty;
+        }
+    }
+
+    private void SetNoScoreCssClass()
+    {
+        _noScoreCssClass = _renderedNoScore ? "noScore" : string.Empty;
+    }
+
+    private string GetNetScoreLabelCssClass()
+    {
+        if (_renderedNetScore == 0)
+        {
+            return "neutral";
+        }
+        else if (_renderedNetScore < 0)
+        {
+            return "negative";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetNetScoreLabelText()
+    {
+        if (_renderedNetScore == 0)
+        {
+            return "•";
+        }
+        else
+        {
+            return "Δ";
         }
     }
 }

@@ -19,7 +19,7 @@
 
 @if (_team != null)
 {
-    <div class="players @($"players{i_TeamOrdinal}") @_compactCssClass @_compactFiveColumnsCssClass @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
+    <div class="players @($"players{i_TeamOrdinal}") @_compactCssClass @_compactFiveColumnsCssClass @_noScoreCssClass @SqCssHelper.GetFactionClassFromId(_team.FactionId)">
 
         @lock (_renderedPlayers)
         {
@@ -27,11 +27,11 @@
             {
                 if (_renderedCompact)
                 {
-                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player />
+                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />
                 }
                 else
                 {
-                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player />
+                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />
                 }
             }
         }
@@ -47,6 +47,10 @@
     public bool i_Compact { get; set; }
     private bool _renderedCompact { get; set; } = false;
 
+    [Parameter]
+    public bool i_NoScore { get; set; }
+    private bool _renderedNoScore { get; set; } = false;
+
     private Team _team;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
@@ -54,6 +58,7 @@
     private ConcurrentQueue<TeamPlayerChangeMessage> _teamPlayersQueue { get; set; } = new ConcurrentQueue<TeamPlayerChangeMessage>();
 
     private string _compactCssClass { get; set; } = string.Empty;
+    private string _noScoreCssClass { get; set; } = string.Empty;
     //private string _compactTrueCssClass = "compact";
 
     private string _compactFiveColumnsCssClass { get; set; } = string.Empty;
@@ -81,10 +86,27 @@
             InitializeTeamData();
         }
 
+        var stateChanged = false;
+
         if (i_Compact != _renderedCompact)
         {
             _renderedCompact = i_Compact;
             SetCompactModeCssClass();
+
+            stateChanged = true;
+        }
+
+        if (i_NoScore != _renderedNoScore)
+        {
+            _renderedNoScore = i_NoScore;
+
+            SetNoScoreCssClass();
+
+            stateChanged = true;
+        }
+
+        if (stateChanged)
+        {
             InvokeAsyncStateHasChanged();
         }
     }
@@ -212,6 +234,11 @@
     private void SetCompactModeCssClass()
     {
         _compactCssClass = _renderedCompact ? "compact" : string.Empty;
+    }
+
+    private void SetNoScoreCssClass()
+    {
+        _noScoreCssClass = _renderedNoScore ? "noScore" : string.Empty;
     }
 
     private void SetCompact5sCssClass()
