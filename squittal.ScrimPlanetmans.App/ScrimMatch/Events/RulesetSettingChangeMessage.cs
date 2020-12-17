@@ -64,6 +64,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                 var settingString = isFirst ? GetEnumValueName(setting) : $", {GetEnumValueName(setting)}";
 
                 stringBuilder.Append(settingString);
+
+                isFirst = false;
             }
 
             return stringBuilder.ToString();
