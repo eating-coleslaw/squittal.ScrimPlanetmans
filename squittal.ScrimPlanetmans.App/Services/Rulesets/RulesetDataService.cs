@@ -640,6 +640,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateUseCompactOverlay = rulesetUpdate.UseCompactOverlay;
             var updateOverlayStatsDisplayType = rulesetUpdate.OverlayStatsDisplayType;
 
+            Ruleset oldRuleset = new Ruleset();
+
             if (!IsValidRulesetName(updateName))
             {
                 _logger.LogError($"Error updating Ruleset {updateId} info: invalid ruleset name");
@@ -671,8 +673,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         return false;
                     }
 
-                    var oldName = storeEntity.Name;
-                    var oldIsHidden = storeEntity.DefaultRoundLength;
+                    oldRuleset.DefaultRoundLength = storeEntity.DefaultRoundLength;
+                    oldRuleset.DefaultMatchTitle = storeEntity.DefaultMatchTitle;
+                    oldRuleset.UseCompactOverlay = storeEntity.UseCompactOverlay;
+                    oldRuleset.OverlayStatsDisplayType = storeEntity.OverlayStatsDisplayType;
+
+                    //var oldName = storeEntity.Name;
+                    //var oldIsHidden = storeEntity.DefaultRoundLength;
 
                     storeEntity.Name = updateName;
                     storeEntity.DefaultRoundLength = updateRoundLength;
@@ -688,6 +695,10 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     await SetUpRulesetsMapAsync(cancellationToken);
 
                     // TODO: broadcast Ruleset Info Change Message
+                    var changeMessage = new RulesetSettingChangeMessage(storeEntity, oldRuleset);
+                    _messageService.BroadcastRulesetSettingChangeMessage(changeMessage);
+
+                    _logger.LogInformation($"{changeMessage.Info}");
 
                     return true;
                 }

@@ -71,14 +71,14 @@
     private Ruleset _activeRuleset { get; set; }
     private OverlayStatsDisplayType? _activeStatsDisplayType { get; set; }
 
+
     #region Initialization Methods
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
 
         MessageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChanged;
-
-        //OverlayStatsDisplayType = OverlayStatsDisplayType.InfantryScores;
+        MessageService.RaiseRulesetSettingChangeEvent += OnRulesetSettingChanged;
     }
 
     public void Dispose()
@@ -86,6 +86,7 @@
         NavManager.LocationChanged -= OnLocationChanged;
 
         MessageService.RaiseActiveRulesetChangeEvent -= OnActiveRulesetChanged;
+        MessageService.RaiseRulesetSettingChangeEvent -= OnRulesetSettingChanged;
     }
 
     protected override void OnParametersSet()
@@ -141,6 +142,42 @@
         {
             _activeStatsDisplayType = newRulesetOverlayStatsDisplayType;
             stateChanged = true;
+        }
+
+        if (stateChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void OnRulesetSettingChanged(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> args)
+    {
+        var changes = args.Message.ChangedSettings;
+        var ruleset = args.Message.Ruleset;
+
+        if (ruleset.Id != _activeRuleset.Id)
+        {
+            return;
+        }
+
+        var stateChanged = false;
+
+        if (changes.Contains(RulesetSettingChange.UseCompactOverlay))
+        {
+            if (ruleset.UseCompactOverlay != _compact && !_compactIsManual)
+            {
+                _compact = ruleset.UseCompactOverlay;
+                stateChanged = true;
+            }
+        }
+
+        if (changes.Contains(RulesetSettingChange.OverlayStatsDisplayType))
+        {
+            if (ruleset.OverlayStatsDisplayType != _activeStatsDisplayType)
+            {
+                _activeStatsDisplayType = ruleset.OverlayStatsDisplayType;
+                stateChanged = true;
+            }
         }
 
         if (stateChanged)
