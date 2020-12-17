@@ -121,7 +121,7 @@
                         }
 
                         <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.UseCompactOverlay ? "Yes" : "No")</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Mode:</span>@(_renderedRuleset.UseCompactOverlay ? "Yes" : "No")</div>
                         <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.OverlayStatsDisplayType)</div>
                     </p>
                 }
@@ -139,7 +139,7 @@
                             <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
                             <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
-                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlay" /><span style="padding-left: 8px;">Use Compact Mode?</span></div>
+                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlay" /><span style="padding-left: 8px;">Use Compact Mode</span></div>
                             <div style="margin-bottom: 0.5rem;">
                                 <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;">
 
