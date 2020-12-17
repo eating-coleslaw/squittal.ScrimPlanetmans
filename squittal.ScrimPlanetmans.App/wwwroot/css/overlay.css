@@ -149,9 +149,17 @@ body {
 
     .overlay .players.compact .playerStatusContainer {
         grid-column-gap: 4px;
-        grid-template-rows: 26px 5px;
+        /*grid-template-rows: 22px 11px 5px;*/
+        grid-template-rows: 22px 7px 9px;
         direction: ltr;
     }
+    
+    .overlay .players.compact.noScore .playerStatusContainer {
+        /*grid-column-gap: 4px;*/
+        grid-template-rows: 26px 5px;
+        /*direction: ltr;*/
+    }
+
 
     .overlay .players.vs .playerStatusContainer {
         border: 1px solid var(--sq-ov-ps2-primary-alpha-75);
@@ -169,7 +177,7 @@ body {
         text-shadow: 0 0 1px var(--sq-black);
     }
 
-        .overlay .players.players1 .playerStatusContainer.noScore {
+        .overlay .players.noScore.players1 .playerStatusContainer {
             /*grid-template-columns: 1fr 112px;*/
             /*grid-template-areas: "name name" "event event";*/
             grid-template-columns: 1fr;
@@ -197,6 +205,11 @@ body {
             border-top-left-radius: 5px;
         }
 
+        .overlay .players.players1 .playerStatusContainer:last-child {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 5px;
+        }
+
     .overlay .players.players2 .playerStatusContainer {
         /*grid-template-columns: 96px 1fr;*/
         /*grid-template-columns: 104px 1fr;*/
@@ -207,9 +220,10 @@ body {
         background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
         /*grid-column-gap: 8px;*/
+        text-shadow: 0 0 1px var(--sq-black);
     }
 
-        .overlay .players.players2 .playerStatusContainer.noScore {
+        .overlay .players.noScore.players2 .playerStatusContainer {
             /*grid-template-columns: 1fr 112px;*/
             /*grid-template-areas: "name name" "event event";*/
             grid-template-columns: 1fr;
@@ -241,9 +255,20 @@ body {
     .overlay .players.compact.players1 .playerStatusContainer,
     .overlay .players.compact.players2 .playerStatusContainer {
         /*grid-template-columns: 28px 1fr;*/
-        grid-template-columns: 24px 1fr;
-        grid-template-areas: "loadout name" "event event";
+        grid-template-columns: 24px 12px 1fr;
+        /*grid-template-areas: "name name name" "loadout score event" "loadout score event";*/
+        grid-template-areas: "name name name" "loadout score blank" "loadout score event";
+        background: -moz-linear-gradient(-50deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 70%);
+        background: linear-gradient(-50deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 70%);
+        background: -webkit-linear-gradient(-50deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 70%);
     }
+
+        .overlay .players.compact.noScore.players1 .playerStatusContainer,
+        .overlay .players.compact.noScore.players2 .playerStatusContainer {
+            /*grid-template-columns: 28px 1fr;*/
+            grid-template-columns: 24px 1fr;
+            grid-template-areas: "loadout name" "event event";
+        }
 
     .overlay .players .playerStatusContainer .name {
         grid-area: name;
@@ -257,16 +282,22 @@ body {
         /*        font-size: 1.25rem;*/
         font-size: 1.2rem;
     }
-
+        
         .overlay .players.compact .playerStatusContainer .name {
-            /*font-size: 1rem;*/
-            /*font-size: 0.9rem;*/
             font-size: 0.85rem;
             text-align: left;
-            padding-left: 2px !important;
-            padding-top: 4px;
+            padding-left: 4px !important;
+            padding-top: 2px;
             padding-right: 3px;
         }
+
+            .overlay .players.compact.noScore .playerStatusContainer .name {
+                /*font-size: 0.85rem;*/
+                /*text-align: left;*/
+                padding-left: 2px !important;
+                padding-top: 4px;
+                /*padding-right: 3px;*/
+            }
 
     .overlay .players .playerStatusContainer.deadTextPlay .name {
         color: var(--sq-bg-white-lit-alpha-30);
@@ -281,9 +312,9 @@ body {
         align-items: baseline;
     }
 
-        .overlay .players.compact .playerStatusContainer .score {
+        /*.overlay .players.compact .playerStatusContainer .score {
 
-        }
+        }*/
 
         .overlay .players .playerStatusContainer .score .points {
             grid-area: points;
@@ -318,9 +349,9 @@ body {
                     "value";*/
     }
 
-        .overlay .players.compact .playerStatusContainer .score .net {
+        /*.overlay .players.compact .playerStatusContainer .score .net {
 
-        }
+        }*/
 
         .overlay .players .playerStatusContainer .score .net .label {
             /*grid-area: label;
@@ -332,8 +363,12 @@ body {
             padding-left: 4px;
             /*font-weight: 700;*/
             font-size: 1rem;
-            color: var(--sq-ov-semantic-green);
+            /*color: var(--sq-ov-semantic-green);*/
         }
+
+            .overlay .players .playerStatusContainer .score .net .label.positive {
+                color: var(--sq-ov-semantic-green);
+            }
 
             .overlay .players .playerStatusContainer .score .net .label.neutral {
                 color: var(--sq-ov-semantic-orange);
@@ -347,6 +382,29 @@ body {
                 transform-origin: center;
                 transform: rotateZ(180deg);
                 padding: 0 4px 1px 0;
+            }
+
+        .overlay .players.compact .playerStatusContainer .score .net .label {
+            font-size: 0.75rem;
+            padding: 0;
+            display: inline-block;
+            vertical-align: super;
+            /*margin-top: -1px;*/
+            position: relative;
+        }
+
+            .overlay .players.compact .playerStatusContainer .score .net .label.neutral,
+            .overlay .players.compact .playerStatusContainer .score .net .label.positive {
+                /*position: relative;*/
+                /*top: -1px;*/
+                top: -2px;
+            }
+
+            .overlay .players.compact .playerStatusContainer .score .net .label.negative {
+                transform: rotateZ(180deg) translateY(3px);
+                /*padding: 0;*/
+                /*position: relative;*/
+                top: 2px;
             }
 
     .overlay .players .playerStatusContainer.deadTextPlay .score .net .label {
@@ -406,20 +464,33 @@ body {
             text-align: right;
         }
 
+    .overlay .players.compact.players1 .playerStatusContainer .score,
+    .overlay .players.compact.players2 .playerStatusContainer .score {
+        grid-template-columns: 1fr;
+        grid-template-areas: "net";
+    }
+
+    .overlay .players.compact.players1 .playerStatusContainer .score .net,
+    .overlay .players.compact.players2 .playerStatusContainer .score .net {
+        padding-left: 0;
+        padding-right: 8px;
+        text-align: left;
+    }
+
     /*.overlay .players.players2 .playerStatusContainer .score,*/
     .overlay .players.players1 .playerStatusContainer .name {
         /*padding-left: 4px;*/
         padding-left: 8px;
     }
 
-    .overlay .players.players1 .playerStatusContainer.noScore .name,
-    .overlay .players.players2 .playerStatusContainer.noScore .name {
+    .overlay .players.noScore.players1 .playerStatusContainer .name,
+    .overlay .players.noScore.players2 .playerStatusContainer .name {
         /*padding-left: 4px;*/
         padding-left: 8px;
         padding-right: 8px;
     }
 
-    .overlay .players.compact.players1 .playerStatusContainer .name {
+    .overlay .players.compact.noScore.players1 .playerStatusContainer .name {
         padding-left: 2px;
     }
 
@@ -429,7 +500,7 @@ body {
         padding-right: 8px;
     }
 
-    .overlay .players.compact.players2 .playerStatusContainer .name {
+    .overlay .players.compact.noScore.players2 .playerStatusContainer .name {
         padding-right: 2px;
     }
 
@@ -452,13 +523,19 @@ body {
             border-bottom-color: transparent;
         }
 
+    .overlay .players.compact .playerStatusContainer .eventMask {
+        height: 10px;
+    }
+
         .overlay .players.compact .playerStatusContainer .eventMask:empty {
             /*border-top-color: transparent;*/
             border-right-color: transparent;
             border-left-color: transparent;
             border-style: outset;
             border-bottom-color: transparent;
-            border-top-color: var(--sq-ov-ps2-primary-dark-alpha-70);
+            /*border-top-color: var(--sq-ov-ps2-primary-dark-alpha-70);*/
+            border-bottom: 3px solid var(--sq-ov-ps2-primary-dark-alpha-70);
+            border-top-left-radius: 5px;
         }
 
     .overlay .players .playerLoadoutIcon {
@@ -485,10 +562,28 @@ body {
 
     .overlay .players.compact .playerStatusContainer .playerLoadoutIcon {
         grid-area: loadout;
+        height: 16px;
+        width: 16px;
+        /*justify-self: normal;*/
+        /*margin-top: -1px;*/
+        margin-top: -2px;
+        /*margin-left: 1px;*/
+        margin-left: 2px;
+    }
+
+    /*.overlay .players.compact .playerStatusContainer .playerLoadoutIcon.infil {
+        margin-top: -1px;
+    }*/
+
+    .overlay .players.compact.noScore .playerStatusContainer .playerLoadoutIcon {
+        grid-area: loadout;
         height: 18px;
         width: 18px;
         /*justify-self: normal;*/
-        margin-left: 3px;
+        /*margin-left: 3px;*/
+        margin-left: 4px;
+        /*margin-top: -1px;*/
+        margin-top: 4px;
     }
 
 .ps2-icon.medic {
@@ -561,6 +656,13 @@ body {
     border-right: 3px solid var(--sq-ov-ps2-flavor-alpha-50);
 }
 
+.players.compact .playerRespawningPlay {
+    -moz-transform-origin: left center !important;
+    -webkit-transform-origin: left center !important;
+    transform-origin: left center !important;
+    /*border-right: 3px solid var(--sq-ov-ps2-flavor-alpha-50);*/
+}
+
 .shrinkLeft {
     -moz-transform-origin: left center;
     -webkit-transform-origin: left center;
@@ -596,6 +698,16 @@ body {
     background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
     background: -webkit-linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
 }
+
+.overlay .players.compact .playerStatusContainer.deadTextPlay {
+    background: -moz-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+    background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+    background: -webkit-linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-70) 0%, rgba(35, 35, 35, 0.55) 60%) !important;
+}
+
+    .overlay .players.compact .playerStatusContainer.deadTextPlay .playerLoadoutIcon {
+        opacity: 0.6;
+    }
 
 /*.deadTextPlay .label {
     color: var(--sq-ov-ps2-primary-alpha-50) !important;
