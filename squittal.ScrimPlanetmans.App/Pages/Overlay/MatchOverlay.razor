@@ -34,7 +34,8 @@
 
 @if (_report && _activeStatsDisplayType != null)
 {
-    <InfantryMatchReport i_showHsr=_showHsr />
+    @*<InfantryMatchReport i_showHsr=_showHsr />*@
+    <MatchReportContainer i_showHsr=_showHsr i_statsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_compact=_compact />
 }
 
 @if (_feed)
@@ -117,6 +118,28 @@
             // Ignore
         }
     }
+
+    //protected override async Task OnParametersSetAsync() // OnAfterRenderAsync(bool firstRender)
+    //{
+    //    try
+    //    {
+    //        _activeRuleset = await RulesetManager.GetActiveRulesetAsync(false);
+
+    //        if (!_compactIsManual)
+    //        {
+    //            _compact = _activeRuleset.UseCompactOverlay;
+    //        }
+
+    //        _activeStatsDisplayType = _activeRuleset.OverlayStatsDisplayType;
+
+    //        _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
+    //    }
+    //    catch
+    //    {
+    //        // Ignore
+    //    }
+    //}
+
     #endregion Initialization Methods
 
     #region Event Handling
@@ -335,9 +358,10 @@
 
                 _compactIsManual = true;
             }
-            else
+            else if (_activeRuleset != null)
             {
-                _compact = false;
+                _compact = _activeRuleset.UseCompactOverlay;
+                _compactIsManual = false;
                 stateChanged = true;
             }
         }

@@ -1,0 +1,104 @@
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+
+@if (_renderedStatsType != null && UseInfantryMatchReport())
+{
+    <InfantryMatchReport i_showHsr=i_showHsr i_statsType=(OverlayStatsDisplayType)_renderedStatsType i_compact=_renderedCompact />
+    
+    @*<div id="MatchStats" class="match-report @GetReportCss()">
+        <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_showHsr />
+        <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_showHsr />
+    </div>*@
+}
+
+@code {
+    [Parameter]
+    public bool i_showHsr { get; set; } = true;
+    //private bool _showHsr { get; set; } = true;
+
+    [Parameter]
+    public bool i_compact { get; set; }
+    private bool _renderedCompact { get; set; } = false;
+
+    [Parameter]
+    public OverlayStatsDisplayType i_statsType { get; set; }
+    private OverlayStatsDisplayType? _renderedStatsType { get; set; }
+
+    private OverlayStatsDisplayType _defaultStatsType = OverlayStatsDisplayType.InfantryScores;
+
+
+    #region Initialization Methods
+    //protected override void OnInitialized()
+    //{
+
+    //}
+
+    protected override void OnParametersSet()
+    {
+        var stateHasChanged = false;
+
+        //if (_showHsr != i_showHsr)
+        //{
+        //    _showHsr = i_showHsr;
+
+        //    stateHasChanged = true;
+        //}
+
+        if (_renderedCompact != i_compact)
+        {
+            _renderedCompact = i_compact;
+
+            stateHasChanged = true;
+        }
+
+        if (_renderedStatsType != i_statsType)
+        {
+            _renderedStatsType = (i_statsType == OverlayStatsDisplayType.InfantryObjective) ? i_statsType : _defaultStatsType;
+
+            stateHasChanged = true;
+        }
+
+        if (stateHasChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+
+
+    }
+    #endregion Initialization Methods
+
+    //private string GetReportCss()
+    //{
+    //    var hsrCssClass = _showHsr ? string.Empty : "no-hsr";
+
+    //    var statsCssClass = (_renderedStatsType == OverlayStatsDisplayType.InfantryObjective) ? "objective-stats" : string.Empty;
+
+    //    return $"{hsrCssClass} {statsCssClass}";
+
+    //    //return _showHsr
+    //    //        ? string.Empty
+    //    //        : "no-hsr";
+    //}
+
+    private bool UseInfantryMatchReport()
+    {
+        switch (_renderedStatsType)
+        {
+            case OverlayStatsDisplayType.InfantryScores:
+                return true;
+
+            case OverlayStatsDisplayType.InfantryObjective:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

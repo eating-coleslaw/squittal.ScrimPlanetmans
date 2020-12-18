@@ -1,32 +1,124 @@
-﻿<div id="MatchStats" class="match-report @GetReportCss()">
-    <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_showHsr />
-    <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_showHsr />
-</div>
+﻿@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+
+@if (_renderedStatsType != null && _renderedStatsType == OverlayStatsDisplayType.InfantryScores)
+{
+    <div id="MatchStats" class="match-report infantry @GetReportCss()">
+
+        @if (_renderedCompact)
+        {
+            <div class="team-report-container team1">
+                <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_renderedShowHsr i_useObjectiveStats=false />
+            </div>
+            <div class="team-report-container team2">
+                <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_renderedShowHsr i_useObjectiveStats=false />
+            </div>
+        }
+        else
+        {
+            <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_renderedShowHsr i_useObjectiveStats=false />
+            <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_renderedShowHsr i_useObjectiveStats=false />
+        }
+
+    </div>
+}
+else if (_renderedStatsType != null && _renderedStatsType == OverlayStatsDisplayType.InfantryObjective)
+{
+    <div id="MatchStats" class="match-report infantry @GetReportCss()">
+        
+        @if (_renderedCompact)
+        {
+            <div class="team-report-container team1">
+                <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_renderedShowHsr i_useObjectiveStats=true />
+            </div>
+            <div class="team-report-container team2">
+                <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_renderedShowHsr i_useObjectiveStats=true />
+            </div>
+        }
+        else
+        {
+            <InfantryMatchReportTeam i_TeamOrdinal=1 i_showHsr=_renderedShowHsr i_useObjectiveStats=true />
+            <InfantryMatchReportTeam i_TeamOrdinal=2 i_showHsr=_renderedShowHsr i_useObjectiveStats=true />
+        }
+
+    </div>
+}
 
 @code {
     [Parameter]
     public bool i_showHsr { get; set; } = true;
-    private bool _showHsr { get; set; } = true;
+    private bool _renderedShowHsr { get; set; } = true;
+
+    [Parameter]
+    public bool i_compact { get; set; }
+    private bool _renderedCompact { get; set; } = false;
+
+    [Parameter]
+    public OverlayStatsDisplayType i_statsType { get; set; }
+    private OverlayStatsDisplayType? _renderedStatsType { get; set; }
+
+    private OverlayStatsDisplayType _defaultStatsType = OverlayStatsDisplayType.InfantryScores;
+
 
     #region Initialization Methods
+    //protected override void OnInitialized()
+    //{
+
+    //}
+
     protected override void OnParametersSet()
     {
-        if (_showHsr != i_showHsr)
-        {
-            _showHsr = i_showHsr;
+        var stateHasChanged = false;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+        if (_renderedShowHsr != i_showHsr)
+        {
+            _renderedShowHsr = i_showHsr;
+
+            stateHasChanged = true;
         }
+
+        if (_renderedCompact != i_compact)
+        {
+            _renderedCompact = i_compact;
+
+            stateHasChanged = true;
+        }
+
+        if (_renderedStatsType != i_statsType)
+        {
+            _renderedStatsType = (i_statsType == OverlayStatsDisplayType.InfantryObjective) ? i_statsType : _defaultStatsType;
+
+            stateHasChanged = true;
+        }
+
+        if (stateHasChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+
+
     }
     #endregion Initialization Methods
 
     private string GetReportCss()
     {
-        return _showHsr
-                    ? string.Empty
-                    : "no-hsr";
+        var hsrCssClass = _renderedShowHsr ? string.Empty : "no-hsr";
+
+        var statsCssClass = (_renderedStatsType == OverlayStatsDisplayType.InfantryObjective) ? "objective-stats" : string.Empty;
+
+        var compactCssClass = i_compact ? "compact" : string.Empty;
+
+        return $"{hsrCssClass} {statsCssClass} {compactCssClass}";
+
+        //return _renderedShowHsr
+        //        ? string.Empty
+        //        : "no-hsr";
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 }

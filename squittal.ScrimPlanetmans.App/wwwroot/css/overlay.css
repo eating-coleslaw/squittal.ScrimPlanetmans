@@ -1509,6 +1509,33 @@ body {
     z-index: 1;
 }
 
+    .overlay .match-report.compact,
+    .overlay .match-report.no-hsr.compact {
+        /*top: 98px;*/
+        /*top: 100px;*/
+        width: 100%;
+        /*margin-left: 16px;*/
+        /*margin-right: 16px;*/
+        /*left: 0;*/
+        grid-template-columns: 1fr 12px 1fr;
+        grid-template-areas: "team1 spacer team2";
+        /*width: 86%;*/
+        /*left: 7%;*/
+        width: 94%;
+        left: 3%;
+        margin: 0;
+    }
+
+    .overlay .match-report.compact,
+    .overlay .match-report.compact.no-hsr {
+        top: 116px;
+    }
+
+        .overlay .match-report.compact.objective-stats,
+        .overlay .match-report.compact.objective-stats.no-hsr {
+            top: 98px;
+        }
+
     .overlay .match-report.no-hsr {
         /*    width: 50%;*/
         /*    margin-left: auto;*/
@@ -1552,6 +1579,16 @@ body {
             border-top-left-radius: 5px;
         }
 
+        .overlay .match-report.compact .team-report-container.team1 {
+            grid-area: team1;
+            border-top-left-radius: 5px;
+        }
+
+        .overlay .match-report.compact .team-report-container.team2 {
+            grid-area: team2;
+            border-top-left-radius: 5px;
+        }
+
         .overlay .match-report .team-report.team2 {
             grid-area: team2;
             border-bottom-right-radius: 5px;
@@ -1583,6 +1620,42 @@ body {
         /*grid-gap: 4px;*/
         /*text-align: left;*/
     }
+
+    .overlay .match-report.compact .stats-row {
+        grid-template-columns: 1fr 65px 110px 70px repeat(5, 80px);
+        grid-template-areas: "label score graph net kills deaths hsr assists utils";
+    }
+
+    .overlay .match-report.compact.no-hsr .stats-row {
+        grid-template-columns: 1fr 65px 110px 70px repeat(4, 80px);
+        grid-template-areas: "label score graph net kills deaths assists utils";
+    }
+
+    .overlay .match-report.objective-stats .stats-row,
+    .overlay .match-report.objective-stats.no-hsr .stats-row {
+        grid-template-columns: 1fr 65px repeat(7, 90px);
+        grid-template-areas: "label score kills deaths assists objective-ticks revives revives-taken utils";
+    }
+
+
+        .overlay .match-report.objective-stats .stats-row.player,
+        .overlay .match-report.objective-stats.no-hsr .stats-row.player {
+            grid-template-columns: 1fr 65px repeat(7, 90px);
+            grid-template-areas: "label label kills deaths assists objective-ticks revives revives-taken utils";
+        }
+
+    .overlay .match-report.objective-stats.compact .stats-row,
+    .overlay .match-report.objective-stats.compact.no-hsr .stats-row {
+        grid-template-columns: 1fr 65px repeat(7, 80px);
+        grid-template-areas: "label score kills deaths assists objective-ticks revives revives-taken utils";
+    }
+
+
+        .overlay .match-report.objective-stats.compact .stats-row.player,
+        .overlay .match-report.objective-stats.compact.no-hsr .stats-row.player {
+            grid-template-columns: 1fr 65px repeat(7, 80px);
+            grid-template-areas: "label label kills deaths assists objective-ticks revives revives-taken utils";
+        }
 
     .overlay .match-report .stats-row.player {
         border-top: 1px outset var(--sq-ov-ps2-flavor-alpha-50, rgba(35, 35, 35, 0.55));
@@ -1631,6 +1704,44 @@ body {
         grid-template-areas: "label score net kills deaths assists utils";
     }
 
+    .overlay .match-report.compact .stats-row-header {
+        /*display: grid;*/
+        /*color: var(--sq-ov-ps2-primary-light, --sq-ov-bg-dark-gray);*/
+        grid-template-columns: 1fr 175px 70px repeat(5, 80px);
+        grid-template-areas: "label score net kills deaths hsr assists utils";
+        /*grid-gap: 4px;*/
+        /*text-align: right;*/
+        /*margin-bottom: 2px;*/
+        /*margin-top: 4px;*/
+    }
+
+    .overlay .match-report.compact.no-hsr .stats-row-header {
+        grid-template-columns: 1fr 175px 70px repeat(4, 80px);
+        grid-template-areas: "label score net kills deaths assists utils";
+    }
+
+    .overlay .match-report.objective-stats .stats-row-header,
+    .overlay .match-report.objective-stats.no-hsr .stats-row-header {
+        /*display: grid;*/
+        /*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
+        grid-template-columns: 1fr 65px repeat(7, 90px);
+        grid-template-areas: "label score kills deaths assists objective-ticks revives revives-taken utils";
+        /*grid-gap: 5px;*/
+        /*grid-gap: 4px;*/
+        /*text-align: left;*/
+    }
+
+    .overlay .match-report.objective-stats.compact .stats-row-header,
+    .overlay .match-report.objective-stats.compact.no-hsr .stats-row-header {
+        /*display: grid;*/
+        /*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
+        grid-template-columns: 1fr 65px repeat(7, 80px);
+        grid-template-areas: "label score kills deaths assists objective-ticks revives revives-taken utils";
+        /*grid-gap: 5px;*/
+        /*grid-gap: 4px;*/
+        /*text-align: left;*/
+    }
+
     .overlay .match-report .stats-row.team {
         font-size: 24px;
         color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);
@@ -1655,6 +1766,23 @@ body {
 
         .overlay .match-report .stats-row-header .stats-col-header.score {
             grid-area: score;
+            text-align: left;
+        }
+
+    .overlay .match-report.compact .stats-row-header .stats-col-header {
+        /*grid-area: score;*/
+        text-align: right;
+        font-size: 0.85rem;
+    }
+
+
+        .overlay .match-report.compact.objective-stats .stats-row-header .stats-col-header.score {
+            /*grid-area: score;*/
+            text-align: left;
+        }
+        
+        .overlay .match-report.compact .stats-row-header .stats-col-header.score {
+            /*grid-area: score;*/
             text-align: left;
         }
 
@@ -1812,6 +1940,14 @@ body {
         grid-area: utils;
     }
 
-    .overlay .match-report .stats-row .stats-value.hsr, .stats-col-header.hsr {
-        grid-area: hsr;
+    .overlay .match-report .stats-row .stats-value.revives, .stats-col-header.revives {
+        grid-area: revives;
+    }
+
+    .overlay .match-report .stats-row .stats-value.revives-taken, .stats-col-header.revives-taken {
+        grid-area: revives-taken;
+    }
+
+    .overlay .match-report .stats-row .stats-value.objective-ticks, .stats-col-header.objective-ticks {
+        grid-area: objective-ticks;
     }

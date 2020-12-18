@@ -13,13 +13,28 @@
     <div id="@($"{_team.Alias}-stats")" class="stats-row team">
         <div id="@($"{_team.Alias}-label")" class="label">@_team.Alias</div>
         <div id="@($"{_team.Alias}-score")" class="score stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Points);">@_renderedEventAggregate.Points</div>
-        <div id="@($"{_team.Alias}-net")" class="net stats-value">@_renderedEventAggregate.NetScore</div>
+        
+        @if (!_renderedUseObjectiveStats)
+        {
+            <div id="@($"{_team.Alias}-net")" class="net stats-value">@_renderedEventAggregate.NetScore</div>
+        }
+
         <div id="@($"{_team.Alias}-kills")" class="kills stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Kills);">@_renderedEventAggregate.Kills</div>
         <div id="@($"{_team.Alias}-deaths")" class="deaths stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.Deaths);">@_renderedEventAggregate.Deaths</div>
-        @if (_showHsr)
+        
+        @if (_renderedShowHsr && !_renderedUseObjectiveStats)
         {
             <div id="@($"{_team.Alias}-hsr")" class="hsr stats-value" style="opacity: @GetStatOpacity((int)_renderedEventAggregate.HeadshotRatio);">@Math.Round(_renderedEventAggregate.HeadshotRatio, 0)<span style="font-size: small;">%</span></div>
         }
+
+        @if (_renderedUseObjectiveStats)
+        {
+            <div id="@($"{_team.Alias}-objective-ticks")" class="objective-ticks stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.ObjectiveTicks);">@_renderedEventAggregate.ObjectiveTicks</div>
+            <div id="@($"{_team.Alias}-revives")" class="revives stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.RevivesGiven);">@_renderedEventAggregate.RevivesGiven</div>
+            @*<div id="@($"{_team.Alias}-revives-taken")" class="revives-taken stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.RevivesTaken);">@_renderedEventAggregate.RevivesTaken</div>*@
+
+        }
+
         <div id="@($"{_team.Alias}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
         <div id="@($"{_team.Alias}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.GrenadeAssists);">@_renderedEventAggregate.GrenadeAssists</div>
     </div>
@@ -32,7 +47,12 @@
 
     [Parameter]
     public bool i_showHsr { get; set; } = true;
-    private bool _showHsr { get; set; } = true;
+    private bool _renderedShowHsr { get; set; } = true;
+
+    [Parameter]
+    public bool i_useObjectiveStats { get; set; }
+    private bool _renderedUseObjectiveStats { get; set; }
+
 
     private Team _team { get; set; }
 
@@ -66,15 +86,25 @@
 
     protected override void OnParametersSet()
     {
-        var legacyUiChanged = false;
+        //var legacyUiChanged = false;
 
-        if (i_showHsr != _showHsr)
+        var stateHasChanged = false;
+
+        if (i_showHsr != _renderedShowHsr)
         {
-            _showHsr = i_showHsr;
-            legacyUiChanged = true;
+            _renderedShowHsr = i_showHsr;
+            stateHasChanged = true;
+
+            //legacyUiChanged = true;
         }
 
-        if (i_TeamOrdinal != _renderedTeamOrdinal || legacyUiChanged)
+        if (i_useObjectiveStats != _renderedUseObjectiveStats)
+        {
+            _renderedUseObjectiveStats = i_useObjectiveStats;
+            stateHasChanged = true;
+        }
+
+        if (i_TeamOrdinal != _renderedTeamOrdinal) // || legacyUiChanged)
         {
             _renderedTeamOrdinal = i_TeamOrdinal;
             _team = ScrimTeamsManager.GetTeam(_renderedTeamOrdinal);
@@ -82,6 +112,13 @@
             _renderedEventAggregate = new ScrimEventAggregate();
             _renderedEventAggregate.Add(_team.EventAggregate);
 
+            stateHasChanged = true;
+
+            //InvokeAsyncStateHasChanged();
+        }
+
+        if (stateHasChanged)
+        {
             InvokeAsyncStateHasChanged();
         }
     }
@@ -125,7 +162,7 @@
         {
             return true;
         }
-        else if (_renderedEventAggregate.NetScore != newAggregate.NetScore)
+        else if (_renderedEventAggregate.NetScore != newAggregate.NetScore && !_renderedUseObjectiveStats)
         {
             return true;
         }
@@ -133,7 +170,7 @@
         {
             return true;
         }
-        else if (_renderedEventAggregate.HeadshotRatio != newAggregate.HeadshotRatio)
+        else if (_renderedEventAggregate.HeadshotRatio != newAggregate.HeadshotRatio && _renderedShowHsr && !_renderedUseObjectiveStats)
         {
             return true;
         }
@@ -145,6 +182,18 @@
         {
             return true;
         }
+        else if (_renderedEventAggregate.RevivesGiven != newAggregate.RevivesGiven && _renderedUseObjectiveStats)
+        {
+            return true;
+        }
+        else if (_renderedEventAggregate.ObjectiveTicks != newAggregate.ObjectiveTicks && _renderedUseObjectiveStats)
+        {
+            return true;
+        }
+        //else if (_renderedEventAggregate.RevivesTaken != newAggregate.RevivesTaken && _renderedUseObjectiveStats)
+        //{
+        //    return true;
+        //}
         else
         {
             return false;
