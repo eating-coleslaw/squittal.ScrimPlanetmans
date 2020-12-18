@@ -41,6 +41,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _logger = logger;
 
             _messageService.RaiseRulesetRuleChangeEvent += async (s, e) => await HandleRulesetRuleChangeMesssage(s, e);
+
+            _messageService.RaiseRulesetSettingChangeEvent += HandleRulesetSettingChangeMessage;
         }
 
         public async Task<IEnumerable<Ruleset>> GetRulesetsAsync(CancellationToken cancellationToken)
@@ -203,6 +205,27 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 await SetUpActiveRulesetAsync();
             }
+        }
+
+        private void HandleRulesetSettingChangeMessage(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> e)
+        {
+            var ruleset = e.Message.Ruleset;
+            
+            _activateRulesetAutoEvent.WaitOne();
+
+            if (ruleset.Id != ActiveRuleset.Id)
+            {
+                _activateRulesetAutoEvent.Set();
+                return;
+            }
+
+            ActiveRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+
+            ActiveRuleset.UseCompactOverlay = ruleset.UseCompactOverlay;
+            ActiveRuleset.OverlayStatsDisplayType = ruleset.OverlayStatsDisplayType;
+
+            _activateRulesetAutoEvent.Set();
         }
 
         public async Task<Ruleset> GetDefaultRulesetAsync()
