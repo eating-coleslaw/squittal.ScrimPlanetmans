@@ -39,6 +39,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public int DefaultRulesetId { get; } = 1;
 
         private readonly KeyedSemaphoreSlim _rulesetLock = new KeyedSemaphoreSlim();
+        private readonly KeyedSemaphoreSlim _overlayConfigurationLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _actionRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemCategoryRulesLock = new KeyedSemaphoreSlim();
         private readonly KeyedSemaphoreSlim _itemRulesLock = new KeyedSemaphoreSlim();
@@ -202,15 +203,15 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 return null;
             }
         }
-        
-        public  async Task<IEnumerable<Ruleset>> GetAllRulesetsAsync(CancellationToken cancellationToken)
+
+        public async Task<IEnumerable<Ruleset>> GetAllRulesetsAsync(CancellationToken cancellationToken)
         {
             if (RulesetsMap.Count == 0 || !RulesetsMap.Any())
             {
                 await SetUpRulesetsMapAsync(cancellationToken);
             }
 
-            if (RulesetsMap  == null || !RulesetsMap.Any())
+            if (RulesetsMap == null || !RulesetsMap.Any())
             {
                 return null;
             }
@@ -218,7 +219,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             return RulesetsMap.Values.ToList();
         }
 
-        public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true)
+        public async Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true, bool includeOverlayConfiguration = true)
         {
             try
             {
@@ -241,16 +242,20 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     var TaskList = new List<Task>();
 
-                    var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
+                    //var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
+                    var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(actionRulesTask);
 
-                    var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
+                    //var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
+                    var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(itemCategoryRulesTask);
 
-                    var itemRulesTask = GetRulesetItemRulesAsync(rulesetId, CancellationToken.None);
+                    //var itemRulesTask = GetRulesetItemRulesAsync(rulesetId, CancellationToken.None);
+                    var itemRulesTask = GetRulesetItemRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(itemRulesTask);
 
-                    var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
+                    //var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
+                    var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(facilityRulesTask);
 
                     await Task.WhenAll(TaskList);
@@ -259,6 +264,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     ruleset.RulesetItemCategoryRules = itemCategoryRulesTask.Result.ToList();
                     ruleset.RulesetItemRules = itemRulesTask.Result.ToList();
                     ruleset.RulesetFacilityRules = facilityRulesTask.Result.ToList();
+                }
+
+                if (includeOverlayConfiguration)
+                {
+                    ruleset.RulesetOverlayConfiguration = await GetRulesetOverlayConfigurationAsync(rulesetId, cancellationToken);
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -292,11 +302,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 Ruleset ruleset;
 
-                    ruleset = await dbContext.Rulesets
-                                                .Where(r => r.Id == rulesetId)
-                                                .Include("RulesetFacilityRules")
-                                                .Include("RulesetFacilityRules.MapRegion")
-                                                .FirstOrDefaultAsync(cancellationToken);
+                ruleset = await dbContext.Rulesets
+                                            .Where(r => r.Id == rulesetId)
+                                            .Include("RulesetFacilityRules")
+                                            .Include("RulesetFacilityRules.MapRegion")
+                                            .FirstOrDefaultAsync(cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -310,6 +320,39 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             catch (OperationCanceledException)
             {
                 _logger.LogInformation($"Request cancelled: GetRulesetWithFacilityRules rulesetId {rulesetId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
+        public async Task<RulesetOverlayConfiguration> GetRulesetOverlayConfigurationAsync(int rulesetId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var configuration = await dbContext.RulesetOverlayConfigurations
+                                                    .Where(c => c.RulesetId == rulesetId)
+                                                    .FirstOrDefaultAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return configuration;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Requeset cancelled: GetRulesetOverlayConfigurationAsync rulesetId {rulesetId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetRulesetOverlayConfigurationAsync rulesetId {rulesetId}");
                 return null;
             }
             catch (Exception ex)
@@ -628,17 +671,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public async Task<bool> UpdateRulesetInfo(Ruleset rulesetUpdate, CancellationToken cancellationToken)
         {
             var updateId = rulesetUpdate.Id;
-            
+
             if (updateId == DefaultRulesetId || rulesetUpdate.IsDefault)
             {
                 return false;
             }
-            
+
             var updateName = rulesetUpdate.Name;
             var updateRoundLength = rulesetUpdate.DefaultRoundLength;
             var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
-            var updateUseCompactOverlay = rulesetUpdate.UseCompactOverlay;
-            var updateOverlayStatsDisplayType = rulesetUpdate.OverlayStatsDisplayType;
+            //var updateUseCompactOverlay = rulesetUpdate.UseCompactOverlay;
+            //var updateOverlayStatsDisplayType = rulesetUpdate.OverlayStatsDisplayType;
 
             Ruleset oldRuleset = new Ruleset();
 
@@ -666,7 +709,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
 
-                    var storeEntity = await GetRulesetFromIdAsync(updateId, cancellationToken, false);
+                    var storeEntity = await GetRulesetFromIdAsync(updateId, cancellationToken, false, false);
 
                     if (storeEntity == null)
                     {
@@ -675,8 +718,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     oldRuleset.DefaultRoundLength = storeEntity.DefaultRoundLength;
                     oldRuleset.DefaultMatchTitle = storeEntity.DefaultMatchTitle;
-                    oldRuleset.UseCompactOverlay = storeEntity.UseCompactOverlay;
-                    oldRuleset.OverlayStatsDisplayType = storeEntity.OverlayStatsDisplayType;
+                    //oldRuleset.UseCompactOverlay = storeEntity.UseCompactOverlay;
+                    //oldRuleset.OverlayStatsDisplayType = storeEntity.OverlayStatsDisplayType;
 
                     //var oldName = storeEntity.Name;
                     //var oldIsHidden = storeEntity.DefaultRoundLength;
@@ -685,8 +728,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     storeEntity.DefaultRoundLength = updateRoundLength;
                     storeEntity.DefaultMatchTitle = updateMatchTitle;
                     storeEntity.DateLastModified = DateTime.UtcNow;
-                    storeEntity.UseCompactOverlay = updateUseCompactOverlay;
-                    storeEntity.OverlayStatsDisplayType = updateOverlayStatsDisplayType;
+                    //storeEntity.UseCompactOverlay = updateUseCompactOverlay;
+                    //storeEntity.OverlayStatsDisplayType = updateOverlayStatsDisplayType;
 
                     dbContext.Rulesets.Update(storeEntity);
 
@@ -710,6 +753,74 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        public async Task SaveRulesetOverlayConfiguration(int rulesetId, RulesetOverlayConfiguration rulesetOverlayConfiguration, CancellationToken cancellationToken)
+        {
+            if (rulesetId == DefaultRulesetId)
+            {
+                return;
+            }
+
+            using (await _overlayConfigurationLock.WaitAsync($"{rulesetId}"))
+            {
+                //var configurationUpdate = rulesetOverlayConfiguration;
+
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var storeConfiguration = await dbContext.RulesetOverlayConfigurations.Where(c => c.RulesetId == rulesetId).FirstOrDefaultAsync(cancellationToken);
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    //var previousConfiguration = new RulesetOverlayConfiguration
+                    //{
+                    //    RulesetId = storeConfiguration.RulesetId,
+                    //    UseCompactLayout = storeConfiguration.UseCompactLayout,
+                    //    StatsDisplayType = storeConfiguration.StatsDisplayType,
+                    //    ShowStatusPanelScores = storeConfiguration.ShowStatusPanelScores
+                    //};
+
+                    //var newConfiguration = BuildRulesetOverlayConfiguration(rulesetId, configurationUpdate.UseCompactLayout, configurationUpdate.StatsDisplayType, configurationUpdate.ShowStatusPanelScores);
+
+                    var previousConfiguration = BuildRulesetOverlayConfiguration(rulesetId, storeConfiguration.UseCompactLayout, storeConfiguration.StatsDisplayType, storeConfiguration.ShowStatusPanelScores);
+                    var newConfiguration = BuildRulesetOverlayConfiguration(rulesetId, rulesetOverlayConfiguration.UseCompactLayout, rulesetOverlayConfiguration.StatsDisplayType, rulesetOverlayConfiguration.ShowStatusPanelScores);
+
+
+                    if (storeConfiguration == null)
+                    {
+                        //storeConfiguration = configurationUpdate;
+                        storeConfiguration = rulesetOverlayConfiguration;
+                        //dbContext.RulesetOverlayConfigurations.Add(configurationUpdate);
+                        dbContext.RulesetOverlayConfigurations.Add(storeConfiguration);
+                    }
+                    else
+                    {
+                        //storeConfiguration = configurationUpdate;
+                        storeConfiguration = rulesetOverlayConfiguration;
+                        dbContext.RulesetOverlayConfigurations.Update(storeConfiguration);
+                    }
+                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, cancellationToken, false, false);
+                    if (storeRuleset != null)
+                    {
+                        storeRuleset.DateLastModified = DateTime.UtcNow;
+                        dbContext.Rulesets.Update(storeRuleset);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+
+                    var message = new RulesetOverlayConfigurationChangeMessage(storeRuleset, newConfiguration, previousConfiguration);
+                    _messageService.BroadcastRulesetOverlayConfigurationChangeMessage(message);
+
+                    _logger.LogInformation($"Saved Overlay Configuration updates for Ruleset {rulesetId}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error saving RulesetOverlayConfiguration changes to database: {ex}");
+                }
+            }
+        }
+
         #region Save Ruleset Rules
         /*
          * Upsert New or Modified RulesetActionRules for a specific ruleset.
@@ -720,7 +831,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 return;
             }
-            
+
             using (await _actionRulesLock.WaitAsync($"{rulesetId}"))
             {
                 var ruleUpdates = rules.Where(rule => rule.RulesetId == rulesetId).ToList();
@@ -759,7 +870,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetActionRules.AddRange(newEntities);
                     }
 
-                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
                     if (storeRuleset != null)
                     {
                         storeRuleset.DateLastModified = DateTime.UtcNow;
@@ -798,7 +909,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     return;
                 }
-            
+
                 try
                 {
                     using var factory = _dbContextHelper.GetFactory();
@@ -819,7 +930,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         else
                         {
                             rule.ItemCategory = null;
-                            
+
                             storeEntity = rule;
 
                             dbContext.RulesetItemCategoryRules.Update(storeEntity);
@@ -905,7 +1016,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                             rule.Item = null;
 
                             storeEntity = rule;
-                            
+
                             dbContext.RulesetItemRules.Update(storeEntity);
                         }
                     }
@@ -1029,7 +1140,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
 
-                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
 
                     if (storeRuleset == null)
                     {
@@ -1062,6 +1173,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
 
             var TaskList = new List<Task>();
+
+            var overlayConfigurationTask = SeedNewRulesetDefaultOverlayConfiguration(ruleset.Id);
+            TaskList.Add(overlayConfigurationTask);
 
             var itemCategoryRulesTask = SeedNewRulesetDefaultItemCategoryRules(ruleset.Id);
             TaskList.Add(itemCategoryRulesTask);
@@ -1113,6 +1227,50 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     _logger.LogError(ex.ToString());
 
                     return null;
+                }
+            }
+        }
+
+        private RulesetOverlayConfiguration BuildRulesetOverlayConfiguration(int rulesetId, bool useCompactLayout = false, OverlayStatsDisplayType statsDisplayType = OverlayStatsDisplayType.InfantryScores, bool? ShowStatusPanelScores = null)
+        {
+            return new RulesetOverlayConfiguration
+            {
+                RulesetId = rulesetId,
+                UseCompactLayout = useCompactLayout,
+                StatsDisplayType = statsDisplayType,
+                ShowStatusPanelScores = ShowStatusPanelScores
+            };
+        }
+
+        private async Task SeedNewRulesetDefaultOverlayConfiguration(int rulesetId)
+        {
+            using (await _overlayConfigurationLock.WaitAsync($"{rulesetId}"))
+            {
+                try
+                {
+                    using var factory = _dbContextHelper.GetFactory();
+                    var dbContext = factory.GetDbContext();
+
+                    var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
+                    
+                    var defaultConfiguration = await dbContext.RulesetOverlayConfigurations.Where(c => c.RulesetId == rulesetId).FirstOrDefaultAsync();
+
+                    if (defaultConfiguration == null)
+                    {
+                        return;
+                    }
+
+                    var newConfiguration = BuildRulesetOverlayConfiguration(rulesetId, defaultConfiguration.UseCompactLayout, defaultConfiguration.StatsDisplayType, defaultConfiguration.ShowStatusPanelScores);
+
+                    dbContext.RulesetOverlayConfigurations.Add(newConfiguration);
+                    
+                    await dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+
+                    return;
                 }
             }
         }
@@ -1400,7 +1558,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 try
                 {
-                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
 
                     if (storeRuleset == null || storeRuleset.IsDefault || storeRuleset.IsCustomDefault)
                     {
@@ -1623,7 +1781,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 return false;
             }
-            
+
             try
             {
                 var hasBeenUsed = await HasRulesetBeenUsedAsync(rulesetId, cancellationToken);
@@ -1679,14 +1837,14 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var currentDefaultRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsCustomDefault);
 
-                var newDefaultRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false);
+                var newDefaultRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
 
                 if (newDefaultRuleset == null)
                 {
                     _defaultRulesetAutoEvent.Set();
                     return null;
                 }
-                
+
                 if (currentDefaultRuleset == null)
                 {
                     newDefaultRuleset.IsCustomDefault = true;
@@ -1771,7 +1929,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        public async Task<Ruleset> ImportNewRulesetFromJsonFile(string fileName, bool returnCollections = false)
+        public async Task<Ruleset> ImportNewRulesetFromJsonFile(string fileName, bool returnCollections = false, bool returnOverlayConfiguration = false)
         {
             try
             {
@@ -1795,13 +1953,20 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var TaskList = new List<Task>();
 
+                if (jsonRuleset.RulesetOverlayConfiguration != null)
+                {
+                    ruleset.RulesetOverlayConfiguration = ConvertToDbModel(ruleset.Id, jsonRuleset.RulesetOverlayConfiguration);
+                    var overlayConfigurationTask = SaveRulesetOverlayConfiguration(ruleset.Id, ruleset.RulesetOverlayConfiguration, CancellationToken.None);
+                    TaskList.Add(overlayConfigurationTask);
+                }
+
                 if (jsonRuleset.RulesetActionRules != null && jsonRuleset.RulesetActionRules.Any())
                 {
                     ruleset.RulesetActionRules = jsonRuleset.RulesetActionRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
                     var actionRulesTask = SaveRulesetActionRules(ruleset.Id, ruleset.RulesetActionRules);
                     TaskList.Add(actionRulesTask);
                 }
-                
+
                 if (jsonRuleset.RulesetItemCategoryRules != null && jsonRuleset.RulesetItemCategoryRules.Any())
                 {
                     ruleset.RulesetItemCategoryRules = jsonRuleset.RulesetItemCategoryRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
@@ -1829,7 +1994,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     var itemRulesTask = SaveRulesetItemRules(ruleset.Id, ruleset.RulesetItemRules);
                     TaskList.Add(itemRulesTask);
                 }
-                
+
                 if (jsonRuleset.RulesetFacilityRules != null && jsonRuleset.RulesetFacilityRules.Any())
                 {
                     ruleset.RulesetFacilityRules = jsonRuleset.RulesetFacilityRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
@@ -1844,19 +2009,34 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 _logger.LogInformation($"Created ruleset {ruleset.Id} from file {fileName}");
 
-                if (returnCollections)
-                {
-                    return ruleset;
-                }
-                else
+                //if (returnCollections)
+                //{
+                //    //return ruleset;
+                //}
+                //else
+                //{
+                //    ruleset.RulesetActionRules?.Clear();
+                //    ruleset.RulesetItemCategoryRules?.Clear();
+                //    ruleset.RulesetItemRules?.Clear();
+                //    ruleset.RulesetFacilityRules?.Clear();
+
+                //    //return ruleset;
+                //}
+
+                if (!returnCollections)
                 {
                     ruleset.RulesetActionRules?.Clear();
                     ruleset.RulesetItemCategoryRules?.Clear();
                     ruleset.RulesetItemRules?.Clear();
                     ruleset.RulesetFacilityRules?.Clear();
-
-                    return ruleset;
                 }
+
+                if (!returnOverlayConfiguration)
+                {
+                    ruleset.RulesetOverlayConfiguration = null;
+                }
+
+                return ruleset;
             }
             catch (Exception ex)
             {
@@ -1967,10 +2147,18 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 IsCustomDefault = false,
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
                 DefaultRoundLength = jsonRuleset.DefaultRoundLength,
-                SourceFile = sourceFileName,
-                UseCompactOverlay = jsonRuleset.UseCompactOverlay ?? false,
-                OverlayStatsDisplayType = jsonRuleset.OverlayStatsDisplayType ?? OverlayStatsDisplayType.InfantryScores
+                SourceFile = sourceFileName
+                //UseCompactOverlay = jsonRuleset.UseCompactOverlay ?? false,
+                //OverlayStatsDisplayType = jsonRuleset.OverlayStatsDisplayType ?? OverlayStatsDisplayType.InfantryScores
             };
+        }
+
+        private RulesetOverlayConfiguration ConvertToDbModel(int rulesetId, JsonRulesetOverlayConfiguration jsonConfiguration)
+        {
+            var useCompactLayout = jsonConfiguration.UseCompactLayout ?? false;
+            var statsDisplayType = jsonConfiguration.StatsDisplayType ?? OverlayStatsDisplayType.InfantryScores;
+
+            return BuildRulesetOverlayConfiguration(rulesetId, useCompactLayout, statsDisplayType, jsonConfiguration.UseCompactLayout);
         }
 
         private RulesetActionRule ConvertToDbModel(int rulesetId, JsonRulesetActionRule jsonRule)

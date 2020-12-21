@@ -72,6 +72,8 @@
     //[Parameter]
     private bool _objectiveStats { get; set; } = false;
 
+    private bool? _showStatusPanelScores { get; set; } = null;
+
     private Ruleset _activeRuleset { get; set; }
     private OverlayStatsDisplayType? _activeStatsDisplayType { get; set; }
 
@@ -82,7 +84,8 @@
         NavManager.LocationChanged += OnLocationChanged;
 
         MessageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChanged;
-        MessageService.RaiseRulesetSettingChangeEvent += OnRulesetSettingChanged;
+        //MessageService.RaiseRulesetSettingChangeEvent += OnRulesetSettingChanged;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent += OnRulesetOverlayConfigurationChanged;
     }
 
     public void Dispose()
@@ -90,7 +93,8 @@
         NavManager.LocationChanged -= OnLocationChanged;
 
         MessageService.RaiseActiveRulesetChangeEvent -= OnActiveRulesetChanged;
-        MessageService.RaiseRulesetSettingChangeEvent -= OnRulesetSettingChanged;
+        //MessageService.RaiseRulesetSettingChangeEvent -= OnRulesetSettingChanged;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent -= OnRulesetOverlayConfigurationChanged;
     }
 
     protected override void OnParametersSet()
@@ -106,12 +110,14 @@
 
             if (!_compactIsManual)
             {
-                _compact = _activeRuleset.UseCompactOverlay;
+                _compact = _activeRuleset.RulesetOverlayConfiguration.UseCompactLayout;
             }
 
-            _activeStatsDisplayType = _activeRuleset.OverlayStatsDisplayType;
+            _activeStatsDisplayType = _activeRuleset.RulesetOverlayConfiguration.StatsDisplayType;
 
             _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
+
+            _showStatusPanelScores = _activeRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
         }
         catch
         {
@@ -155,8 +161,9 @@
     {
         var ruleset = args.Message.ActiveRuleset;
 
-        var newRulesetCompact = ruleset.UseCompactOverlay;
-        var newRulesetOverlayStatsDisplayType = ruleset.OverlayStatsDisplayType;
+        var newRulesetCompact = ruleset.RulesetOverlayConfiguration.UseCompactLayout;
+        var newRulesetOverlayStatsDisplayType = ruleset.RulesetOverlayConfiguration.StatsDisplayType;
+        var newRulesetShowStatusPanelScores = ruleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
 
         var stateChanged = false;
 
@@ -175,16 +182,23 @@
             stateChanged = true;
         }
 
+        if (newRulesetShowStatusPanelScores != _showStatusPanelScores)
+        {
+            _showStatusPanelScores = newRulesetShowStatusPanelScores;
+            stateChanged = true;
+        }
+
         if (stateChanged)
         {
             InvokeAsyncStateHasChanged();
         }
     }
 
-    private void OnRulesetSettingChanged(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> args)
+    private void OnRulesetOverlayConfigurationChanged(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> args)
     {
         var changes = args.Message.ChangedSettings;
         var ruleset = args.Message.Ruleset;
+        var configuration = args.Message.OverlayConfiguration;
 
         if (ruleset.Id != _activeRuleset.Id)
         {
@@ -193,22 +207,32 @@
 
         var stateChanged = false;
 
-        if (changes.Contains(RulesetSettingChange.UseCompactOverlay))
+        if (changes.Contains(RulesetOverlayConfigurationChange.UseCompactLayout))
         {
-            if (ruleset.UseCompactOverlay != _compact && !_compactIsManual)
+            if (configuration.UseCompactLayout != _compact && !_compactIsManual)
             {
-                _compact = ruleset.UseCompactOverlay;
+                _compact = configuration.UseCompactLayout;
                 stateChanged = true;
             }
         }
 
-        if (changes.Contains(RulesetSettingChange.OverlayStatsDisplayType))
+        if (changes.Contains(RulesetOverlayConfigurationChange.StatsDisplayType))
         {
-            if (ruleset.OverlayStatsDisplayType != _activeStatsDisplayType)
+            if (configuration.StatsDisplayType != _activeStatsDisplayType)
             {
-                _activeStatsDisplayType = ruleset.OverlayStatsDisplayType;
+                _activeStatsDisplayType = configuration.StatsDisplayType;
 
                 _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
+
+                stateChanged = true;
+            }
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.ShowStatusPanelScores))
+        {
+            if (configuration.ShowStatusPanelScores != _showStatusPanelScores)
+            {
+                _showStatusPanelScores = configuration.ShowStatusPanelScores;
 
                 stateChanged = true;
             }
@@ -360,7 +384,7 @@
             }
             else if (_activeRuleset != null)
             {
-                _compact = _activeRuleset.UseCompactOverlay;
+                _compact = _activeRuleset.RulesetOverlayConfiguration.UseCompactLayout;
                 _compactIsManual = false;
                 stateChanged = true;
             }

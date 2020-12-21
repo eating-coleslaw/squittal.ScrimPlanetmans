@@ -10,8 +10,8 @@ using squittal.ScrimPlanetmans.Data;
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    [Migration("20201216161329_AddOverlayRulesetSettings")]
-    partial class AddOverlayRulesetSettings
+    [Migration("20201221200244_AddRulesetOverlayConfigurationModel")]
+    partial class AddRulesetOverlayConfigurationModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -1076,20 +1076,10 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("OverlayStatsDisplayType")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
                     b.Property<string>("SourceFile")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("");
-
-                    b.Property<bool>("UseCompactOverlay")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
 
@@ -1201,6 +1191,29 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .IsUnique();
 
                     b.ToTable("RulesetItemRule");
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetOverlayConfiguration", b =>
+                {
+                    b.Property<int>("RulesetId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("ShowStatusPanelScores")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StatsDisplayType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<bool>("UseCompactLayout")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("RulesetId");
+
+                    b.ToTable("RulesetOverlayConfiguration");
                 });
 
             modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.ScrimAction", b =>
@@ -1317,6 +1330,15 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
                         .WithMany("RulesetItemRules")
                         .HasForeignKey("RulesetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetOverlayConfiguration", b =>
+                {
+                    b.HasOne("squittal.ScrimPlanetmans.ScrimMatch.Models.Ruleset", "Ruleset")
+                        .WithOne("RulesetOverlayConfiguration")
+                        .HasForeignKey("squittal.ScrimPlanetmans.ScrimMatch.Models.RulesetOverlayConfiguration", "RulesetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

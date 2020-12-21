@@ -17,8 +17,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.DefaultRoundLength).HasDefaultValue(900);
             builder.Property(e => e.DefaultMatchTitle).HasDefaultValue(string.Empty);
             builder.Property(e => e.SourceFile).HasDefaultValue(string.Empty);
-            builder.Property(e => e.UseCompactOverlay).HasDefaultValue(false);
-            builder.Property(e => e.OverlayStatsDisplayType).HasDefaultValue(OverlayStatsDisplayType.InfantryScores);
+            //builder.Property(e => e.UseCompactOverlay).HasDefaultValue(false);
+            //builder.Property(e => e.OverlayStatsDisplayType).HasDefaultValue(OverlayStatsDisplayType.InfantryScores);
         }
     }
 }

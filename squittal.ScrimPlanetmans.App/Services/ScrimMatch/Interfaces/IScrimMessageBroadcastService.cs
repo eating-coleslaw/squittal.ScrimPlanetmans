@@ -47,6 +47,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         event EventHandler<ScrimMessageEventArgs<ActiveRulesetChangeMessage>> RaiseActiveRulesetChangeEvent;
         event EventHandler<ScrimMessageEventArgs<RulesetSettingChangeMessage>> RaiseRulesetSettingChangeEvent;
+        event EventHandler<ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage>> RaiseRulesetOverlayConfigurationChangeEvent;
         event EventHandler<ScrimMessageEventArgs<RulesetRuleChangeMessage>> RaiseRulesetRuleChangeEvent;
 
 
@@ -85,6 +86,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 
         void BroadcastActiveRulesetChangeMessage(ActiveRulesetChangeMessage message);
         void BroadcastRulesetSettingChangeMessage(RulesetSettingChangeMessage message);
+        void BroadcastRulesetOverlayConfigurationChangeMessage(RulesetOverlayConfigurationChangeMessage message);
         void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message);
         
     }

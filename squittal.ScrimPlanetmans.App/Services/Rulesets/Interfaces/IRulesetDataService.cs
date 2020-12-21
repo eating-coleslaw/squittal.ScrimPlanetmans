@@ -15,7 +15,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         int CustomDefaultRulesetId { get; }
 
         Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken);
-        Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true);
+        Task<Ruleset> GetRulesetFromIdAsync(int rulesetId, CancellationToken cancellationToken, bool includeCollections = true, bool includeOverlayConfiguration = true);
         Task<IEnumerable<RulesetActionRule>> GetRulesetActionRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesAsync(int rulesetId, CancellationToken cancellationToken);
         Task<IEnumerable<Ruleset>> GetAllRulesetsAsync(CancellationToken cancellationToken);
@@ -32,7 +32,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         void SetActiveRulesetId(int rulesetId);
         Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId);
         Task<bool> ExportRulesetToJsonFile(int rulesetId, CancellationToken cancellationToken);
-        Task<Ruleset> ImportNewRulesetFromJsonFile(string fileName, bool returnCollections = false);
+        Task<Ruleset> ImportNewRulesetFromJsonFile(string fileName, bool returnCollections = false, bool returnOverlayConfiguration = false);
         IEnumerable<string> GetJsonRulesetFileNames();
         Task<bool> CanDeleteRuleset(int rulesetId, CancellationToken cancellationToken);
         Task<bool> HasRulesetBeenUsedAsync(int rulesetId, CancellationToken cancellationToken);
@@ -41,5 +41,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules);
         Task<IEnumerable<RulesetItemCategoryRule>> GetRulesetItemCategoryRulesDeferringToItemRules(int rulesetId, CancellationToken cancellationToken);
         Task<IEnumerable<ItemCategory>> GetItemCategoriesDeferringToItemRules(int rulesetId, CancellationToken cancellationToken);
+        Task<RulesetOverlayConfiguration> GetRulesetOverlayConfigurationAsync(int rulesetId, CancellationToken cancellationToken);
+        Task SaveRulesetOverlayConfiguration(int rulesetId, RulesetOverlayConfiguration rulesetOverlayConfiguration, CancellationToken cancellationToken);
     }
 }

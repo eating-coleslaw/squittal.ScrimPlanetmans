@@ -490,7 +490,7 @@
         _isImportingRuleset = true;
         InvokeAsyncStateHasChanged();
 
-        var importedRulesetEntity = await RulesetDataService.ImportNewRulesetFromJsonFile(_selectedImportRulesetFileName, false);
+        var importedRulesetEntity = await RulesetDataService.ImportNewRulesetFromJsonFile(_selectedImportRulesetFileName, false, false);
 
         if (_openImportedRulesetOnSave && importedRulesetEntity != null)
         {

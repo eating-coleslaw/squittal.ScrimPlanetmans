@@ -222,8 +222,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ActiveRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
             ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
 
-            ActiveRuleset.UseCompactOverlay = ruleset.UseCompactOverlay;
-            ActiveRuleset.OverlayStatsDisplayType = ruleset.OverlayStatsDisplayType;
+            //ActiveRuleset.UseCompactOverlay = ruleset.UseCompactOverlay;
+            //ActiveRuleset.OverlayStatsDisplayType = ruleset.OverlayStatsDisplayType;
+
+            _activateRulesetAutoEvent.Set();
+        }
+
+        private void HandleRulesetOverlayConfigurationChangeMessage(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e)
+        {
+            var ruleset = e.Message.Ruleset;
+            var overlayConfiguration = e.Message.OverlayConfiguration;
+
+            _activateRulesetAutoEvent.WaitOne();
+
+            if (ruleset.Id != ActiveRuleset.Id)
+            {
+                _activateRulesetAutoEvent.Set();
+                return;
+            }
+
+            //ActiveRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            //ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+
+            ActiveRuleset.RulesetOverlayConfiguration.UseCompactLayout = overlayConfiguration.UseCompactLayout;
+            ActiveRuleset.RulesetOverlayConfiguration.StatsDisplayType = overlayConfiguration.StatsDisplayType;
+            ActiveRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = overlayConfiguration.ShowStatusPanelScores;
 
             _activateRulesetAutoEvent.Set();
         }
@@ -251,6 +274,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var stopWatchSetup = new Stopwatch();
             var stopWatchCollections = new Stopwatch();
+            var stopWatchOverlay = new Stopwatch();
             var stopWatchActionRules = new Stopwatch();
             var stopWatchItemRules = new Stopwatch();
             var stopWatchItemCategoryRules = new Stopwatch();
@@ -270,6 +294,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             bool rulesetExistsInDb = false;
 
+            RulesetOverlayConfiguration storeOverlayConfiguration = null; // = new RulesetOverlayConfiguration();
+
             var storeActionRules = new List<RulesetActionRule>();
             var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
             var storeItemRules = new List<RulesetItemRule>();
@@ -279,7 +305,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 stopWatchCollections.Start();
 
-                var storeRulesetWithCollections = await _rulesetDataService.GetRulesetFromIdAsync(storeRuleset.Id, CancellationToken.None, true);
+                var storeRulesetWithCollections = await _rulesetDataService.GetRulesetFromIdAsync(storeRuleset.Id, CancellationToken.None, true, true);
+
+                storeOverlayConfiguration = storeRulesetWithCollections.RulesetOverlayConfiguration;
 
                 storeActionRules = storeRulesetWithCollections.RulesetActionRules.ToList();
                 storeItemCategoryRules = storeRulesetWithCollections.RulesetItemCategoryRules.ToList();
@@ -304,9 +332,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             storeRuleset.DefaultMatchTitle = "PS2 Scrims";
             storeRuleset.IsDefault = true;
-            storeRuleset.UseCompactOverlay = false;
-            storeRuleset.OverlayStatsDisplayType = OverlayStatsDisplayType.InfantryScores;
 
+            
 
             // Get all async collection requests together
             var CollectionsTaskList = new List<Task>(); 
@@ -327,6 +354,31 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var allWeaponItems = allWeaponItemsTask.Result;
 
             stopWatchSetup.Stop();
+
+            stopWatchOverlay.Start();
+            
+            #region Overlay Configuration
+
+            if (storeOverlayConfiguration == null)
+            {
+                storeOverlayConfiguration.UseCompactLayout = false;
+                storeOverlayConfiguration.StatsDisplayType = OverlayStatsDisplayType.InfantryScores;
+                storeOverlayConfiguration.ShowStatusPanelScores = null;
+
+                dbContext.RulesetOverlayConfigurations.Add(storeOverlayConfiguration);
+            }
+            else
+            {
+                storeOverlayConfiguration.UseCompactLayout = false;
+                storeOverlayConfiguration.StatsDisplayType = OverlayStatsDisplayType.InfantryScores;
+                storeOverlayConfiguration.ShowStatusPanelScores = null;
+
+                dbContext.RulesetOverlayConfigurations.Update(storeOverlayConfiguration);
+            }
+
+            #endregion Overlay Configuration
+
+            stopWatchOverlay.Stop();
 
             stopWatchActionRules.Start();
 
@@ -582,6 +634,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             stopWatchFinalize.Start();
 
+            storeRuleset.RulesetOverlayConfiguration = storeOverlayConfiguration;
+
             storeRuleset.RulesetActionRules = allActionRules;
             storeRuleset.RulesetItemCategoryRules = allItemCategoryRules;
             storeRuleset.RulesetItemRules = allItemRules;
@@ -606,13 +660,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var totalTime = $"Finished seeding Default Ruleset (elapsed: {elapsedMs / 1000.0}s)";
             var setupTime = $"\n\t\t   Setup: {stopWatchSetup.ElapsedMilliseconds / 1000.0}s";
             var collectionsTime = $"\n\t\t\t   Get Collections: {stopWatchCollections.ElapsedMilliseconds / 1000.0}s";
+            var overlayTime = $"\n\t\t\t   Overlay Configuration: {stopWatchOverlay.ElapsedMilliseconds / 1000.0}s";
             var actionsTime = $"\n\t\t   Action Rules: {stopWatchActionRules.ElapsedMilliseconds / 1000.0}s";
             var itemCatsTime = $"\n\t\t   Item Category Rules: {stopWatchItemCategoryRules.ElapsedMilliseconds / 1000.0}s";
             var itemsTime = $"\n\t\t   Item Rules: {stopWatchItemRules.ElapsedMilliseconds / 1000.0}s";
             var facilitiesTime = $"\n\t\t   Facility Rules: {stopWatchFacilityRules.ElapsedMilliseconds / 1000.0}s";
             var finalizeTime = $"\n\t\t   Finalize: {stopWatchFinalize.ElapsedMilliseconds / 1000.0}s";
 
-            _logger.LogInformation($"{totalTime}{setupTime}{collectionsTime}{actionsTime}{itemCatsTime}{itemsTime}{facilitiesTime}{finalizeTime}");
+            _logger.LogInformation($"{totalTime}{setupTime}{collectionsTime}{overlayTime}{actionsTime}{itemCatsTime}{itemsTime}{facilitiesTime}{finalizeTime}");
         }
 
         private IEnumerable<RulesetItemCategoryRule> GetDefaultItemCategoryRules()
@@ -889,15 +944,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        private RulesetFacilityRule BuildRulesetFacilityRule(int rulesetId, int facilityId, int mapRegionId)
-        {
-            return new RulesetFacilityRule
-            {
-                RulesetId = rulesetId,
-                FacilityId = facilityId,
-                MapRegionId = mapRegionId
-            };
-        }
         private RulesetFacilityRule BuildRulesetFacilityRule(int facilityId, int mapRegionId)
         {
             return new RulesetFacilityRule

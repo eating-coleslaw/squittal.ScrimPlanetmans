@@ -1,4 +1,5 @@
 ﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Forms;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Rulesets;
@@ -56,8 +57,9 @@
                 }
 
                 <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.UseCompactOverlay ? "Yes" : "No")</div>
-                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.OverlayStatsDisplayType)</div>
+                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
+                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
+                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
             </p>
 
         </div>
@@ -161,7 +163,7 @@
 
         try
         {
-            _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false);
+            _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false, false);
 
             cts.Token.ThrowIfCancellationRequested();
 
@@ -268,6 +270,33 @@
         }
 
         return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions showScoresSelection)
+    {
+        var rawString = Enum.GetName(typeof(ShowStatusPanelScoresSelectOptions), showScoresSelection);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetOverlayShowPlayerScoresString(bool? showScores)
+    {
+        switch (showScores)
+        {
+            case true:
+                return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.Yes);
+
+            case false:
+                return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.No);
+
+            case null:
+                return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.StatsDisplayDefault);
+        }
     }
 
     private void InvokeAsyncStateHasChanged()

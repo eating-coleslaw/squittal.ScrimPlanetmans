@@ -25,16 +25,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string DefaultMatchTitle { get; set; } = string.Empty;
         public int DefaultRoundLength { get; set; } = 900;
 
-        #region Overlay Settings
-        public bool UseCompactOverlay { get; set; }
-        public OverlayStatsDisplayType OverlayStatsDisplayType { get; set; }
-        #endregion Overlay Settings
+        //#region Overlay Settings
+        //public bool UseCompactOverlay { get; set; }
+        //public OverlayStatsDisplayType OverlayStatsDisplayType { get; set; }
+        //public bool ShowOverlayStatusPanelScores { get; set; }
+        //#endregion Overlay Settings
 
 
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }
         public ICollection<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         public ICollection<RulesetItemRule> RulesetItemRules { get; set; }
         public ICollection<RulesetFacilityRule> RulesetFacilityRules { get; set; }
+
+        public RulesetOverlayConfiguration RulesetOverlayConfiguration { get; set; }
 
     }
 }

@@ -31,15 +31,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
                 ChangedSettings.Add(RulesetSettingChange.DefaultRoundLength);
             }
 
-            if (ruleset.UseCompactOverlay != previousRuleset.UseCompactOverlay)
-            {
-                ChangedSettings.Add(RulesetSettingChange.UseCompactOverlay);
-            }
+            //if (ruleset.UseCompactOverlay != previousRuleset.UseCompactOverlay)
+            //{
+            //    ChangedSettings.Add(RulesetSettingChange.UseCompactOverlay);
+            //}
 
-            if (ruleset.OverlayStatsDisplayType != previousRuleset.OverlayStatsDisplayType)
-            {
-                ChangedSettings.Add(RulesetSettingChange.OverlayStatsDisplayType);
-            }
+            //if (ruleset.OverlayStatsDisplayType != previousRuleset.OverlayStatsDisplayType)
+            //{
+            //    ChangedSettings.Add(RulesetSettingChange.OverlayStatsDisplayType);
+            //}
         }
 
         private string GetInfoString()
@@ -81,8 +81,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
     {
         //IsCustomDefault,
         DefaultMatchTitle,
-        DefaultRoundLength,
-        UseCompactOverlay,
-        OverlayStatsDisplayType
+        DefaultRoundLength//,
+        //UseCompactOverlay,
+        //OverlayStatsDisplayType
     }
 }

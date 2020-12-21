@@ -98,6 +98,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         
         public event EventHandler<ScrimMessageEventArgs<RulesetRuleChangeMessage>> RaiseRulesetRuleChangeEvent;
         public delegate void ActiveRulesetRuleChangeEventHandler(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e);
+        
+        public event EventHandler<ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage>> RaiseRulesetOverlayConfigurationChangeEvent;
+        public delegate void RulesetOverlayConfigurationChangeEventHandler(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e);
 
         #endregion Handler Events & Delegates
 
@@ -432,6 +435,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseRulesetSettingChangeEvent(ScrimMessageEventArgs<RulesetSettingChangeMessage> e)
         {
             RaiseRulesetSettingChangeEvent?.Invoke(this, e);
+        }
+        
+        public void BroadcastRulesetOverlayConfigurationChangeMessage(RulesetOverlayConfigurationChangeMessage message)
+        {
+            OnRaiseRulesetOverlayConfigurationChangeEvent(new ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage>(message));
+        }
+        protected virtual void OnRaiseRulesetOverlayConfigurationChangeEvent(ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e)
+        {
+            RaiseRulesetOverlayConfigurationChangeEvent?.Invoke(this, e);
         }
 
         public void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message)
