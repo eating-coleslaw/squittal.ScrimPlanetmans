@@ -251,6 +251,7 @@
         MessageService.RaiseRulesetRuleChangeEvent += HandleRulesetRuleChangeEvent;
         MessageService.RaiseRulesetSettingChangeEvent += HandleRulesetSettingChangeEvent;
         MessageService.RaiseRulesetOverlayConfigurationChangeEvent += HandleRulesetOverlayConfigurationChangeEvent;
+        MessageService.RaiseActiveRulesetChangeEvent += HandleActiveRulesetChangeEvent;
 
         _renderedRulesetId = i_rulesetId;
 
@@ -267,6 +268,7 @@
         MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
         MessageService.RaiseRulesetSettingChangeEvent -= HandleRulesetSettingChangeEvent;
         MessageService.RaiseRulesetOverlayConfigurationChangeEvent -= HandleRulesetOverlayConfigurationChangeEvent;
+        MessageService.RaiseActiveRulesetChangeEvent -= HandleActiveRulesetChangeEvent;
 
         if (cts != null)
         {
@@ -355,6 +357,17 @@
             await LoadRulesetAsync();
 
             StateHasChanged();
+        }
+    }
+
+    private void HandleActiveRulesetChangeEvent(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> e)
+    {
+        var newRuleset = e.Message.ActiveRuleset;
+        var oldRuleset = e.Message.PreviousActiveRuleset;
+
+        if (oldRuleset.Id == _renderedRulesetId || newRuleset.Id == _renderedRulesetId)
+        {
+            InvokeAsyncStateHasChanged();
         }
     }
 
