@@ -13,9 +13,6 @@
 @inject IScrimMessageBroadcastService MessageService
 @inject NavigationManager NavManager
 
-@*<p>_activeRuleset: @(_activeRuleset?.Name)</p>*@
-@*<p>_objectStats: @_objectiveStats</p>*@
-
 @if (_title)
 {
     <MatchTitle />
@@ -23,9 +20,6 @@
 
 @if (_players && _activeStatsDisplayType != null)
 {
-    @*<TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_NoScore=_objectiveStats />
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_NoScore=_objectiveStats />*@
-
     <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
     <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
 }
@@ -37,7 +31,6 @@
 
 @if (_report && _activeStatsDisplayType != null)
 {
-    @*<InfantryMatchReport i_showHsr=_showHsr />*@
     <MatchReportContainer i_showHsr=_showHsr i_statsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_compact=_compact />
 }
 
@@ -72,9 +65,7 @@
     public bool _compact { get; set; } = false;
     private bool _compactIsManual { get; set; } = false;
 
-    //[Parameter]
     private bool _objectiveStats { get; set; } = false;
-
     private bool? _showStatusPanelScores { get; set; } = null;
 
     private Ruleset _activeRuleset { get; set; }
@@ -87,7 +78,6 @@
         NavManager.LocationChanged += OnLocationChanged;
 
         MessageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChanged;
-        //MessageService.RaiseRulesetSettingChangeEvent += OnRulesetSettingChanged;
         MessageService.RaiseRulesetOverlayConfigurationChangeEvent += OnRulesetOverlayConfigurationChanged;
     }
 
@@ -96,7 +86,6 @@
         NavManager.LocationChanged -= OnLocationChanged;
 
         MessageService.RaiseActiveRulesetChangeEvent -= OnActiveRulesetChanged;
-        //MessageService.RaiseRulesetSettingChangeEvent -= OnRulesetSettingChanged;
         MessageService.RaiseRulesetOverlayConfigurationChangeEvent -= OnRulesetOverlayConfigurationChanged;
     }
 
@@ -127,27 +116,6 @@
             // Ignore
         }
     }
-
-    //protected override async Task OnParametersSetAsync() // OnAfterRenderAsync(bool firstRender)
-    //{
-    //    try
-    //    {
-    //        _activeRuleset = await RulesetManager.GetActiveRulesetAsync(false);
-
-    //        if (!_compactIsManual)
-    //        {
-    //            _compact = _activeRuleset.UseCompactOverlay;
-    //        }
-
-    //        _activeStatsDisplayType = _activeRuleset.OverlayStatsDisplayType;
-
-    //        _objectiveStats = (_activeStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
-    //    }
-    //    catch
-    //    {
-    //        // Ignore
-    //    }
-    //}
 
     #endregion Initialization Methods
 
@@ -392,23 +360,6 @@
                 stateChanged = true;
             }
         }
-
-        //if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("objectiveStats", out var qObjectiveStats))
-        //{
-        //    if (bool.TryParse(qObjectiveStats, out var objectiveStats))
-        //    {
-        //        if (objectiveStats != _objectiveStats)
-        //        {
-        //            _objectiveStats = objectiveStats;
-        //            stateChanged = true;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _objectiveStats = false;
-        //        stateChanged = true;
-        //    }
-        //}
 
         return stateChanged;
     }

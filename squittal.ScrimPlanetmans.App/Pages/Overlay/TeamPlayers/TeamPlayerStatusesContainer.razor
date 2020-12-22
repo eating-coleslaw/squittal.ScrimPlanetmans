@@ -27,21 +27,16 @@
             {
                 if (_renderedCompact)
                 {
-                    @*<TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />*@
                     <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores />
                 }
                 else
                 {
-                    @*<TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />*@
                     <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores />
                 }
             }
         }
 
     </div>
-    
-    <p>Show Scores: @_resolvedShowScores</p>
-    <p>Setting: @_renderedShowPlayerScoresSetting</p>
 }
 
 @code {
@@ -65,10 +60,6 @@
 
     private bool _resolvedShowScores { get; set; } = true;
 
-    //[Parameter]
-    //public bool i_NoScore { get; set; }
-    //private bool _renderedNoScore { get; set; } = false;
-
     private Team _team;
 
     private List<Player> _renderedPlayers { get; set; } = new List<Player>();
@@ -77,7 +68,6 @@
 
     private string _compactCssClass { get; set; } = string.Empty;
     private string _noScoreCssClass { get; set; } = string.Empty;
-    //private string _compactTrueCssClass = "compact";
 
     private string _compactFiveColumnsCssClass { get; set; } = string.Empty;
 
@@ -121,7 +111,6 @@
             _renderedStatsType = i_StatsType;
 
             showScoreSettingsChanged = true;
-            //stateChanged = true;
         }
 
         if (i_ShowPlayerScoresSetting != _renderedShowPlayerScoresSetting)
@@ -129,7 +118,6 @@
             _renderedShowPlayerScoresSetting = i_ShowPlayerScoresSetting;
 
             showScoreSettingsChanged = true;
-            //stateChanged = true;
         }
 
         if (showScoreSettingsChanged)
@@ -142,15 +130,6 @@
                 stateChanged = true;
             }
         }
-
-        //if (i_NoScore != _renderedNoScore)
-        //{
-        //    _renderedNoScore = i_NoScore;
-
-        //    SetNoScoreCssClass();
-
-        //    stateChanged = true;
-        //}
 
         if (stateChanged)
         {
@@ -309,7 +288,6 @@
 
     private void SetNoScoreCssClass()
     {
-        //_noScoreCssClass = _renderedNoScore ? "noScore" : string.Empty;
         _noScoreCssClass = !_resolvedShowScores ? "noScore" : string.Empty;
     }
 
