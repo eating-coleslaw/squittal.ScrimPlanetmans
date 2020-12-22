@@ -79,7 +79,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                     return ShowStatusPanelScoresSelectOptions.No;
 
                 case null:
-                    return ShowStatusPanelScoresSelectOptions.StatsDisplayDefault;
+                    return ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault;
             }
         }
 
@@ -93,7 +93,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                 case ShowStatusPanelScoresSelectOptions.No:
                     return false;
 
-                case ShowStatusPanelScoresSelectOptions.StatsDisplayDefault:
+                case ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault:
                     return null;
 
                 default:
@@ -107,6 +107,6 @@ namespace squittal.ScrimPlanetmans.Models.Forms
     {
         Yes,
         No,
-        StatsDisplayDefault
+        UseStatsDisplayDefault
     }
 }
