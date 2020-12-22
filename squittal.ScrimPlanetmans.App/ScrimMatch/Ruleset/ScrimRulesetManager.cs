@@ -43,6 +43,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseRulesetRuleChangeEvent += async (s, e) => await HandleRulesetRuleChangeMesssage(s, e);
 
             _messageService.RaiseRulesetSettingChangeEvent += HandleRulesetSettingChangeMessage;
+            _messageService.RaiseRulesetOverlayConfigurationChangeEvent += HandleRulesetOverlayConfigurationChangeMessage;
         }
 
         public async Task<IEnumerable<Ruleset>> GetRulesetsAsync(CancellationToken cancellationToken)
