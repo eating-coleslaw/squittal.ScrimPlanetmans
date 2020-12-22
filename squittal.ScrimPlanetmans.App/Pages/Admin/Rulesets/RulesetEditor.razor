@@ -228,6 +228,8 @@
     private bool _canDeleteRuleset { get; set; } = false;
     private bool _showDeleteConfirmationForm { get; set; } = false;
 
+    private bool _rerenderOnCancelEdit { get; set; } = false;
+
     private bool _showExportConfirmationForm { get; set; } = false;
 
     private DateTime? _renderedLastModifiedDateTime { get; set; }
@@ -241,6 +243,8 @@
         NavManager.LocationChanged += OnLocationChanged;
 
         MessageService.RaiseRulesetRuleChangeEvent += HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetSettingChangeEvent += HandleRulesetSettingChangeEvent;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent += HandleRulesetOverlayConfigurationChangeEvent;
 
         _renderedRulesetId = i_rulesetId;
 
@@ -255,6 +259,8 @@
         NavManager.LocationChanged -= OnLocationChanged;
 
         MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetSettingChangeEvent -= HandleRulesetSettingChangeEvent;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent -= HandleRulesetOverlayConfigurationChangeEvent;
 
         if (cts != null)
         {
@@ -364,6 +370,116 @@
 
         InvokeAsyncStateHasChanged();
     }
+
+    private void HandleRulesetSettingChangeEvent(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId) // || _showEditForm)
+        {
+            return;
+        }
+
+        var changes = e.Message.ChangedSettings;
+        if (!changes.Any())
+        {
+            return;
+        }
+
+        if (changes.Contains(RulesetSettingChange.Name))
+        {
+            _renderedRuleset.Name = ruleset.Name;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.RulesetName = ruleset.Name;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultMatchTitle))
+        {
+            _renderedRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultRoundLength))
+        {
+            _renderedRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleRulesetOverlayConfigurationChangeEvent(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId) // || _showEditForm)
+        {
+            return;
+        }
+
+        var changes = e.Message.ChangedSettings;
+        if (!changes.Any())
+        {
+            return;
+        }
+
+        var configuration = e.Message.OverlayConfiguration;
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.UseCompactLayout))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout = configuration.UseCompactLayout;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.UseCompactOverlayLayout = configuration.UseCompactLayout;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.StatsDisplayType))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType = configuration.StatsDisplayType;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.OverlayStatsDisplayType = configuration.StatsDisplayType;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.ShowStatusPanelScores))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = configuration.ShowStatusPanelScores;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.ShowOverlayStatusPanelScoresSelection = ConvertToSelectOption(configuration.ShowStatusPanelScores);
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
     #endregion Event Handling
 
     #region Form Handling
@@ -435,6 +551,13 @@
         _editFormRuleset.SetProperties(_renderedRuleset);
 
         _showEditForm = false;
+
+        if (_rerenderOnCancelEdit)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+
+        _rerenderOnCancelEdit = false;
     }
 
     private void ToggleEditRulesetFormVisibility()
@@ -610,6 +733,21 @@
 
             case null:
                 return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault);
+        }
+    }
+
+    private ShowStatusPanelScoresSelectOptions ConvertToSelectOption(bool? showStatusPanelScore)
+    {
+        switch (showStatusPanelScore)
+        {
+            case true:
+                return ShowStatusPanelScoresSelectOptions.Yes;
+
+            case false:
+                return ShowStatusPanelScoresSelectOptions.No;
+
+            case null:
+                return ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault;
         }
     }
 

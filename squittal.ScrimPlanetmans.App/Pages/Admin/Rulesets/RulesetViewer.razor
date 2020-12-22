@@ -107,7 +107,9 @@
     {
         NavManager.LocationChanged += OnLocationChanged;
 
-        MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetRuleChangeEvent += HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetSettingChangeEvent += HandleRulesetSettingChangeEvent;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent += HandleRulesetOverlayConfigurationChangeEvent;
     }
 
     public void Dispose()
@@ -115,6 +117,8 @@
         NavManager.LocationChanged -= OnLocationChanged;
 
         MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetSettingChangeEvent -= HandleRulesetSettingChangeEvent;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent -= HandleRulesetOverlayConfigurationChangeEvent;
 
         if (cts != null)
         {
@@ -207,6 +211,74 @@
         if (_renderedLastModifiedDateTime == ruleset.DateLastModified)
         {
             return;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleRulesetSettingChangeEvent(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        var changes = e.Message.ChangedSettings;
+        if (!changes.Any())
+        {
+            return;
+        }
+
+        if (changes.Contains(RulesetSettingChange.Name))
+        {
+            _renderedRuleset.Name = ruleset.Name;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultMatchTitle))
+        {
+            _renderedRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultRoundLength))
+        {
+            _renderedRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleRulesetOverlayConfigurationChangeEvent(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        var changes = e.Message.ChangedSettings;
+        if (!changes.Any())
+        {
+            return;
+        }
+
+        var configuration = e.Message.OverlayConfiguration;
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.UseCompactLayout))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout = configuration.UseCompactLayout;
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.StatsDisplayType))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType = configuration.StatsDisplayType;
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.ShowStatusPanelScores))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = configuration.ShowStatusPanelScores;
         }
 
         InvokeAsyncStateHasChanged();
