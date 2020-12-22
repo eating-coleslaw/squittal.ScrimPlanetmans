@@ -38,17 +38,29 @@
 
         </div>
 
-        <div style="display: block; font-size: 1rem; margin-top: 4px; margin-bottom: 12px;">
+        <div style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
+
+            @if (_renderedRuleset != null && IsActiveRuleset(_renderedRuleset.Id))
+            {
+                <div title="Active Ruleset" class="sans-serif-font" style="padding-left: 0; display: inline-block;">
+                    <span class="oi oi-target" style="padding-right: 0; font-size: 0.75rem;"></span>
+                    <span style="font-size: smaller;">Active Ruleset</span>
+                </div>
+
+                @if (!_renderedRuleset.IsDefault)
+                {
+                    <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px;">|</span>
+                }
+            }
 
             @if (!_renderedRuleset.IsDefault)
             {
-                <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: 0.9rem; margin-top: -4px; margin-bottom: 4px;">Open in Editor</NavLink>
+                <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; margin-bottom: 4px; display: inline-block;">Open in Editor</NavLink>
             }
 
             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
 
                 <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
-                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                 <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
                 <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
                 @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
@@ -167,7 +179,7 @@
 
         try
         {
-            _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false, false);
+            _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false, true);
 
             cts.Token.ThrowIfCancellationRequested();
 

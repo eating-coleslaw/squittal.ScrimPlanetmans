@@ -55,6 +55,14 @@
                 {
                     @if (!_showExportConfirmationForm && !_showDeleteConfirmationForm)
                     {
+                        @if (_renderedRuleset != null && IsActiveRuleset(_renderedRuleset.Id))
+                        {
+                            <div title="Active Ruleset" class="sans-serif-font" style="padding-left: 0; display: inline-block;">
+                                <span class="oi oi-target" style="padding-right: 0; font-size: 0.75rem;"></span>
+                                <span style="font-size: smaller;">Active Ruleset</span>
+                            </div><span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px">|</span>
+                        }
+
                         <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
                     }
 
@@ -62,8 +70,7 @@
                     {
                         @if (!_showExportConfirmationForm)
                         {
-                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
-                            <button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px;">|</span><button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
                         }
                         else
                         {
@@ -113,7 +120,6 @@
                     <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
 
                         <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Is Active?</span>@(IsActiveRuleset(_renderedRuleset.Id) ? "Yes" : "No")</div>
                         <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
                         <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
                         @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
@@ -148,9 +154,9 @@
                                 <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;">
 
                                     @foreach (OverlayStatsDisplayType statsType in Enum.GetValues(typeof(OverlayStatsDisplayType)))
-                                    {
+                                                {
                                         <option value=@statsType label=@GetOverlayStatsDisplayString(statsType) />
-                                    }
+                                                }
 
                                 </InputSelect>
                             </div>
@@ -159,9 +165,9 @@
                                 <span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.ShowOverlayStatusPanelScoresSelection style="display: inline-block; width: 248px;">
 
                                     @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
-                                    {
+                                                {
                                         <option value=@showScoresSelection label=@GetOverlayShowPlayerScoresSelectionString(showScoresSelection) />
-                                    }
+                                                }
 
                                 </InputSelect>
                             </div>
