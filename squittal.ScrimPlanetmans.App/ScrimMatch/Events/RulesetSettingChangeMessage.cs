@@ -21,6 +21,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
         private void CalculateSettingChanges(Ruleset ruleset, Ruleset previousRuleset)
         {
+            if (ruleset.Name != previousRuleset.Name)
+            {
+                ChangedSettings.Add(RulesetSettingChange.Name);
+            }
+
             if (ruleset.DefaultMatchTitle != previousRuleset.DefaultMatchTitle)
             {
                 ChangedSettings.Add(RulesetSettingChange.DefaultMatchTitle);
@@ -30,16 +35,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             {
                 ChangedSettings.Add(RulesetSettingChange.DefaultRoundLength);
             }
-
-            //if (ruleset.UseCompactOverlay != previousRuleset.UseCompactOverlay)
-            //{
-            //    ChangedSettings.Add(RulesetSettingChange.UseCompactOverlay);
-            //}
-
-            //if (ruleset.OverlayStatsDisplayType != previousRuleset.OverlayStatsDisplayType)
-            //{
-            //    ChangedSettings.Add(RulesetSettingChange.OverlayStatsDisplayType);
-            //}
         }
 
         private string GetInfoString()
@@ -79,10 +74,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
     public enum RulesetSettingChange
     {
-        //IsCustomDefault,
+        Name,
         DefaultMatchTitle,
-        DefaultRoundLength//,
-        //UseCompactOverlay,
-        //OverlayStatsDisplayType
+        DefaultRoundLength
     }
 }

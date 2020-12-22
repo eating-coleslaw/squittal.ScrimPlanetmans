@@ -680,8 +680,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateName = rulesetUpdate.Name;
             var updateRoundLength = rulesetUpdate.DefaultRoundLength;
             var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
-            //var updateUseCompactOverlay = rulesetUpdate.UseCompactOverlay;
-            //var updateOverlayStatsDisplayType = rulesetUpdate.OverlayStatsDisplayType;
 
             Ruleset oldRuleset = new Ruleset();
 
@@ -716,20 +714,14 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         return false;
                     }
 
+                    oldRuleset.Name = storeEntity.Name;
                     oldRuleset.DefaultRoundLength = storeEntity.DefaultRoundLength;
                     oldRuleset.DefaultMatchTitle = storeEntity.DefaultMatchTitle;
-                    //oldRuleset.UseCompactOverlay = storeEntity.UseCompactOverlay;
-                    //oldRuleset.OverlayStatsDisplayType = storeEntity.OverlayStatsDisplayType;
-
-                    //var oldName = storeEntity.Name;
-                    //var oldIsHidden = storeEntity.DefaultRoundLength;
 
                     storeEntity.Name = updateName;
                     storeEntity.DefaultRoundLength = updateRoundLength;
                     storeEntity.DefaultMatchTitle = updateMatchTitle;
                     storeEntity.DateLastModified = DateTime.UtcNow;
-                    //storeEntity.UseCompactOverlay = updateUseCompactOverlay;
-                    //storeEntity.OverlayStatsDisplayType = updateOverlayStatsDisplayType;
 
                     dbContext.Rulesets.Update(storeEntity);
 
@@ -737,7 +729,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     await SetUpRulesetsMapAsync(cancellationToken);
 
-                    // TODO: broadcast Ruleset Info Change Message
                     var changeMessage = new RulesetSettingChangeMessage(storeEntity, oldRuleset);
                     _messageService.BroadcastRulesetSettingChangeMessage(changeMessage);
 
@@ -753,6 +744,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
+        /*
+         * Upsert New or Modified Overlay Configuration for a specific ruleset
+         */
         public async Task<bool> SaveRulesetOverlayConfiguration(int rulesetId, RulesetOverlayConfiguration rulesetOverlayConfiguration, CancellationToken cancellationToken)
         {
             if (rulesetId == DefaultRulesetId)
@@ -762,8 +756,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
             using (await _overlayConfigurationLock.WaitAsync($"{rulesetId}"))
             {
-                //var configurationUpdate = rulesetOverlayConfiguration;
-
                 try
                 {
                     using var factory = _dbContextHelper.GetFactory();
@@ -773,30 +765,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    //var previousConfiguration = new RulesetOverlayConfiguration
-                    //{
-                    //    RulesetId = storeConfiguration.RulesetId,
-                    //    UseCompactLayout = storeConfiguration.UseCompactLayout,
-                    //    StatsDisplayType = storeConfiguration.StatsDisplayType,
-                    //    ShowStatusPanelScores = storeConfiguration.ShowStatusPanelScores
-                    //};
-
-                    //var newConfiguration = BuildRulesetOverlayConfiguration(rulesetId, configurationUpdate.UseCompactLayout, configurationUpdate.StatsDisplayType, configurationUpdate.ShowStatusPanelScores);
-
                     var previousConfiguration = BuildRulesetOverlayConfiguration(rulesetId, storeConfiguration.UseCompactLayout, storeConfiguration.StatsDisplayType, storeConfiguration.ShowStatusPanelScores);
                     var newConfiguration = BuildRulesetOverlayConfiguration(rulesetId, rulesetOverlayConfiguration.UseCompactLayout, rulesetOverlayConfiguration.StatsDisplayType, rulesetOverlayConfiguration.ShowStatusPanelScores);
 
 
                     if (storeConfiguration == null)
                     {
-                        //storeConfiguration = configurationUpdate;
                         storeConfiguration = rulesetOverlayConfiguration;
-                        //dbContext.RulesetOverlayConfigurations.Add(configurationUpdate);
                         dbContext.RulesetOverlayConfigurations.Add(storeConfiguration);
                     }
                     else
                     {
-                        //storeConfiguration = configurationUpdate;
                         storeConfiguration = rulesetOverlayConfiguration;
                         dbContext.RulesetOverlayConfigurations.Update(storeConfiguration);
                     }
