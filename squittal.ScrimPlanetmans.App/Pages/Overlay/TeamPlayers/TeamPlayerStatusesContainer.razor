@@ -27,15 +27,21 @@
             {
                 if (_renderedCompact)
                 {
-                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />
+                    @*<TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />*@
+                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores />
                 }
                 else
                 {
-                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />
+                    @*<TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=i_NoScore />*@
+                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores />
                 }
             }
         }
+
     </div>
+    
+    <p>Show Scores: @_resolvedShowScores</p>
+    <p>Setting: @_renderedShowPlayerScoresSetting</p>
 }
 
 @code {
@@ -48,8 +54,20 @@
     private bool _renderedCompact { get; set; } = false;
 
     [Parameter]
-    public bool i_NoScore { get; set; }
-    private bool _renderedNoScore { get; set; } = false;
+    public OverlayStatsDisplayType i_StatsType { get; set; }
+    private OverlayStatsDisplayType? _renderedStatsType { get; set; }
+
+    private OverlayStatsDisplayType _defaultStatsType = OverlayStatsDisplayType.InfantryScores;
+
+    [Parameter]
+    public bool? i_ShowPlayerScoresSetting { get; set; }
+    private bool? _renderedShowPlayerScoresSetting { get; set; }
+
+    private bool _resolvedShowScores { get; set; } = true;
+
+    //[Parameter]
+    //public bool i_NoScore { get; set; }
+    //private bool _renderedNoScore { get; set; } = false;
 
     private Team _team;
 
@@ -96,14 +114,43 @@
             stateChanged = true;
         }
 
-        if (i_NoScore != _renderedNoScore)
+        var showScoreSettingsChanged = false;
+
+        if (i_StatsType != _renderedStatsType)
         {
-            _renderedNoScore = i_NoScore;
+            _renderedStatsType = i_StatsType;
 
-            SetNoScoreCssClass();
-
-            stateChanged = true;
+            showScoreSettingsChanged = true;
+            //stateChanged = true;
         }
+
+        if (i_ShowPlayerScoresSetting != _renderedShowPlayerScoresSetting)
+        {
+            _renderedShowPlayerScoresSetting = i_ShowPlayerScoresSetting;
+
+            showScoreSettingsChanged = true;
+            //stateChanged = true;
+        }
+
+        if (showScoreSettingsChanged)
+        {
+            var showScoresChanged = ResolveShowPlayerScores();
+
+            if (showScoresChanged)
+            {
+                SetNoScoreCssClass();
+                stateChanged = true;
+            }
+        }
+
+        //if (i_NoScore != _renderedNoScore)
+        //{
+        //    _renderedNoScore = i_NoScore;
+
+        //    SetNoScoreCssClass();
+
+        //    stateChanged = true;
+        //}
 
         if (stateChanged)
         {
@@ -231,6 +278,30 @@
         return (player.IsActive || player.IsOnline) && !player.IsBenched;
     }
 
+    private bool ResolveShowPlayerScores()
+    {
+        var previousShowScores = _renderedShowPlayerScoresSetting;
+
+        if (_renderedShowPlayerScoresSetting != null)
+        {
+            _resolvedShowScores = (bool)_renderedShowPlayerScoresSetting;
+
+            return _resolvedShowScores != previousShowScores;
+        }
+
+        _resolvedShowScores = _renderedStatsType switch
+        {
+            OverlayStatsDisplayType.InfantryScores => true,
+            OverlayStatsDisplayType.InfantryObjective => false,
+            OverlayStatsDisplayType.AirVehicleScores => true,
+            OverlayStatsDisplayType.GroundVehicleScores => true,
+            OverlayStatsDisplayType.CombinedArmsObjective => false,
+            _ => true
+        };
+
+        return _resolvedShowScores != previousShowScores;
+    }
+
     private void SetCompactModeCssClass()
     {
         _compactCssClass = _renderedCompact ? "compact" : string.Empty;
@@ -238,7 +309,8 @@
 
     private void SetNoScoreCssClass()
     {
-        _noScoreCssClass = _renderedNoScore ? "noScore" : string.Empty;
+        //_noScoreCssClass = _renderedNoScore ? "noScore" : string.Empty;
+        _noScoreCssClass = !_resolvedShowScores ? "noScore" : string.Empty;
     }
 
     private void SetCompact5sCssClass()

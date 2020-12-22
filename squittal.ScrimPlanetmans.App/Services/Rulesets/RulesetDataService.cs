@@ -2076,7 +2076,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     var message = new RulesetRuleChangeMessage(storeRuleset, RulesetRuleChangeType.ItemCategoryRule);
                     _messageService.BroadcastRulesetRuleChangeMessage(message);
 
-                    _logger.LogInformation($"Saved Facility Rule updates for Ruleset {rulesetId}");
+                    _logger.LogInformation($"{message.Info}");
+                    //_logger.LogInformation($"Saved Facility Rule updates for Ruleset {rulesetId}");
                 }
                 catch (Exception ex)
                 {

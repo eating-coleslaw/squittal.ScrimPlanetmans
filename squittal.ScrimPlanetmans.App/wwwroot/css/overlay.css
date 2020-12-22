@@ -1778,7 +1778,8 @@ body {
 
         .overlay .match-report.compact.objective-stats .stats-row-header .stats-col-header.score {
             /*grid-area: score;*/
-            text-align: left;
+            /*text-align: left;*/
+            text-align: right;
         }
         
         .overlay .match-report.compact .stats-row-header .stats-col-header.score {

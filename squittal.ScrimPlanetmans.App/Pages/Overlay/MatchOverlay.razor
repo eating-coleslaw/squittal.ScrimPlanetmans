@@ -23,8 +23,11 @@
 
 @if (_players && _activeStatsDisplayType != null)
 {
-    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_NoScore=_objectiveStats />
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_NoScore=_objectiveStats />
+    @*<TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_NoScore=_objectiveStats />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_NoScore=_objectiveStats />*@
+
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
 }
 
 @if (_scoreboard)
