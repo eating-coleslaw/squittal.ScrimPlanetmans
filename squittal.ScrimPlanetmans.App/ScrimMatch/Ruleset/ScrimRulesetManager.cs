@@ -67,7 +67,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-
         public async Task<Ruleset> ActivateRulesetAsync(int rulesetId)
         {
             _activateRulesetAutoEvent.WaitOne();
@@ -219,11 +218,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
+            ActiveRuleset.Name = ruleset.Name;
             ActiveRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
             ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
-
-            //ActiveRuleset.UseCompactOverlay = ruleset.UseCompactOverlay;
-            //ActiveRuleset.OverlayStatsDisplayType = ruleset.OverlayStatsDisplayType;
 
             _activateRulesetAutoEvent.Set();
         }
@@ -240,9 +237,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _activateRulesetAutoEvent.Set();
                 return;
             }
-
-            //ActiveRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
-            //ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
 
             ActiveRuleset.RulesetOverlayConfiguration.UseCompactLayout = overlayConfiguration.UseCompactLayout;
             ActiveRuleset.RulesetOverlayConfiguration.StatsDisplayType = overlayConfiguration.StatsDisplayType;
@@ -294,7 +288,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             bool rulesetExistsInDb = false;
 
-            RulesetOverlayConfiguration storeOverlayConfiguration = null; // = new RulesetOverlayConfiguration();
+            RulesetOverlayConfiguration storeOverlayConfiguration = null;
 
             var storeActionRules = new List<RulesetActionRule>();
             var storeItemCategoryRules = new List<RulesetItemCategoryRule>();
@@ -333,7 +327,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             storeRuleset.DefaultMatchTitle = "PS2 Scrims";
             storeRuleset.IsDefault = true;
 
-            
 
             // Get all async collection requests together
             var CollectionsTaskList = new List<Task>(); 
