@@ -242,19 +242,15 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 {
                     var TaskList = new List<Task>();
 
-                    //var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, CancellationToken.None);
                     var actionRulesTask = GetRulesetActionRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(actionRulesTask);
 
-                    //var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, CancellationToken.None);
                     var itemCategoryRulesTask = GetRulesetItemCategoryRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(itemCategoryRulesTask);
 
-                    //var itemRulesTask = GetRulesetItemRulesAsync(rulesetId, CancellationToken.None);
                     var itemRulesTask = GetRulesetItemRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(itemRulesTask);
 
-                    //var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, CancellationToken.None);
                     var facilityRulesTask = GetRulesetFacilityRulesAsync(rulesetId, cancellationToken);
                     TaskList.Add(facilityRulesTask);
 
@@ -1992,20 +1988,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 _logger.LogInformation($"Created ruleset {ruleset.Id} from file {fileName}");
 
-                //if (returnCollections)
-                //{
-                //    //return ruleset;
-                //}
-                //else
-                //{
-                //    ruleset.RulesetActionRules?.Clear();
-                //    ruleset.RulesetItemCategoryRules?.Clear();
-                //    ruleset.RulesetItemRules?.Clear();
-                //    ruleset.RulesetFacilityRules?.Clear();
-
-                //    //return ruleset;
-                //}
-
                 if (!returnCollections)
                 {
                     ruleset.RulesetActionRules?.Clear();
@@ -2131,8 +2113,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
                 DefaultRoundLength = jsonRuleset.DefaultRoundLength,
                 SourceFile = sourceFileName
-                //UseCompactOverlay = jsonRuleset.UseCompactOverlay ?? false,
-                //OverlayStatsDisplayType = jsonRuleset.OverlayStatsDisplayType ?? OverlayStatsDisplayType.InfantryScores
             };
         }
 

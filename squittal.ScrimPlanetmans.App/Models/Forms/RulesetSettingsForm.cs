@@ -1,16 +1,12 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.Models.Forms
 {
     public class RulesetSettingsForm
     {
         public int RulesetId { get; set; }
+
         public string RulesetName { get; set; }
-        
         public int DefaultRoundLength { get; set; }
         public string DefaultMatchTitle { get; set; }
 
@@ -19,6 +15,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
         public ShowStatusPanelScoresSelectOptions ShowOverlayStatusPanelScoresSelection { get; set; }
         public bool? ShowOverlayStatusPanelScores => ConvertToNullableBool(ShowOverlayStatusPanelScoresSelection);
+
 
         public RulesetSettingsForm(Ruleset ruleset)
         {
@@ -64,7 +61,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                 RulesetId = RulesetId,
                 UseCompactLayout = UseCompactOverlayLayout,
                 StatsDisplayType = OverlayStatsDisplayType,
-                ShowStatusPanelScores = ShowOverlayStatusPanelScores //ConvertToNullableBool(ShowOverlayStatusPanelScoresSelection)
+                ShowStatusPanelScores = ShowOverlayStatusPanelScores
             };
         }
 
