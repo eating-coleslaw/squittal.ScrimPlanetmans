@@ -137,13 +137,13 @@
                             <ValidationSummary />
 
                             <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
-                            @*<div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>*@
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span>@*<InputText @bind-Value=@_editFormRuleset.Name maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" />*@</div>
                             <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
                             <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
 
                             <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
-                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value=@_editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout /><span style="padding-left: 8px;">Use Compact Layout</span></div>
+                            @*<div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value=@_editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout /><span style="padding-left: 8px;">Use Compact Layout</span></div>
                             <div style="margin-bottom: 0.5rem;">
                                 <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType style="display: inline-block; width: 248px;">
 
@@ -155,12 +155,7 @@
                                 </InputSelect>
                             </div>
                              <div style="margin-bottom: 0.5rem;">
-                                @*<span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores style="display: inline-block; width: 248px;">*@
                                 <span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect Value="@_inputShowScoresSelection" ValueChanged="@((ShowStatusPanelScoresSelectOptions s) => OnChangeShowScoresSelection(s))" ValueExpression="@(() => _inputShowScoresSelection)" style="display: inline-block; width: 248px;">
-
-                                    @*<option value=@true label="Yes" />
-                                    <option value=@false label="No" />
-                                    <option value=@null label="Stats Display Default" />*@
 
                                     @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
                                     {
@@ -168,10 +163,10 @@
                                     }
 
                                 </InputSelect>
-                            </div>
+                            </div>*@
 
 
-                            @*<div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlayLayout" /><span style="padding-left: 8px;">Use Compact Layout</span></div>
+                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlayLayout" /><span style="padding-left: 8px;">Use Compact Layout</span></div>
                             <div style="margin-bottom: 0.5rem;">
                                 <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;">
 
@@ -181,9 +176,9 @@
                                     }
 
                                 </InputSelect>
-                            </div>*@
+                            </div>
 
-                            @*<div style="margin-bottom: 0.5rem;">
+                            <div style="margin-bottom: 0.5rem;">
                                 <span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.ShowOverlayStatusPanelScoresSelection style="display: inline-block; width: 248px;">
 
                                     @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
@@ -192,7 +187,7 @@
                                     }
 
                                 </InputSelect>
-                            </div>*@
+                            </div>
 
                             <div style="text-align: right; margin-top: 12px;">
                                 <button type="submit" class="btn btn-primary">
@@ -251,8 +246,8 @@
     private bool _isDeletingRuleset { get; set; } = false;
 
     private bool _showEditForm { get; set; } = false;
-    private Ruleset _editFormRuleset { get; set; } = new Ruleset();
-    //private RulesetSettingsForm _editFormRuleset { get; set; }//= new RulesetSettingsForm();
+    //private Ruleset _editFormRuleset { get; set; } = new Ruleset();
+    private RulesetSettingsForm _editFormRuleset { get; set; }  //= new RulesetSettingsForm();
 
     private bool _canDeleteRuleset { get; set; } = false;
     private bool _showDeleteConfirmationForm { get; set; } = false;
@@ -347,16 +342,16 @@
             _renderedRuleset = rulesetTask.Result;
             _canDeleteRuleset = canDeleteTask.Result;
 
-            //_editFormRuleset = new RulesetSettingsForm(_renderedRuleset);
+            _editFormRuleset = new RulesetSettingsForm(_renderedRuleset);
 
-            _editFormRuleset.Name = _renderedRuleset.Name;
-            _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
-            _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
-            _editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
-            _editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
+            //_editFormRuleset.Name = _renderedRuleset.Name;
+            //_editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+            //_editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+            //_editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
+            //_editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
 
-            _inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
-            _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
+            //_inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+            //_editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
 
             _renderedLastModifiedDateTime = _renderedRuleset.DateLastModified;
         }
@@ -411,9 +406,10 @@
     {
         var updateRuleset = _editFormRuleset;
 
-        updateRuleset.Id = _renderedRulesetId;
-        updateRuleset.RulesetOverlayConfiguration.RulesetId = _renderedRulesetId;
-        //updateRuleset.RulesetId = _renderedRulesetId;
+        //updateRuleset.Id = _renderedRulesetId;
+        //updateRuleset.RulesetOverlayConfiguration.RulesetId = _renderedRulesetId;
+
+        updateRuleset.RulesetId = _renderedRulesetId;
 
         _isSavingRuleset = true;
         InvokeAsyncStateHasChanged();
@@ -430,6 +426,7 @@
 
         try
         {
+            /*** Version 1 ***/
             //var TaskList = new List<Task>();
 
             //var rulesetTask = RulesetDataService.UpdateRulesetInfo(updateRuleset.GetRuleset(), cts.Token);
@@ -438,17 +435,42 @@
             //var overlayConfigurationTask = RulesetDataService.SaveRulesetOverlayConfiguration(updateRuleset.RulesetId, updateRuleset.GetOverlayConfiguration(), cts.Token);
             //TaskList.Add(overlayConfigurationTask);
 
-            var success = await RulesetDataService.UpdateRulesetInfo(updateRuleset, cts.Token);
-
-            cts.Token.ThrowIfCancellationRequested();
-
-            await RulesetDataService.SaveRulesetOverlayConfiguration(updateRuleset.Id, updateRuleset.RulesetOverlayConfiguration, cts.Token);
-
-            cts.Token.ThrowIfCancellationRequested();
-
             //await Task.WhenAll(TaskList);
 
             //var success = rulesetTask.Result;
+
+            /*** Version 2 ***/
+            bool infoSuccess = false;
+            bool overlaySuccess = false;
+
+            //if (FormHasRulesetInfoChanges())
+            //{
+            //    infoSuccess = await RulesetDataService.UpdateRulesetInfo(updateRuleset.GetRuleset(), cts.Token);
+            //    cts.Token.ThrowIfCancellationRequested();
+            //}
+            infoSuccess = await RulesetDataService.UpdateRulesetInfo(updateRuleset.GetRuleset(), cts.Token);
+            cts.Token.ThrowIfCancellationRequested();
+
+            if (FormHasOverlayConfigurationChanges())
+            {
+                overlaySuccess = await RulesetDataService.SaveRulesetOverlayConfiguration(updateRuleset.RulesetId, updateRuleset.GetOverlayConfiguration(), cts.Token);
+                cts.Token.ThrowIfCancellationRequested();
+            }
+
+            var success = (infoSuccess || overlaySuccess);
+
+
+            /*** Version 3 ***/
+            //var success = await RulesetDataService.UpdateRulesetInfo(updateRuleset, cts.Token);
+
+            //cts.Token.ThrowIfCancellationRequested();
+
+            //await RulesetDataService.SaveRulesetOverlayConfiguration(updateRuleset.Id, updateRuleset.RulesetOverlayConfiguration, cts.Token);
+
+            //cts.Token.ThrowIfCancellationRequested();
+
+
+
 
             if (success)
             {
@@ -456,16 +478,16 @@
 
                 cts.Token.ThrowIfCancellationRequested();
 
-                //_editFormRuleset.SetProperties(_renderedRuleset);
+                _editFormRuleset.SetProperties(_renderedRuleset);
 
-                _editFormRuleset.Name = _renderedRuleset.Name;
-                _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
-                _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
-                _editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
-                _editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
+                //_editFormRuleset.Name = _renderedRuleset.Name;
+                //_editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+                //_editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+                //_editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
+                //_editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
 
-                _inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
-                _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
+                //_inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+                //_editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
 
                 _showEditForm = false;
 
@@ -489,16 +511,16 @@
 
     private void HandleEditRulesetCancel()
     {
-        //_editFormRuleset.SetProperties(_renderedRuleset);
+        _editFormRuleset.SetProperties(_renderedRuleset);
 
-        _editFormRuleset.Name = _renderedRuleset.Name;
-        _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
-        _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
-        _editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
-        _editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
+        //_editFormRuleset.Name = _renderedRuleset.Name;
+        //_editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+        //_editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+        //_editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
+        //_editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
 
-        _inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
-        _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
+        //_inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+        //_editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores;
 
         _showEditForm = false;
     }
@@ -509,20 +531,22 @@
 
         if (_showEditForm)
         {
-            //_editFormRuleset.SetProperties(_renderedRuleset);
+            _editFormRuleset.SetProperties(_renderedRuleset);
 
-            _editFormRuleset.Name = _renderedRuleset.Name;
-            _editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
-            _editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
+            //_editFormRuleset.Name = _renderedRuleset.Name;
+            //_editFormRuleset.DefaultRoundLength = _renderedRuleset.DefaultRoundLength;
+            //_editFormRuleset.DefaultMatchTitle = _renderedRuleset.DefaultMatchTitle;
 
-            _inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+            //_inputShowScoresSelection = ConvertToSelectOption(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
 
-            _editFormRuleset.RulesetOverlayConfiguration = new RulesetOverlayConfiguration
-            {
-                UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout,
-                StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType,
-                ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores
-            };
+            //_editFormRuleset.RulesetOverlayConfiguration = new RulesetOverlayConfiguration
+            //{
+            //    UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout,
+            //    StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType,
+            //    ShowStatusPanelScores = _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores
+            //};
+
+
 
             //_editFormRuleset.RulesetOverlayConfiguration.UseCompactLayout = _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout;
             //_editFormRuleset.RulesetOverlayConfiguration.StatsDisplayType = _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType;
@@ -588,26 +612,66 @@
         _showDeleteConfirmationForm = false;
     }
 
-    private void OnChangeShowScoresSelection(ShowStatusPanelScoresSelectOptions selection)
+    private bool FormHasRulesetInfoChanges()
     {
-        switch (selection)
+        if (_editFormRuleset.RulesetName != _renderedRuleset.Name)
         {
-            case ShowStatusPanelScoresSelectOptions.Yes:
-                _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = true;
-                _inputShowScoresSelection = ShowStatusPanelScoresSelectOptions.Yes;
-                return;
-
-            case ShowStatusPanelScoresSelectOptions.No:
-                _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = false;
-                _inputShowScoresSelection = ShowStatusPanelScoresSelectOptions.No;
-                return;
-
-            case ShowStatusPanelScoresSelectOptions.StatsDisplayDefault:
-                _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = null;
-                _inputShowScoresSelection = ShowStatusPanelScoresSelectOptions.StatsDisplayDefault;
-                return;
+            return true;
         }
+
+        if (_editFormRuleset.DefaultMatchTitle != _renderedRuleset.DefaultMatchTitle)
+        {
+            return true;
+        }
+
+        if (_editFormRuleset.DefaultRoundLength != _renderedRuleset.DefaultRoundLength)
+        {
+            return true;
+        }
+
+        return false;
     }
+
+    private bool FormHasOverlayConfigurationChanges()
+    {
+        if (_editFormRuleset.UseCompactOverlayLayout != _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout)
+        {
+            return true;
+        }
+
+        if (_editFormRuleset.OverlayStatsDisplayType != _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)
+        {
+            return true;
+        }
+
+        if (_editFormRuleset.ShowOverlayStatusPanelScores != _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    //private void OnChangeShowScoresSelection(ShowStatusPanelScoresSelectOptions selection)
+    //{
+    //    switch (selection)
+    //    {
+    //        case ShowStatusPanelScoresSelectOptions.Yes:
+    //            _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = true;
+    //            _inputShowScoresSelection = ShowStatusPanelScoresSelectOptions.Yes;
+    //            return;
+
+    //        case ShowStatusPanelScoresSelectOptions.No:
+    //            _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = false;
+    //            _inputShowScoresSelection = ShowStatusPanelScoresSelectOptions.No;
+    //            return;
+
+    //        case ShowStatusPanelScoresSelectOptions.StatsDisplayDefault:
+    //            _editFormRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = null;
+    //            _inputShowScoresSelection = ShowStatusPanelScoresSelectOptions.StatsDisplayDefault;
+    //            return;
+    //    }
+    //}
 
     #endregion Form Handling
 

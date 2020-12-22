@@ -17,8 +17,8 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         public bool UseCompactOverlayLayout { get; set; }
         public OverlayStatsDisplayType OverlayStatsDisplayType { get; set; }
 
-        //public bool? ShowStatusPanelScores { get; set; }
         public ShowStatusPanelScoresSelectOptions ShowOverlayStatusPanelScoresSelection { get; set; }
+        public bool? ShowOverlayStatusPanelScores => ConvertToNullableBool(ShowOverlayStatusPanelScoresSelection);
 
         public RulesetSettingsForm(Ruleset ruleset)
         {
@@ -64,7 +64,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                 RulesetId = RulesetId,
                 UseCompactLayout = UseCompactOverlayLayout,
                 StatsDisplayType = OverlayStatsDisplayType,
-                ShowStatusPanelScores = ConvertToNullableBool(ShowOverlayStatusPanelScoresSelection)
+                ShowStatusPanelScores = ShowOverlayStatusPanelScores //ConvertToNullableBool(ShowOverlayStatusPanelScoresSelection)
             };
         }
 

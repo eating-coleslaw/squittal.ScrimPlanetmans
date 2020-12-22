@@ -753,11 +753,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        public async Task SaveRulesetOverlayConfiguration(int rulesetId, RulesetOverlayConfiguration rulesetOverlayConfiguration, CancellationToken cancellationToken)
+        public async Task<bool> SaveRulesetOverlayConfiguration(int rulesetId, RulesetOverlayConfiguration rulesetOverlayConfiguration, CancellationToken cancellationToken)
         {
             if (rulesetId == DefaultRulesetId)
             {
-                return;
+                return false;
             }
 
             using (await _overlayConfigurationLock.WaitAsync($"{rulesetId}"))
@@ -813,10 +813,14 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     _messageService.BroadcastRulesetOverlayConfigurationChangeMessage(message);
 
                     _logger.LogInformation($"Saved Overlay Configuration updates for Ruleset {rulesetId}");
+
+                    return true;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError($"Error saving RulesetOverlayConfiguration changes to database: {ex}");
+
+                    return false;
                 }
             }
         }
