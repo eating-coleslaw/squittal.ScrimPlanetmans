@@ -127,10 +127,13 @@
                             <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
                         }
 
-                        <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
+                        @if (_renderedRuleset.RulesetOverlayConfiguration != null)
+                        { 
+                            <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
+                        }
 
                     </p>
                 }
@@ -461,6 +464,12 @@
 
         var configuration = e.Message.OverlayConfiguration;
 
+
+        if (_renderedRuleset.RulesetOverlayConfiguration == null)
+        {
+            _renderedRuleset.RulesetOverlayConfiguration = new RulesetOverlayConfiguration();
+        }
+
         if (changes.Contains(RulesetOverlayConfigurationChange.UseCompactLayout))
         {
             _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout = configuration.UseCompactLayout;
@@ -649,6 +658,11 @@
 
     private bool FormHasOverlayConfigurationChanges()
     {
+        if (_renderedRuleset.RulesetOverlayConfiguration == null)
+        {
+            return true;
+        }
+
         if (_editFormRuleset.UseCompactOverlayLayout != _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout)
         {
             return true;

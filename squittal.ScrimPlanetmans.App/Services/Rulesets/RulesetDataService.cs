@@ -66,6 +66,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             _itemService.RaiseStoreRefreshEvent += async (s, e) => await HandleItemStoreRefreshEvent(s, e);
         }
 
+        #region Collection Refresh Event Handling
         private async Task HandleItemCategoryStoreRefreshEvent(object sender, StoreRefreshMessageEventArgs e)
         {
             var refreshSource = Enum.GetName(typeof(StoreRefreshSource), e.RefreshSource);
@@ -158,6 +159,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
             _logger.LogInformation($"Finished updating rulesets post-Item Store Refresh. Source: {refreshSource}");
         }
+        #endregion Collection Refresh Event Handling
+
 
         #region GET methods
         public async Task<PaginatedList<Ruleset>> GetRulesetListAsync(int? pageIndex, CancellationToken cancellationToken)
@@ -761,7 +764,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var previousConfiguration = BuildRulesetOverlayConfiguration(rulesetId, storeConfiguration.UseCompactLayout, storeConfiguration.StatsDisplayType, storeConfiguration.ShowStatusPanelScores);
+                    var previousConfiguration = (storeConfiguration == null) ? null : BuildRulesetOverlayConfiguration(rulesetId, storeConfiguration.UseCompactLayout, storeConfiguration.StatsDisplayType, storeConfiguration.ShowStatusPanelScores);
+
                     var newConfiguration = BuildRulesetOverlayConfiguration(rulesetId, rulesetOverlayConfiguration.UseCompactLayout, rulesetOverlayConfiguration.StatsDisplayType, rulesetOverlayConfiguration.ShowStatusPanelScores);
 
 
@@ -1935,6 +1939,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 if (jsonRuleset.RulesetOverlayConfiguration != null)
                 {
                     ruleset.RulesetOverlayConfiguration = ConvertToDbModel(ruleset.Id, jsonRuleset.RulesetOverlayConfiguration);
+                    var overlayConfigurationTask = SaveRulesetOverlayConfiguration(ruleset.Id, ruleset.RulesetOverlayConfiguration, CancellationToken.None);
+                    TaskList.Add(overlayConfigurationTask);
+                }
+                else
+                {
+                    var defaultOverlayConfiguration = BuildRulesetOverlayConfiguration(ruleset.Id);
+                    ruleset.RulesetOverlayConfiguration = defaultOverlayConfiguration;
                     var overlayConfigurationTask = SaveRulesetOverlayConfiguration(ruleset.Id, ruleset.RulesetOverlayConfiguration, CancellationToken.None);
                     TaskList.Add(overlayConfigurationTask);
                 }

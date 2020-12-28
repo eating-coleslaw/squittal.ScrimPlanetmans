@@ -17,6 +17,11 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         public bool? ShowOverlayStatusPanelScores => ConvertToNullableBool(ShowOverlayStatusPanelScoresSelection);
 
 
+        private readonly bool _useCompactOverlayLayoutDefault = false;
+        private readonly OverlayStatsDisplayType _overlayStatsDisplayTypeDefault = OverlayStatsDisplayType.InfantryScores;
+        private readonly ShowStatusPanelScoresSelectOptions _showOverlayStatusPanelScoresSelectionDefault = ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault;
+
+
         public RulesetSettingsForm(Ruleset ruleset)
         {
             RulesetId = ruleset.Id;
@@ -25,9 +30,18 @@ namespace squittal.ScrimPlanetmans.Models.Forms
             DefaultRoundLength = ruleset.DefaultRoundLength;
             DefaultMatchTitle = ruleset.DefaultMatchTitle;
 
-            UseCompactOverlayLayout = ruleset.RulesetOverlayConfiguration.UseCompactLayout;
-            OverlayStatsDisplayType = ruleset.RulesetOverlayConfiguration.StatsDisplayType;
-            ShowOverlayStatusPanelScoresSelection = ConvertToSelectOption(ruleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+            if (ruleset.RulesetOverlayConfiguration != null)
+            {
+                UseCompactOverlayLayout = ruleset.RulesetOverlayConfiguration.UseCompactLayout;
+                OverlayStatsDisplayType = ruleset.RulesetOverlayConfiguration.StatsDisplayType;
+                ShowOverlayStatusPanelScoresSelection = ConvertToSelectOption(ruleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+            }
+            else
+            {
+                UseCompactOverlayLayout = _useCompactOverlayLayoutDefault;
+                OverlayStatsDisplayType = _overlayStatsDisplayTypeDefault;
+                ShowOverlayStatusPanelScoresSelection = _showOverlayStatusPanelScoresSelectionDefault;
+            }
         }
 
         public void SetProperties(Ruleset ruleset)
@@ -38,9 +52,18 @@ namespace squittal.ScrimPlanetmans.Models.Forms
             DefaultRoundLength = ruleset.DefaultRoundLength;
             DefaultMatchTitle = ruleset.DefaultMatchTitle;
 
-            UseCompactOverlayLayout = ruleset.RulesetOverlayConfiguration.UseCompactLayout;
-            OverlayStatsDisplayType = ruleset.RulesetOverlayConfiguration.StatsDisplayType;
-            ShowOverlayStatusPanelScoresSelection = ConvertToSelectOption(ruleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+            if (ruleset.RulesetOverlayConfiguration != null)
+            {
+                UseCompactOverlayLayout = ruleset.RulesetOverlayConfiguration.UseCompactLayout;
+                OverlayStatsDisplayType = ruleset.RulesetOverlayConfiguration.StatsDisplayType;
+                ShowOverlayStatusPanelScoresSelection = ConvertToSelectOption(ruleset.RulesetOverlayConfiguration.ShowStatusPanelScores);
+            }
+            else
+            {
+                UseCompactOverlayLayout = _useCompactOverlayLayoutDefault;
+                OverlayStatsDisplayType = _overlayStatsDisplayTypeDefault;
+                ShowOverlayStatusPanelScoresSelection = _showOverlayStatusPanelScoresSelectionDefault;
+            }
         }
 
         public Ruleset GetRuleset()
