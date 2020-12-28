@@ -1236,10 +1236,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     var defaultRulesetId = await dbContext.Rulesets.Where(r => r.IsDefault).Select(r => r.Id).FirstOrDefaultAsync();
                     
-                    var defaultConfiguration = await dbContext.RulesetOverlayConfigurations.Where(c => c.RulesetId == rulesetId).FirstOrDefaultAsync();
+                    var defaultConfiguration = await dbContext.RulesetOverlayConfigurations.Where(c => c.RulesetId == defaultRulesetId).FirstOrDefaultAsync();
 
                     if (defaultConfiguration == null)
                     {
+                        _logger.LogWarning($"Failed to seed new Ruleset Overlay Configuration. Default Ruleset Overlay Configuration is null.");
+
                         return;
                     }
 
