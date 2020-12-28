@@ -24,7 +24,6 @@
 
     [Parameter]
     public bool i_NoScore { get; set; }
-    //private bool _renderedNoScore { get; set; } = false;
 
     private string _renderedPlayerId;
     private int _renderedTeamOrdinal { get; set; }
@@ -38,11 +37,6 @@
             _renderedPlayerId = i_player.Id;
 
             stateChanged = true;
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
 
         if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
@@ -50,21 +44,7 @@
             _renderedTeamOrdinal = i_TeamOrdinal;
 
             stateChanged = true;
-
-            //InvokeAsync(() =>
-            //{
-            //    StateHasChanged();
-            //});
         }
-
-        //if (i_NoScore != _renderedNoScore)
-        //{
-        //    _renderedNoScore = i_NoScore;
-
-        //    SetNoScoreCssClass();
-
-        //    stateChanged = true;
-        //}
 
         if (stateChanged)
         {

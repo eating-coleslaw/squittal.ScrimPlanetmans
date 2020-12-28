@@ -2,19 +2,22 @@
 
 @if (_renderedStatsType != null && UseInfantryMatchReport())
 {
-    <InfantryMatchReport i_showHsr=i_showHsr i_statsType=(OverlayStatsDisplayType)_renderedStatsType i_compact=_renderedCompact />
+    <InfantryMatchReport i_ShowHsr=i_ShowHsr i_StatsType=(OverlayStatsDisplayType)_renderedStatsType i_Compact=_renderedCompact i_ShowPlayerScoresSetting=i_ShowPlayerScoresSetting />
 }
 
 @code {
     [Parameter]
-    public bool i_showHsr { get; set; } = true;
+    public bool i_ShowHsr { get; set; } = true;
 
     [Parameter]
-    public bool i_compact { get; set; }
+    public bool? i_ShowPlayerScoresSetting { get; set; }
+
+    [Parameter]
+    public bool i_Compact { get; set; }
     private bool _renderedCompact { get; set; } = false;
 
     [Parameter]
-    public OverlayStatsDisplayType i_statsType { get; set; }
+    public OverlayStatsDisplayType i_StatsType { get; set; }
     private OverlayStatsDisplayType? _renderedStatsType { get; set; }
 
     private OverlayStatsDisplayType _defaultStatsType = OverlayStatsDisplayType.InfantryScores;
@@ -25,16 +28,16 @@
     {
         var stateHasChanged = false;
 
-        if (_renderedCompact != i_compact)
+        if (_renderedCompact != i_Compact)
         {
-            _renderedCompact = i_compact;
+            _renderedCompact = i_Compact;
 
             stateHasChanged = true;
         }
 
-        if (_renderedStatsType != i_statsType)
+        if (_renderedStatsType != i_StatsType)
         {
-            _renderedStatsType = (i_statsType == OverlayStatsDisplayType.InfantryObjective) ? i_statsType : _defaultStatsType;
+            _renderedStatsType = (i_StatsType == OverlayStatsDisplayType.InfantryObjective) ? i_StatsType : _defaultStatsType;
 
             stateHasChanged = true;
         }

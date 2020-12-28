@@ -1482,21 +1482,11 @@ body {
     Stats Report
        - Infantry Match Report
 ***********************/
-/*.overlay .report {
-        grid-area: report;
-        background-color: chartreuse;
-    }*/
 
 .overlay .match-report {
     position: absolute;
-    /*top: 112%;*/
-    /*position: fixed;*/
     top: 88px;
     left: 25%;
-    /*    width: 50%;*/
-    /*    margin-left: auto;*/
-    /*    width: 55%;*/
-    /*    margin-left: -2%;*/
     width: 53%;
     margin-left: -1%;
     margin-right: auto;
@@ -1511,25 +1501,21 @@ body {
 
     .overlay .match-report.compact,
     .overlay .match-report.no-hsr.compact {
-        /*top: 98px;*/
-        /*top: 100px;*/
         width: 100%;
-        /*margin-left: 16px;*/
-        /*margin-right: 16px;*/
-        /*left: 0;*/
         grid-template-columns: 1fr 12px 1fr;
         grid-template-areas: "team1 spacer team2";
-        /*width: 86%;*/
-        /*left: 7%;*/
         width: 94%;
         left: 3%;
         margin: 0;
     }
 
-    .overlay .match-report.compact,
-    .overlay .match-report.compact.no-hsr {
-        top: 116px;
-    }
+        .overlay .match-report.compact,
+        .overlay .match-report.compact.no-hsr,
+        .overlay .match-report.compact.status-scores,
+        .overlay .match-report.compact.objective-stats.status-scores,
+        .overlay .match-report.compact.objective-stats.status-scores.no-hsr {
+            top: 116px;
+        }
 
         .overlay .match-report.compact.objective-stats,
         .overlay .match-report.compact.objective-stats.no-hsr {
@@ -1537,10 +1523,6 @@ body {
         }
 
     .overlay .match-report.no-hsr {
-        /*    width: 50%;*/
-        /*    margin-left: auto;*/
-        /*    width: 55%;*/
-        /*    margin-left: -2%;*/
         width: 50%;
         margin-left: 0%;
     }
@@ -1548,14 +1530,9 @@ body {
     .overlay .match-report .team-report {
         display: grid;
         grid-gap: 0px;
-        /*color: var(--sq-ps2-nc-primary-light, rgb(245, 245, 255));*/
         color: var(--sq-ov-ps2-primary-light, rgb(245, 245, 255));
         margin: 8px;
-        /*padding: 5px;*/
-        /*padding: 8px;*/
         padding: 8px 16px;
-        /*border: 1px solid var(--sq-ov-bg-dark-gray);*/
-        /*border: 1px solid var(--sq-ov-bg-dark-gray);*/
         border: 1px solid var(--sq-ov-ps2-primary-alpha-75);
         background-color: var(--sq-ov-bg-dark-gray-alpha-55);
     }
@@ -1564,10 +1541,7 @@ body {
             border-color: var(--sq-ov-ps2-primary-alpha-75);
         }
 
-    .overlay .match-report .team-report /*.team1*/ {
-        /*grid-area: team1;*/
-        /*border-top-left-radius: 5px;*/
-        /*background: linear-gradient(-10deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
+    .overlay .match-report .team-report {
         background: -moz-linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: -webkit-linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
         background: linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
@@ -1592,33 +1566,19 @@ body {
         .overlay .match-report .team-report.team2 {
             grid-area: team2;
             border-bottom-right-radius: 5px;
-            /*background: linear-gradient(170deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
-            /*background: -moz-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-        background: -webkit-linear-gradient(150deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);
-        background: linear-gradient(-60deg, var(--sq-ov-ps2-primary-dark-alpha-80) 0%, var(--sq-ov-bg-dark-gray-alpha-90) 60%);*/
-            /*box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);*/
         }
 
     .overlay .match-report .stats-row {
         display: grid;
-        /*        grid-template-columns: 1fr 55px 100px repeat(6, 90px);*/
-        /*grid-template-columns: 1fr 65px 110px 70px repeat(6, 90px);*/
         grid-template-columns: 1fr 65px 110px 70px repeat(5, 90px);
         grid-template-areas: "label score graph net kills deaths hsr assists utils";
-        /*grid-gap: 5px;*/
         grid-gap: 4px;
-        /*text-align: left;*/
         text-align: right;
     }
 
     .overlay .match-report.no-hsr .stats-row {
-        /*display: grid;*/
-        /*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
         grid-template-columns: 1fr 65px 110px 70px repeat(4, 90px);
         grid-template-areas: "label score graph net kills deaths assists utils";
-        /*grid-gap: 5px;*/
-        /*grid-gap: 4px;*/
-        /*text-align: left;*/
     }
 
     .overlay .match-report.compact .stats-row {
@@ -1684,35 +1644,23 @@ body {
 
     .overlay .match-report .stats-row-header {
         display: grid;
-        /*color: var(--sq-ov-ps2-flavor, --sq-ov-bg-dark-gray);*/
         color: var(--sq-ov-ps2-primary-light, --sq-ov-bg-dark-gray);
-        /*        grid-template-columns: 1fr 155px repeat(6, 90px);*/
         grid-template-columns: 1fr 175px 70px repeat(5, 90px);
         grid-template-areas: "label score net kills deaths hsr assists utils";
-        /*grid-gap: 5px;*/
         grid-gap: 4px;
-        /*text-align: left;*/
         text-align: right;
         margin-bottom: 2px;
-        /*margin-top: 5px;*/
         margin-top: 4px;
     }
 
     .overlay .match-report.no-hsr .stats-row-header {
-        /*        grid-template-columns: 1fr 155px repeat(5, 90px);*/
         grid-template-columns: 1fr 175px 70px repeat(4, 90px);
         grid-template-areas: "label score net kills deaths assists utils";
     }
 
     .overlay .match-report.compact .stats-row-header {
-        /*display: grid;*/
-        /*color: var(--sq-ov-ps2-primary-light, --sq-ov-bg-dark-gray);*/
         grid-template-columns: 1fr 175px 70px repeat(5, 80px);
         grid-template-areas: "label score net kills deaths hsr assists utils";
-        /*grid-gap: 4px;*/
-        /*text-align: right;*/
-        /*margin-bottom: 2px;*/
-        /*margin-top: 4px;*/
     }
 
     .overlay .match-report.compact.no-hsr .stats-row-header {
@@ -1722,24 +1670,14 @@ body {
 
     .overlay .match-report.objective-stats .stats-row-header,
     .overlay .match-report.objective-stats.no-hsr .stats-row-header {
-        /*display: grid;*/
-        /*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
         grid-template-columns: 1fr 65px repeat(7, 90px);
         grid-template-areas: "label score kills deaths assists objective-ticks revives revives-taken utils";
-        /*grid-gap: 5px;*/
-        /*grid-gap: 4px;*/
-        /*text-align: left;*/
     }
 
     .overlay .match-report.objective-stats.compact .stats-row-header,
     .overlay .match-report.objective-stats.compact.no-hsr .stats-row-header {
-        /*display: grid;*/
-        /*        grid-template-columns: 1fr 55px 100px repeat(5, 90px);*/
         grid-template-columns: 1fr 65px repeat(7, 80px);
         grid-template-areas: "label score kills deaths assists objective-ticks revives revives-taken utils";
-        /*grid-gap: 5px;*/
-        /*grid-gap: 4px;*/
-        /*text-align: left;*/
     }
 
     .overlay .match-report .stats-row.team {
@@ -1748,8 +1686,6 @@ body {
         border-top: 2px solid var(--sq-ov-ps2-primary, --sq-ov-bg-dark-gray);
         border-left: 4px solid var(--sq-ov-ps2-primary, --sq-ov-bg-dark-gray);
         border-bottom: 4px solid transparent;
-        /*margin-bottom: 5px;*/
-        /*margin-top: 5px;*/
         margin-bottom: 4px;
         margin-top: 4px;
         padding: 4px 0px 0px 0px;
@@ -1770,20 +1706,16 @@ body {
         }
 
     .overlay .match-report.compact .stats-row-header .stats-col-header {
-        /*grid-area: score;*/
         text-align: right;
         font-size: 0.85rem;
     }
 
 
         .overlay .match-report.compact.objective-stats .stats-row-header .stats-col-header.score {
-            /*grid-area: score;*/
-            /*text-align: left;*/
             text-align: right;
         }
         
         .overlay .match-report.compact .stats-row-header .stats-col-header.score {
-            /*grid-area: score;*/
             text-align: left;
         }
 
@@ -1793,7 +1725,6 @@ body {
         grid-gap: 0px;
         overflow: hidden;
         text-overflow: ellipsis;
-        /*padding-right: 4px;*/
         padding-right: 8px;
     }
 
@@ -1801,10 +1732,8 @@ body {
     .overlay .match-report .stats-row .label {
         grid-area: label;
         text-align: left;
-        /*border-left: 4px solid transparent;*/
         overflow: hidden;
         text-overflow: ellipsis;
-        /*color: var(--sq-ov-ps2-primary-lightest);*/
         padding-left: 8px;
         white-space: nowrap;
     }
@@ -1816,7 +1745,6 @@ body {
 
     .overlay .match-report .stats-row.player .ps2-icon {
         display: inline-block;
-        /*        vertical-align: middle;*/
         margin-right: 8px;
         margin-top: 0px;
         height: 20px;
@@ -1831,15 +1759,9 @@ body {
         color: var(--sq-ov-ps2-primary-lightest);
     }
 
-    /*.overlay .match-report .stats-row.team .label {
-            padding-left: 8px;
-        }*/
-
     .overlay .match-report .stats-row .stats-value.score {
         grid-area: score;
         text-align: right;
-        /*color: var(--sq-ov-ps2-primary-lightest);*/
-        /*text-align: left;*/
     }
 
     .overlay .match-report .stats-row.player .stats-value.score {
@@ -1850,18 +1772,12 @@ body {
         color: var(--sq-ov-ps2-primary-lightest);
     }
 
-    /*.overlay .match-report .stats-row .stats-value.net {
-            color: var(--sq-ov-ps2-primary-lightest);
-        }*/
-
     .overlay .match-report .stats-row .stats-value.graph, .stats-col-header.graph {
         grid-area: graph;
     }
 
     .overlay .match-report .stats-row .graph .graph-bar {
-        /*        height: 18px;*/
         height: 17px;
-        /*        margin: 3px 0px 3px 0px;*/
         margin: 5px 0 0 0;
         background-color: var(--sq-ov-ps2-primary);
         opacity: 0.9;
@@ -1882,16 +1798,7 @@ body {
     }
 
     .overlay .match-report .stats-row .stats-value.net .value {
-        /*overflow: visible;
-            display: inline;
-            vertical-align: bottom;
-            font-size: 1.1rem;*/
     }
-
-    /*        .overlay .match-report .stats-row .stats-value.net, .stats-col-header.net .value {
-            grid-area: net;
-            overflow: visible;
-        }*/
 
     .overlay .match-report .stats-row .stats-value.net .label {
         padding-left: 4px;
@@ -1904,7 +1811,6 @@ body {
             display: inline-block;
             font-weight: 700;
             position: relative;
-            /*                top: 4px;*/
             top: 2px;
             height: 20px;
         }
@@ -1914,7 +1820,6 @@ body {
             display: inline-block;
             transform-origin: center;
             transform: rotateZ(180deg);
-            /*                padding: 0 4px 1px 0;*/
             padding: 0 4px 0 0;
             position: relative;
             top: 6px;

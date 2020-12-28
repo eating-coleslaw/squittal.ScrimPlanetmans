@@ -31,8 +31,6 @@
         {
             <div id="@($"{_team.Alias}-objective-ticks")" class="objective-ticks stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.ObjectiveTicks);">@_renderedEventAggregate.ObjectiveTicks</div>
             <div id="@($"{_team.Alias}-revives")" class="revives stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.RevivesGiven);">@_renderedEventAggregate.RevivesGiven</div>
-            @*<div id="@($"{_team.Alias}-revives-taken")" class="revives-taken stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.RevivesTaken);">@_renderedEventAggregate.RevivesTaken</div>*@
-
         }
 
         <div id="@($"{_team.Alias}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
@@ -46,11 +44,11 @@
     private int _renderedTeamOrdinal { get; set; }
 
     [Parameter]
-    public bool i_showHsr { get; set; } = true;
+    public bool i_ShowHsr { get; set; } = true;
     private bool _renderedShowHsr { get; set; } = true;
 
     [Parameter]
-    public bool i_useObjectiveStats { get; set; }
+    public bool i_UseObjectiveStats { get; set; }
     private bool _renderedUseObjectiveStats { get; set; }
 
 
@@ -86,25 +84,21 @@
 
     protected override void OnParametersSet()
     {
-        //var legacyUiChanged = false;
-
         var stateHasChanged = false;
 
-        if (i_showHsr != _renderedShowHsr)
+        if (i_ShowHsr != _renderedShowHsr)
         {
-            _renderedShowHsr = i_showHsr;
-            stateHasChanged = true;
-
-            //legacyUiChanged = true;
-        }
-
-        if (i_useObjectiveStats != _renderedUseObjectiveStats)
-        {
-            _renderedUseObjectiveStats = i_useObjectiveStats;
+            _renderedShowHsr = i_ShowHsr;
             stateHasChanged = true;
         }
 
-        if (i_TeamOrdinal != _renderedTeamOrdinal) // || legacyUiChanged)
+        if (i_UseObjectiveStats != _renderedUseObjectiveStats)
+        {
+            _renderedUseObjectiveStats = i_UseObjectiveStats;
+            stateHasChanged = true;
+        }
+
+        if (i_TeamOrdinal != _renderedTeamOrdinal)
         {
             _renderedTeamOrdinal = i_TeamOrdinal;
             _team = ScrimTeamsManager.GetTeam(_renderedTeamOrdinal);
@@ -113,8 +107,6 @@
             _renderedEventAggregate.Add(_team.EventAggregate);
 
             stateHasChanged = true;
-
-            //InvokeAsyncStateHasChanged();
         }
 
         if (stateHasChanged)
@@ -190,10 +182,6 @@
         {
             return true;
         }
-        //else if (_renderedEventAggregate.RevivesTaken != newAggregate.RevivesTaken && _renderedUseObjectiveStats)
-        //{
-        //    return true;
-        //}
         else
         {
             return false;

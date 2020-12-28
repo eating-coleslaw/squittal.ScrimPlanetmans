@@ -35,7 +35,6 @@
 
             @if (_renderedUseObjectiveStats)
             {
-                @*<div class="objective-ticks stats-col-header">Objective<br>Ticks</div>*@
                 <div class="objective-ticks stats-col-header">Capture<br>Ticks</div>
                 <div class="revives stats-col-header">Revives<br>Given</div>
                 <div class="revives-taken stats-col-header">Revives<br>Taken</div>
@@ -45,13 +44,13 @@
             <div class="utils stats-col-header">Grenade<br>Assists</div>
         </div>
 
-        <InfantryMatchReportTeamRow i_TeamOrdinal=_renderedTeamOrdinal i_showHsr=_showHsr i_useObjectiveStats=_renderedUseObjectiveStats />
+        <InfantryMatchReportTeamRow i_TeamOrdinal=_renderedTeamOrdinal i_ShowHsr=_showHsr i_UseObjectiveStats=_renderedUseObjectiveStats />
 
         @lock (_renderedPlayers)
         {
             @foreach (var player in _renderedPlayers)
             {
-                <InfantryMatchReportPlayerStatsRow i_CharacterId=@player.Id i_Player=player i_showHsr=_showHsr i_useObjectiveStats=_renderedUseObjectiveStats />
+                <InfantryMatchReportPlayerStatsRow i_CharacterId=@player.Id i_Player=player i_ShowHsr=_showHsr i_UseObjectiveStats=_renderedUseObjectiveStats />
             }
         }
 
@@ -67,11 +66,11 @@
     private int _renderedTeamOrdinal { get; set; }
 
     [Parameter]
-    public bool i_showHsr { get; set; } = true;
+    public bool i_ShowHsr { get; set; } = true;
     private bool _showHsr { get; set; } = true;
 
     [Parameter]
-    public bool i_useObjectiveStats { get; set; }
+    public bool i_UseObjectiveStats { get; set; }
     private bool _renderedUseObjectiveStats { get; set; }
 
     private Team _team { get; set; }
@@ -104,27 +103,23 @@
 
     protected override void OnParametersSet()
     {
-        //var legacyUiChanged = false;
-
         var stateHasChanged = false;
 
-        if (i_showHsr != _showHsr)
+        if (i_ShowHsr != _showHsr)
         {
-            _showHsr = i_showHsr;
-
-            stateHasChanged = true;
-
-            //legacyUiChanged = true;
-        }
-
-        if (i_useObjectiveStats != _renderedUseObjectiveStats)
-        {
-            _renderedUseObjectiveStats = i_useObjectiveStats;
+            _showHsr = i_ShowHsr;
 
             stateHasChanged = true;
         }
 
-        if (i_TeamOrdinal != _renderedTeamOrdinal) // || stateHasChanged) // legacyUiChanged)
+        if (i_UseObjectiveStats != _renderedUseObjectiveStats)
+        {
+            _renderedUseObjectiveStats = i_UseObjectiveStats;
+
+            stateHasChanged = true;
+        }
+
+        if (i_TeamOrdinal != _renderedTeamOrdinal)
         {
             _renderedTeamOrdinal = i_TeamOrdinal;
             _team = ScrimTeamsManager.GetTeam(_renderedTeamOrdinal);

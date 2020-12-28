@@ -3,7 +3,6 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.TeamPlayers;
-@using squittal.ScrimPlanetmans.Models; 
 
 @inject IScrimTeamsManager ScrimTeamsManager
 @inject IScrimMessageBroadcastService MessageService
@@ -44,7 +43,6 @@
         }
 
         <div id="@($"{_player.NameDisplay}-assists")" class="assists stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.DamageAssists);">@_renderedEventAggregate.DamageAssists</div>
-        @*<div id="@($"{_player.NameDisplay}-utils")" class="utils stats-value" style="opacity: @GetStatOpacity(_renderedEventAggregate.GrenadeAssists);">@_renderedEventAggregate.GrenadeAssists</div>*@
     </div>
 }
 
@@ -58,11 +56,11 @@
     private string _renderedCharacterId { get; set; }
 
     [Parameter]
-    public bool i_showHsr { get; set; } = true;
+    public bool i_ShowHsr { get; set; } = true;
     private bool _renderedShowHsr { get; set; } = true;
 
     [Parameter]
-    public bool i_useObjectiveStats { get; set; }
+    public bool i_UseObjectiveStats { get; set; }
     private bool _renderedUseObjectiveStats { get; set; }
 
     private ScrimEventAggregate _renderedEventAggregate { get; set; } = new ScrimEventAggregate();
@@ -106,27 +104,23 @@
 
     protected override void OnParametersSet()
     {
-        //var legacyUiChanged = false;
-
         var stateHasChanged = false;
 
-        if (i_showHsr != _renderedShowHsr)
+        if (i_ShowHsr != _renderedShowHsr)
         {
-            _renderedShowHsr = i_showHsr;
-
-            stateHasChanged = true;
-
-            //legacyUiChanged = true;
-        }
-
-        if (i_useObjectiveStats != _renderedUseObjectiveStats)
-        {
-            _renderedUseObjectiveStats = i_useObjectiveStats;
+            _renderedShowHsr = i_ShowHsr;
 
             stateHasChanged = true;
         }
 
-        if (_player != i_Player) // || legacyUiChanged)
+        if (i_UseObjectiveStats != _renderedUseObjectiveStats)
+        {
+            _renderedUseObjectiveStats = i_UseObjectiveStats;
+
+            stateHasChanged = true;
+        }
+
+        if (_player != i_Player)
         {
             _renderedCharacterId = i_CharacterId;
             _player = i_Player;
@@ -258,10 +252,6 @@
         {
             return true;
         }
-        //else if (_renderedEventAggregate.GrenadeAssists != newAggregate.GrenadeAssists)
-        //{
-        //    return true;
-        //}
         else
         {
             return false;
