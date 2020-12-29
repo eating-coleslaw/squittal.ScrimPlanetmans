@@ -24,6 +24,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public string DefaultMatchTitle { get; set; } = string.Empty;
         public int DefaultRoundLength { get; set; } = 900;
+        public bool DefaultEndRoundOnFacilityCapture { get; set; } = false;
 
 
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }

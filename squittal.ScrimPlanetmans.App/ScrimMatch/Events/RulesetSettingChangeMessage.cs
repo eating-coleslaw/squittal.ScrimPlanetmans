@@ -35,6 +35,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
             {
                 ChangedSettings.Add(RulesetSettingChange.DefaultRoundLength);
             }
+
+            if (ruleset.DefaultEndRoundOnFacilityCapture != previousRuleset.DefaultEndRoundOnFacilityCapture)
+            {
+                ChangedSettings.Add(RulesetSettingChange.DefaultEndRoundOnFacilityCapture);
+            }
         }
 
         private string GetInfoString()
@@ -76,6 +81,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
     {
         Name,
         DefaultMatchTitle,
-        DefaultRoundLength
+        DefaultRoundLength,
+        DefaultEndRoundOnFacilityCapture
     }
 }

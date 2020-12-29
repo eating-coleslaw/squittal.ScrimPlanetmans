@@ -153,6 +153,9 @@
     <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetOverlayConfiguration.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_RulesetSourceFileNulls.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_ScrimMatchRulesetId.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

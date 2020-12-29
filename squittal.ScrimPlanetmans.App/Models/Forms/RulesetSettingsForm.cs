@@ -9,6 +9,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         public string RulesetName { get; set; }
         public int DefaultRoundLength { get; set; }
         public string DefaultMatchTitle { get; set; }
+        public bool DefaultEndRoundOnFacilityCapture { get; set; }
 
         public bool UseCompactOverlayLayout { get; set; }
         public OverlayStatsDisplayType OverlayStatsDisplayType { get; set; }
@@ -29,6 +30,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
             DefaultRoundLength = ruleset.DefaultRoundLength;
             DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
 
             if (ruleset.RulesetOverlayConfiguration != null)
             {
@@ -51,6 +53,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
             DefaultRoundLength = ruleset.DefaultRoundLength;
             DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
 
             if (ruleset.RulesetOverlayConfiguration != null)
             {
@@ -73,7 +76,8 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                 Id = RulesetId,
                 Name = RulesetName,
                 DefaultRoundLength = DefaultRoundLength,
-                DefaultMatchTitle = DefaultMatchTitle
+                DefaultMatchTitle = DefaultMatchTitle,
+                DefaultEndRoundOnFacilityCapture = DefaultEndRoundOnFacilityCapture
             };
         }
 

@@ -184,7 +184,7 @@
                             }
                         </div>
 
-                        <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" @bind-Value="_matchConfiguration.EndRoundOnFacilityCapture" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
+                        <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" Value="@_matchConfiguration.EndRoundOnFacilityCapture" ValueChanged="@((bool b) => _matchConfiguration.TrySetEndRoundOnFacilityCapture(b, true))" ValueExpression="@(() => _matchConfiguration.EndRoundOnFacilityCapture)" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
                     </EditForm>
                 }
 
@@ -295,6 +295,7 @@
     {
         MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent += ReceiveMatchConfigurationUpdateMessageEvent;
+        MessageService.RaiseRulesetSettingChangeEvent += ReceiveRulesetSettingChangeEvent;
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
@@ -315,6 +316,7 @@
     {
         MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateMessageEvent;
         MessageService.RaiseMatchConfigurationUpdateEvent -= ReceiveMatchConfigurationUpdateMessageEvent;
+        MessageService.RaiseRulesetSettingChangeEvent -= ReceiveRulesetSettingChangeEvent;
     }
 
     private async Task SetUpRulesetsAsync()
@@ -342,6 +344,7 @@
             if (_matchConfiguration != null)
             {
                 _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
+                _matchConfiguration.TrySetEndRoundOnFacilityCapture(_activeRuleset.DefaultEndRoundOnFacilityCapture, false);
 
                 var oldTitle = _matchConfiguration.Title;
                 var newTitle = _activeRuleset.DefaultMatchTitle;
@@ -574,10 +577,7 @@
 
         _matchConfiguration.Title = message.MatchTitle;
 
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        InvokeAsyncStateHasChanged();
     }
 
     private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
@@ -586,12 +586,25 @@
 
         _matchConfiguration = message.MatchConfiguration;
 
-        InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        InvokeAsyncStateHasChanged();
     }
 
+    private void ReceiveRulesetSettingChangeEvent(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> e)
+    {
+        var message = e.Message;
+
+        if (!message.ChangedSettings.Contains(RulesetSettingChange.DefaultEndRoundOnFacilityCapture))
+        {
+            return;
+        }
+
+        var success = _matchConfiguration.TrySetEndRoundOnFacilityCapture(message.Ruleset.DefaultEndRoundOnFacilityCapture, false);
+
+        if (success)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
 
     #endregion
 

@@ -55,7 +55,7 @@
 
             @if (!_renderedRuleset.IsDefault)
             {
-                <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; margin-bottom: 4px; display: inline-block;">Open in Editor</NavLink>
+                <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; display: inline-block;">Open in Editor</NavLink>
             }
 
             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
@@ -63,6 +63,8 @@
                 <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
                 <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
                 <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                <div><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@(_renderedRuleset.DefaultEndRoundOnFacilityCapture ? "Yes" : "No")</div>
+                
                 @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
                 {
                     <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
@@ -71,7 +73,7 @@
                 @if (_renderedRuleset.RulesetOverlayConfiguration != null)
                 {
                     <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Compact Mode:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
+                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
                     <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
                     <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
                 }
@@ -272,6 +274,11 @@
         if (changes.Contains(RulesetSettingChange.DefaultRoundLength))
         {
             _renderedRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultEndRoundOnFacilityCapture))
+        {
+            _renderedRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
         }
 
         InvokeAsyncStateHasChanged();

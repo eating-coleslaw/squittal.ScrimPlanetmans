@@ -21,10 +21,12 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public string FacilityIdString { get; set; } = "-1";
 
         public bool EndRoundOnFacilityCapture { get; set; } = false; // TODO: move this setting to the Ruleset model
+        public bool IsManualEndRoundOnFacilityCapture { get; set; } = false;
 
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEventRoundSeconds = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEventMatchTitle = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoEndRoundOnFacilityCapture = new AutoResetEvent(true);
 
         public bool SaveLogFiles { get; set; } = true;
         public bool SaveEventsToDatabase { get; set; } = true;
@@ -95,6 +97,41 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
                 return false;
             }
+        }
+
+        public bool TrySetEndRoundOnFacilityCapture(bool endOnCapture, bool isManualValue)
+        {
+            _autoEndRoundOnFacilityCapture.WaitOne();
+
+            if (isManualValue)
+            {
+                EndRoundOnFacilityCapture = endOnCapture;
+                IsManualEndRoundOnFacilityCapture = true;
+
+                _autoEndRoundOnFacilityCapture.Set();
+
+                return true;
+            }
+            else if (!IsManualEndRoundOnFacilityCapture)
+            {
+                EndRoundOnFacilityCapture = endOnCapture;
+
+                _autoEndRoundOnFacilityCapture.Set();
+
+                return true;
+            }
+            else
+            {
+                _autoEndRoundOnFacilityCapture.Set();
+
+                return false;
+            }
+        }
+
+        public void ResetEndRoundOnFacilityCapture()
+        {
+            EndRoundOnFacilityCapture = false;
+            IsManualEndRoundOnFacilityCapture = false;
         }
 
         public void ResetWorldId()

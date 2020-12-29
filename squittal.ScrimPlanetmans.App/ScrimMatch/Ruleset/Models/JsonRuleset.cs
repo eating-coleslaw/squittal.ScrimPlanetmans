@@ -17,6 +17,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public string DefaultMatchTitle { get; set; } = string.Empty;
         public int DefaultRoundLength { get; set; } = 900;
+        public bool DefaultEndRoundOnFacilityCapture { get; set; } = false;
 
         public ICollection<JsonRulesetActionRule> RulesetActionRules { get; set; }
         public ICollection<JsonRulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
@@ -37,6 +38,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             FileName = fileName;
             DefaultMatchTitle = ruleset.DefaultMatchTitle;
             DefaultRoundLength = ruleset.DefaultRoundLength;
+            DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
 
             if (ruleset.RulesetActionRules.Any())
             {

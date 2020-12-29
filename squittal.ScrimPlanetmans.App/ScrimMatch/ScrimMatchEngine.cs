@@ -91,11 +91,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var previousWorldId = MatchConfiguration.WorldIdString;
             var previousIsManualWorldId = MatchConfiguration.IsManualWorldId;
 
+            var previousEndRoundOnFacilityCapture = MatchConfiguration.EndRoundOnFacilityCapture;
+            var previousIsManualEndRoundOnFacilityCapture = MatchConfiguration.EndRoundOnFacilityCapture;
+
             MatchConfiguration = new MatchConfiguration();
 
             if (isRematch)
             {
                 MatchConfiguration.TrySetWorldId(previousWorldId, previousIsManualWorldId);
+                MatchConfiguration.TrySetEndRoundOnFacilityCapture(previousEndRoundOnFacilityCapture, previousIsManualEndRoundOnFacilityCapture);
+            }
+            else
+            {
+                var activeRuleset = await _rulesetManager.GetActiveRulesetAsync();
+                MatchConfiguration.TrySetEndRoundOnFacilityCapture(activeRuleset.DefaultEndRoundOnFacilityCapture, false);
             }
 
             _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;

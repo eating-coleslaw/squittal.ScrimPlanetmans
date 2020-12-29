@@ -222,6 +222,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ActiveRuleset.Name = ruleset.Name;
             ActiveRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
             ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+            ActiveRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
 
             _activateRulesetAutoEvent.Set();
         }
@@ -327,6 +328,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             storeRuleset.DefaultMatchTitle = "PS2 Scrims";
             storeRuleset.IsDefault = true;
+            storeRuleset.DefaultEndRoundOnFacilityCapture = false;
 
 
             // Get all async collection requests together

@@ -679,6 +679,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateName = rulesetUpdate.Name;
             var updateRoundLength = rulesetUpdate.DefaultRoundLength;
             var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
+            var updateEndRoundOnFacilityCapture = rulesetUpdate.DefaultEndRoundOnFacilityCapture;
 
             Ruleset oldRuleset = new Ruleset();
 
@@ -716,10 +717,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     oldRuleset.Name = storeEntity.Name;
                     oldRuleset.DefaultRoundLength = storeEntity.DefaultRoundLength;
                     oldRuleset.DefaultMatchTitle = storeEntity.DefaultMatchTitle;
+                    oldRuleset.DefaultEndRoundOnFacilityCapture = storeEntity.DefaultEndRoundOnFacilityCapture;
 
                     storeEntity.Name = updateName;
                     storeEntity.DefaultRoundLength = updateRoundLength;
                     storeEntity.DefaultMatchTitle = updateMatchTitle;
+                    storeEntity.DefaultEndRoundOnFacilityCapture = updateEndRoundOnFacilityCapture;
+
                     storeEntity.DateLastModified = DateTime.UtcNow;
 
                     dbContext.Rulesets.Update(storeEntity);
@@ -1487,6 +1491,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 IsBanned = isBanned
             };
         }
+        
         private async Task SeedNewRulesetDefaultFacilityRules(int rulesetId)
         {
             using (await _facilityRulesLock.WaitAsync($"{rulesetId}"))
@@ -2126,6 +2131,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 IsCustomDefault = false,
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
                 DefaultRoundLength = jsonRuleset.DefaultRoundLength,
+                DefaultEndRoundOnFacilityCapture = jsonRuleset.DefaultEndRoundOnFacilityCapture,
                 SourceFile = sourceFileName
             };
         }
