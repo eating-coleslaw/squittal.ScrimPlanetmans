@@ -139,7 +139,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     continue;
                 }
 
-                var deferredToWeapons = storeWeapons.Where(w => deferredItemCategoryRules.Any(rule => rule.Id == w.ItemCategoryId)).ToList(); //.Select(w => w.Id); 
+                var deferredToWeapons = storeWeapons.Where(w => deferredItemCategoryRules.Any(rule => rule.Id == w.ItemCategoryId)).ToList();
 
                 var rulesetItemRules = await GetRulesetItemRulesAsync(ruleset.Id, CancellationToken.None);
 
@@ -908,6 +908,18 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     foreach (var rule in ruleUpdates)
                     {
+                        // Only allow deferring to either Planetside Class Settings or Item Rules. Give Preference to Item Rules
+                        if (rule.DeferToItemRules && rule.DeferToPlanetsideClassSettings)
+                        {
+                            rule.DeferToPlanetsideClassSettings = false;
+                        }
+
+                        // Don't allow Banning at Item Category level if deferring to other rules/settings
+                        if (rule.IsBanned && (rule.DeferToPlanetsideClassSettings || rule.DeferToItemRules))
+                        {
+                            rule.IsBanned = false;
+                        }
+
                         var storeEntity = storeRules.Where(r => r.ItemCategoryId == rule.ItemCategoryId).FirstOrDefault();
 
                         if (storeEntity == null)
@@ -992,6 +1004,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     foreach (var rule in ruleUpdates)
                     {
+                        // Don't allow Banning at Item level if deferring to Planetside class settings
+                        if (rule.DeferToPlanetsideClassSettings && rule.IsBanned)
+                        {
+                            rule.IsBanned = false;
+                        }
+                        
                         var storeEntity = storeRules.Where(r => r.ItemId == rule.ItemId).FirstOrDefault();
 
                         if (storeEntity == null)
@@ -1343,7 +1361,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         return;
                     }
 
-                    dbContext.RulesetItemCategoryRules.AddRange(defaultRules.Select(r => BuildRulesetItemCategoryRule(rulesetId, r.ItemCategoryId, r.Points, r.IsBanned, r.DeferToItemRules)));
+                    dbContext.RulesetItemCategoryRules.AddRange(defaultRules.Select(r => BuildRulesetItemCategoryRule(rulesetId, r.ItemCategoryId, r.Points, r.IsBanned, r.DeferToItemRules, r.DeferToPlanetsideClassSettings, new PlanetsideClassRuleSettings(r))));
 
                     await dbContext.SaveChangesAsync();
                 }
@@ -1356,15 +1374,35 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false, bool deferToPlanetsideClassSettings = false, PlanetsideClassRuleSettings planetsideClassSettings = null)
         {
+            if (planetsideClassSettings == null)
+            {
+                planetsideClassSettings = new PlanetsideClassRuleSettings();
+            }
+            
             return new RulesetItemCategoryRule
             {
                 RulesetId = rulesetId,
                 ItemCategoryId = itemCategoryId,
                 Points = points,
                 IsBanned = isBanned,
-                DeferToItemRules = deferToItemRules
+                DeferToItemRules = deferToItemRules,
+
+                DeferToPlanetsideClassSettings = deferToPlanetsideClassSettings,
+
+                InfiltratorIsBanned = planetsideClassSettings.InfiltratorIsBanned,
+                InfiltratorPoints = planetsideClassSettings.InfiltratorPoints,
+                LightAssaultIsBanned = planetsideClassSettings.LightAssaultIsBanned,
+                LightAssaultPoints = planetsideClassSettings.LightAssaultPoints,
+                MedicIsBanned = planetsideClassSettings.MedicIsBanned,
+                MedicPoints = planetsideClassSettings.MedicPoints,
+                EngineerIsBanned = planetsideClassSettings.EngineerIsBanned,
+                EngineerPoints = planetsideClassSettings.EngineerPoints,
+                HeavyAssaultIsBanned = planetsideClassSettings.HeavyAssaultIsBanned,
+                HeavyAssaultPoints = planetsideClassSettings.HeavyAssaultPoints,
+                MaxIsBanned = planetsideClassSettings.MaxIsBanned,
+                MaxPoints = planetsideClassSettings.MaxPoints
             };
         }
 
@@ -1393,7 +1431,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         return;
                     }
 
-                    dbContext.RulesetItemRules.AddRange(defaultRules.Select(r => BuildRulesetItemRule(rulesetId, r.ItemId, r.ItemCategoryId, r.Points, r.IsBanned)));
+                    dbContext.RulesetItemRules.AddRange(defaultRules.Select(r => BuildRulesetItemRule(rulesetId, r.ItemId, r.ItemCategoryId, r.Points, r.IsBanned, r.DeferToPlanetsideClassSettings, new PlanetsideClassRuleSettings(r))));
 
                     await dbContext.SaveChangesAsync();
                 }
@@ -1480,15 +1518,35 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToPlanetsideClassSettings = false, PlanetsideClassRuleSettings planetsideClassSettings = null)
         {
+            if (planetsideClassSettings == null)
+            {
+                planetsideClassSettings = new PlanetsideClassRuleSettings();
+            }
+
             return new RulesetItemRule
             {
                 RulesetId = rulesetId,
                 ItemId = itemId,
                 ItemCategoryId = itemCategoryId,
                 Points = points,
-                IsBanned = isBanned
+                IsBanned = isBanned,
+
+                DeferToPlanetsideClassSettings = deferToPlanetsideClassSettings,
+
+                InfiltratorIsBanned = planetsideClassSettings.InfiltratorIsBanned,
+                InfiltratorPoints = planetsideClassSettings.InfiltratorPoints,
+                LightAssaultIsBanned = planetsideClassSettings.LightAssaultIsBanned,
+                LightAssaultPoints = planetsideClassSettings.LightAssaultPoints,
+                MedicIsBanned = planetsideClassSettings.MedicIsBanned,
+                MedicPoints = planetsideClassSettings.MedicPoints,
+                EngineerIsBanned = planetsideClassSettings.EngineerIsBanned,
+                EngineerPoints = planetsideClassSettings.EngineerPoints,
+                HeavyAssaultIsBanned = planetsideClassSettings.HeavyAssaultIsBanned,
+                HeavyAssaultPoints = planetsideClassSettings.HeavyAssaultPoints,
+                MaxIsBanned = planetsideClassSettings.MaxIsBanned,
+                MaxPoints = planetsideClassSettings.MaxPoints
             };
         }
         
@@ -2151,12 +2209,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private RulesetItemCategoryRule ConvertToDbModel(int rulesetId, JsonRulesetItemCategoryRule jsonRule)
         {
-            return BuildRulesetItemCategoryRule(rulesetId, jsonRule.ItemCategoryId, jsonRule.Points, jsonRule.IsBanned, jsonRule.DeferToItemRules);
+            return BuildRulesetItemCategoryRule(rulesetId, jsonRule.ItemCategoryId, jsonRule.Points, jsonRule.IsBanned, jsonRule.DeferToItemRules, jsonRule.DeferToPlanetsideClassSettings, new PlanetsideClassRuleSettings(jsonRule));
         }
 
         private RulesetItemRule ConvertToDbModel(int rulesetId, JsonRulesetItemRule jsonRule, int itemCategoryId)
         {
-            return BuildRulesetItemRule(rulesetId, jsonRule.ItemId, itemCategoryId, jsonRule.Points, jsonRule.IsBanned);
+            return BuildRulesetItemRule(rulesetId, jsonRule.ItemId, itemCategoryId, jsonRule.Points, jsonRule.IsBanned, jsonRule.DeferToPlanetsideClassSettings, new PlanetsideClassRuleSettings(jsonRule));
         }
 
         private RulesetFacilityRule ConvertToDbModel(int rulesetID, JsonRulesetFacilityRule jsonRule)

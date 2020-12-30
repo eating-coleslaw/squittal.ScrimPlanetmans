@@ -894,49 +894,129 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             };
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int rulesetId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false, bool deferToPlanetsideClassSettings = false, PlanetsideClassRuleSettings planetsideClassSettings = null)
         {
+            if (planetsideClassSettings == null)
+            {
+                planetsideClassSettings = new PlanetsideClassRuleSettings();
+            }
+
             return new RulesetItemCategoryRule
             {
                 RulesetId = rulesetId,
                 ItemCategoryId = itemCategoryId,
                 Points = points,
                 IsBanned = isBanned,
-                DeferToItemRules = deferToItemRules
+                DeferToItemRules = deferToItemRules,
+
+                DeferToPlanetsideClassSettings = deferToPlanetsideClassSettings,
+
+                InfiltratorIsBanned = planetsideClassSettings.InfiltratorIsBanned,
+                InfiltratorPoints = planetsideClassSettings.InfiltratorPoints,
+                LightAssaultIsBanned = planetsideClassSettings.LightAssaultIsBanned,
+                LightAssaultPoints = planetsideClassSettings.LightAssaultPoints,
+                MedicIsBanned = planetsideClassSettings.MedicIsBanned,
+                MedicPoints = planetsideClassSettings.MedicPoints,
+                EngineerIsBanned = planetsideClassSettings.EngineerIsBanned,
+                EngineerPoints = planetsideClassSettings.EngineerPoints,
+                HeavyAssaultIsBanned = planetsideClassSettings.HeavyAssaultIsBanned,
+                HeavyAssaultPoints = planetsideClassSettings.HeavyAssaultPoints,
+                MaxIsBanned = planetsideClassSettings.MaxIsBanned,
+                MaxPoints = planetsideClassSettings.MaxPoints
             };
         }
 
-        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false)
+        private RulesetItemCategoryRule BuildRulesetItemCategoryRule(int itemCategoryId, int points = 0, bool isBanned = false, bool deferToItemRules = false, bool deferToPlanetsideClassSettings = false, PlanetsideClassRuleSettings planetsideClassSettings = null)
         {
+            if (planetsideClassSettings == null)
+            {
+                planetsideClassSettings = new PlanetsideClassRuleSettings();
+            }
+
             return new RulesetItemCategoryRule
             {
                 ItemCategoryId = itemCategoryId,
                 Points = points,
                 IsBanned = isBanned,
-                DeferToItemRules = deferToItemRules
+                DeferToItemRules = deferToItemRules,
+
+                DeferToPlanetsideClassSettings = deferToPlanetsideClassSettings,
+
+                InfiltratorIsBanned = planetsideClassSettings.InfiltratorIsBanned,
+                InfiltratorPoints = planetsideClassSettings.InfiltratorPoints,
+                LightAssaultIsBanned = planetsideClassSettings.LightAssaultIsBanned,
+                LightAssaultPoints = planetsideClassSettings.LightAssaultPoints,
+                MedicIsBanned = planetsideClassSettings.MedicIsBanned,
+                MedicPoints = planetsideClassSettings.MedicPoints,
+                EngineerIsBanned = planetsideClassSettings.EngineerIsBanned,
+                EngineerPoints = planetsideClassSettings.EngineerPoints,
+                HeavyAssaultIsBanned = planetsideClassSettings.HeavyAssaultIsBanned,
+                HeavyAssaultPoints = planetsideClassSettings.HeavyAssaultPoints,
+                MaxIsBanned = planetsideClassSettings.MaxIsBanned,
+                MaxPoints = planetsideClassSettings.MaxPoints
             };
         }
 
-        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        private RulesetItemRule BuildRulesetItemRule(int rulesetId, int itemId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToPlanetsideClassSettings = false, PlanetsideClassRuleSettings planetsideClassSettings = null)
         {
+            if (planetsideClassSettings == null)
+            {
+                planetsideClassSettings = new PlanetsideClassRuleSettings();
+            }
+
             return new RulesetItemRule
             {
                 RulesetId = rulesetId,
                 ItemId = itemId,
                 ItemCategoryId = itemCategoryId,
                 Points = points,
-                IsBanned = isBanned
+                IsBanned = isBanned,
+
+                DeferToPlanetsideClassSettings = deferToPlanetsideClassSettings,
+
+                InfiltratorIsBanned = planetsideClassSettings.InfiltratorIsBanned,
+                InfiltratorPoints = planetsideClassSettings.InfiltratorPoints,
+                LightAssaultIsBanned = planetsideClassSettings.LightAssaultIsBanned,
+                LightAssaultPoints = planetsideClassSettings.LightAssaultPoints,
+                MedicIsBanned = planetsideClassSettings.MedicIsBanned,
+                MedicPoints = planetsideClassSettings.MedicPoints,
+                EngineerIsBanned = planetsideClassSettings.EngineerIsBanned,
+                EngineerPoints = planetsideClassSettings.EngineerPoints,
+                HeavyAssaultIsBanned = planetsideClassSettings.HeavyAssaultIsBanned,
+                HeavyAssaultPoints = planetsideClassSettings.HeavyAssaultPoints,
+                MaxIsBanned = planetsideClassSettings.MaxIsBanned,
+                MaxPoints = planetsideClassSettings.MaxPoints
             };
         }
 
-        private RulesetItemRule BuildRulesetItemRule(int itemId, int itemCategoryId, int points = 0, bool isBanned = false)
+        private RulesetItemRule BuildRulesetItemRule(int itemId, int itemCategoryId, int points = 0, bool isBanned = false, bool deferToPlanetsideClassSettings = false, PlanetsideClassRuleSettings planetsideClassSettings = null)
         {
+            if (planetsideClassSettings == null)
+            {
+                planetsideClassSettings = new PlanetsideClassRuleSettings();
+            }
+
             return new RulesetItemRule
             {
                 ItemId = itemId,
                 ItemCategoryId = itemCategoryId,
                 Points = points,
-                IsBanned = isBanned
+                IsBanned = isBanned,
+
+                DeferToPlanetsideClassSettings = deferToPlanetsideClassSettings,
+
+                InfiltratorIsBanned = planetsideClassSettings.InfiltratorIsBanned,
+                InfiltratorPoints = planetsideClassSettings.InfiltratorPoints,
+                LightAssaultIsBanned = planetsideClassSettings.LightAssaultIsBanned,
+                LightAssaultPoints = planetsideClassSettings.LightAssaultPoints,
+                MedicIsBanned = planetsideClassSettings.MedicIsBanned,
+                MedicPoints = planetsideClassSettings.MedicPoints,
+                EngineerIsBanned = planetsideClassSettings.EngineerIsBanned,
+                EngineerPoints = planetsideClassSettings.EngineerPoints,
+                HeavyAssaultIsBanned = planetsideClassSettings.HeavyAssaultIsBanned,
+                HeavyAssaultPoints = planetsideClassSettings.HeavyAssaultPoints,
+                MaxIsBanned = planetsideClassSettings.MaxIsBanned,
+                MaxPoints = planetsideClassSettings.MaxPoints
             };
         }
 

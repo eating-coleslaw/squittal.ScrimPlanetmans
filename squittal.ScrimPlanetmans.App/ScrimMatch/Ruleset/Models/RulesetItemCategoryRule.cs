@@ -16,7 +16,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool IsBanned { get; set; }
 
         public bool DeferToItemRules { get; set; }
-        public bool DeferToPlanetsideClassRules { get; set; }
+
+        public bool DeferToPlanetsideClassSettings { get; set; }
+        
+        public bool InfiltratorIsBanned { get; set; }
+        public int InfiltratorPoints { get; set; }
+        
+        public bool LightAssaultIsBanned { get; set; }
+        public int LightAssaultPoints { get; set; }
+        
+        public bool MedicIsBanned { get; set; }
+        public int MedicPoints { get; set; }
+        
+        public bool EngineerIsBanned { get; set; }
+        public int EngineerPoints { get; set; }
+        
+        public bool HeavyAssaultIsBanned { get; set; }
+        public int HeavyAssaultPoints { get; set; }
+
+        public bool MaxIsBanned { get; set; }
+        public int MaxPoints { get; set; }
 
         public Ruleset Ruleset { get; set; }
         public ItemCategory ItemCategory { get; set; }
