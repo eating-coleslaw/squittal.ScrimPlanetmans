@@ -28,6 +28,7 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.IsBanned).HasDefaultValue(false);
             builder.Property(e => e.DeferToItemRules).HasDefaultValue(false);
+            builder.Property(e => e.DeferToPlanetsideClassRules).HasDefaultValue(false);
         }
     }
 }
