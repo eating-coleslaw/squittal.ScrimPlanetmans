@@ -25,25 +25,22 @@ a, .btn-link {
 }
 
 .btn-group.sq-btn-tabs {
-    border-bottom: 0px solid var(--sq-black-alpha-50);
-    width: 100%;
     margin-bottom: 4px;
 }
 
     .btn-group.sq-btn-tabs > .btn-link {
-        padding: 0px;
         border-bottom: 2px solid var(--sq-pink-lighter-alpha-25);
         border-radius: 0;
         transition: none;
+        padding: 0 16px;
+        width: 230px;
     }
 
     .btn-group.sq-btn-tabs > .btn-link:hover {
-        padding: 0px;
         border-bottom: 2px solid var(--sq-pink-lighter-alpha-80);
     }
 
         .btn-group.sq-btn-tabs > .btn-link.active {
-            padding: 0px;
             color: var(--sq-black);
             border-bottom: 2px solid var(--sq-pink);
         }

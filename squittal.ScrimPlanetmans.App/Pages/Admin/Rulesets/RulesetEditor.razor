@@ -209,12 +209,12 @@
             @if (!_isDeletingRuleset)
             {
                     
-                <div class="col-sm-9" style="margin-top: 8px; border: 1px solid var(--sq-light-blue-gray); border-radius: 0.2rem; background-color: var(--sq-bg-white); margin-left: 15px; margin-right: 15px; max-width: calc(75% - 30px); padding: 8px 15px 8px 15px; box-shadow: 0px 0px 3px 1px var(--sq-light-blue-gray-alpha-80);">
+                <div class="col-sm-9" style="margin-top: 8px; background-color: var(--sq-bg-white); margin-left: 15px; margin-right: 15px; max-width: calc(75% - 30px); padding: 8px 15px 8px 15px;">
 
                     <div class="btn-group sans-serif-font sq-btn-tabs">
-                        <button class="sans-serif-font btn btn-link @GetActionsTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Actions)">Action Rules</button>
-                        <button class="sans-serif-font btn btn-link @GetItemsTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Items)">Item & Item Category Rules</button>
-                        <button class="sans-serif-font btn btn-link @GetFacilitiesTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Facilities)">Facility Rules</button>
+                        <button class="sans-serif-font btn btn-link @GetActionsTabCssClass()" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Actions)">Action Rules</button>
+                        <button class="sans-serif-font btn btn-link @GetItemsTabCssClass()" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Items)">Item & Item Category Rules</button>
+                        <button class="sans-serif-font btn btn-link @GetFacilitiesTabCssClass()" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Facilities)">Facility Rules</button>
                     </div>
             
                     <div class="row" style="margin-left: 0; margin-right: 0;">
