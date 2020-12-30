@@ -44,9 +44,6 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<RulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
         public DbSet<RulesetItemRule> RulesetItemRules { get; set; }
         public DbSet<RulesetFacilityRule> RulesetFacilityRules { get; set; }
-
-        public DbSet<RulesetItemCategoryPlanetsideClassRule> RulesetItemCategoryPlanetsideClassRules { get; set; }
-        public DbSet<RulesetItemPlanetsideClassRule> RulesetItemPlanetsideClassRules { get; set; }
         
         public DbSet<DeathType> DeathTypes { get; set; }
         public DbSet<VehicleClass> VehicleClasses { get; set; }
@@ -118,9 +115,6 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new RulesetItemCategoryRuleConfiguration());
             builder.ApplyConfiguration(new RulesetItemRuleConfiguration());
             builder.ApplyConfiguration(new RulesetFacilityRuleConfiguration());
-
-            builder.ApplyConfiguration(new RulesetItemCategoryPlanetsideClassRuleConfiguration());
-            builder.ApplyConfiguration(new RulesetItemPlanetsideClassRuleConfiguration());
             
             builder.ApplyConfiguration(new DeathTypeConfiguration());
             builder.ApplyConfiguration(new VehicleClassConfiguration());

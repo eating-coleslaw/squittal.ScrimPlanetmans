@@ -32,9 +32,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public ICollection<RulesetItemRule> RulesetItemRules { get; set; }
         public ICollection<RulesetFacilityRule> RulesetFacilityRules { get; set; }
 
-        public ICollection<RulesetItemCategoryPlanetsideClassRule> RulesetItemCategoryPlanetsideClassRules { get; set; }
-        public ICollection<RulesetItemPlanetsideClassRule> RulesetItemPlanetsideClassRules { get; set; }
-
         public RulesetOverlayConfiguration RulesetOverlayConfiguration { get; set; }
 
     }
