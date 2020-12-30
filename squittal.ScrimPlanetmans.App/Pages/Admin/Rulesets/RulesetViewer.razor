@@ -25,74 +25,107 @@
     }
     else
     {
-        <div style="display: grid; grid-template-columns: 48% 8% 18% 8% 18%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
-            <h5 class="mono-font" style="margin-bottom: 0px;">
-                Ruleset Viewer: @_renderedRuleset.Name <span style="font-size: small; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span>
-            </h5>
+        <h5 class="mono-font" style="margin-bottom: 0px;">
+            Ruleset Editor: @_renderedRuleset.Name <span style="font-size: small; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span>
+        </h5>
 
-            <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
-            <p style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</p>
+        <div class="row">
 
-            <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
-            <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedLastModifiedDateTime != null ? (GetLocalizedDateTimeString((DateTime)_renderedLastModifiedDateTime)) : "--")</p>
+            <div class="sans-serif-font; col-sm-3">
 
-        </div>
+                @*<div style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">*@
+                <div class="sans-serif-font" style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
 
-        <div style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
+                    @if (_renderedRuleset != null && IsActiveRuleset(_renderedRuleset.Id))
+                    {
+                        <div title="Active Ruleset" class="sans-serif-font" style="padding-left: 0; display: inline-block;">
+                            <span class="oi oi-target" style="padding-right: 0; font-size: 0.75rem;"></span>
+                            <span style="font-size: smaller;">Active Ruleset</span>
+                        </div>
 
-            @if (_renderedRuleset != null && IsActiveRuleset(_renderedRuleset.Id))
-            {
-                <div title="Active Ruleset" class="sans-serif-font" style="padding-left: 0; display: inline-block;">
-                    <span class="oi oi-target" style="padding-right: 0; font-size: 0.75rem;"></span>
-                    <span style="font-size: smaller;">Active Ruleset</span>
+                        @if (!_renderedRuleset.IsDefault)
+                        {
+                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px;">|</span>
+                        }
+                    }
+
+                    @if (!_renderedRuleset.IsDefault)
+                    {
+                        <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; display: inline-block;">Open in Editor</NavLink>
+                    }
+
+                    <p style="margin-bottom: 0px; font-size: smaller;">
+                        <span style="padding-right: 8px; color: var(--sq-gray); display: inline-block; width: 96px;">Created: </span>
+                        <span style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</span>
+                    </p>
+
+                    <p style="margin-bottom: 0px; font-size: smaller;">
+                        <span style="padding-right: 8px; color: var(--sq-gray); display: inline-block; width: 96px;">Last Modified: </span>
+                        <span style="margin-bottom: 0px; text-align: left;">
+                            @(_renderedLastModifiedDateTime != null ? (GetLocalizedDateTimeString((DateTime)_renderedLastModifiedDateTime)) : "--")
+                        </span>
+                    </p>
+
+                    <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
+
+                        <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                        <div><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@(_renderedRuleset.DefaultEndRoundOnFacilityCapture ? "Yes" : "No")</div>
+
+                        @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
+                        {
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
+                        }
+
+                        @if (_renderedRuleset.RulesetOverlayConfiguration != null)
+                        {
+                            <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
+                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
+                        }
+                    </p>
+
+                </div>
+            
+            </div>
+
+            <div class="col-sm-9" style="margin-top: 8px; border: 1px solid var(--sq-light-blue-gray); border-radius: 0.2rem; background-color: var(--sq-bg-white); margin-left: 15px; margin-right: 15px; max-width: calc(75% - 30px); padding: 8px 15px 8px 15px; box-shadow: 0px 0px 3px 1px var(--sq-light-blue-gray-alpha-80);">
+
+                <div class="btn-group sans-serif-font sq-btn-tabs">
+                    <button class="sans-serif-font btn btn-link @GetActionsTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Actions)">Action Rules</button>
+                    <button class="sans-serif-font btn btn-link @GetItemsTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Items)">Item & Item Category Rules</button>
+                    <button class="sans-serif-font btn btn-link @GetFacilitiesTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Facilities)">Facility Rules</button>
                 </div>
 
-                @if (!_renderedRuleset.IsDefault)
-                {
-                    <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px;">|</span>
-                }
-            }
+                <div class="row" style="margin-left: 0; margin-right: 0;">
 
-            @if (!_renderedRuleset.IsDefault)
-            {
-                <NavLink class="nav-link sans-serif-font" href=@($"ruleset/{_renderedRuleset.Id}?edit=true") style="padding: 0; font-size: smaller; margin-top: -4px; display: inline-block;">Open in Editor</NavLink>
-            }
+                    @if (_selectedRuleCategory == RuleCategoryTabOption.Actions)
+                    {
+                        <ViewRulesetActionRules i_rulesetId="@_renderedRulesetId" />
+                    }
 
-            <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
+                    @if (_selectedRuleCategory == RuleCategoryTabOption.Items)
+                    {
+                        <ViewRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+                        <ViewRulesetItemRules i_rulesetId="@_renderedRulesetId" />
+                    }
 
-                <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
-                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
-                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
-                <div><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@(_renderedRuleset.DefaultEndRoundOnFacilityCapture ? "Yes" : "No")</div>
-                
-                @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
-                {
-                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
-                }
+                    @if (_selectedRuleCategory == RuleCategoryTabOption.Facilities)
+                    {
+                        <ViewRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
+                    }
 
-                @if (_renderedRuleset.RulesetOverlayConfiguration != null)
-                {
-                    <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
-                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
-                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
-                }
-            </p>
+                </div>
+
+            </div>
+
 
         </div>
 
-        <div class="row" style="margin-left: 0; margin-right: 0;">
-
-            <ViewRulesetActionRules i_rulesetId="@_renderedRulesetId" />
-
-            <ViewRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
-
-            <ViewRulesetItemRules i_rulesetId="@_renderedRulesetId" />
-
-            <ViewRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
-
-        </div>
     }
+
 </div>
 
 
@@ -115,6 +148,8 @@
     private bool _isLoadingRuleset { get; set; } = false;
 
     private DateTime? _renderedLastModifiedDateTime { get; set; }
+
+    private RuleCategoryTabOption _selectedRuleCategory { get; set; } = RuleCategoryTabOption.Actions;
 
     private CancellationTokenSource cts;
 
@@ -325,6 +360,24 @@
     }
     #endregion Event Handling
 
+    #region UI Controls
+
+    private void OnClickRuleCategoryTab(RuleCategoryTabOption newSelection)
+    {
+        if (newSelection == _selectedRuleCategory)
+        {
+            return;
+        }
+        else
+        {
+            _selectedRuleCategory = newSelection;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    #endregion UI Controls
+
     private bool UpdateUriParameters()
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
@@ -411,11 +464,33 @@
         }
     }
 
+    private string GetActionsTabCssClass()
+    {
+        return (_selectedRuleCategory == RuleCategoryTabOption.Actions) ? "active" : string.Empty;
+    }
+
+    private string GetItemsTabCssClass()
+    {
+        return (_selectedRuleCategory == RuleCategoryTabOption.Items) ? "active" : string.Empty;
+    }
+
+    private string GetFacilitiesTabCssClass()
+    {
+        return (_selectedRuleCategory == RuleCategoryTabOption.Facilities) ? "active" : string.Empty;
+    }
+
     private void InvokeAsyncStateHasChanged()
     {
         InvokeAsync(() =>
         {
             StateHasChanged();
         });
+    }
+
+    private enum RuleCategoryTabOption
+    {
+        Actions,
+        Items,
+        Facilities
     }
 }

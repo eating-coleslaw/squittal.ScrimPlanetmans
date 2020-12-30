@@ -9,7 +9,7 @@
 
 @implements IDisposable
 
-<div class="sq-mini-card-3 default" style="min-width: 420px; background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;">
+<div class="sq-mini-card-6 default" style="min-width: 420px; background-color: transparent; box-shadow: 0px 2px 5px 0px var(--sq-light-blue-gray); margin-right: 16px;  max-width: calc(50% - 8px);">
     <h5>Item Category Rules</h5>
 
     @if (_isLoadingRules)
@@ -20,40 +20,40 @@
     {
         @if (_itemCategoryRules != null && _itemCategoryRules.Any())
         {
-                <div class="sq-content" style="margin-top: 8px;">
+            <div class="sq-content" style="margin-top: 8px;">
 
-                    <div class="tabbed-button-container" style="">
-                        <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
-                        <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
-                        <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
-                        <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
-                    </div>
-
-                    <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
-                        <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
-                            <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
-                                <tr>
-                                    <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
-                                    <th style="padding-bottom: 2px;">Points</th>
-                                    <th style="padding-bottom: 2px;">Banned?</th>
-                                    <th style="padding-bottom: 2px;">Defer to<br />Item Rules?</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
-                                {
-                                    <tr class="sans-serif-font">
-                                        <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
-                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points); text-align: right; width: 50px; color: var(--sq-black);">@itemCategoryRule.Points</td>
-                                        <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.IsBanned);">@itemCategoryRule.IsBanned</td>
-                                        <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">@itemCategoryRule.DeferToItemRules</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="tabbed-button-container" style="">
+                    <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Infantry)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Infantry))">Infantry</button>
+                    <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.Max)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.Max))">MAX</button>
+                    <button type="button" title="View ground vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.GroundVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.GroundVehicle))">Ground</button>
+                    <button type="button" title="View air vehicle item category rules" class="btn btn-link @GetViewTabStyle(ItemCategoryDomain.AirVehicle)" @onclick="@(() => OnSelectNewView(ItemCategoryDomain.AirVehicle))">Air</button>
                 </div>
+
+                <div style="max-height: 544px; overflow-y: auto; border-bottom: 1px solid var(--sq-black-alpha-50);">
+                    <table class="table-responsive-sm table-striped-light default sans-serif-font" style="border-bottom: none;">
+                        <thead style="border-bottom: 1px solid var(--sq-black-alpha-50);">
+                            <tr>
+                                <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
+                                <th style="padding-bottom: 2px;">Points</th>
+                                <th style="padding-bottom: 2px;">Banned?</th>
+                                <th style="padding-bottom: 2px;">Defer to<br />Item Rules?</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var itemCategoryRule in _itemCategoryRules.Where(r => r.ItemCategory.Domain == _selectedDomainView))
+                            {
+                                <tr class="sans-serif-font">
+                                    <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
+                                    <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points); text-align: right; width: 50px; color: var(--sq-black);">@itemCategoryRule.Points</td>
+                                    <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.IsBanned);">@itemCategoryRule.IsBanned</td>
+                                    <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">@itemCategoryRule.DeferToItemRules</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         }
         else
         {

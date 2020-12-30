@@ -20,195 +20,228 @@
 
     @if (_renderedRuleset == null)
     {
-        <h5>Ruleset Editor</h5>
+        <h5 class="sans-serif-font;" >Ruleset Editor</h5>
         <SpinnerEllipsis />
     }
     else
     {
-        @if (_isSavingRuleset)
-        {
-            <h5>Saving changes...</h5>
-            <SpinnerEllipsis />
-        }
-        else if (_isDeletingRuleset)
-        {
-            <h5>Deleting ruleset...</h5>
-            <SpinnerEllipsis />
-        }
-        else
-        {
-            <div style="display: grid; grid-template-columns: 48% 8% 18% 8% 18%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif;">
-                <h5 class="mono-font" style="margin-bottom: 0px;">
-                    Ruleset Editor: @_renderedRuleset.Name <span style="font-size: small; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span>
-                </h5>
+        
+        <h5 class="mono-font" style="margin-bottom: 0px;">
+            Ruleset Editor: @_renderedRuleset.Name <span style="font-size: small; color: var(--sq-gray); font-weight: 300;">[@(_renderedRuleset.Id)]</span>
+        </h5>
 
-                <span style="padding-right: 8px; text-align: right; color: var(--sq-gray);">Created: </span>
-                <p style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</p>
+        <div class="row">
 
-                <span style="padding-right: 8px; text-align: right; color: var(--sq-gray); grid-column: 4;">Last Modified: </span>
-                <p style="margin-bottom: 0px; text-align: left; grid-column: 5;">@(_renderedLastModifiedDateTime != null ? (GetLocalizedDateTimeString((DateTime)_renderedLastModifiedDateTime)) : "--")</p>
+            <div class="sans-serif-font; col-sm-3">
 
-            </div>
-
-            <div style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
-                @if (!_showEditForm)
+                @if (_isSavingRuleset)
                 {
-                    @if (!_showExportConfirmationForm && !_showDeleteConfirmationForm)
-                    {
-                        @if (_renderedRuleset != null && IsActiveRuleset(_renderedRuleset.Id))
-                        {
-                            <div title="Active Ruleset" class="sans-serif-font" style="padding-left: 0; display: inline-block;">
-                                <span class="oi oi-target" style="padding-right: 0; font-size: 0.75rem;"></span>
-                                <span style="font-size: smaller;">Active Ruleset</span>
-                            </div><span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px">|</span>
-                        }
-
-                        <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
-                    }
-
-                    @if (!_isExportingRuleset && !_showDeleteConfirmationForm && !_showEditForm)
-                    {
-                        @if (!_showExportConfirmationForm)
-                        {
-                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px;">|</span><button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
-                        }
-                        else
-                        {
-                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
-                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to export this ruleset? This action may overwrite an existing file.</p>
-
-                                <div style="text-align: right; margin-top: 12px;">
-                                    <button title="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetCancel">
-                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                    </button>
-
-                                    <button title="Export this ruleset" class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleExportRulesetToJsonFileSubmit">
-                                        <span class="oi oi-data-transfer-download"></span>Export
-                                    </button>
-                                </div>
-
-                            </div>
-                        }
-                    }
-
-                    @if (_canDeleteRuleset && !_showEditForm && !_showExportConfirmationForm)
-                    {
-                        @if (!_showDeleteConfirmationForm)
-                        {
-                            <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
-                            <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowDeleteRulesetConfirmationForm">Delete Ruleset</button>
-                        }
-                        else
-                        {
-                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
-                                <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to permanently delete this ruleset? This action cannot be undone.</p>
-
-                                <div style="text-align: right; margin-top: 12px;">
-                                    <button class="btn btn-primary sans-serif-font" style="" @onclick="HandleDeleteRulesetCancel">
-                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                    </button>
-
-                                    <button class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleDeleteRulesetSubmit">
-                                        <span class="oi oi-trash"></span>Delete
-                                    </button>
-                                </div>
-
-                            </div>
-                        }
-                    }
-
-                    <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
-
-                        <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
-                        <div><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@(_renderedRuleset.DefaultEndRoundOnFacilityCapture ? "Yes" : "No")</div>
-                        
-                        @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
-                        {
-                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
-                        }
-
-                        @if (_renderedRuleset.RulesetOverlayConfiguration != null)
-                        { 
-                            <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
-                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
-                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
-                        }
-
-                    </p>
+                    <h6 class="sans-serif-font" style="margin-top: 8px; font-weight: 400;">Saving changes...</h6>
+                    <SpinnerEllipsis />
+                }
+                else if (_isDeletingRuleset)
+                {
+                    <h6 class="sans-serif-font" style="margin-top: 8px; font-weight: 400;">Deleting ruleset...</h6>
+                    <SpinnerEllipsis />
                 }
                 else
                 {
-                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                    <div class="sans-serif-font" style="display: block; font-size: 1rem; margin-top: -4px; margin-bottom: 12px;">
 
-                        <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: 0.9rem; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
+                        @if (!_showEditForm)
+                        {
+                            @if (!_showExportConfirmationForm && !_showDeleteConfirmationForm)
+                            {
+                                @if (_renderedRuleset != null && IsActiveRuleset(_renderedRuleset.Id))
+                                {
+                                    <div title="Active Ruleset" class="sans-serif-font" style="padding-left: 0; display: inline-block;">
+                                        <span class="oi oi-target" style="padding-right: 0; font-size: 0.75rem;"></span>
+                                        <span style="font-size: smaller;">Active Ruleset</span>
+                                    </div><span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px">|</span>
+                                }
 
-                            <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
-                            <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
-                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.DefaultEndRoundOnFacilityCapture" /><span style="padding-left: 8px;">Default End Round On Facility Capture</span></div>
+                                <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="ToggleEditRulesetFormVisibility">Edit Info</button>
+                            }
 
-                            <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
+                            @if (!_isExportingRuleset && !_showDeleteConfirmationForm && !_showEditForm)
+                            {
+                                @if (!_showExportConfirmationForm)
+                                {
+                                    <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom; padding: 0 4px 0 4px;">|</span><button title="Export this ruleset to a JSON file" class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowExportRulesetConfirmationForm">Export to File</button>
+                                }
+                                else
+                                {
+                                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                        <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to export this ruleset? This action may overwrite an existing file.</p>
 
-                            <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlayLayout" /><span style="padding-left: 8px;">Use Compact Layout</span></div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;">
+                                        <div style="text-align: right; margin-top: 12px;">
+                                            <button title="Cancel exporting this ruleset" class="btn btn-primary sans-serif-font" style="" @onclick="HandleExportRulesetCancel">
+                                                <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                            </button>
 
-                                    @foreach (OverlayStatsDisplayType statsType in Enum.GetValues(typeof(OverlayStatsDisplayType)))
-                                                {
-                                        <option value=@statsType label=@GetOverlayStatsDisplayString(statsType) />
-                                                }
+                                            <button title="Export this ruleset" class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleExportRulesetToJsonFileSubmit">
+                                                <span class="oi oi-data-transfer-download"></span>Export
+                                            </button>
+                                        </div>
 
-                                </InputSelect>
+                                    </div>
+                                }
+                            }
+
+                            @if (_canDeleteRuleset && !_showEditForm && !_showExportConfirmationForm)
+                            {
+                                @if (!_showDeleteConfirmationForm)
+                                {
+                                    <span style="font-size: smaller; display: inline-block; vertical-align: text-bottom;"> | </span>
+                                    <button class="btn btn-link sans-serif-font" style="padding: 0 0 0 0; font-size: smaller; vertical-align: baseline;" @onclick="HandleShowDeleteRulesetConfirmationForm">Delete Ruleset</button>
+                                }
+                                else
+                                {
+                                    <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+                                        <p class="sans-serif-font" style="margin: 0 0 4px 0;">Are you sure you want to permanently delete this ruleset? This action cannot be undone.</p>
+
+                                        <div style="text-align: right; margin-top: 12px;">
+                                            <button class="btn btn-primary sans-serif-font" style="" @onclick="HandleDeleteRulesetCancel">
+                                                <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                            </button>
+
+                                            <button class="btn btn-outline-primary sans-serif-font" style="margin-left: 8px;" @onclick="HandleDeleteRulesetSubmit">
+                                                <span class="oi oi-trash"></span>Delete
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                }
+                            }
+
+                            <p style="margin-bottom: 0px; font-size: smaller;">
+                                <span style="padding-right: 8px; color: var(--sq-gray); display: inline-block; width: 96px;">Created: </span>
+                                <span style="margin-bottom: 0px; text-align: left;">@GetLocalizedDateTimeString(_renderedRuleset.DateCreated)</span>
+                            </p>
+
+                            <p style="margin-bottom: 0px; font-size: smaller;">
+                                <span style="padding-right: 8px; color: var(--sq-gray); display: inline-block; width: 96px;">Last Modified: </span>
+                                <span style="margin-bottom: 0px; text-align: left;">
+                                    @(_renderedLastModifiedDateTime != null ? (GetLocalizedDateTimeString((DateTime)_renderedLastModifiedDateTime)) : "--")
+                                </span>
+                            </p>
+
+                            <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
+
+                                <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
+                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>
+                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                                <div><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@(_renderedRuleset.DefaultEndRoundOnFacilityCapture ? "Yes" : "No")</div>
+
+                                @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
+                                {
+                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
+                                }
+
+                                @if (_renderedRuleset.RulesetOverlayConfiguration != null)
+                                {
+                                    <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
+                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
+                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
+                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
+                                }
+
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; width: max-content; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+
+                                <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: 0.9rem; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+
+                                    <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
+                                    <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                                    <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+                                    <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 248px;" /></div>
+                                    <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.DefaultEndRoundOnFacilityCapture" /><span style="padding-left: 8px;">Default End Round On Facility Capture</span></div>
+
+                                    <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
+
+                                    <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.UseCompactOverlayLayout" /><span style="padding-left: 8px;">Use Compact Layout</span></div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 248px;">
+
+                                            @foreach (OverlayStatsDisplayType statsType in Enum.GetValues(typeof(OverlayStatsDisplayType)))
+                                                        {
+                                                <option value=@statsType label=@GetOverlayStatsDisplayString(statsType) />
+                                                        }
+
+                                        </InputSelect>
+                                    </div>
+
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.ShowOverlayStatusPanelScoresSelection style="display: inline-block; width: 248px;">
+
+                                            @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
+                                                        {
+                                                <option value=@showScoresSelection label=@GetOverlayShowPlayerScoresSelectionString(showScoresSelection) />
+                                                        }
+
+                                        </InputSelect>
+                                    </div>
+
+                                    <div style="text-align: right; margin-top: 12px;">
+                                        <button type="submit" class="btn btn-primary">
+                                            <span class="oi oi-check"></span>Save
+                                        </button>
+
+                                        <button type="reset" @onclick="HandleEditRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                                            <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                        </button>
+                                    </div>
+
+                                </EditForm>
+
                             </div>
-
-                            <div style="margin-bottom: 0.5rem;">
-                                <span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.ShowOverlayStatusPanelScoresSelection style="display: inline-block; width: 248px;">
-
-                                    @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
-                                                {
-                                        <option value=@showScoresSelection label=@GetOverlayShowPlayerScoresSelectionString(showScoresSelection) />
-                                                }
-
-                                </InputSelect>
-                            </div>
-
-                            <div style="text-align: right; margin-top: 12px;">
-                                <button type="submit" class="btn btn-primary">
-                                    <span class="oi oi-check"></span>Save
-                                </button>
-
-                                <button type="reset" @onclick="HandleEditRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
-                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                </button>
-                            </div>
-
-                        </EditForm>
-
+                        }
                     </div>
+
                 }
             </div>
-        }
 
-        @if (!_isDeletingRuleset)
-        {
-            <div class="row" style="margin-left: 0; margin-right: 0;">
+            @if (!_isDeletingRuleset)
+            {
+                    
+                <div class="col-sm-9" style="margin-top: 8px; border: 1px solid var(--sq-light-blue-gray); border-radius: 0.2rem; background-color: var(--sq-bg-white); margin-left: 15px; margin-right: 15px; max-width: calc(75% - 30px); padding: 8px 15px 8px 15px; box-shadow: 0px 0px 3px 1px var(--sq-light-blue-gray-alpha-80);">
 
-                <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
+                    <div class="btn-group sans-serif-font sq-btn-tabs">
+                        <button class="sans-serif-font btn btn-link @GetActionsTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Actions)">Action Rules</button>
+                        <button class="sans-serif-font btn btn-link @GetItemsTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Items)">Item & Item Category Rules</button>
+                        <button class="sans-serif-font btn btn-link @GetFacilitiesTabCssClass()" style="padding: 0;" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Facilities)">Facility Rules</button>
+                    </div>
+            
+                    <div class="row" style="margin-left: 0; margin-right: 0;">
 
-                <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+                        @if (_selectedRuleCategory == RuleCategoryTabOption.Actions)
+                        {
+                            <EditRulesetActionRules i_rulesetId="@_renderedRulesetId" />
+                        }
 
-                <EditRulesetItemRules i_rulesetId="@_renderedRulesetId" />
+                        @if (_selectedRuleCategory == RuleCategoryTabOption.Items)
+                        {
+                            <EditRulesetItemCategoryRules i_rulesetId="@_renderedRulesetId" />
+                            <EditRulesetItemRules i_rulesetId="@_renderedRulesetId" />
+                        }
 
-                <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
+                        @if (_selectedRuleCategory == RuleCategoryTabOption.Facilities)
+                        {
+                            <EditRulesetFacilityRules i_rulesetId="@_renderedRulesetId" />
+                        }
 
-            </div>
-        }
+                    </div>
+
+                </div>
+            }
+        
+        </div>
+
     }
 </div>
 
@@ -245,6 +278,8 @@
     private bool _showExportConfirmationForm { get; set; } = false;
 
     private DateTime? _renderedLastModifiedDateTime { get; set; }
+
+    private RuleCategoryTabOption _selectedRuleCategory { get; set; } = RuleCategoryTabOption.Actions;
 
     private CancellationTokenSource cts;
 
@@ -698,6 +733,24 @@
 
     #endregion Form Handling
 
+    #region UI Controls
+
+    private void OnClickRuleCategoryTab(RuleCategoryTabOption newSelection)
+    {
+        if (newSelection == _selectedRuleCategory)
+        {
+            return;
+        }
+        else
+        {
+            _selectedRuleCategory = newSelection;
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    #endregion UI Controls
+
     private bool UpdateUriParameters()
     {
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
@@ -799,11 +852,33 @@
         }
     }
 
+    private string GetActionsTabCssClass()
+    {
+        return (_selectedRuleCategory == RuleCategoryTabOption.Actions) ? "active" : string.Empty;
+    }
+
+    private string GetItemsTabCssClass()
+    {
+        return (_selectedRuleCategory == RuleCategoryTabOption.Items) ? "active" : string.Empty;
+    }
+
+    private string GetFacilitiesTabCssClass()
+    {
+        return (_selectedRuleCategory == RuleCategoryTabOption.Facilities) ? "active" : string.Empty;
+    }
+
     private void InvokeAsyncStateHasChanged()
     {
         InvokeAsync(() =>
         {
             StateHasChanged();
         });
+    }
+
+    private enum RuleCategoryTabOption
+    {
+        Actions,
+        Items,
+        Facilities
     }
 }

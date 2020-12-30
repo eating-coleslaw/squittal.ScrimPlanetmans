@@ -24,6 +24,36 @@ a, .btn-link {
     margin-right: 4px;
 }
 
+.btn-group.sq-btn-tabs {
+    border-bottom: 0px solid var(--sq-black-alpha-50);
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+    .btn-group.sq-btn-tabs > .btn-link {
+        padding: 0px;
+        border-bottom: 2px solid var(--sq-pink-lighter-alpha-25);
+        border-radius: 0;
+        transition: none;
+    }
+
+    .btn-group.sq-btn-tabs > .btn-link:hover {
+        padding: 0px;
+        border-bottom: 2px solid var(--sq-pink-lighter-alpha-80);
+    }
+
+        .btn-group.sq-btn-tabs > .btn-link.active {
+            padding: 0px;
+            color: var(--sq-black);
+            border-bottom: 2px solid var(--sq-pink);
+        }
+
+        .btn-group.sq-btn-tabs > .btn-link.active:hover
+        {
+            text-decoration: none;
+            cursor: default;
+        }
+
 app {
     position: relative;
     display: flex;
