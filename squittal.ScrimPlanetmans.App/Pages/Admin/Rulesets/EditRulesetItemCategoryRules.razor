@@ -84,16 +84,15 @@
                                             <InputCheckbox Value="@itemCategoryRule.IsBanned" ValueChanged="@((bool b) => OnChangeRuleIsBanned(itemCategoryRule, b))" ValueExpression="@(() => itemCategoryRule.IsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemCategoryRule.IsBanned ? "Yes" : "No")</span>
                                         </td>
 
-                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">
-                                            <InputCheckbox Value="@itemCategoryRule.DeferToItemRules" ValueChanged="@((bool d) => OnChangeRuleDefer(itemCategoryRule, d))" ValueExpression="@(() => itemCategoryRule.DeferToItemRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemCategoryRule.DeferToItemRules ? "Yes" : "No")</span>
-                                        </td>
-
                                         <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToPlanetsideClassSettings);">
                                             <InputCheckbox Value="@itemCategoryRule.DeferToPlanetsideClassSettings" ValueChanged="@((bool d) => OnChangeRuleDeferToPlanetsideClass(itemCategoryRule, d))" ValueExpression="@(() => itemCategoryRule.DeferToPlanetsideClassSettings)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemCategoryRule.DeferToPlanetsideClassSettings ? "Yes" : "No")</span>
                                         </td>
 
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">
+                                            <InputCheckbox Value="@itemCategoryRule.DeferToItemRules" ValueChanged="@((bool d) => OnChangeRuleDefer(itemCategoryRule, d))" ValueExpression="@(() => itemCategoryRule.DeferToItemRules)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemCategoryRule.DeferToItemRules ? "Yes" : "No")</span>
+                                        </td>
+
                                         <td style="padding-right: 8px;">
-                                            @*@if (_extendablePlanetsideClasses.ContainsKey(itemCategoryRule.ItemCategoryId))*@
                                             @if (itemCategoryRule.DeferToPlanetsideClassSettings)
                                             {
                                                 @if (GetPlanetsideClassIsExtended(itemCategoryRule.ItemCategoryId))
