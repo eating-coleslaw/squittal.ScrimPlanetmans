@@ -39,5 +39,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public Ruleset Ruleset { get; set; }
         public ItemCategory ItemCategory { get; set; }
+
+        public void SetPlanetsideClassSettings(PlanetsideClassRuleSettings settings)
+        {
+            InfiltratorIsBanned = settings.InfiltratorIsBanned;
+            InfiltratorPoints = settings.InfiltratorPoints;
+            LightAssaultIsBanned = settings.LightAssaultIsBanned;
+            LightAssaultPoints = settings.LightAssaultPoints;
+            MedicIsBanned = settings.MedicIsBanned;
+            MedicPoints = settings.MedicPoints;
+            EngineerIsBanned = settings.EngineerIsBanned;
+            EngineerPoints = settings.EngineerPoints;
+            HeavyAssaultIsBanned = settings.HeavyAssaultIsBanned;
+            HeavyAssaultPoints = settings.HeavyAssaultPoints;
+            MaxIsBanned = settings.MaxIsBanned;
+            MaxPoints = settings.MaxPoints;
+        }
+
+        public PlanetsideClassRuleSettings GetPlanetsideClassRuleSettings()
+        {
+            return new PlanetsideClassRuleSettings(this);
+        }
     }
 }

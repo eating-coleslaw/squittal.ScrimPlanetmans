@@ -1,4 +1,5 @@
 ﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
 @using squittal.ScrimPlanetmans.Models.Planetside;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Rulesets;
@@ -56,7 +57,7 @@
                     @if (_showReloadRulesPrompt)
                     {
                         <div class="text-danger sans-serif-font" style="border: 1px solid var(--sq-ov-semantic-red); border-radius: 0.1rem; padding: 4px 8px 4px 8px; font-size: 0.9rem; margin: 4px 0 8px 0;">
-                            One or more Item Category or Item Rules have been altered.<button type="button"  @onclick="OnRefreshRules" title="Reset changes to original values" class="btn btn-link" style="padding: 0 0 0 2px; font-size: 0.9rem; vertical-align: baseline;">Refresh</button> to discard your changes and recieve these updates.
+                            One or more Item Category or Item Rules have been altered.<button type="button" @onclick="OnRefreshRules" title="Reset changes to original values" class="btn btn-link" style="padding: 0 0 0 2px; font-size: 0.9rem; vertical-align: baseline;">Refresh</button> to discard your changes and recieve these updates.
                         </div>
                     }
 
@@ -100,6 +101,8 @@
                                         <th style="padding-bottom: 2px;">Item <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                         <th style="padding-bottom: 2px;">Points</th>
                                         <th style="padding-bottom: 2px;">Banned?</th>
+                                        <th style="padding-bottom: 2px;">Defer to<br>Classes?</th>
+                                        <th style="padding-bottom: 2px; padding-right: 2px; width: 20px;"></th>
                                     </tr>
                                 </thead>
 
@@ -116,7 +119,117 @@
                                                 <InputCheckbox Value="@itemRule.IsBanned" ValueChanged="@((bool b) => OnChangeRuleIsBanned(itemRule, b))" ValueExpression="@(() => itemRule.IsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.IsBanned ? "Yes" : "No")</span>
                                             </td>
 
+                                            <td style="opacity: @GetBoolValueOpacity(itemRule.DeferToPlanetsideClassSettings);">
+                                                <InputCheckbox Value="@itemRule.DeferToPlanetsideClassSettings" ValueChanged="@((bool d) => OnChangeRuleDeferToPlanetsideClass(itemRule, d))" ValueExpression="@(() => itemRule.DeferToPlanetsideClassSettings)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.DeferToPlanetsideClassSettings ? "Yes" : "No")</span>
+                                            </td>
+
+                                            <td style="padding-right: 8px;">
+                                                @if (itemRule.DeferToPlanetsideClassSettings)
+                                                {
+                                                    @if (GetPlanetsideClassIsExtended(itemRule.ItemId))
+                                                    {
+                                                        <button @onclick="() => OnTogglePlanetsideClassExtension(itemRule.ItemId)" type="submit" style="padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Collapse Planetside class settings">
+                                                            <span class="oi oi-caret-bottom"></span>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button @onclick="() => OnTogglePlanetsideClassExtension(itemRule.ItemId)" type="submit" style="padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Expand Planetside class settings">
+                                                            <span class="oi oi-caret-left"></span>
+                                                        </button>
+                                                    }
+                                                }
+                                            </td>
+
                                         </tr>
+
+                                        @if (itemRule.DeferToPlanetsideClassSettings && GetPlanetsideClassIsExtended(itemRule.ItemId))
+                                        {
+                                            <tr class="sans-serif-font">
+                                                <td style="color: var(--sq-black); padding-left: 24px;">
+                                                    <span class="playerLoadoutIcon ps2-icon infil" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                                    <span>Infiltrator</span>
+                                                </td>
+                                                <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.InfiltratorPoints);">
+                                                    <InputNumber Value="@itemRule.InfiltratorPoints" ValueChanged="@((int p) => OnChangeRulePlanetsideClassPoints(itemRule, PlanetsideClass.Infiltrator, p))" ValueExpression="@(() => itemRule.InfiltratorPoints)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                </td>
+
+                                                <td style="opacity: @GetBoolValueOpacity(itemRule.InfiltratorIsBanned);">
+                                                    <InputCheckbox Value="@itemRule.InfiltratorIsBanned" ValueChanged="@((bool b) => OnChangeRulePlanetsideClassIsBanned(itemRule, PlanetsideClass.Infiltrator, b))" ValueExpression="@(() => itemRule.InfiltratorIsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.InfiltratorIsBanned ? "Yes" : "No")</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="sans-serif-font">
+                                                <td style="color: var(--sq-black); padding-left: 24px;">
+                                                    <span class="playerLoadoutIcon ps2-icon la" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                                    <span>Light Assault</span>
+                                                </td>
+                                                <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.LightAssaultPoints);">
+                                                    <InputNumber Value="@itemRule.LightAssaultPoints" ValueChanged="@((int p) => OnChangeRulePlanetsideClassPoints(itemRule, PlanetsideClass.LightAssault, p))" ValueExpression="@(() => itemRule.LightAssaultPoints)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                </td>
+
+                                                <td style="opacity: @GetBoolValueOpacity(itemRule.LightAssaultIsBanned);">
+                                                    <InputCheckbox Value="@itemRule.LightAssaultIsBanned" ValueChanged="@((bool b) => OnChangeRulePlanetsideClassIsBanned(itemRule, PlanetsideClass.LightAssault, b))" ValueExpression="@(() => itemRule.LightAssaultIsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.LightAssaultIsBanned ? "Yes" : "No")</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="sans-serif-font">
+                                                <td style="color: var(--sq-black); padding-left: 24px;">
+                                                    <span class="playerLoadoutIcon ps2-icon medic" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                                    <span>Medic</span>
+                                                </td>
+                                                <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.MedicPoints);">
+                                                    <InputNumber Value="@itemRule.MedicPoints" ValueChanged="@((int p) => OnChangeRulePlanetsideClassPoints(itemRule, PlanetsideClass.Medic, p))" ValueExpression="@(() => itemRule.MedicPoints)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                </td>
+
+                                                <td style="opacity: @GetBoolValueOpacity(itemRule.MedicIsBanned);">
+                                                    <InputCheckbox Value="@itemRule.MedicIsBanned" ValueChanged="@((bool b) => OnChangeRulePlanetsideClassIsBanned(itemRule, PlanetsideClass.Medic, b))" ValueExpression="@(() => itemRule.MedicIsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.MedicIsBanned ? "Yes" : "No")</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="sans-serif-font">
+                                                <td style="color: var(--sq-black); padding-left: 24px;">
+                                                    <span class="playerLoadoutIcon ps2-icon engie" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                                    <span>Engineer</span>
+                                                </td>
+                                                <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.EngineerPoints);">
+                                                    <InputNumber Value="@itemRule.EngineerPoints" ValueChanged="@((int p) => OnChangeRulePlanetsideClassPoints(itemRule, PlanetsideClass.Engineer, p))" ValueExpression="@(() => itemRule.EngineerPoints)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                </td>
+
+                                                <td style="opacity: @GetBoolValueOpacity(itemRule.EngineerIsBanned);">
+                                                    <InputCheckbox Value="@itemRule.EngineerIsBanned" ValueChanged="@((bool b) => OnChangeRulePlanetsideClassIsBanned(itemRule, PlanetsideClass.Engineer, b))" ValueExpression="@(() => itemRule.EngineerIsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.EngineerIsBanned ? "Yes" : "No")</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="sans-serif-font">
+                                                <td style="color: var(--sq-black); padding-left: 24px;">
+                                                    <span class="playerLoadoutIcon ps2-icon heavy" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                                    <span>Heavy Assault</span>
+                                                </td>
+                                                <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.HeavyAssaultPoints);">
+                                                    <InputNumber Value="@itemRule.HeavyAssaultPoints" ValueChanged="@((int p) => OnChangeRulePlanetsideClassPoints(itemRule, PlanetsideClass.HeavyAssault, p))" ValueExpression="@(() => itemRule.HeavyAssaultPoints)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                </td>
+
+                                                <td style="opacity: @GetBoolValueOpacity(itemRule.HeavyAssaultIsBanned);">
+                                                    <InputCheckbox Value="@itemRule.HeavyAssaultIsBanned" ValueChanged="@((bool b) => OnChangeRulePlanetsideClassIsBanned(itemRule, PlanetsideClass.HeavyAssault, b))" ValueExpression="@(() => itemRule.HeavyAssaultIsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.HeavyAssaultIsBanned ? "Yes" : "No")</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="sans-serif-font">
+                                                <td style="color: var(--sq-black); padding-left: 24px;">
+                                                    <span class="playerLoadoutIcon ps2-icon max" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                                    <span>MAX</span>
+                                                </td>
+                                                <td class="mono-font" style="opacity: @GetValueOpacity(itemRule.MaxPoints);">
+                                                    <InputNumber Value="@itemRule.MaxPoints" ValueChanged="@((int p) => OnChangeRulePlanetsideClassPoints(itemRule, PlanetsideClass.MAX, p))" ValueExpression="@(() => itemRule.MaxPoints)" style="text-align: right; width: 50px; color: var(--sq-black); border: 1px solid transparent; background-color: transparent;" />
+                                                </td>
+
+                                                <td style="opacity: @GetBoolValueOpacity(itemRule.MaxIsBanned);">
+                                                    <InputCheckbox Value="@itemRule.MaxIsBanned" ValueChanged="@((bool b) => OnChangeRulePlanetsideClassIsBanned(itemRule, PlanetsideClass.MAX, b))" ValueExpression="@(() => itemRule.MaxIsBanned)" style="position: relative; top: 1px;" /><span style="padding-left: 4px; color: var(--sq-black);">@(itemRule.MaxIsBanned ? "Yes" : "No")</span>
+                                                </td>
+                                            </tr>
+
+                                        }
                                     }
                                 </tbody>
                             </table>
@@ -129,7 +242,7 @@
         {
             <div class="sans-serif-font" style="border: 1px solid var(--sq-black-alpha-50); border-radius: 0.1rem; padding: 4px 8px 4px 8px; font-size: 0.9rem; margin: 4px 8px 8px 8px;">
                 There are no Item Rules for this Ruleset. Enable "Defer to Item Rules" for an Item Category Rule to begin editing Item Rules.
-            </div>            
+            </div>
         }
     }
 </div>
@@ -157,12 +270,17 @@
     private ConcurrentDictionary<int, int> _originalRulePoints { get; set; } = new ConcurrentDictionary<int, int>();
     private ConcurrentDictionary<int, bool> _originalRuleBans { get; set; } = new ConcurrentDictionary<int, bool>();
 
+    private ConcurrentDictionary<int, bool> _originalRuleDeferToPlanetsideClasses { get; set; } = new ConcurrentDictionary<int, bool>();
+    private ConcurrentDictionary<int, PlanetsideClassRuleSettings> _originalRulePlanetsideClassSettings { get; set; } = new ConcurrentDictionary<int, PlanetsideClassRuleSettings>();
+
     private int _changesCount { get; set; } = 0;
 
     private string _selectedItemCategoryIdString { get; set; } = "0";
     private int _selectedItemCategoryId { get; set; } = 0;
 
     private int _noSelectedItemCategoryValue = 0;
+
+    private ConcurrentDictionary<int, bool> _extendablePlanetsideClasses { get; set; } = new ConcurrentDictionary<int, bool>();
 
 
     #region Initializtion Methods
@@ -246,6 +364,8 @@
 
             _originalRulePoints.Clear();
             _originalRuleBans.Clear();
+            _originalRuleDeferToPlanetsideClasses.Clear();
+            _originalRulePlanetsideClassSettings.Clear();
 
             _changedRules.Clear();
 
@@ -254,6 +374,11 @@
             if (!_deferredItemCategories.Any(e => e.Id == _selectedItemCategoryId))
             {
                 OnSelectItemCategoryId(_noSelectedItemCategoryValue.ToString());
+            }
+
+            foreach (var rule in _itemRules.Where(r => r.DeferToPlanetsideClassSettings))
+            {
+                _extendablePlanetsideClasses.TryAdd(rule.ItemId, true);
             }
         }
         catch
@@ -305,8 +430,6 @@
         var itemId = rule.ItemId;
         var currentPoints = rule.Points;
 
-        var hasAlreadyChanged = _originalRulePoints.ContainsKey(itemId);
-
         if (_originalRulePoints.TryGetValue(itemId, out int originalPoints))
         {
             rule.Points = newPoints;
@@ -347,8 +470,6 @@
         var itemId = rule.ItemId;
         var currentIsBanned = rule.IsBanned;
 
-        var hasAlreadyChanged = _originalRuleBans.ContainsKey(itemId);
-
         if (_originalRuleBans.TryGetValue(itemId, out bool originalIsBanned))
         {
             if (newIsBanned == originalIsBanned)
@@ -379,12 +500,159 @@
 
         _changesCount = _changedRules.Count();
 
+        if (newIsBanned)
+        {
+            OnChangeRuleDeferToPlanetsideClass(rule, false);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnChangeRuleDeferToPlanetsideClass(RulesetItemRule rule, bool newDefer)
+    {
+        var itemId = rule.ItemId;
+        var currentDefer = rule.DeferToPlanetsideClassSettings;
+
+        if (_originalRuleDeferToPlanetsideClasses.TryGetValue(itemId, out bool originalDefer))
+        {
+            if (newDefer == originalDefer)
+            {
+                _originalRuleDeferToPlanetsideClasses.TryRemove(itemId, out var removedDefer);
+
+                if (!RuleHasAnyChanges(itemId))
+                {
+                    _changedRules.TryRemove(itemId, out var removedRule);
+                }
+            }
+
+            rule.DeferToPlanetsideClassSettings = newDefer;
+        }
+        else
+        {
+            if (!_originalRuleDeferToPlanetsideClasses.TryAdd(itemId, currentDefer))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            rule.DeferToPlanetsideClassSettings = newDefer;
+
+            _changedRules.AddOrUpdate(itemId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+
+        if (rule.DeferToPlanetsideClassSettings && !_extendablePlanetsideClasses.ContainsKey(itemId))
+        {
+            _extendablePlanetsideClasses.TryAdd(rule.ItemId, true);
+        }
+        else if (!rule.DeferToPlanetsideClassSettings && _extendablePlanetsideClasses.ContainsKey(itemId))
+        {
+            _extendablePlanetsideClasses.TryRemove(itemId, out bool _);
+        }
+
+        if (newDefer)
+        {
+            OnChangeRuleIsBanned(rule, false);
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnChangeRulePlanetsideClassPoints(RulesetItemRule rule, PlanetsideClass planetsideClass, int newPoints)
+    {
+        var itemId = rule.ItemId;
+        var currentRuleClassSettings = rule.GetPlanetsideClassRuleSettings();
+        var currentClassPoints = currentRuleClassSettings.GetClassPoints(planetsideClass);
+
+        if (_originalRulePlanetsideClassSettings.TryGetValue(itemId, out var originalRuleClassSettings))
+        {
+            var originalClassPoints = originalRuleClassSettings.GetClassPoints(planetsideClass);
+
+            if (newPoints == originalClassPoints)
+            {
+                _originalRulePlanetsideClassSettings.TryRemove(itemId, out var removedSettings);
+
+                if (!RuleHasAnyChanges(itemId))
+                {
+                    _changedRules.TryRemove(itemId, out var removedRule);
+                }
+            }
+
+            currentRuleClassSettings.SetClassPoints(planetsideClass, newPoints);
+            rule.SetPlanetsideClassSettings(currentRuleClassSettings);
+        }
+        else
+        {
+            if (!_originalRulePlanetsideClassSettings.TryAdd(itemId, currentRuleClassSettings))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            var newClassSettings = rule.GetPlanetsideClassRuleSettings();
+            newClassSettings.SetClassPoints(planetsideClass, newPoints);
+            rule.SetPlanetsideClassSettings(newClassSettings);
+
+            _changedRules.AddOrUpdate(itemId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void OnChangeRulePlanetsideClassIsBanned(RulesetItemRule rule, PlanetsideClass planetsideClass, bool newIsBanned)
+    {
+        var itemId = rule.ItemId;
+        var currentRuleClassSettings = rule.GetPlanetsideClassRuleSettings();
+        var currentClassIsBanned = currentRuleClassSettings.GetClassIsBanned(planetsideClass);
+
+        if (_originalRulePlanetsideClassSettings.TryGetValue(itemId, out var originalRuleClassSettings))
+        {
+            var originalClassIsBanned = originalRuleClassSettings.GetClassIsBanned(planetsideClass);
+
+            if (newIsBanned == originalClassIsBanned)
+            {
+                _originalRulePlanetsideClassSettings.TryRemove(itemId, out var removedSettings);
+
+                if (!RuleHasAnyChanges(itemId))
+                {
+                    _changedRules.TryRemove(itemId, out var removedRule);
+                }
+            }
+
+            currentRuleClassSettings.SetClassIsBanned(planetsideClass, newIsBanned);
+            rule.SetPlanetsideClassSettings(currentRuleClassSettings);
+        }
+        else
+        {
+            if (!_originalRulePlanetsideClassSettings.TryAdd(itemId, currentRuleClassSettings))
+            {
+                _changesCount = _changedRules.Count();
+
+                return;
+            }
+
+            var newClassSettings = rule.GetPlanetsideClassRuleSettings();
+            newClassSettings.SetClassIsBanned(planetsideClass, newIsBanned);
+            rule.SetPlanetsideClassSettings(newClassSettings);
+
+            _changedRules.AddOrUpdate(itemId, rule, (key, oldValue) => rule);
+        }
+
+        _changesCount = _changedRules.Count();
+
         InvokeAsyncStateHasChanged();
     }
 
     private bool RuleHasAnyChanges(int itemId)
     {
-        return RuleHasPointChange(itemId) || RuleHasBanChange(itemId);
+        return RuleHasPointChange(itemId)
+                || RuleHasBanChange(itemId)
+                || RuleHasPlanetsideClassSettingsChange(itemId);
     }
 
     private bool RuleHasPointChange(int itemId)
@@ -395,6 +663,11 @@
     private bool RuleHasBanChange(int itemId)
     {
         return _originalRuleBans.ContainsKey(itemId);
+    }
+
+    private bool RuleHasPlanetsideClassSettingsChange(int itemId)
+    {
+        return _originalRulePlanetsideClassSettings.ContainsKey(itemId);
     }
 
     #endregion Event Handling
@@ -417,6 +690,8 @@
             _originalRulePoints.Clear();
             _originalRuleBans.Clear();
             _changedRules.Clear();
+            _originalRuleDeferToPlanetsideClasses.Clear();
+            _originalRulePlanetsideClassSettings.Clear();
             _changesCount = 0;
 
             _isSavingRules = false;
@@ -440,17 +715,31 @@
 
         foreach (var idPointsPair in _originalRulePoints)
         {
-            _itemRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
+            //_itemRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
+            _itemRules.Where(r => r.ItemId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
         }
 
         foreach (var idBanPair in _originalRuleBans)
         {
-            _itemRules.Where(r => r.ItemCategoryId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
+            //_itemRules.Where(r => r.ItemCategoryId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
+            _itemRules.Where(r => r.ItemId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
+        }
+
+        foreach (var idDeferToClassPair in _originalRuleDeferToPlanetsideClasses)
+        {
+            _itemRules.Where(r => r.ItemId == idDeferToClassPair.Key).FirstOrDefault().DeferToPlanetsideClassSettings = idDeferToClassPair.Value;
+        }
+
+        foreach (var idClassSettingsPair in _originalRulePlanetsideClassSettings)
+        {
+            _itemRules.Where(r => r.ItemId == idClassSettingsPair.Key).FirstOrDefault().SetPlanetsideClassSettings(idClassSettingsPair.Value);
         }
 
         _originalRulePoints.Clear();
         _originalRuleBans.Clear();
         _changedRules.Clear();
+        _originalRuleDeferToPlanetsideClasses.Clear();
+        _originalRulePlanetsideClassSettings.Clear();
         _changesCount = 0;
 
         _isClearingRules = false;
@@ -483,6 +772,28 @@
         InvokeAsyncStateHasChanged();
     }
     #endregion Form Handling
+
+    #region UI Controls
+    private bool GetPlanetsideClassIsExtended(int ItemId)
+    {
+        if (_extendablePlanetsideClasses.TryGetValue(ItemId, out var currentIsExtended))
+        {
+            return currentIsExtended;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void OnTogglePlanetsideClassExtension(int ItemId)
+    {
+        if (_extendablePlanetsideClasses.TryGetValue(ItemId, out var currentIsExtended))
+        {
+            _extendablePlanetsideClasses.TryUpdate(ItemId, !currentIsExtended, currentIsExtended);
+        }
+    }
+    #endregion UI Controls
 
     private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
     {
