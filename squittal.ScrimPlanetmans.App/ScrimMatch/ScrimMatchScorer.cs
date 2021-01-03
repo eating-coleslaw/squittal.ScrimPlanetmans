@@ -5,6 +5,7 @@ using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System.Linq;
 using System.Threading.Tasks;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.Models;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -62,7 +63,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<ScrimEventScoringResult> ScoreKill(ScrimDeathActionEvent death)
         {
-            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id);
+            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id, death.AttackerLoadoutId);
             var points = scoringResult.Points;
 
             var isHeadshot = (death.IsHeadshot ? 1 : 0);
@@ -91,7 +92,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<ScrimEventScoringResult> ScoreSuicide(ScrimDeathActionEvent death)
         {
-            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id);
+            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id, death.AttackerLoadoutId);
             var points = scoringResult.Points;
 
             var victimUpdate = new ScrimEventAggregate()
@@ -110,7 +111,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<ScrimEventScoringResult> ScoreTeamkill(ScrimDeathActionEvent death)
         {
-            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id);
+            var scoringResult = GetDeathOrDestructionEventPoints(death.ActionType, death.Weapon?.ItemCategoryId, death.Weapon?.Id, death.AttackerLoadoutId);
             var points = scoringResult.Points;
 
             var attackerUpdate = new ScrimEventAggregate()
@@ -148,7 +149,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<ScrimEventScoringResult> ScoreVehicleDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
-            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
+            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id, destruction.AttackerLoadoutId);
             var points = scoringResult.Points;
 
             var attackerUpdate = new ScrimEventAggregate()
@@ -180,7 +181,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<ScrimEventScoringResult> ScoreVehicleSuicideDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
-            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
+            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id, destruction.AttackerLoadoutId);
             var points = scoringResult.Points;
 
             var victimUpdate = new ScrimEventAggregate()
@@ -199,7 +200,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task<ScrimEventScoringResult> ScoreVehicleTeamDestruction(ScrimVehicleDestructionActionEvent destruction)
         {
-            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id);
+            var scoringResult = GetDeathOrDestructionEventPoints(destruction.ActionType, destruction.Weapon?.ItemCategoryId, destruction.Weapon?.Id, destruction.AttackerLoadoutId);
             var points = scoringResult.Points;
 
             var attackerUpdate = new ScrimEventAggregate()
@@ -444,8 +445,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #endregion Misc. Non-Scored Events
 
         #region Rule Handling
-        private ScrimEventScoringResult GetDeathOrDestructionEventPoints(ScrimActionType actionType, int? itemCategoryId, int? itemId)
+        private ScrimEventScoringResult GetDeathOrDestructionEventPoints(ScrimActionType actionType, int? itemCategoryId, int? itemId, int? attackerLoadoutId)
         {
+            /* Action Rules */
             var actionRule = GetActionRule(actionType);
 
             if (actionRule == null)
@@ -458,6 +460,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return new ScrimEventScoringResult(ScrimEventScorePointsSource.ActionTypeRule, actionRule.Points, false);
             }
 
+            /* Item Category Rules */
             var itemCategoryRule = GetItemCategoryRule((int)itemCategoryId);
 
             if (itemCategoryRule == null)
@@ -465,16 +468,46 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return new ScrimEventScoringResult(ScrimEventScorePointsSource.ActionTypeRule, actionRule.Points, false);
             }
 
-            if (!actionRule.DeferToItemCategoryRules || itemId == null)
+            if (itemCategoryRule.IsBanned)
             {
                 return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemCategoryRule, itemCategoryRule.Points, itemCategoryRule.IsBanned);
             }
 
+            if (itemCategoryRule.DeferToPlanetsideClassSettings)
+            {
+                if (attackerLoadoutId == null)
+                {
+                    return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemCategoryRule, itemCategoryRule.Points, itemCategoryRule.IsBanned); // Placeholder. TO-DO: determine better backup
+                }
+                else
+                {
+                    return GetPlanetsideClassSettingPoints((int)attackerLoadoutId, itemCategoryRule.GetPlanetsideClassRuleSettings(), ScrimEventScorePointsSource.ItemCategoryRulePlanetsideClassSetting);
+                }
+            }
+
+            if (!itemCategoryRule.DeferToItemRules || itemId == null)
+            {
+                return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemCategoryRule, itemCategoryRule.Points, itemCategoryRule.IsBanned);
+            }
+
+            /* Item Rules */
             var itemRule = GetItemRule((int)itemId);
 
             if (itemRule == null)
             {
                 return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemCategoryRule, itemCategoryRule.Points, itemCategoryRule.IsBanned);
+            }
+
+            if (itemRule.DeferToPlanetsideClassSettings)
+            {
+                if (attackerLoadoutId == null)
+                {
+                    return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemRule, itemRule.Points, itemRule.IsBanned); // Placeholder. TO-DO: determine better backup
+                }
+                else
+                {
+                    return GetPlanetsideClassSettingPoints((int)attackerLoadoutId, itemRule.GetPlanetsideClassRuleSettings(), ScrimEventScorePointsSource.ItemRulePlanetsideClassSetting);
+                }
             }
 
             return new ScrimEventScoringResult(ScrimEventScorePointsSource.ItemRule, itemRule.Points, itemRule.IsBanned);
@@ -514,6 +547,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return new ScrimEventScoringResult(ScrimEventScorePointsSource.ActionTypeRule, actionRule.Points, false);
+        }
+
+        private ScrimEventScoringResult GetPlanetsideClassSettingPoints(int attackerLoadoutId, PlanetsideClassRuleSettings classSettings, ScrimEventScorePointsSource scoreSource)
+        {
+            var planetsideClass = PlanetsideClassLoadoutTranslator.GetPlanetsideClass(attackerLoadoutId);
+
+            var isBanned = classSettings.GetClassIsBanned(planetsideClass);
+            var points = classSettings.GetClassPoints(planetsideClass);
+
+            return new ScrimEventScoringResult(scoreSource, points, isBanned);
         }
         #endregion Rule Handling
     }

@@ -5,6 +5,8 @@
         Default = 0,
         ActionTypeRule = 1,
         ItemCategoryRule = 2,
-        ItemRule = 3
+        ItemRule = 3,
+        ItemCategoryRulePlanetsideClassSetting = 4,
+        ItemRulePlanetsideClassSetting = 5
     }
 }
