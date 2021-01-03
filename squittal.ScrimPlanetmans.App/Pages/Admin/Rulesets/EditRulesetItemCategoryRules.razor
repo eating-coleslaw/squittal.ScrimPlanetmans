@@ -411,11 +411,11 @@
 
         _changesCount = _changedRules.Count();
 
-        if (newIsBanned)
-        {
-            OnChangeRuleDeferToPlanetsideClass(rule, false);
-            OnChangeRuleDefer(rule, false);
-        }
+        //if (newIsBanned)
+        //{
+        //    OnChangeRuleDeferToPlanetsideClass(rule, false);
+        //    OnChangeRuleDefer(rule, false);
+        //}
 
         InvokeAsyncStateHasChanged();
     }
@@ -457,7 +457,7 @@
 
         if (newDefer)
         {
-            OnChangeRuleIsBanned(rule, false);
+            //OnChangeRuleIsBanned(rule, false);
             OnChangeRuleDeferToPlanetsideClass(rule, false);
         }
 
@@ -511,7 +511,7 @@
         if (newDefer)
         {
             OnChangeRuleDefer(rule, false);
-            OnChangeRuleIsBanned(rule, false);
+            //OnChangeRuleIsBanned(rule, false);
         }
 
         InvokeAsyncStateHasChanged();

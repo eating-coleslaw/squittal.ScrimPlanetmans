@@ -500,11 +500,6 @@
 
         _changesCount = _changedRules.Count();
 
-        if (newIsBanned)
-        {
-            OnChangeRuleDeferToPlanetsideClass(rule, false);
-        }
-
         InvokeAsyncStateHasChanged();
     }
 
@@ -550,11 +545,6 @@
         else if (!rule.DeferToPlanetsideClassSettings && _extendablePlanetsideClasses.ContainsKey(itemId))
         {
             _extendablePlanetsideClasses.TryRemove(itemId, out bool _);
-        }
-
-        if (newDefer)
-        {
-            OnChangeRuleIsBanned(rule, false);
         }
 
         InvokeAsyncStateHasChanged();
@@ -715,13 +705,11 @@
 
         foreach (var idPointsPair in _originalRulePoints)
         {
-            //_itemRules.Where(r => r.ItemCategoryId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
             _itemRules.Where(r => r.ItemId == idPointsPair.Key).FirstOrDefault().Points = idPointsPair.Value;
         }
 
         foreach (var idBanPair in _originalRuleBans)
         {
-            //_itemRules.Where(r => r.ItemCategoryId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
             _itemRules.Where(r => r.ItemId == idBanPair.Key).FirstOrDefault().IsBanned = idBanPair.Value;
         }
 

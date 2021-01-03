@@ -4,6 +4,7 @@
 @using squittal.ScrimPlanetmans.Services.Rulesets;
 @using System.Text.RegularExpressions;
 @using System.Threading;
+@using System.Collections.Concurrent;
 
 @inject IRulesetDataService RulesetDataService
 
@@ -36,6 +37,7 @@
                                 <th style="padding-bottom: 2px;">Item Category <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[ID]</span></th>
                                 <th style="padding-bottom: 2px;">Points</th>
                                 <th style="padding-bottom: 2px;">Banned?</th>
+                                <th style="padding-bottom: 2px;">Defer to<br />Class?</th>
                                 <th style="padding-bottom: 2px;">Defer to<br />Item Rules?</th>
                             </tr>
                         </thead>
@@ -47,9 +49,118 @@
                                     <td style="color: var(--sq-black);">@itemCategoryRule.ItemCategory.Name <span class="mono-font" style="color: var(--sq-gray); font-size: smaller;">[@itemCategoryRule.ItemCategory.Id]</span></td>
                                     <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.Points); text-align: right; width: 50px; color: var(--sq-black);">@itemCategoryRule.Points</td>
                                     <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.IsBanned);">@itemCategoryRule.IsBanned</td>
+                                    <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToPlanetsideClassSettings);">@itemCategoryRule.DeferToPlanetsideClassSettings</td>
                                     <td style="color: var(--sq-black); opacity: @GetBoolValueOpacity(itemCategoryRule.DeferToItemRules);">@itemCategoryRule.DeferToItemRules</td>
+
+                                    <td style="padding-right: 8px;">
+                                        @if (itemCategoryRule.DeferToPlanetsideClassSettings)
+                                        {
+                                            @if (GetPlanetsideClassIsExtended(itemCategoryRule.ItemCategoryId))
+                                            {
+                                                <button @onclick="() => OnTogglePlanetsideClassExtension(itemCategoryRule.ItemCategoryId)" type="submit" style="padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Collapse Planetside class settings">
+                                                    <span class="oi oi-caret-bottom"></span>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button @onclick="() => OnTogglePlanetsideClassExtension(itemCategoryRule.ItemCategoryId)" type="submit" style="padding: 0 4px; font-size: smaller; vertical-align: baseline; background-color: transparent; border: none;" title="Expand Planetside class settings">
+                                                    <span class="oi oi-caret-left"></span>
+                                                </button>
+                                            }
+                                        }
+                                    </td>
+
                                 </tr>
+
+                                @if (itemCategoryRule.DeferToPlanetsideClassSettings && GetPlanetsideClassIsExtended(itemCategoryRule.ItemCategoryId))
+                                {
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black); padding-left: 24px;">
+                                            <span class="playerLoadoutIcon ps2-icon infil" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                            <span>Infiltrator</span>
+                                        </td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.InfiltratorPoints); text-align: right; color: var(--sq-black);">
+                                            @itemCategoryRule.InfiltratorPoints
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.InfiltratorIsBanned); color: var(--sq-black);">
+                                            @itemCategoryRule.InfiltratorIsBanned
+                                        </td>
+                                    </tr>
+
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black); padding-left: 24px;">
+                                            <span class="playerLoadoutIcon ps2-icon la" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                            <span>Light Assault</span>
+                                        </td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.LightAssaultPoints); text-align: right; color: var(--sq-black);">
+                                            @itemCategoryRule.LightAssaultPoints
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.LightAssaultIsBanned); color: var(--sq-black);">
+                                            @itemCategoryRule.LightAssaultIsBanned
+                                        </td>
+                                    </tr>
+
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black); padding-left: 24px;">
+                                            <span class="playerLoadoutIcon ps2-icon medic" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                            <span>Medic</span>
+                                        </td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.MedicPoints); text-align: right; color: var(--sq-black);">
+                                            @itemCategoryRule.MedicPoints
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.MedicIsBanned); color: var(--sq-black);">
+                                            @itemCategoryRule.MedicIsBanned
+                                        </td>
+                                    </tr>
+
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black); padding-left: 24px;">
+                                            <span class="playerLoadoutIcon ps2-icon engie" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                            <span>Engineer</span>
+                                        </td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.EngineerPoints); text-align: right; color: var(--sq-black);">
+                                            @itemCategoryRule.EngineerPoints
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.EngineerIsBanned); color: var(--sq-black);">
+                                            @itemCategoryRule.EngineerIsBanned
+                                        </td>
+                                    </tr>
+
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black); padding-left: 24px;">
+                                            <span class="playerLoadoutIcon ps2-icon heavy" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                            <span>Heavy Assault</span>
+                                        </td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.HeavyAssaultPoints); text-align: right; color: var(--sq-black);">
+                                            @itemCategoryRule.HeavyAssaultPoints
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.HeavyAssaultIsBanned); color: var(--sq-black);">
+                                            @itemCategoryRule.HeavyAssaultIsBanned
+                                        </td>
+                                    </tr>
+
+                                    <tr class="sans-serif-font">
+                                        <td style="color: var(--sq-black); padding-left: 24px;">
+                                            <span class="playerLoadoutIcon ps2-icon max" style="filter: brightness(0) saturate(90%); height: 12px; width: 12px; display: inline-block; position: relative; top: 1px;"></span>
+                                            <span>MAX</span>
+                                        </td>
+                                        <td class="mono-font" style="opacity: @GetValueOpacity(itemCategoryRule.MaxPoints); text-align: right; color: var(--sq-black);">
+                                            @itemCategoryRule.MaxPoints
+                                        </td>
+
+                                        <td style="opacity: @GetBoolValueOpacity(itemCategoryRule.MaxIsBanned); color: var(--sq-black);">
+                                            @itemCategoryRule.MaxIsBanned
+                                        </td>
+                                    </tr>
+
+                                }
                             }
+
                         </tbody>
                     </table>
                 </div>
@@ -76,6 +187,7 @@
 
     private ItemCategoryDomain _selectedDomainView { get; set; } = ItemCategoryDomain.Infantry;
 
+    private ConcurrentDictionary<int, bool> _extendablePlanetsideClasses { get; set; } = new ConcurrentDictionary<int, bool>();
 
     #region Initializtion Methods
     public void Dispose()
@@ -135,6 +247,11 @@
             _itemCategoryRules = await RulesetDataService.GetRulesetItemCategoryRulesAsync(_renderedRulesetId, cts.Token);
 
             cts.Token.ThrowIfCancellationRequested();
+
+            foreach (var rule in _itemCategoryRules.Where(r => r.DeferToPlanetsideClassSettings && !r.DeferToItemRules))
+            {
+                _extendablePlanetsideClasses.TryAdd(rule.ItemCategoryId, true);
+            }
         }
         catch
         {
@@ -150,6 +267,30 @@
         _isLoadingRules = false;
     }
     #endregion Initializtion Methods
+
+    #region UI Controls
+
+    private bool GetPlanetsideClassIsExtended(int itemCategoryId)
+    {
+        if (_extendablePlanetsideClasses.TryGetValue(itemCategoryId, out var currentIsExtended))
+        {
+            return currentIsExtended;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void OnTogglePlanetsideClassExtension(int itemCategoryId)
+    {
+        if (_extendablePlanetsideClasses.TryGetValue(itemCategoryId, out var currentIsExtended))
+        {
+            _extendablePlanetsideClasses.TryUpdate(itemCategoryId, !currentIsExtended, currentIsExtended);
+        }
+    }
+
+    #endregion UI Controls
 
     private string GetItemCategoryDomainDescription(ItemCategoryDomain domain)
     {

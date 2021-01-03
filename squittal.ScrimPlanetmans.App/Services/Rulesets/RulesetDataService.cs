@@ -914,12 +914,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                             rule.DeferToPlanetsideClassSettings = false;
                         }
 
-                        // Don't allow Banning at Item Category level if deferring to other rules/settings
-                        if (rule.IsBanned && (rule.DeferToPlanetsideClassSettings || rule.DeferToItemRules))
-                        {
-                            rule.IsBanned = false;
-                        }
-
                         var storeEntity = storeRules.Where(r => r.ItemCategoryId == rule.ItemCategoryId).FirstOrDefault();
 
                         if (storeEntity == null)
@@ -1004,12 +998,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     foreach (var rule in ruleUpdates)
                     {
-                        // Don't allow Banning at Item level if deferring to Planetside class settings
-                        if (rule.DeferToPlanetsideClassSettings && rule.IsBanned)
-                        {
-                            rule.IsBanned = false;
-                        }
-                        
                         var storeEntity = storeRules.Where(r => r.ItemId == rule.ItemId).FirstOrDefault();
 
                         if (storeEntity == null)
