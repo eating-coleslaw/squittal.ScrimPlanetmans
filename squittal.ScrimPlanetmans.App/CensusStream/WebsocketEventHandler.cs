@@ -136,19 +136,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     case "PlayerLogin":
                         var loginParam = jPayload.ToObject<PlayerLoginPayload>(_payloadDeserializer);
                         await Process(loginParam);
-                        //await Task.Run(()=>
-                        //{
-                        //    Process(loginParam);
-                        //});
                         break;
 
                     case "PlayerLogout":
                         var logoutParam = jPayload.ToObject<PlayerLogoutPayload>(_payloadDeserializer);
                         await Process(logoutParam);
-                        //await Task.Run(() =>
-                        //{
-                        //    Process(logoutParam);
-                        //});
                         break;
 
                     case "GainExperience":

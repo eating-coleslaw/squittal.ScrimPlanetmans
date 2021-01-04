@@ -1,4 +1,7 @@
-﻿namespace squittal.ScrimPlanetmans.Models
+﻿using System;
+using System.Text.RegularExpressions;
+
+namespace squittal.ScrimPlanetmans.Models
 {
     public static class PlanetsideClassLoadoutTranslator
     {
@@ -41,15 +44,22 @@
                 _ => PlanetsideClass.HeavyAssault
             };
         }
+        
+        public static string GetPlanetsideClassDisplayName(PlanetsideClass planetsideClass)
+        {
+            var enumName = Enum.GetName(typeof(PlanetsideClass), planetsideClass);
+
+            return Regex.Replace(enumName, @"(\p{Ll})(\p{Lu})", "$1 $2");
+        }
     }
     
     public enum PlanetsideClass
     {
-        HeavyAssault,
-        LightAssault,
         Infiltrator,
+        LightAssault,
         Medic,
         Engineer,
+        HeavyAssault,
         MAX
     }
 }

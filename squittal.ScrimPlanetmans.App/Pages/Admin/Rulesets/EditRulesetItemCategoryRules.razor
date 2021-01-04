@@ -339,7 +339,7 @@
         var itemCategoryId = rule.ItemCategory.Id;
         var currentPoints = rule.Points;
 
-        // Subsequent change to Points
+        // Subsequent change
         if (_originalRulePoints.TryGetValue(itemCategoryId, out int originalPoints))
         {
             rule.Points = newPoints;
@@ -358,7 +358,7 @@
                 _changedRules.AddOrUpdate(itemCategoryId, rule, (key, oldValue) => rule);
             }
         }
-        // Initial change to Points
+        // Initial change
         else
         {
             if (!_originalRulePoints.TryAdd(itemCategoryId, currentPoints))
@@ -381,6 +381,7 @@
         var itemCategoryId = rule.ItemCategoryId;
         var currentIsBanned = rule.IsBanned;
 
+        // Subsequent change
         if (_originalRuleBans.TryGetValue(itemCategoryId, out bool originalIsBanned))
         {
             if (newIsBanned == originalIsBanned)
@@ -395,6 +396,7 @@
 
             rule.IsBanned = newIsBanned;
         }
+        // Initial change
         else
         {
             if (!_originalRuleBans.TryAdd(itemCategoryId, currentIsBanned))
@@ -411,12 +413,6 @@
 
         _changesCount = _changedRules.Count();
 
-        //if (newIsBanned)
-        //{
-        //    OnChangeRuleDeferToPlanetsideClass(rule, false);
-        //    OnChangeRuleDefer(rule, false);
-        //}
-
         InvokeAsyncStateHasChanged();
     }
 
@@ -425,6 +421,7 @@
         var itemCategoryId = rule.ItemCategoryId;
         var currentDefer = rule.DeferToItemRules;
 
+        // Subsequent change
         if (_originalRuleDefers.TryGetValue(itemCategoryId, out bool originalDefer))
         {
             if (newDefer == originalDefer)
@@ -439,6 +436,7 @@
 
             rule.DeferToItemRules = newDefer;
         }
+        // Initial change
         else
         {
             if (!_originalRuleDefers.TryAdd(itemCategoryId, currentDefer))
@@ -457,7 +455,6 @@
 
         if (newDefer)
         {
-            //OnChangeRuleIsBanned(rule, false);
             OnChangeRuleDeferToPlanetsideClass(rule, false);
         }
 
@@ -469,6 +466,7 @@
         var itemCategoryId = rule.ItemCategoryId;
         var currentDefer = rule.DeferToPlanetsideClassSettings;
 
+        // Subsequent change
         if (_originalRuleDeferToPlanetsideClasses.TryGetValue(itemCategoryId, out bool originalDefer))
         {
             if (newDefer == originalDefer)
@@ -483,6 +481,7 @@
 
             rule.DeferToPlanetsideClassSettings = newDefer;
         }
+        // Initial change
         else
         {
             if (!_originalRuleDeferToPlanetsideClasses.TryAdd(itemCategoryId, currentDefer))
@@ -511,7 +510,6 @@
         if (newDefer)
         {
             OnChangeRuleDefer(rule, false);
-            //OnChangeRuleIsBanned(rule, false);
         }
 
         InvokeAsyncStateHasChanged();
@@ -523,6 +521,7 @@
         var currentRuleClassSettings = rule.GetPlanetsideClassRuleSettings();
         var currentClassPoints = currentRuleClassSettings.GetClassPoints(planetsideClass);
 
+        // Subsequent change
         if (_originalRulePlanetsideClassSettings.TryGetValue(itemCategoryId, out var originalRuleClassSettings))
         {
             var originalClassPoints = originalRuleClassSettings.GetClassPoints(planetsideClass);
@@ -540,6 +539,7 @@
             currentRuleClassSettings.SetClassPoints(planetsideClass, newPoints);
             rule.SetPlanetsideClassSettings(currentRuleClassSettings);
         }
+        // Initial change
         else
         {
             if (!_originalRulePlanetsideClassSettings.TryAdd(itemCategoryId, currentRuleClassSettings))
@@ -567,6 +567,7 @@
         var currentRuleClassSettings = rule.GetPlanetsideClassRuleSettings();
         var currentClassIsBanned = currentRuleClassSettings.GetClassIsBanned(planetsideClass);
 
+        // Subsequent change
         if (_originalRulePlanetsideClassSettings.TryGetValue(itemCategoryId, out var originalRuleClassSettings))
         {
             var originalClassIsBanned = originalRuleClassSettings.GetClassIsBanned(planetsideClass);
@@ -584,6 +585,7 @@
             currentRuleClassSettings.SetClassIsBanned(planetsideClass, newIsBanned);
             rule.SetPlanetsideClassSettings(currentRuleClassSettings);
         }
+        // Initial change
         else
         {
             if (!_originalRulePlanetsideClassSettings.TryAdd(itemCategoryId, currentRuleClassSettings))
