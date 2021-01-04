@@ -66,36 +66,49 @@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-                            <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value="@_selectedImportRulesetFileName">
+                            @if (!_isImportingRuleset)
+                            {
+                                <span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset:</span><InputSelect style="margin-right: 5px; width: 250px; padding: 0.1rem;" @bind-Value="@_selectedImportRulesetFileName">
 
-                                @if (string.IsNullOrWhiteSpace(_selectedImportRulesetFileName))
-                                {
-                                    <option value=@_selectedImportRulesetFileName label="Select a ruleset to import" style="font-style: italic;">Select a ruleset to import</option>
-                                }
-                                else
-                                {
-                                    <option value=@_selectedImportRulesetFileName label="@_selectedImportRulesetFileName">@_selectedImportRulesetFileName</option>
-                                }
+                                    @if (string.IsNullOrWhiteSpace(_selectedImportRulesetFileName))
+                                    {
+                                        <option value=@_selectedImportRulesetFileName label="Select a ruleset to import" style="font-style: italic;">Select a ruleset to import</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@_selectedImportRulesetFileName label="@_selectedImportRulesetFileName">@_selectedImportRulesetFileName</option>
+                                    }
 
-                                @foreach (var fileName in _rulesetFileNames.Where(r => r != _selectedImportRulesetFileName))
-                                {
-                                    <option value=@fileName label="@fileName">@fileName</option>
-                                }
-                            </InputSelect>
+                                    @foreach (var fileName in _rulesetFileNames.Where(r => r != _selectedImportRulesetFileName))
+                                    {
+                                        <option value=@fileName label="@fileName">@fileName</option>
+                                    }
+                                </InputSelect>
 
-                            <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openImportedRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
+                                <div style="margin: 8px 0 0 0; font-size: 0.9rem;"><InputCheckbox style="position: relative; top: 1px;" @bind-Value="_openImportedRulesetOnSave" /><span style="padding-left: 8px;">Open Ruleset On Save?</span></div>
 
-                            <div style="text-align: right; margin-top: 12px;">
+                                <div style="text-align: right; margin-top: 12px;">
 
-                                <button type="submit" @onclick="(() => OnImportNewRulesetFormSubmit(true))" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Import rileset file as new ruleset">
-                                    <span class="oi oi-data-transfer-upload"></span>Import
-                                </button>
+                                    <button type="submit" @onclick="(() => OnImportNewRulesetFormSubmit(true))" class="btn btn-primary" style="display: inline-block; margin:0; width: 85px;" title="Import rileset file as new ruleset">
+                                        <span class="oi oi-data-transfer-upload"></span>Import
+                                    </button>
 
-                                <button @onclick="OnImportRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel importing ruleset file">
-                                    <span class="oi oi-x" style="top: 0;"></span>Cancel
-                                </button>
+                                    <button @onclick="OnImportRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;  margin:0 0 0 8px; width: 85px;" title="Cancel importing ruleset file">
+                                        <span class="oi oi-x" style="top: 0;"></span>Cancel
+                                    </button>
 
-                            </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Ruleset:</span>@_selectedImportRulesetFileName</div>
+
+                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_openImportedRulesetOnSave ? "Yes" : "No")</div>
+
+                                <div class="thin">
+                                    <SpinnerEllipsis />
+                                </div>
+                            }
                         </EditForm>
                     </div>
                 }

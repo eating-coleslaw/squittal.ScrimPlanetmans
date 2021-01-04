@@ -38,7 +38,6 @@ a, .btn-link {
     }
 
         .btn-group.sq-btn-tabs > .btn-link:hover {
-            /*border-bottom: 2px solid var(--sq-pink-lighter-alpha-80);*/
             border-bottom: 2px solid var(--sq-pink-lighter-alpha-50);
             color: var(--blue);
         }
