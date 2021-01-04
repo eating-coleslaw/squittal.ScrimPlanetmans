@@ -12,6 +12,7 @@ using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -1212,6 +1213,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     await dbContext.SaveChangesAsync();
 
                     await SetUpRulesetsMapAsync(CancellationToken.None);
+                    //#pragma warning disable CS4014
+                    //Task.Run(() =>
+                    //{
+                    //    SetUpRulesetsMapAsync(CancellationToken.None)
+                    //}).ConfigureAwait(false);
+                    //#pragma warning restore CS4014
 
                     return ruleset;
                 }
@@ -1969,6 +1976,13 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         {
             try
             {
+                var stopWatchReadJson = new Stopwatch();
+                var stopWatchMakeTasks = new Stopwatch();
+                var stopWatchRunTasks = new Stopwatch();
+
+                var stopWatchTotal = Stopwatch.StartNew();
+                stopWatchReadJson.Start();
+
                 var jsonRuleset = await RulesetFileHandler.ReadFromJsonFile(fileName);
 
                 if (jsonRuleset == null)
@@ -1986,6 +2000,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     return null;
                 }
+
+                stopWatchReadJson.Stop();
+                stopWatchMakeTasks.Start();
 
                 var TaskList = new List<Task>();
 
@@ -2045,6 +2062,10 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     TaskList.Add(facilityRulesTask);
                 }
 
+                stopWatchMakeTasks.Stop();
+
+                stopWatchRunTasks.Start();
+
                 if (TaskList.Any())
                 {
                     await Task.WhenAll(TaskList);
@@ -2065,6 +2086,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     ruleset.RulesetOverlayConfiguration = null;
                 }
 
+                stopWatchRunTasks.Stop();
+                stopWatchTotal.Stop();
+
+                var stopWatchTotalString = $"Imported Ruleset {fileName}: {stopWatchTotal.ElapsedMilliseconds / 1000.0}s";
+                var stopWatchReadJsonString = $"\n\t\t   Read JSON: {stopWatchReadJson.ElapsedMilliseconds / 1000.0}s";
+                var stopWatchMakeTasksString = $"\n\t\t   Make Tasks: {stopWatchMakeTasks.ElapsedMilliseconds / 1000.0}s";
+                var stopWatchRunTasksString = $"\n\t\t   Run Tasks: {stopWatchRunTasks.ElapsedMilliseconds / 1000.0}s";
+
+                _logger.LogInformation($"{stopWatchTotalString}{stopWatchReadJsonString}{stopWatchMakeTasksString}{stopWatchRunTasksString}");
+
+
                 return ruleset;
             }
             catch (Exception ex)
@@ -2075,7 +2107,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             }
         }
 
-        // Save Rules From JSON Import (?)
+        // Save Rules From JSON Import
         private async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRule> rules)
         {
             if (rulesetId == DefaultRulesetId)
