@@ -1213,12 +1213,6 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     await dbContext.SaveChangesAsync();
 
                     await SetUpRulesetsMapAsync(CancellationToken.None);
-                    //#pragma warning disable CS4014
-                    //Task.Run(() =>
-                    //{
-                    //    SetUpRulesetsMapAsync(CancellationToken.None)
-                    //}).ConfigureAwait(false);
-                    //#pragma warning restore CS4014
 
                     return ruleset;
                 }
