@@ -26,6 +26,41 @@
         <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2 i_teamOrdinal=2 />
     </div>
 
+    <div class="series-tally-container">
+        <div class="team team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
+            @foreach(var matchResult in _teamSeriesResults1)
+            {
+                <div class="tally @GetSeriesMatchTallyCssClass(matchResult.ResultType)"></div>
+            }
+            @if (ShouldShowActiveSeriesTally())
+            {
+                <div class="tally @GetSeriesMatchTallyCssClass(null)"></div>
+            }
+            
+            @*<div class="tally win"></div>
+            <div class="tally loss" ></div>
+            <div class="tally active"></div>*@
+        </div>
+        
+        @*<div style="grid-column: 2;"></div>*@
+
+        <div class="team team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
+            @foreach (var matchResult in _teamSeriesResults2)
+            {
+                <div class="tally @GetSeriesMatchTallyCssClass(matchResult.ResultType)"></div>
+            }
+            @if (ShouldShowActiveSeriesTally())
+            {
+                <div class="tally @GetSeriesMatchTallyCssClass(null)"></div>
+            }
+
+            @*<div class="tally win"></div>
+            <div class="tally loss"></div>
+            <div class="tally active"></div>*@
+
+        </div>
+    </div>
+
 </div>
 
 @code {
@@ -40,6 +75,7 @@
     private int? _teamFactionId1 { get; set; }
     private string[] _teamFactionDisplay1 { get; set; } = new string[2] { ".", "." };
     private int _teamControls1 { get; set; } = 0;
+    private List<ScrimSeriesMatchResult> _teamSeriesResults1 { get; set; } = new List<ScrimSeriesMatchResult>();
 
     private string _teamAlias2 { get; set; }
     private int _teamPoints2 { get; set; } = 0;
@@ -47,6 +83,7 @@
     private int? _teamFactionId2 { get; set; }
     private string[] _teamFactionDisplay2 { get; set; } = new string[2] { ".", "." };
     private int _teamControls2 { get; set; } = 0;
+    private List<ScrimSeriesMatchResult> _teamSeriesResults2 { get; set; } = new List<ScrimSeriesMatchResult>();
 
     private MatchState _matchState { get; set; }
     private int _currentRound { get; set; }
@@ -70,12 +107,18 @@
 
         _teamFactionId1 = ScrimTeamsManager.GetTeam(1).FactionId;
 
+        //_teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(1);
+
         _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
         var teamPoints2 = ScrimTeamsManager.GetTeamScoreDisplay(2);
 
         _teamPoints2 = (teamPoints2 == null) ? 0 : (int)teamPoints2;
 
         _teamFactionId2 = ScrimTeamsManager.GetTeam(2).FactionId;
+
+        //_teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(2);
+
+        UpdateSeriesMatchResults();
 
         _matchState = ScrimMatchEngine.GetMatchState();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
@@ -288,6 +331,8 @@
             UpdateShouldShowPoints();
             UpdatePointsDisplay();
 
+            UpdateSeriesMatchResults();
+
             InvokeAsyncStateHasChanged();
         }
 
@@ -333,6 +378,35 @@
         }
     }
     #endregion Event Handling
+
+    private void UpdateSeriesMatchResults()
+    {
+        _teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(1);
+        _teamSeriesResults2 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(2);
+    }
+
+    private string GetSeriesMatchTallyCssClass(ScrimSeriesMatchResultType? matchResultType)
+    {
+        return matchResultType switch
+        {
+            ScrimSeriesMatchResultType.Win => "win",
+            ScrimSeriesMatchResultType.Loss => "loss",
+            ScrimSeriesMatchResultType.Draw => "loss",
+            _ => "active"
+        };
+    }
+
+    private bool ShouldShowActiveSeriesTally()
+    {
+        return _matchState switch
+        {
+            MatchState.Paused => true,
+            MatchState.Running => true,
+            MatchState.Stopped => false,
+            MatchState.Uninitialized => false,
+            _ => false
+        };
+    }
 
     private void InvokeAsyncStateHasChanged()
     {

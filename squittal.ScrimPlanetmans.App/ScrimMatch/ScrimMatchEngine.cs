@@ -23,6 +23,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public MatchConfiguration MatchConfiguration { get; set; } = new MatchConfiguration();
         public Ruleset MatchRuleset { get; private set; }
 
+        public int CurrentSeriesMatch { get; private set; } = 0;
+
         private bool _isRunning = false;
 
         private int _currentRound = 0;
@@ -119,10 +121,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (isRematch)
             {
+                _teamsManager.UpdateAllTeamsMatchSeriesResults(CurrentSeriesMatch);
                 _teamsManager.ResetAllTeamsMatchData();
             }
             else
             {
+                CurrentSeriesMatch = 0;
+
                 _teamsManager.ClearAllTeams();
             }
 
@@ -183,6 +188,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TrySetMatchRuleset(_rulesetManager.ActiveRuleset);
 
             _matchStartTime = DateTime.UtcNow;
+
+            CurrentSeriesMatch++;
 
             if (MatchConfiguration.SaveLogFiles == true)
             {

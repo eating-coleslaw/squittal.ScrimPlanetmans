@@ -41,6 +41,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private ConcurrentDictionary<string, Outfit> OutfitsMap { get; set; } = new ConcurrentDictionary<string, Outfit>();
 
+        public List<ScrimSeriesMatchResult> ScrimSeriesMatchResults { get; private set; } = new List<ScrimSeriesMatchResult>();
+
         public bool HasCustomAlias { get; private set; } = false;
 
 
@@ -72,21 +74,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             HasCustomAlias = false;
         }
 
+
+        #region Team Players
         public bool ContainsPlayer(string characterId)
         {
             return PlayersMap.ContainsKey(characterId);
         }
-
-        public bool ContainsOutfit(string alias)
-        {
-            return OutfitsMap.ContainsKey(alias.ToLower());
-        }
-
-        public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
-        {
-            return ConstructedTeamsMap.ContainsKey(GetConstructedTeamFactionKey(constructedTeamId, factionId));
-        }
-
         public IEnumerable<string> GetAllPlayerIds()
         {
             return PlayersMap.Keys.ToList();
@@ -159,6 +152,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             EventAggregateTracker.SubtractFromHistory(teamUpdates);
         }
 
+        public IEnumerable<Player> GetNonOutfitPlayers()
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+
+        public bool UpdateParticipatingPlayer(Player player)
+        {
+            var playerId = player.Id;
+
+            if (player.IsParticipating)
+            {
+                return ParticipatingPlayersMap.TryAdd(playerId, player);
+            }
+            else
+            {
+                return ParticipatingPlayersMap.TryRemove(playerId, out Player removedPlayer);
+            }
+        }
+
+        public IEnumerable<Player> GetParticipatingPlayers()
+        {
+            return ParticipatingPlayersMap.Values.ToList();
+        }
+        #endregion Team Players
+
+        #region Team Outfits
+        public bool ContainsOutfit(string alias)
+        {
+            return OutfitsMap.ContainsKey(alias.ToLower());
+        }
         public bool TryAddOutfit(Outfit outfit)
         {
             if (!OutfitsMap.TryAdd(outfit.AliasLower, outfit))
@@ -181,6 +207,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             Outfits.RemoveAll(o => o.AliasLower == aliasLower);
 
             return true;
+        }
+
+        public IEnumerable<Player> GetOutfitPlayers(string aliasLower)
+        {
+            lock (Players)
+            {
+                return Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
+            }
+        }
+        #endregion Team Outfits
+
+        #region Team Contstructed Teams
+        public bool ContainsConstructedTeamFaction(int constructedTeamId, int factionId)
+        {
+            return ConstructedTeamsMap.ContainsKey(GetConstructedTeamFactionKey(constructedTeamId, factionId));
         }
 
         public bool TryAddConstructedTeamFaction(ConstructedTeamMatchInfo matchInfo)
@@ -210,49 +251,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return true;
         }
 
-        public void ResetMatchData()
-        {
-            ClearEventAggregateHistory();
-
-            ParticipatingPlayers.Clear();
-            ParticipatingPlayersMap.Clear();
-        }
-
-        public bool UpdateParticipatingPlayer(Player player)
-        {
-            var playerId = player.Id;
-
-            if (player.IsParticipating)
-            {
-                return ParticipatingPlayersMap.TryAdd(playerId, player);
-            }
-            else
-            {
-                return ParticipatingPlayersMap.TryRemove(playerId, out Player removedPlayer);
-            }
-        }
-
-        public IEnumerable<Player> GetParticipatingPlayers()
-        {
-            return ParticipatingPlayersMap.Values.ToList();
-        }
-
-        public IEnumerable<Player> GetOutfitPlayers(string aliasLower)
-        {
-            lock(Players)
-            {
-                return Players.Where(p => p.OutfitAliasLower == aliasLower && !p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
-            }
-        }
-
-        public IEnumerable<Player> GetNonOutfitPlayers()
-        {
-            lock (Players)
-            {
-                return Players.Where(p => p.IsOutfitless && !p.IsFromConstructedTeam).ToList();
-            }
-        }
-
         public IEnumerable<Player> GetConstructedTeamFactionPlayers(int constructedTeamId, int factionId)
         {
             lock (Players)
@@ -261,6 +259,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         .Where(p => p.IsFromConstructedTeam && p.ConstructedTeamId == constructedTeamId && p.FactionId == factionId)
                         .ToList();
             }
+        }
+
+        private string GetConstructedTeamFactionKey(int constructedTeamId, int factionId)
+        {
+            return $"{constructedTeamId}^{factionId}";
+        }
+        #endregion Team Contstructed Teams
+
+        #region Team Stats & Match Data
+        public void ResetMatchData()
+        {
+            ClearEventAggregateHistory();
+
+            ParticipatingPlayers.Clear();
+            ParticipatingPlayersMap.Clear();
         }
 
         public void AddStatsUpdate(ScrimEventAggregate update)
@@ -278,9 +291,30 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             EventAggregateTracker = new ScrimEventAggregateRoundTracker();
         }
 
-        private string GetConstructedTeamFactionKey(int constructedTeamId, int factionId)
+        public void UpdateScrimSeriesMatchResults(int seriesMatchNumber, ScrimSeriesMatchResultType seriesMatchResultType)
         {
-            return $"{constructedTeamId}^{factionId}";
+            var existingResult = GetScrimSeriesMatchResult(seriesMatchNumber);
+
+            if (existingResult != null)
+            {
+                existingResult.ResultType = seriesMatchResultType;
+            }
+            else
+            {
+                ScrimSeriesMatchResults.Add(new ScrimSeriesMatchResult(seriesMatchNumber, seriesMatchResultType));
+            }
         }
+
+        public ScrimSeriesMatchResult GetScrimSeriesMatchResult(int seriesMatchNumber)
+        {
+            return ScrimSeriesMatchResults.Where(r => r.MatchNumber == seriesMatchNumber).FirstOrDefault();
+        }
+
+        public void ClearScrimSeriesMatchResults()
+        {
+            ScrimSeriesMatchResults.Clear();
+        }
+        #endregion Team Stats & Match Data
+
     }
 }

@@ -1183,6 +1183,79 @@ body {
         line-height: 1;
     }
 
+
+/**********************
+    Series Match Result Tallies
+***********************/
+.overlay .scoreboard .series-tally-container {
+    display: block;
+    margin-top: -2px;
+    width: calc(100% - 72px - 72px);
+    margin-left: auto;
+    height: 10px;
+    /*! background: var(--sq-bg-red); */
+    margin-right: auto;
+    display: grid;
+    grid-auto-columns: 1fr 128px 1fr;
+    grid-column-gap: 8px;
+    grid-template-areas: "team1 blank team2";
+}
+
+    .overlay .scoreboard .series-tally-container .team.team1 {
+        grid-area: team1;
+    }
+
+        .overlay .scoreboard .series-tally-container .team.team1 .tally {
+            float: right;
+            margin-left: 4px;
+        }
+
+    .overlay .scoreboard .series-tally-container .team.team2 {
+        grid-area: team2;
+    }
+
+        .overlay .scoreboard .series-tally-container .team.team2 .tally {
+            float: left;
+            margin-right: 4px;
+        }
+
+    .overlay .scoreboard .series-tally-container .team .tally {
+        width: 10px;
+        height: 10px;
+        /*float: right;*/
+        /*! background: white; */
+        border: 2px solid black;
+        border-radius: 8px;
+        border-color: var(--sq-ps2-vs-primary);
+        /*margin-left: 4px;*/
+        /*! filter: drop-shadow(0px 0px 2px white); */
+        border-color: var(--sq-bg-white);
+        /*! background-color: var(--sq-ov-ps2-primary); */
+        border-color: var(--sq-ov-ps2-primary-lightest);
+        box-shadow: 0px 0px 2px 1px var(--sq-ov-ps2-primary-dark-alpha-70);
+        /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-dark-alpha-80, rgba(20, 20, 20, 0.8)));*/
+    }
+
+        .overlay .scoreboard .series-tally-container .team .tally.win {
+            /*background-color: var(--sq-ov-ps2-primary-lightest);*/
+            background-color: var(--sq-bg-white);
+        }
+
+        .overlay .scoreboard .series-tally-container .team .tally.loss {
+            background-color: transparent;
+            /*border-color: var(--sq-ov-ps2-primary-dark);*/
+            /*filter: drop-shadow(0px 0px 2px var(--sq-ov-ps2-primary-alpha-50));*/
+            filter: none;
+            background-color: var(--sq-ov-ps2-primary-dark-alpha-70);
+        }
+
+        .overlay .scoreboard .series-tally-container .team .tally.active {
+            background-color: transparent;
+            /*border-color: var(--sq-ov-ps2-primary-dark);*/
+            display: none;
+        }
+
+
 /**********************
     Killfeed
 ***********************/

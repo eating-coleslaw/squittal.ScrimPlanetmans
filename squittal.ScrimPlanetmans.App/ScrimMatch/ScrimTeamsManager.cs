@@ -2152,6 +2152,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             team.ClearEventAggregateHistory();
+            team.ClearScrimSeriesMatchResults();
 
             var oldAlias = team.Alias;
             team.ResetAlias($"{_defaultAliasPreText}{teamOrdinal}");
@@ -2162,7 +2163,94 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
         #endregion Clear Teams
 
-        #region Reset Teams' Match Data (for Rematch)
+        #region Rematch Handling - Teams' Match Data
+        public List<ScrimSeriesMatchResult> GetTeamsScrimSeriesMatchResults(int teamOrdinal)
+        {
+            var seriesResults = new List<ScrimSeriesMatchResult>();
+
+            seriesResults.AddRange(GetTeam(teamOrdinal)?.ScrimSeriesMatchResults);
+
+            return seriesResults;
+        }
+        
+        public void UpdateAllTeamsMatchSeriesResults(int seriesMatchNumber)
+        {
+            int highestScoreTeamOrdinal = 0;
+            int highestScoreValue = 0;
+
+            var isDraw = false;
+            var drawTeamOrdinals = new List<int>();
+
+            var scoredTeamOrdinals = new List<int>();
+
+            foreach (var teamOrdinal in _ordinalTeamMap.Keys)
+            {
+                var teamScore = GetTeamScoreDisplay(teamOrdinal);
+                if (teamScore == null)
+                {
+                    continue;
+                }
+
+                var teamScoreInt = (int)teamScore;
+
+                if (!scoredTeamOrdinals.Any())
+                {
+                    highestScoreTeamOrdinal = teamOrdinal;
+                    highestScoreValue = teamScoreInt;
+                }
+                else if (teamScoreInt > highestScoreValue)
+                {
+                    highestScoreValue = teamScoreInt;
+                    highestScoreTeamOrdinal = teamOrdinal;
+
+                    isDraw = false;
+                }
+                else if (teamScoreInt == highestScoreValue)
+                {
+                    if (drawTeamOrdinals.Any())
+                    {
+                        isDraw = true;
+                    }
+
+                    drawTeamOrdinals.Add(teamOrdinal);
+                }
+
+                scoredTeamOrdinals.Add(teamOrdinal);
+            }
+
+            if (!scoredTeamOrdinals.Any())
+            {
+                return;
+            }
+
+            foreach (var teamOrdinal in scoredTeamOrdinals)
+            {
+                ScrimSeriesMatchResultType teamMatchResultType;
+
+                if (teamOrdinal == highestScoreTeamOrdinal)
+                {
+                    teamMatchResultType = ScrimSeriesMatchResultType.Win;
+                }
+                else if (isDraw && drawTeamOrdinals.Contains(teamOrdinal))
+                {
+                    teamMatchResultType = ScrimSeriesMatchResultType.Draw;
+                }
+                else
+                {
+                    teamMatchResultType = ScrimSeriesMatchResultType.Loss;
+                }
+
+                UpdateAllTeamsMatchSeriesResults(teamOrdinal, seriesMatchNumber, teamMatchResultType);
+            }
+        }
+
+        public void UpdateAllTeamsMatchSeriesResults(int teamOrdinal, int seriesMatchNumber, ScrimSeriesMatchResultType matchResultType)
+        {
+            var team = GetTeam(teamOrdinal);
+
+            team.UpdateScrimSeriesMatchResults(seriesMatchNumber, matchResultType);
+        }
+
         public void ResetAllTeamsMatchData()
         {
             MaxPlayerPointsTracker = new MaxPlayerPointsTracker();
@@ -2728,6 +2816,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
+        #region Team/Player Stats Handling
         public async Task UpdatePlayerStats(string characterId, ScrimEventAggregate updates)
         {
             var player = GetPlayerFromId(characterId);
@@ -2832,6 +2921,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             return roundControls;
         }
+
+        #endregion Team/Player Stats Handling
 
         #region Match Results/Scores
         public async Task SaveRoundEndScores(int round)
