@@ -992,7 +992,6 @@ body {
     Series Match Result Tallies
 **********************************/
 .overlay .scoreboard .series-tally-container {
-    margin-top: -2px;
     width: calc(100% - 72px - 72px);
     margin-left: auto;
     height: 10px;
@@ -1001,6 +1000,7 @@ body {
     grid-auto-columns: 1fr 128px 1fr;
     grid-column-gap: 8px;
     grid-template-areas: "team1 blank team2";
+    margin-top: 0px;
 }
 
     .overlay .scoreboard .series-tally-container .team.team1 {
@@ -1061,8 +1061,8 @@ body {
     color: var(--sq-bg-white-lit);
     width: 500px;
     position: fixed;
-    top: 72px;
     left: calc(50% - 240px);
+    top: 78px;
 }
 
     .killfeed.bottom {
