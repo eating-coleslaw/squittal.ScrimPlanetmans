@@ -508,7 +508,6 @@
             _currentRound = ScrimMatchEngine.GetCurrentRound();
             _matchState = ScrimMatchEngine.GetMatchState();
 
-            //_matchConfiguration = new MatchConfiguration();
             _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
 
             _matchConfiguration.RoundSecondsTotal = _activeRuleset.DefaultRoundLength;
