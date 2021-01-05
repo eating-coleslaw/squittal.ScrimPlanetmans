@@ -37,13 +37,8 @@
                 <div class="tally @GetSeriesMatchTallyCssClass(null)"></div>
             }
             
-            @*<div class="tally win"></div>
-            <div class="tally loss" ></div>
-            <div class="tally active"></div>*@
         </div>
         
-        @*<div style="grid-column: 2;"></div>*@
-
         <div class="team team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
             @foreach (var matchResult in _teamSeriesResults2)
             {
@@ -53,10 +48,6 @@
             {
                 <div class="tally @GetSeriesMatchTallyCssClass(null)"></div>
             }
-
-            @*<div class="tally win"></div>
-            <div class="tally loss"></div>
-            <div class="tally active"></div>*@
 
         </div>
     </div>
@@ -107,16 +98,12 @@
 
         _teamFactionId1 = ScrimTeamsManager.GetTeam(1).FactionId;
 
-        //_teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(1);
-
         _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
         var teamPoints2 = ScrimTeamsManager.GetTeamScoreDisplay(2);
 
         _teamPoints2 = (teamPoints2 == null) ? 0 : (int)teamPoints2;
 
         _teamFactionId2 = ScrimTeamsManager.GetTeam(2).FactionId;
-
-        //_teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(2);
 
         UpdateSeriesMatchResults();
 

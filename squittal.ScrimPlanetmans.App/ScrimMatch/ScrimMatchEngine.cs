@@ -144,7 +144,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
             _wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
 
-            SendMatchConfigurationUpdateMessage(); // TODO: why was this commented out before?
+            SendMatchConfigurationUpdateMessage();
         }
 
         public bool TrySetMatchRuleset(Ruleset matchRuleset)
