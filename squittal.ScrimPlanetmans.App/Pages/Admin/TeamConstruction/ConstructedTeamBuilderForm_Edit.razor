@@ -353,11 +353,13 @@
 
         InvokeAsyncStateHasChanged();
 
+        var customPlayerAlias = _inputPlayerAlias;
+
         while (_processingInputs.Count > 0)
         {
             var input = _processingInputs.FirstOrDefault();
 
-            var character = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, input, _inputPlayerAlias);
+            var character = await ConstructedTeamsService.TryAddCharacterToConstructedTeam(_renderedTeamId, input, customPlayerAlias);
 
             // Don't clear input field if failed to find this character,
             // but clear input field if we found any character
