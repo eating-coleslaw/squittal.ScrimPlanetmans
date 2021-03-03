@@ -49,7 +49,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
                 return true;
             }
-            else if (!IsManualWorldId)
+            else if (!IsManualTitle)
             {
                 Title = title;
 
