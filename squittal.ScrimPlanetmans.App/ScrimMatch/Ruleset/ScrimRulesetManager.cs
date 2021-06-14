@@ -357,9 +357,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (storeOverlayConfiguration == null)
             {
-                storeOverlayConfiguration.UseCompactLayout = false;
-                storeOverlayConfiguration.StatsDisplayType = OverlayStatsDisplayType.InfantryScores;
-                storeOverlayConfiguration.ShowStatusPanelScores = null;
+                storeOverlayConfiguration = new RulesetOverlayConfiguration()
+                {
+                    RulesetId = _defaultRulesetId,
+                    UseCompactLayout = false,
+                    StatsDisplayType = OverlayStatsDisplayType.InfantryScores,
+                    ShowStatusPanelScores = null
+                };
 
                 dbContext.RulesetOverlayConfigurations.Add(storeOverlayConfiguration);
             }

@@ -28,5 +28,5 @@ if %ERRORLEVEL% EQU 2 (
 
 :BuildDotnetApp
 cd "%~dp0"
-dotnet build "..\squittal.ScrimPlanetmans.sln" --verbosity m
+dotnet build "..\squittal.ScrimPlanetmans.sln" --verbosity m --configuration Release
 exit /B

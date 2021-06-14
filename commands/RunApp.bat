@@ -11,5 +11,5 @@ pause
 
 :StartDotnetApp
 cd "%~dp0"
-dotnet run --verbosity m --project "..\squittal.ScrimPlanetmans.App\squittal.ScrimPlanetmans.App.csproj"
+dotnet run --verbosity m --configuration Release --project "..\squittal.ScrimPlanetmans.App\squittal.ScrimPlanetmans.App.csproj"
 exit /B
