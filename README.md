@@ -1,6 +1,6 @@
 # squittal.ScrimPlanetmans
 
-An app for runnning, streaming, and collecting data for Planetside 2 scrims.
+An app for running, streaming, and collecting data for Planetside 2 scrims.
 
 ![Stream infantry matches with the dynamic, real-time overlay](https://raw.githubusercontent.com/eating-coleslaw/squittal.ScrimPlanetmanImages/main/match_overlay_2.gif "Example of the streaming overlay being used in a match")
 
