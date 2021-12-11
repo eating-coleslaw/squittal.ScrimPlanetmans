@@ -384,4 +384,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
 
     }
+
+    public enum TimerDirection
+    {
+        Down = 0,
+        Up = 1
+    }
 }
