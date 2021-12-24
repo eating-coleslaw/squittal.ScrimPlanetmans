@@ -1,12 +1,9 @@
-﻿using squittal.ScrimPlanetmans.ScrimMatch.Models;
-using squittal.ScrimPlanetmans.ScrimMatch.Timers;
+﻿using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 {
     public class MatchTimerTickMessage
     {
-        //public MatchTimerStatus MatchTimerStatus { get; set; }
-
         public string TimerName { get; private set; }
         public TimerState State { get; private set; }
         public TimerDirection Direction { get; private set; }
@@ -20,16 +17,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
         public string Info { get; set; } = string.Empty;
         
-        //public MatchTimerTickMessage(MatchTimerStatus matchTimerStatus)
-        //{
-        //    MatchTimerStatus = matchTimerStatus;
-        //}
-        
         public MatchTimerTickMessage(StatefulTimer statefulTimer)
         {
-            //MatchTimerStatus = matchTimerStatus;
-
-            //TimerName = statefulTimer.TimerName;
             IsRunning = statefulTimer.IsRunning;
             State = statefulTimer.State;
 

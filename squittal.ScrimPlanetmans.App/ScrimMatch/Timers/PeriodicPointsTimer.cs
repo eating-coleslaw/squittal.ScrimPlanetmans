@@ -1,25 +1,20 @@
 ﻿using Microsoft.Extensions.Logging;
-using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 {
-    public class PeriodicPointsTimer : IPeriodicPointsTimer //, IDisposable
+    public class PeriodicPointsTimer : IPeriodicPointsTimer
     {
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly ILogger<PeriodicPointsTimer> _logger;
 
         public string TimerName { get; set; }
 
-        private readonly Timer _timer;
-        //public TimeTracker Tracker { get; private set; }
+        private Timer _timer;
         public TimerState State { get; private set; }
-        public bool IsRunning { get; private set; }
+        public bool IsRunning { get; private set; } = false;
 
         public int PeriodSeconds { get; private set; } = -1;
 
@@ -27,29 +22,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
         private DateTime _prevTickTime;
         private int _resumeDelayMs;
 
-        private bool disposedValue;
-
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
 
-        //public event EventHandler<PeriodicPointsTimerStateMessage> RaiseMatchTimerTickEvent;
-        //public delegate void PeriodPointsTimerTickEventHandler(object sender, PeriodicPointsTimerStateMessage e);
-
-        //public event EventHandler<ScrimMessageEventArgs<PeriodicPointsTimerStateMessage>> RaisePeriodPointsTimerTickEvent;
-        //public delegate void PeriodPointsTimerTickEventHandler(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e);
-
-
-
-        public PeriodicPointsTimer(string timerName, int periodSeconds = -1)
+        public PeriodicPointsTimer(IScrimMessageBroadcastService messageService, ILogger<PeriodicPointsTimer> logger)
         {
-            TimerName = timerName;
-
-            //Tracker = new TimeTracker(periodSeconds);
-
-            PeriodSeconds = periodSeconds;
-
-            _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, periodSeconds);
-
-            IsRunning = false;
+            _messageService = messageService;
+            _logger = logger;
 
             State = TimerState.Initialized;
         }
@@ -69,14 +47,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             {
                 var periodSeconds = (int)Math.Round((decimal)timeSpan.Value.TotalSeconds, 0);
 
-                //Tracker.Configure(periodSeconds);
                 PeriodSeconds = periodSeconds;
             }
             else
             {
-                //Tracker.Configure(null);
                 PeriodSeconds = Timeout.Infinite;
             }
+
+            _timer?.Dispose(); // TODO: is this Dispose necessary?
+            _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, PeriodSeconds);
 
             State = TimerState.Configured;
 
@@ -104,10 +83,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Running;
 
             BroadcastEvent(false);
-            //var message = new PeriodicPointsTimerStateMessage(this);
-            //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
-
-            //OnRaisePeriodicPointsTimerTickEvent(new PeriodicPointsTimerStateMessage(this)); // TODO: replace EventArgs
 
             // Signal the waiting thread
             _autoEvent.Set();
@@ -130,10 +105,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Stopped;
 
             BroadcastEvent(false);
-            //var message = new PeriodicPointsTimerStateMessage(this);
-            //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
-
-            //OnRaisePeriodicPointsTimerTickEvent(new PeriodicPointsTimerStateMessage(this)); // TODO: replace EventArgs
 
             _autoEvent.Set();
         }
@@ -157,10 +128,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Paused;
 
             BroadcastEvent(false);
-            //var message = new PeriodicPointsTimerStateMessage(this);
-            //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
-
-            //OnRaisePeriodicPointsTimerTickEvent(new PeriodicPointsTimerStateMessage(this)); // TODO: replace EventArgs
 
             _autoEvent.Set();
         }
@@ -183,10 +150,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Running;
 
             BroadcastEvent(false);
-            //var message = new PeriodicPointsTimerStateMessage(this);
-            //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
-
-            //OnRaisePeriodicPointsTimerTickEvent(new PeriodicPointsTimerStateMessage(this)); // TODO: replace EventArgs
 
             // Signal the waiting thread
             _autoEvent.Set();
@@ -207,15 +170,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             {
                 Configure(Timeout.InfiniteTimeSpan);
             }
-            
-            //if (Tracker.HasTimeLimit)
-            //{
-            //    Configure(TimeSpan.FromSeconds(Tracker.SecondsMax.Value));
-            //}
-            //else
-            //{
-            //    Configure(null);
-            //}
         }
 
         public void Restart()
@@ -237,8 +191,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Running;
 
             BroadcastEvent(false);
-            //var message = new PeriodicPointsTimerStateMessage(this);
-            //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
 
             // Signal the waiting thread
             _autoEvent.Set();
@@ -260,18 +212,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             IsRunning = false;
 
-            //if (Tracker.HasTimeLimit)
-            //{
-            //    Tracker.ForceZeroRemaining();
-            //}
-
             State = TimerState.Stopped;
 
             BroadcastEvent(false);
-            //var message = new PeriodicPointsTimerStateMessage(this);
-            //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
-
-            //OnRaisePeriodicPointsTimerTickEvent(new PeriodicPointsTimerStateMessage(this)); // TODO: replace EventArgs
 
             _autoEvent.Set();
         }
@@ -284,13 +227,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             {
                 _prevTickTime = DateTime.UtcNow;
 
-                //Tracker.StepForward();
-
                 BroadcastEvent(true);
-                //var message = new PeriodicPointsTimerStateMessage(this, true);
-                //_messageService.BroadcastPeriodicPointsTimerTickMessage(message);
-
-                //OnRaisePeriodicPointsTimerTickEvent(new PeriodicPointsTimerStateMessage(this)); // TODO: replace EventArgs
             }
 
             // Signal the waiting thread
@@ -421,43 +358,5 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 _ => false,
             };
         }
-
-        //protected virtual void OnRaisePeriodicPointsTimerTickEvent(ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
-        //{
-        //    RaisePeriodPointsTimerTickEvent?.Invoke(this, e);
-        //}
-
-        /*
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                    _timer.Dispose();
-                    //Tracker = null;
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~StatefulTimer()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-        */
     }
 }

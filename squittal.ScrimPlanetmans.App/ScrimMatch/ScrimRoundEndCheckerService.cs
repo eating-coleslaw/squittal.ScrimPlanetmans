@@ -71,19 +71,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var message = e.Message;
 
-            //var status = e.Message.MatchTimerStatus;
-
-            //var state = status.State;
             var state = message.State;
 
-            //if (MatchConfiguration.RoundSecondsTotal == status.GetSecondsElapsed())
             if (MatchConfiguration.RoundSecondsTotal == message.SecondsElapsed)
             {
                 BroadcastEndRoundMessage(EndRoundReason.TimeLimit, null);
                 return;
             }
 
-            //if (state == MatchTimerState.Stopped)
             if (state == TimerState.Stopped)
             {
                 BroadcastEndRoundMessage(EndRoundReason.TimeLimit, null);
