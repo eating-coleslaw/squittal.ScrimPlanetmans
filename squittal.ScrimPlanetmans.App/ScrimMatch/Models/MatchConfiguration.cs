@@ -1,4 +1,7 @@
-﻿using squittal.ScrimPlanetmans.Services.Rulesets;
+﻿using squittal.ScrimPlanetmans.ScrimMatch;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
+using squittal.ScrimPlanetmans.Services.Rulesets;
 using System.Threading;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimEngine
@@ -8,6 +11,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public string Title { get; set; } = "PS2 Scrims";
 
         public bool IsManualTitle { get; private set; } = false;
+
 
         public int RoundSecondsTotal { get; set; } = 900;
         public bool IsManualRoundSecondsTotal { get; private set; } = false;
@@ -23,13 +27,49 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public bool EndRoundOnFacilityCapture { get; set; } = false; // TODO: move this setting to the Ruleset model
         public bool IsManualEndRoundOnFacilityCapture { get; set; } = false;
 
+        public int? TargetPointValue { get; set; } = 0;
+        public bool IsManualTargetPointValue { get; set; }
+        public int? InitialPoints { get; set; } = 200;
+        public bool IsManualInitialPoints { get; set; }
+
+        public int? PeriodicFacilityControlPoints { get; set; } = 5;
+        public bool IsManualPeriodicFacilityControlPoints { get; set; }
+        public int? PeriodicFacilityControlInterval { get; set; } = 15;
+        public bool IsManualPeriodicFacilityControlInterval { get; set; }
+
+        // Values from Ruleset
+        public bool EnableRoundTimeLimit { get; set; }
+        public TimerDirection? RoundTimerDirection { get; set; }
+        public bool EndRoundOnPointValueReached { get; set; }
+        public MatchWinCondition MatchWinCondition { get; set; }
+        public bool EnablePeriodicFacilityControlRewards { get; set; } = false;
+
+
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEventRoundSeconds = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEventMatchTitle = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEndRoundOnFacilityCapture = new AutoResetEvent(true);
 
+        private readonly AutoResetEvent _autoTargetPointValue = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoInitialPoints = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoPeriodicFacilityControlPoints = new AutoResetEvent(true);
+        private readonly AutoResetEvent _autoPeriodicFacilityControlInterval = new AutoResetEvent(true);
+
         public bool SaveLogFiles { get; set; } = true;
         public bool SaveEventsToDatabase { get; set; } = true;
+
+        public MatchConfiguration()
+        { }
+
+        public MatchConfiguration(Ruleset ruleset)
+        {
+            EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
+            RoundTimerDirection = ruleset.RoundTimerDirection;
+            EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
+            MatchWinCondition = ruleset.MatchWinCondition;
+            EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
+        }
+
 
         public bool TrySetTitle(string title, bool isManualValue)
         {
@@ -49,7 +89,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
                 return true;
             }
-            else if (!IsManualWorldId)
+            else if (!IsManualTitle)
             {
                 Title = title;
 
@@ -83,7 +123,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
                 return true;
             }
-            else if (!IsManualWorldId)
+            else if (!IsManualRoundSecondsTotal)
             {
                 RoundSecondsTotal = seconds;
 
@@ -97,6 +137,134 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
                 return false;
             }
+        }
+
+        public bool TrySetTargetPointValue(int? points, bool isManualValue)
+        {
+            _autoTargetPointValue.WaitOne();
+
+            if (isManualValue)
+            {
+                TargetPointValue = points;
+                IsManualTargetPointValue = true;
+
+                _autoTargetPointValue.Set();
+                return true;
+            }
+            else if (!IsManualTargetPointValue)
+            {
+                TargetPointValue = points;
+                
+                _autoTargetPointValue.Set();
+                return true;
+            }
+            else
+            {
+                _autoTargetPointValue.Set();
+                return false;
+            }
+        }
+
+        public void ResetTargetPointValue()
+        {
+            TargetPointValue = 0;
+            IsManualTargetPointValue = false;
+        }
+
+        public bool TrySetInitialPoints(int? points, bool isManualValue)
+        {
+            _autoInitialPoints.WaitOne();
+
+            if (isManualValue)
+            {
+                InitialPoints = points;
+                IsManualInitialPoints = true;
+
+                _autoTargetPointValue.Set();
+                return true;
+            }
+            else if (!IsManualInitialPoints)
+            {
+                InitialPoints = points;
+
+                _autoInitialPoints.Set();
+                return true;
+            }
+            else
+            {
+                _autoInitialPoints.Set();
+                return false;
+            }
+        }
+
+        public void ResetInitialPoints()
+        {
+            InitialPoints = 200;
+            IsManualInitialPoints = false;
+        }
+
+        public bool TrySetPeriodicFacilityControlPoints(int? points, bool isManualValue)
+        {
+            _autoPeriodicFacilityControlPoints.WaitOne();
+
+            if (isManualValue)
+            {
+                PeriodicFacilityControlPoints = points;
+                IsManualPeriodicFacilityControlPoints = true;
+
+                _autoTargetPointValue.Set();
+                return true;
+            }
+            else if (!IsManualPeriodicFacilityControlPoints)
+            {
+                PeriodicFacilityControlPoints = points;
+
+                _autoPeriodicFacilityControlPoints.Set();
+                return true;
+            }
+            else
+            {
+                _autoPeriodicFacilityControlPoints.Set();
+                return false;
+            }
+        }
+
+        public void ResetPeriodicFacilityControlPoints()
+        {
+            PeriodicFacilityControlPoints = 5;
+            IsManualPeriodicFacilityControlPoints = false;
+        }
+
+        public bool TrySetPeriodicFacilityControlInterval(int? points, bool isManualValue)
+        {
+            _autoPeriodicFacilityControlInterval.WaitOne();
+
+            if (isManualValue)
+            {
+                PeriodicFacilityControlInterval = points;
+                IsManualPeriodicFacilityControlInterval = true;
+
+                _autoTargetPointValue.Set();
+                return true;
+            }
+            else if (!IsManualPeriodicFacilityControlInterval)
+            {
+                PeriodicFacilityControlInterval = points;
+
+                _autoPeriodicFacilityControlInterval.Set();
+                return true;
+            }
+            else
+            {
+                _autoPeriodicFacilityControlInterval.Set();
+                return false;
+            }
+        }
+
+        public void ResetPeriodicFacilityControlInterval()
+        {
+            PeriodicFacilityControlInterval = 15;
+            IsManualPeriodicFacilityControlInterval = false;
         }
 
         public bool TrySetEndRoundOnFacilityCapture(bool endOnCapture, bool isManualValue)

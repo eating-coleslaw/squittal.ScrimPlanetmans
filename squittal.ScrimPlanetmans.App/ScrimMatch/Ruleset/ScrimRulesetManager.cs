@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.Rulesets;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
@@ -224,6 +225,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
             ActiveRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
 
+            ActiveRuleset.EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
+            ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+            ActiveRuleset.RoundTimerDirection = ruleset.RoundTimerDirection;
+            ActiveRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
+            ActiveRuleset.EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
+            ActiveRuleset.MatchWinCondition = ruleset.MatchWinCondition;
+            ActiveRuleset.EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
+
             _activateRulesetAutoEvent.Set();
         }
 
@@ -330,6 +339,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             storeRuleset.IsDefault = true;
             storeRuleset.DefaultEndRoundOnFacilityCapture = false;
 
+            storeRuleset.EnableRoundTimeLimit = true;
+            storeRuleset.DefaultRoundLength = 900;
+            storeRuleset.RoundTimerDirection = TimerDirection.Up;
+            storeRuleset.DefaultEndRoundOnFacilityCapture = false;
+            storeRuleset.EndRoundOnPointValueReached = false;
+            storeRuleset.MatchWinCondition = MatchWinCondition.MostPoints;
+            storeRuleset.EnablePeriodicFacilityControlRewards = false;
 
             // Get all async collection requests together
             var CollectionsTaskList = new List<Task>(); 

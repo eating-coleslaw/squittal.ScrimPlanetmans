@@ -1,4 +1,5 @@
 ﻿using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using System;
 
 namespace squittal.ScrimPlanetmans.Services.ScrimMatch
@@ -41,7 +42,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<ScrimMessageEventArgs<MatchConfigurationUpdateMessage>> RaiseMatchConfigurationUpdateEvent;
 
         event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
-        
+        event EventHandler<ScrimMessageEventArgs<PeriodicPointsTimerStateMessage>> RaisePeriodicPointsTimerTickEvent;
+
         event EventHandler<ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage>> RaiseConstructedTeamMemberChangeEvent;
         event EventHandler<ScrimMessageEventArgs<ConstructedTeamInfoChangeMessage>> RaiseConstructedTeamInfoChangeEvent;
 
@@ -49,6 +51,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         event EventHandler<ScrimMessageEventArgs<RulesetSettingChangeMessage>> RaiseRulesetSettingChangeEvent;
         event EventHandler<ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage>> RaiseRulesetOverlayConfigurationChangeEvent;
         event EventHandler<ScrimMessageEventArgs<RulesetRuleChangeMessage>> RaiseRulesetRuleChangeEvent;
+        
+        event EventHandler<ScrimMessageEventArgs<EndRoundCheckerMessage>> RaiseEndRoundCheckerMessage;
 
 
         void BroadcastSimpleMessage(string message);
@@ -80,6 +84,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastMatchConfigurationUpdateMessage(MatchConfigurationUpdateMessage message);
 
         void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message);
+        void BroadcastPeriodicPointsTimerTickMessage(PeriodicPointsTimerStateMessage message);
 
         void BroadcastConstructedTeamMemberChangeMessage(ConstructedTeamMemberChangeMessage message);
         void BroadcastConstructedTeamInfoChangeMessage(ConstructedTeamInfoChangeMessage message);
@@ -89,5 +94,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         void BroadcastRulesetOverlayConfigurationChangeMessage(RulesetOverlayConfigurationChangeMessage message);
         void BroadcastRulesetRuleChangeMessage(RulesetRuleChangeMessage message);
         
+        void BroadcastEndRoundCheckerMessage(EndRoundCheckerMessage message);
+
     }
 }

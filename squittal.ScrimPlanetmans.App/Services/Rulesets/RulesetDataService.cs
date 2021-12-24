@@ -682,6 +682,17 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
             var updateEndRoundOnFacilityCapture = rulesetUpdate.DefaultEndRoundOnFacilityCapture;
 
+            var updateEnableRoundTimeLimit = rulesetUpdate.EnableRoundTimeLimit;
+            var updateRoundTimerDirection = rulesetUpdate.RoundTimerDirection;
+            var updateEndRoundOnPointValueReached = rulesetUpdate.EndRoundOnPointValueReached;
+            var updateTargetPointValue = rulesetUpdate.TargetPointValue;
+            var updateInitialPoints = rulesetUpdate.InitialPoints;
+            var updateMatchWinCondition = rulesetUpdate.MatchWinCondition;
+            var updateEnablePeriodicFacilityControlRewards = rulesetUpdate.EnablePeriodicFacilityControlRewards;
+            var updatePeriodicFacilityControlPoints = rulesetUpdate.PeriodicFacilityControlPoints;
+            var updatePeriodicFacilityControlInterval = rulesetUpdate.PeriodicFacilityControlInterval;
+
+
             Ruleset oldRuleset = new Ruleset();
 
             if (!IsValidRulesetName(updateName))
@@ -719,11 +730,32 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     oldRuleset.DefaultRoundLength = storeEntity.DefaultRoundLength;
                     oldRuleset.DefaultMatchTitle = storeEntity.DefaultMatchTitle;
                     oldRuleset.DefaultEndRoundOnFacilityCapture = storeEntity.DefaultEndRoundOnFacilityCapture;
+                    
+                    oldRuleset.EnableRoundTimeLimit = storeEntity.EnableRoundTimeLimit;
+                    oldRuleset.RoundTimerDirection = storeEntity.RoundTimerDirection;
+                    oldRuleset.EndRoundOnPointValueReached = storeEntity.EndRoundOnPointValueReached;
+                    oldRuleset.TargetPointValue = storeEntity.TargetPointValue;
+                    oldRuleset.InitialPoints = storeEntity.InitialPoints;
+                    oldRuleset.MatchWinCondition = storeEntity.MatchWinCondition;
+                    oldRuleset.EnablePeriodicFacilityControlRewards = storeEntity.EnablePeriodicFacilityControlRewards;
+                    oldRuleset.PeriodicFacilityControlPoints = storeEntity.PeriodicFacilityControlPoints;
+                    oldRuleset.PeriodicFacilityControlInterval = storeEntity.PeriodicFacilityControlInterval;
+
 
                     storeEntity.Name = updateName;
                     storeEntity.DefaultRoundLength = updateRoundLength;
                     storeEntity.DefaultMatchTitle = updateMatchTitle;
                     storeEntity.DefaultEndRoundOnFacilityCapture = updateEndRoundOnFacilityCapture;
+
+                    storeEntity.EnableRoundTimeLimit = updateEnableRoundTimeLimit;
+                    storeEntity.RoundTimerDirection = updateRoundTimerDirection;
+                    storeEntity.EndRoundOnPointValueReached = updateEndRoundOnPointValueReached;
+                    storeEntity.TargetPointValue = updateTargetPointValue;
+                    storeEntity.InitialPoints = updateInitialPoints;
+                    storeEntity.MatchWinCondition = updateMatchWinCondition;
+                    storeEntity.EnablePeriodicFacilityControlRewards = updateEnablePeriodicFacilityControlRewards;
+                    storeEntity.PeriodicFacilityControlPoints = updatePeriodicFacilityControlPoints;
+                    storeEntity.PeriodicFacilityControlInterval = updatePeriodicFacilityControlInterval;
 
                     storeEntity.DateLastModified = DateTime.UtcNow;
 
@@ -2204,7 +2236,16 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
                 DefaultRoundLength = jsonRuleset.DefaultRoundLength,
                 DefaultEndRoundOnFacilityCapture = jsonRuleset.DefaultEndRoundOnFacilityCapture,
-                SourceFile = sourceFileName
+                SourceFile = sourceFileName,
+                EnableRoundTimeLimit = jsonRuleset.EnableRoundTimeLimit ?? true,
+                RoundTimerDirection = jsonRuleset.RoundTimerDirection,
+                EndRoundOnPointValueReached = jsonRuleset.EndRoundOnPointValueReached ?? false,
+                TargetPointValue = jsonRuleset.TargetPointValue,
+                InitialPoints = jsonRuleset.InitialPoints,
+                MatchWinCondition = jsonRuleset.MatchWinCondition ?? MatchWinCondition.MostPoints,
+                EnablePeriodicFacilityControlRewards = jsonRuleset.EnablePeriodicFacilityControlRewards ?? false,
+                PeriodicFacilityControlPoints = jsonRuleset.PeriodicFacilityControlPoints,
+                PeriodicFacilityControlInterval = jsonRuleset.PeriodicFacilityControlInterval
             };
         }
 

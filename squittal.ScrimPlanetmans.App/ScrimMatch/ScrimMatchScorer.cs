@@ -428,6 +428,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             return scoringResult;
         }
+
+        public void ScorePeriodicFacilityControlTick(int controllingTeamOrdinal)
+        {
+            var points = GetPeriodicControlPoints();
+            if (!points.HasValue)
+            {
+                return;
+            }
+
+            var teamUpdate = new ScrimEventAggregate()
+            {
+                Points = points.Value,
+                PeriodicCaptureTicks = 1
+            };
+
+            _teamsManager.UpdateTeamStats(controllingTeamOrdinal, teamUpdate);
+        }
         #endregion Objective Events
 
         #region Misc. Non-Scored Events
@@ -532,6 +549,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _activeRuleset.RulesetItemRules
                                     .Where(rule => rule.ItemId == itemId)
                                     .FirstOrDefault();
+        }
+
+        private int? GetPeriodicControlPoints()
+        {
+            return _activeRuleset.PeriodicFacilityControlPoints;
         }
 
         private ScrimEventScoringResult GetActionRulePoints(ScrimActionType actionType)

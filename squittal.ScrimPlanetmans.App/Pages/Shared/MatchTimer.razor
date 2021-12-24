@@ -1,6 +1,7 @@
 ﻿@using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 
 @inject IStatefulTimer  Timer
@@ -28,12 +29,14 @@ else
     public bool Debug { get; set; } = false;
 
     private string _clock = "--:--";
-    private MatchTimerState _clockStatus = MatchTimerState.Uninitialized;
+    //private MatchTimerState _clockStatus = MatchTimerState.Uninitialized;
+    private TimerState _clockStatus = TimerState.Uninitialized;
     private string _clockStatusDisplay
     {
         get
         {
-            return Enum.GetName(typeof(MatchTimerState), _clockStatus);
+            //return Enum.GetName(typeof(MatchTimerState), _clockStatus);
+            return Enum.GetName(typeof(TimerState), _clockStatus);
         }
     }
 
@@ -53,9 +56,16 @@ else
 
         if (prevTick != null)
         {
-            _clock = prevTick.MatchTimerStatus.TimeRemainingDisplay;
+            //_clock = prevTick.MatchTimerStatus.TimeRemainingDisplay;
+            _clock = prevTick.TimerDisplay;
 
-            if (prevTick.MatchTimerStatus.GetSecondsRemaining() > 0)
+            //if (prevTick.MatchTimerStatus.GetSecondsRemaining() > 0)
+            //{
+            //    _canPlaySound = true;
+            //    _playedSound = false;
+            //}
+
+            if (prevTick.SecondsRemaining.HasValue && prevTick.SecondsRemaining.Value > 0)
             {
                 _canPlaySound = true;
                 _playedSound = false;
@@ -78,11 +88,13 @@ else
     {
         var message = e.Message;
 
-        var status = message.MatchTimerStatus;
+        //var status = message.MatchTimerStatus;
 
-        var state = status.State;
+        //var state = status.State;
+        //var state = message.State;
 
-        if (status.GetSecondsRemaining() == 0)
+        //if (status.GetSecondsRemaining() == 0)
+        if (message.SecondsRemaining.HasValue && message.SecondsRemaining.Value == 0)
         {
             _playSound = (!_playedSound && _canPlaySound) ? true : false;
             _playedSound = true;
@@ -94,8 +106,9 @@ else
             _playSound = false;
         }
 
-        _clock = status.TimeRemainingDisplay;
-        _clockStatus = state;
+        //_clock = status.TimeRemainingDisplay;
+        _clock = message.TimerDisplay;
+        _clockStatus = message.State;
 
         InvokeAsync(() =>
         {

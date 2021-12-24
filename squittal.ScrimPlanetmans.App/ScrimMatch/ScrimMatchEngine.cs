@@ -3,6 +3,7 @@ using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
 using System.Threading.Tasks;
@@ -16,21 +17,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly IScrimMessageBroadcastService _messageService;
         private readonly IScrimMatchDataService _matchDataService;
         private readonly IScrimRulesetManager _rulesetManager;
+        private readonly IScrimMatchScorer _matchScorer;
         private readonly ILogger<ScrimMatchEngine> _logger;
 
         private readonly IStatefulTimer _timer;
+        private readonly IPeriodicPointsTimer _periodicTimer;
 
         public MatchConfiguration MatchConfiguration { get; set; } = new MatchConfiguration();
         public Ruleset MatchRuleset { get; private set; }
 
         public int CurrentSeriesMatch { get; private set; } = 0;
+        private int? FacilityControlTeamOrdinal { get; set; }
+
 
         private bool _isRunning = false;
 
         private int _currentRound = 0;
 
-        private int _roundSecondsMax = 900;
-        private int _roundSecondsRemaining;
+        //private int _roundSecondsMax = 900;
+        //private int _roundSecondsRemaining;
         private MatchTimerTickMessage _latestTimerTickMessage;
 
         private MatchState _matchState = MatchState.Uninitialized;
@@ -38,23 +43,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private DateTime _matchStartTime;
 
 
-        public ScrimMatchEngine(IScrimTeamsManager teamsManager, IWebsocketMonitor wsMonitor, IStatefulTimer timer,
-            IScrimMatchDataService matchDataService, IScrimMessageBroadcastService messageService, IScrimRulesetManager rulesetManager, ILogger<ScrimMatchEngine> logger)
+        public ScrimMatchEngine(
+            IScrimTeamsManager teamsManager,
+            IWebsocketMonitor wsMonitor,
+            IStatefulTimer timer,
+            IPeriodicPointsTimer periodicTimer,
+            IScrimMatchDataService matchDataService,
+            IScrimMessageBroadcastService messageService,
+            IScrimRulesetManager rulesetManager,
+            IScrimMatchScorer matchScorer,
+            ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
             _wsMonitor = wsMonitor;
             _timer = timer;
+            _periodicTimer = periodicTimer;
             _messageService = messageService;
             _matchDataService = matchDataService;
             _rulesetManager = rulesetManager;
+            _matchScorer = matchScorer;
+
             _logger = logger;
 
-            _messageService.RaiseMatchTimerTickEvent += async (s, e) => await OnMatchTimerTick(s, e);
+            _messageService.RaiseMatchTimerTickEvent += OnMatchTimerTick;
+            _messageService.RaisePeriodicPointsTimerTickEvent += OnPeriodiocPointsTimerTick;
+            //_messageService.RaiseMatchTimerTickEvent += async (s, e) => await OnMatchTimerTick(s, e);
 
             _messageService.RaiseTeamOutfitChangeEvent += OnTeamOutfitChangeEvent;
             _messageService.RaiseTeamPlayerChangeEvent += OnTeamPlayerChangeEvent;
 
-            _messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
+            _messageService.RaiseScrimFacilityControlActionEvent += OnFacilityControlEvent;
+            //_messageService.RaiseScrimFacilityControlActionEvent += async (s, e) => await OnFacilityControlEvent(s, e);
+
+            _messageService.RaiseEndRoundCheckerMessage += async (s, e) => await OnEndRoundCheckerMessage(s, e);
         }
 
 
@@ -96,20 +117,44 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var previousEndRoundOnFacilityCapture = MatchConfiguration.EndRoundOnFacilityCapture;
             var previousIsManualEndRoundOnFacilityCapture = MatchConfiguration.EndRoundOnFacilityCapture;
 
-            MatchConfiguration = new MatchConfiguration();
+            var previousTargetPointValue = MatchConfiguration.TargetPointValue;
+            var previousIsManualTargetPointValue = MatchConfiguration.IsManualTargetPointValue;
+
+            var previousInitialPoints = MatchConfiguration.InitialPoints;
+            var previousIsManualInitialPoints = MatchConfiguration.IsManualInitialPoints;
+
+            var previousPeriodicFacilityControlPoints = MatchConfiguration.PeriodicFacilityControlPoints;
+            var previousIsManualPeriodicFacilityControlPoints = MatchConfiguration.IsManualPeriodicFacilityControlPoints;
+
+            var previousPeriodicFacilityControlInterval = MatchConfiguration.PeriodicFacilityControlInterval;
+            var previousIsManualPeriodicFacilityControlInterval = MatchConfiguration.IsManualPeriodicFacilityControlInterval;
+
+            var activeRuleset = await _rulesetManager.GetActiveRulesetAsync();
+            MatchConfiguration = new MatchConfiguration(activeRuleset);
+            //MatchConfiguration = new MatchConfiguration();
 
             if (isRematch)
             {
                 MatchConfiguration.TrySetWorldId(previousWorldId, previousIsManualWorldId);
                 MatchConfiguration.TrySetEndRoundOnFacilityCapture(previousEndRoundOnFacilityCapture, previousIsManualEndRoundOnFacilityCapture);
+                
+                MatchConfiguration.TrySetTargetPointValue(previousTargetPointValue, previousIsManualTargetPointValue);
+                MatchConfiguration.TrySetInitialPoints(previousInitialPoints, previousIsManualInitialPoints);
+                MatchConfiguration.TrySetPeriodicFacilityControlPoints(previousPeriodicFacilityControlPoints, previousIsManualPeriodicFacilityControlPoints);
+                MatchConfiguration.TrySetPeriodicFacilityControlInterval(previousPeriodicFacilityControlInterval, previousIsManualPeriodicFacilityControlInterval);
             }
             else
             {
-                var activeRuleset = await _rulesetManager.GetActiveRulesetAsync();
+                //var activeRuleset = await _rulesetManager.GetActiveRulesetAsync();
                 MatchConfiguration.TrySetEndRoundOnFacilityCapture(activeRuleset.DefaultEndRoundOnFacilityCapture, false);
+
+                MatchConfiguration.TrySetTargetPointValue(activeRuleset.TargetPointValue, false);
+                MatchConfiguration.TrySetInitialPoints(activeRuleset.InitialPoints, false);
+                MatchConfiguration.TrySetPeriodicFacilityControlPoints(activeRuleset.PeriodicFacilityControlPoints, false);
+                MatchConfiguration.TrySetPeriodicFacilityControlInterval(activeRuleset.PeriodicFacilityControlInterval, false);
             }
 
-            _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
+            //_roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
             _matchState = MatchState.Uninitialized;
             _currentRound = 0;
@@ -139,7 +184,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             MatchConfiguration = configuration;
 
-            _roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
+            //_roundSecondsMax = MatchConfiguration.RoundSecondsTotal;
 
             _wsMonitor.SetFacilitySubscription(MatchConfiguration.FacilityId);
             _wsMonitor.SetWorldSubscription(MatchConfiguration.WorldId);
@@ -147,7 +192,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             SendMatchConfigurationUpdateMessage();
         }
 
-        public bool TrySetMatchRuleset(Ruleset matchRuleset)
+        private bool TrySetMatchRuleset(Ruleset matchRuleset)
         {
             if (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning)
             {
@@ -169,9 +214,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.DisableScoring();
 
             // Stop the timer if forcing the round to end (as opposed to timer reaching 0)
-            if (GetLatestTimerTickMessage().MatchTimerStatus.State != MatchTimerState.Stopped)
+            //if (GetLatestTimerTickMessage().MatchTimerStatus.State != MatchTimerState.Stopped)
+            if (GetLatestTimerTickMessage().State != TimerState.Stopped)
             {
                 _timer.Halt();
+            }
+
+            if (MatchConfiguration.EnablePeriodicFacilityControlRewards)
+            {
+                _periodicTimer.Halt();
             }
 
             await _teamsManager.SaveRoundEndScores(_currentRound);
@@ -188,6 +239,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             TrySetMatchRuleset(_rulesetManager.ActiveRuleset);
 
             _matchStartTime = DateTime.UtcNow;
+            FacilityControlTeamOrdinal = null;
 
             CurrentSeriesMatch++;
 
@@ -234,9 +286,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _matchDataService.CurrentMatchRound = _currentRound;
 
-            _roundSecondsRemaining = _roundSecondsMax;
+            //_roundSecondsRemaining = _roundSecondsMax;
 
-            _timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
+            FacilityControlTeamOrdinal = null;
+
+            //_timer.Configure(TimeSpan.FromSeconds(_roundSecondsMax));
+            _timer.Configure(TimeSpan.FromSeconds(MatchConfiguration.RoundSecondsTotal));
+            
+            if (MatchConfiguration.EnablePeriodicFacilityControlRewards && MatchConfiguration.PeriodicFacilityControlInterval.HasValue)
+            {
+                _periodicTimer.Configure(TimeSpan.FromSeconds(MatchConfiguration.PeriodicFacilityControlInterval.Value));
+            }
 
             await _matchDataService.SaveCurrentMatchRoundConfiguration(MatchConfiguration);
         }
@@ -263,7 +323,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _matchState = MatchState.Paused;
 
             _wsMonitor.DisableScoring();
+
             _timer.Pause();
+            if (MatchConfiguration.EnablePeriodicFacilityControlRewards)
+            {
+                _periodicTimer.Pause();
+            }
 
             SendMatchStateUpdateMessage();
 
@@ -277,8 +342,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
             
-            _timer.Reset();
             _wsMonitor.DisableScoring();
+            
+            _timer.Reset();
+            if (MatchConfiguration.EnablePeriodicFacilityControlRewards)
+            {
+                _periodicTimer.Reset();
+            }
+
 
             await _teamsManager.RollBackAllTeamStats(_currentRound);
 
@@ -291,6 +362,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _matchState = MatchState.Uninitialized;
                 _latestTimerTickMessage = null;
             }
+
+            FacilityControlTeamOrdinal = null;
 
             _matchDataService.CurrentMatchRound = _currentRound;
 
@@ -310,6 +383,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             _timer.Resume();
+            if (MatchConfiguration.EnablePeriodicFacilityControlRewards)
+            {
+                _periodicTimer.Resume();
+            }
+
             _wsMonitor.EnableScoring();
 
             SendMatchStateUpdateMessage();
@@ -320,22 +398,47 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.AddCharacterSubscriptions(_teamsManager.GetAllPlayerIds());
         }
 
-        private async Task OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
+        private async Task OnEndRoundCheckerMessage(object sender, ScrimMessageEventArgs<EndRoundCheckerMessage> e)
         {
-            var message = e.Message;
-
-            SetLatestTimerTickMessage(e.Message);
-
-            var status = message.MatchTimerStatus;
-
-            var state = status.State;
-
-            if (state == MatchTimerState.Stopped && _isRunning)
+            if (_isRunning)
             {
                 await EndRound();
-                return;
             }
         }
+
+        private void OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
+        {
+            SetLatestTimerTickMessage(e.Message);
+        }
+
+        private void OnPeriodiocPointsTimerTick(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
+        {
+            if (!MatchConfiguration.EnablePeriodicFacilityControlRewards || !FacilityControlTeamOrdinal.HasValue)
+            {
+                return;
+            }
+
+            var controllingTeamOrdinal = FacilityControlTeamOrdinal.Value;
+
+            _matchScorer.ScorePeriodicFacilityControlTick(controllingTeamOrdinal);
+        }
+
+        //private async Task OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
+        //{
+        //    var message = e.Message;
+
+        //    SetLatestTimerTickMessage(e.Message);
+
+        //    var status = message.MatchTimerStatus;
+
+        //    var state = status.State;
+
+        //    if (state == MatchTimerState.Stopped && _isRunning)
+        //    {
+        //        await EndRound();
+        //        return;
+        //    }
+        //}
 
         public bool IsRunning()
         {
@@ -442,22 +545,50 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
         }
 
-        private async Task OnFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
+        private void OnFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
         {
-            if (!MatchConfiguration.EndRoundOnFacilityCapture)
+            if (!_isRunning)
+            {
+                return;
+            }
+            
+            if (!MatchConfiguration.EnablePeriodicFacilityControlRewards)
             {
                 return;
             }
 
-            var message = e.Message;
-            var controlEvent = message.FacilityControl;
+            var controlEvent = e.Message.FacilityControl;
+            var eventFacilityId = controlEvent.FacilityId;
+            var eventWorldId = controlEvent.WorldId;
 
-            if (controlEvent.FacilityId == MatchConfiguration.FacilityId && controlEvent.WorldId == MatchConfiguration.WorldId)
+            if (eventFacilityId == MatchConfiguration.FacilityId && eventWorldId == MatchConfiguration.WorldId)
             {
-                await EndRound();
+                if (_periodicTimer.CanStart())
+                {
+                    _periodicTimer.Start();
+                }
+                else
+                {
+                    _periodicTimer.Restart();
+                }
+                FacilityControlTeamOrdinal = controlEvent.ControllingTeamOrdinal;
             }
-        }
 
+                
+            //if (!MatchConfiguration.EndRoundOnFacilityCapture)
+            //{
+            //    return;
+            //}
+
+            //var message = e.Message;
+            //var controlEvent = message.FacilityControl;
+
+            //if (controlEvent.FacilityId == MatchConfiguration.FacilityId && controlEvent.WorldId == MatchConfiguration.WorldId)
+            //{
+            //    await EndRound();
+            //}
+        }
+        
         private void SendMatchStateUpdateMessage()
         {
             _messageService.BroadcastMatchStateUpdateMessage(new MatchStateUpdateMessage(_matchState, _currentRound, DateTime.UtcNow, MatchConfiguration.Title, _matchDataService.CurrentMatchId));
