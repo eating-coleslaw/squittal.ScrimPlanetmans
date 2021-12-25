@@ -1,6 +1,20 @@
 # squittal.ScrimPlanetmans
 
- Scoring script & overlay for Planetside 2 scrims
+An app for running, streaming, and collecting data for Planetside 2 scrims.
+
+![Stream infantry matches with the dynamic, real-time overlay](https://raw.githubusercontent.com/eating-coleslaw/squittal.ScrimPlanetmanImages/main/match_overlay_2.gif "Example of the streaming overlay being used in a match")
+
+> Stream infantry matches with the dynamic, real-time overlay
+
+## Table of Contents
+
+- [Requirements / Installation](#requirements)
+- [Running the App](#running-the-app)  
+- [Match & Team Setup](#match-setup)
+- [Maintenance](#maintenance)
+- [Streaming Overlay](#streaming-overlay)
+- [Reporting](#reporting)
+- [Troubleshooting](#troubleshooting)
 
 ## Requirements
 
@@ -102,6 +116,10 @@ The app uses census data stored in a local database for a variety of purposes, t
 
 Configure and monitor scrim matches from the Match Setup page (`/Admin`). It's divided into three sections: Team 1, Team 2, Match Controls.
 
+![The match and team setup page](https://raw.githubusercontent.com/eating-coleslaw/squittal.ScrimPlanetmanImages/main/match_and_team_setup_1.png "An example of the match and team setup page, with multiple outfits added to each team")
+
+> Enjoy fine control over how matches and teams are configured
+
 #### Team Setup
 
 In the top box for each team, you can:
@@ -135,6 +153,12 @@ The app uses census data stored in a local database for a variety of purposes. T
 __\*__ The Loadouts collection has more database entities than in the Census API because the Census API is missing the NSO classes.
 
 ## Streaming Overlay
+
+![The real-time, detailed match report](https://raw.githubusercontent.com/eating-coleslaw/squittal.ScrimPlanetmanImages/main/half_time_report_1.png "An example of the real-time, detailed match report, with the HSR column hidden")
+
+> An example of the real-time, detailed match report, with the HSR column hidden
+
+### OBS Setup
 
 Each view of the streaming overlay should be a scene with a Browser source configured like this:
 
@@ -175,10 +199,17 @@ https://localhost:5001/Overlay?report=false
 
 * Hides the match stats report. This is what you'd want for streaming a match in-progress.
 
-
-## Match & Events Reporting
+## Reporting
 
 Results from matches, along with several types of events, are stored in the same database as the census data. Feel free to use it for your own reporting needs.
+
+### Analytic Match Reports
+
+Analytic match reports containing infantry-centric metrics are available for every match. Access them from the Reports Browser page (`/Reports`). Find specific matches using the Report Browser's filter controls.
+
+![An analytic match report](https://raw.githubusercontent.com/eating-coleslaw/squittal.ScrimPlanetmanImages/main/analytic_report_1.png "An example of an analytic match report, with the player details panel opened for a player")
+
+> An analytic match report
 
 ### Prerequisites
 
@@ -204,6 +235,8 @@ __\*__ See download page for complete list of supported platforms
   __\*__ I don't know what this Authentication method will be on macOS or Linux, but you shouldn't need to enter a username of password.
 
 ### Data Model
+
+__Disclaimer_: I can't guaruntee that the data model information below is completely up-to-date or accurate. Connecting to your database directly is the best way to investigate the data model._
 
 #### ScrimMatch
 
