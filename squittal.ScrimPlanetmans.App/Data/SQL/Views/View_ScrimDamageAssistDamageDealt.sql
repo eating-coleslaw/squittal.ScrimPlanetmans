@@ -1,4 +1,4 @@
-USE [PlanetmansDbContext];
+USE [PlanetmansDbContext_Conquest];
 
 IF (NOT EXISTS (SELECT 1 FROM sys.views WHERE name = 'View_ScrimDamageAssistDamageDealt'))
 BEGIN
