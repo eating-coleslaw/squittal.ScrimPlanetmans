@@ -688,9 +688,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateTargetPointValue = rulesetUpdate.TargetPointValue;
             var updateInitialPoints = rulesetUpdate.InitialPoints;
             var updateMatchWinCondition = rulesetUpdate.MatchWinCondition;
+            var updateRoundWinCondition = rulesetUpdate.RoundWinCondition;
             var updateEnablePeriodicFacilityControlRewards = rulesetUpdate.EnablePeriodicFacilityControlRewards;
             var updatePeriodicFacilityControlPoints = rulesetUpdate.PeriodicFacilityControlPoints;
             var updatePeriodicFacilityControlInterval = rulesetUpdate.PeriodicFacilityControlInterval;
+            var updatePeriodFacilityControlPointAttributionType = rulesetUpdate.PeriodFacilityControlPointAttributionType;
 
 
             Ruleset oldRuleset = new Ruleset();
@@ -737,9 +739,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     oldRuleset.TargetPointValue = storeEntity.TargetPointValue;
                     oldRuleset.InitialPoints = storeEntity.InitialPoints;
                     oldRuleset.MatchWinCondition = storeEntity.MatchWinCondition;
+                    oldRuleset.RoundWinCondition = storeEntity.RoundWinCondition;
                     oldRuleset.EnablePeriodicFacilityControlRewards = storeEntity.EnablePeriodicFacilityControlRewards;
                     oldRuleset.PeriodicFacilityControlPoints = storeEntity.PeriodicFacilityControlPoints;
                     oldRuleset.PeriodicFacilityControlInterval = storeEntity.PeriodicFacilityControlInterval;
+                    oldRuleset.PeriodFacilityControlPointAttributionType = storeEntity.PeriodFacilityControlPointAttributionType;
 
 
                     storeEntity.Name = updateName;
@@ -753,9 +757,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     storeEntity.TargetPointValue = updateTargetPointValue;
                     storeEntity.InitialPoints = updateInitialPoints;
                     storeEntity.MatchWinCondition = updateMatchWinCondition;
+                    storeEntity.RoundWinCondition = updateRoundWinCondition;
                     storeEntity.EnablePeriodicFacilityControlRewards = updateEnablePeriodicFacilityControlRewards;
                     storeEntity.PeriodicFacilityControlPoints = updatePeriodicFacilityControlPoints;
                     storeEntity.PeriodicFacilityControlInterval = updatePeriodicFacilityControlInterval;
+                    storeEntity.PeriodFacilityControlPointAttributionType = updatePeriodFacilityControlPointAttributionType;
 
                     storeEntity.DateLastModified = DateTime.UtcNow;
 
@@ -2226,6 +2232,18 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private Ruleset ConvertToDbModel(JsonRuleset jsonRuleset, string sourceFileName)
         {
+            RoundWinCondition roundWinCondition;
+
+            if (jsonRuleset.RoundWinCondition.HasValue)
+            {
+                roundWinCondition = jsonRuleset.RoundWinCondition.Value;
+            }
+            else
+            {
+                roundWinCondition = jsonRuleset.DefaultEndRoundOnFacilityCapture ? RoundWinCondition.FacilityCapture
+                                        : RoundWinCondition.NotApplicable;
+            }
+
             return new Ruleset
             {
                 Name = jsonRuleset.Name,
@@ -2243,9 +2261,11 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 TargetPointValue = jsonRuleset.TargetPointValue,
                 InitialPoints = jsonRuleset.InitialPoints,
                 MatchWinCondition = jsonRuleset.MatchWinCondition ?? MatchWinCondition.MostPoints,
+                RoundWinCondition = roundWinCondition,
                 EnablePeriodicFacilityControlRewards = jsonRuleset.EnablePeriodicFacilityControlRewards ?? false,
                 PeriodicFacilityControlPoints = jsonRuleset.PeriodicFacilityControlPoints,
-                PeriodicFacilityControlInterval = jsonRuleset.PeriodicFacilityControlInterval
+                PeriodicFacilityControlInterval = jsonRuleset.PeriodicFacilityControlInterval,
+                PeriodFacilityControlPointAttributionType = jsonRuleset.PeriodFacilityControlPointAttributionType
             };
         }
 

@@ -4,6 +4,6 @@
     {
         MostPoints = 0,
         LeastPoints = 1,
-        FacilityCapture = 2
+        RoundsWon = 2
     }
 }

@@ -30,10 +30,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int? InitialPoints { get; set; }
 
         public MatchWinCondition? MatchWinCondition { get; set; }
+        public RoundWinCondition? RoundWinCondition { get; set; }
 
         public bool? EnablePeriodicFacilityControlRewards { get; set; }
         public int? PeriodicFacilityControlPoints { get; set; }
         public int? PeriodicFacilityControlInterval { get; set; }
+        public PointAttributionType? PeriodFacilityControlPointAttributionType { get; set; }
 
 
         public ICollection<JsonRulesetActionRule> RulesetActionRules { get; set; }
@@ -62,9 +64,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             TargetPointValue = ruleset.TargetPointValue;
             InitialPoints = ruleset.InitialPoints;
             MatchWinCondition = ruleset.MatchWinCondition;
+            RoundWinCondition = ruleset.RoundWinCondition;
             EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
             PeriodicFacilityControlPoints = ruleset.PeriodicFacilityControlPoints;
             PeriodicFacilityControlInterval = ruleset.PeriodicFacilityControlInterval;
+            PeriodFacilityControlPointAttributionType = ruleset.PeriodFacilityControlPointAttributionType;
 
             if (ruleset.RulesetActionRules.Any())
             {

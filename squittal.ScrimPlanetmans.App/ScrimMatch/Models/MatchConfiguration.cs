@@ -37,13 +37,15 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public int? PeriodicFacilityControlInterval { get; set; } = 15;
         public bool IsManualPeriodicFacilityControlInterval { get; set; }
 
-        // Values from Ruleset
+        #region Values from Ruleset
         public bool EnableRoundTimeLimit { get; set; }
         public TimerDirection? RoundTimerDirection { get; set; }
         public bool EndRoundOnPointValueReached { get; set; }
         public MatchWinCondition MatchWinCondition { get; set; }
+        public RoundWinCondition RoundWinCondition { get; set; }
         public bool EnablePeriodicFacilityControlRewards { get; set; } = false;
-
+        public PointAttributionType? PeriodFacilityControlPointAttributionType { get; set; }
+        #endregion Values from Ruleset
 
         private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
         private readonly AutoResetEvent _autoEventRoundSeconds = new AutoResetEvent(true);
@@ -67,7 +69,9 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             RoundTimerDirection = ruleset.RoundTimerDirection;
             EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
             MatchWinCondition = ruleset.MatchWinCondition;
+            RoundWinCondition = ruleset.RoundWinCondition;
             EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
+            PeriodFacilityControlPointAttributionType = ruleset.PeriodFacilityControlPointAttributionType;
         }
 
 

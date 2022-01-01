@@ -28,7 +28,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public bool EnableRoundTimeLimit { get; set; } = true;
         public int DefaultRoundLength { get; set; } = 900;
         public TimerDirection? RoundTimerDirection { get; set; } = TimerDirection.Down;
-        
+
         public bool DefaultEndRoundOnFacilityCapture { get; set; } = false;
 
         public bool EndRoundOnPointValueReached { get; set; } = false;
@@ -36,10 +36,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int? InitialPoints { get; set; }
 
         public MatchWinCondition MatchWinCondition { get; set; } = MatchWinCondition.MostPoints;
+        public RoundWinCondition RoundWinCondition { get; set; } = RoundWinCondition.NotApplicable;
 
         public bool EnablePeriodicFacilityControlRewards { get; set; } = false;
         public int? PeriodicFacilityControlPoints { get; set; }
         public int? PeriodicFacilityControlInterval { get; set; }
+        public PointAttributionType? PeriodFacilityControlPointAttributionType { get; set; } //= PointAttributionType.Standard;
 
 
         public ICollection<RulesetActionRule> RulesetActionRules { get; set; }

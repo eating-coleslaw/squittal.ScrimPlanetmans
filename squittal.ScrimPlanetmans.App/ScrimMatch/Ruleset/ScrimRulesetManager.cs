@@ -228,10 +228,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             ActiveRuleset.EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
             ActiveRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
             ActiveRuleset.RoundTimerDirection = ruleset.RoundTimerDirection;
+
             ActiveRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
+
             ActiveRuleset.EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
+            ActiveRuleset.TargetPointValue = ruleset.TargetPointValue;
+            ActiveRuleset.InitialPoints = ruleset.InitialPoints;
+
             ActiveRuleset.MatchWinCondition = ruleset.MatchWinCondition;
+            ActiveRuleset.RoundWinCondition = ruleset.RoundWinCondition;
+
             ActiveRuleset.EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
+            ActiveRuleset.PeriodicFacilityControlPoints = ruleset.PeriodicFacilityControlPoints;
+            ActiveRuleset.PeriodicFacilityControlInterval = ruleset.PeriodicFacilityControlInterval;
+            ActiveRuleset.PeriodFacilityControlPointAttributionType = ruleset.PeriodFacilityControlPointAttributionType;
 
             _activateRulesetAutoEvent.Set();
         }
@@ -345,6 +355,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             storeRuleset.DefaultEndRoundOnFacilityCapture = false;
             storeRuleset.EndRoundOnPointValueReached = false;
             storeRuleset.MatchWinCondition = MatchWinCondition.MostPoints;
+            storeRuleset.RoundWinCondition = RoundWinCondition.NotApplicable;
             storeRuleset.EnablePeriodicFacilityControlRewards = false;
 
             // Get all async collection requests together

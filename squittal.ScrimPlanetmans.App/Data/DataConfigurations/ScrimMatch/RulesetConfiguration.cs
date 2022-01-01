@@ -28,10 +28,12 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.InitialPoints).HasDefaultValue(null);
             
             builder.Property(e => e.MatchWinCondition).HasDefaultValue(MatchWinCondition.MostPoints);
+            builder.Property(e => e.RoundWinCondition).HasDefaultValue(RoundWinCondition.NotApplicable);
             
             builder.Property(e => e.EnablePeriodicFacilityControlRewards).HasDefaultValue(false);
             builder.Property(e => e.PeriodicFacilityControlPoints).HasDefaultValue(null);
             builder.Property(e => e.PeriodicFacilityControlInterval).HasDefaultValue(null);
+            builder.Property(e => e.PeriodFacilityControlPointAttributionType).HasDefaultValue(null);
 
             
         }
