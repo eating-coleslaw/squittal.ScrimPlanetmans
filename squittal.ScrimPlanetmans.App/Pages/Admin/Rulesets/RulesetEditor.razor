@@ -8,6 +8,7 @@
 @using System.Threading;
 @using System.Text.RegularExpressions;
 @using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+@using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 
 @inject IScrimRulesetManager RulesetManager
 @inject IRulesetDataService RulesetDataService
@@ -156,11 +157,84 @@
                                     <DataAnnotationsValidator />
                                     <ValidationSummary />
 
+                                    <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Ruleset Name</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 216px;" /></div>
+
                                     <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
-                                    <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Name:</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 216px;" /></div>
-                                    <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span style="width: 164px; display: inline-block;">Match Win Condition:</span><InputSelect @bind-Value=@_editFormRuleset.MatchWinCondition style="display: inline-block; width: 216px;">
+
+                                            @foreach (MatchWinCondition matchWinCondition in Enum.GetValues(typeof(MatchWinCondition)))
+                                                        {
+                                                <option value=@matchWinCondition label=@GetMatchWinConditionDisplayString(matchWinCondition) />
+                                                        }
+
+                                        </InputSelect>
+                                    </div>
+
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span style="width: 164px; display: inline-block;">Round Win Condition:</span><InputSelect @bind-Value=@_editFormRuleset.RoundWinCondition style="display: inline-block; width: 216px;">
+
+                                            @foreach (RoundWinCondition roundWinCondition in Enum.GetValues(typeof(RoundWinCondition)))
+                                                        {
+                                                <option value=@roundWinCondition label=@GetRoundWinConditionDisplayString(roundWinCondition) />
+                                                        }
+
+                                        </InputSelect>
+                                    </div>
+
+                                    <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative;" @bind-Value="_editFormRuleset.EnableRoundTimeLimit" /><span style="padding-left: 8px;">Enable Round Time Limit</span></div>
+                                    @if (_editFormRuleset.EnableRoundTimeLimit)
+                                    {
+                                        <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <span style="width: 164px; display: inline-block;">Round Timer Direction:</span><InputSelect @bind-Value=@_editFormRuleset.RoundTimerDirection style="display: inline-block; width: 216px;">
+
+                                                @foreach (TimerDirection timerDirection in Enum.GetValues(typeof(TimerDirection)))
+                                                                {
+                                                    <option value=@timerDirection label=@GetTimerDirectionDisplayString(timerDirection) />
+                                                                }
+                                            </InputSelect>
+                                        </div>
+                                    }
+
+
+                                    <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative;" @bind-Value="_editFormRuleset.EndRoundOnPointValueReached" /><span style="padding-left: 8px;">End Round on Point Value Reached</span></div>
+                                    @if (_editFormRuleset.EndRoundOnPointValueReached)
+                                    {
+                                        <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Target Points Per Round:</span><InputNumber type="text" @bind-Value=@_editFormRuleset.TargetPointValue style="display: inline-block; width: 64px; padding-left: 4px;" /></div>
+
+                                        <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Intial Round Points:</span><InputNumber type="text" @bind-Value=@_editFormRuleset.InitialPoints style="display: inline-block; width: 64px; padding-left: 4px;" /></div>
+
+                                        <div style="width: 100%; border-bottom: 1px solid gray;"></div>
+                                    }
+
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <InputCheckbox style="position: relative;" @bind-Value="_editFormRuleset.EnablePeriodicFacilityControlRewards" /><span style="padding-left: 8px;">Enable Periodic Facility Control Points</span>
+                                    </div>
+
+                                    @if (_editFormRuleset.EnablePeriodicFacilityControlRewards)
+                                    {
+                                        <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Points Per Tick:</span><InputNumber type="text" @bind-Value=@_editFormRuleset.PeriodicFacilityControlPoints style="display: inline-block; width: 64px; padding-left: 4px;" /></div>
+
+                                        <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Tick Interval:</span><InputNumber type="text" @bind-Value=@_editFormRuleset.PeriodicFacilityControlInterval style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <span style="width: 164px; display: inline-block;">Point Attribution:</span><InputSelect @bind-Value=@_editFormRuleset.PeriodFacilityControlPointAttributionType style="display: inline-block; width: 216px;">
+
+                                                @foreach (PointAttributionType attributionType in Enum.GetValues(typeof(PointAttributionType)))
+                                                {
+                                                    <option value=@attributionType label=@GetPointAttributionTypeDisplayString(attributionType) />
+                                                }
+                                            </InputSelect>
+                                        </div>
+
+                                        <div style="width: 100%; border-bottom: 1px solid gray;"></div>
+                                    }
+
                                     <div style="margin-bottom: 0.5rem;"><span style="width: 164px; display: inline-block;">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 216px;" /></div>
-                                    <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative; top: 2px;" @bind-Value="_editFormRuleset.DefaultEndRoundOnFacilityCapture" /><span style="padding-left: 8px;">Default End Round On Facility Capture</span></div>
+                                    @*<div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative;" @bind-Value="_editFormRuleset.DefaultEndRoundOnFacilityCapture" /><span style="padding-left: 8px;">Default End Round On Facility Capture</span></div>*@
 
                                     <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
 
@@ -209,7 +283,7 @@
             @if (!_isDeletingRuleset)
             {
                     
-                <div class="col-sm-9" style="margin-top: 8px; background-color: var(--sq-bg-white); margin-left: 15px; margin-right: 15px; max-width: calc(75% - 30px); padding: 8px 15px 8px 15px;">
+                <div class="col-sm-9" style="margin-top: 8px; margin-left: 15px; margin-right: 15px; max-width: calc(75% - 30px); padding: 8px 15px 8px 15px;">
 
                     <div class="btn-group sans-serif-font sq-btn-tabs">
                         <button class="sans-serif-font btn btn-link @GetActionsTabCssClass()" @onclick="() => OnClickRuleCategoryTab(RuleCategoryTabOption.Actions)">Action Rules</button>
@@ -268,7 +342,7 @@
     private bool _isDeletingRuleset { get; set; } = false;
 
     private bool _showEditForm { get; set; } = false;
-    private RulesetSettingsForm _editFormRuleset { get; set; }
+    private RulesetSettingsFormModel _editFormRuleset { get; set; }
 
     private bool _canDeleteRuleset { get; set; } = false;
     private bool _showDeleteConfirmationForm { get; set; } = false;
@@ -371,7 +445,7 @@
             _renderedRuleset = rulesetTask.Result;
             _canDeleteRuleset = canDeleteTask.Result;
 
-            _editFormRuleset = new RulesetSettingsForm(_renderedRuleset);
+            _editFormRuleset = new RulesetSettingsFormModel(_renderedRuleset);
 
             _renderedLastModifiedDateTime = _renderedRuleset.DateLastModified;
         }
@@ -813,6 +887,54 @@
     private string GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions showScoresSelection)
     {
         var rawString = Enum.GetName(typeof(ShowStatusPanelScoresSelectOptions), showScoresSelection);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetMatchWinConditionDisplayString(MatchWinCondition statsType)
+    {
+        var rawString = Enum.GetName(typeof(MatchWinCondition), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetRoundWinConditionDisplayString(RoundWinCondition statsType)
+    {
+        var rawString = Enum.GetName(typeof(RoundWinCondition), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetPointAttributionTypeDisplayString(PointAttributionType statsType)
+    {
+        var rawString = Enum.GetName(typeof(PointAttributionType), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetTimerDirectionDisplayString(TimerDirection statsType)
+    {
+        var rawString = Enum.GetName(typeof(TimerDirection), statsType);
 
         if (string.IsNullOrWhiteSpace(rawString))
         {
