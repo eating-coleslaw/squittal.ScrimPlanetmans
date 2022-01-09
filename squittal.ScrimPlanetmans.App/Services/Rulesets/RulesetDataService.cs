@@ -7,6 +7,7 @@ using squittal.ScrimPlanetmans.Models.Forms;
 using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
@@ -683,16 +684,19 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateEndRoundOnFacilityCapture = rulesetUpdate.DefaultEndRoundOnFacilityCapture;
 
             var updateEnableRoundTimeLimit = rulesetUpdate.EnableRoundTimeLimit;
-            var updateRoundTimerDirection = rulesetUpdate.RoundTimerDirection;
+            var updateRoundTimerDirection = !updateEnableRoundTimeLimit ? TimerDirection.Up : rulesetUpdate.RoundTimerDirection;
+            
             var updateEndRoundOnPointValueReached = rulesetUpdate.EndRoundOnPointValueReached;
-            var updateTargetPointValue = rulesetUpdate.TargetPointValue;
-            var updateInitialPoints = rulesetUpdate.InitialPoints;
+            var updateTargetPointValue = updateEndRoundOnPointValueReached ? +rulesetUpdate.TargetPointValue : null;
+            var updateInitialPoints = updateEndRoundOnPointValueReached ? +rulesetUpdate.InitialPoints : null;
+            
             var updateMatchWinCondition = rulesetUpdate.MatchWinCondition;
             var updateRoundWinCondition = rulesetUpdate.RoundWinCondition;
+            
             var updateEnablePeriodicFacilityControlRewards = rulesetUpdate.EnablePeriodicFacilityControlRewards;
-            var updatePeriodicFacilityControlPoints = rulesetUpdate.PeriodicFacilityControlPoints;
-            var updatePeriodicFacilityControlInterval = rulesetUpdate.PeriodicFacilityControlInterval;
-            var updatePeriodFacilityControlPointAttributionType = rulesetUpdate.PeriodFacilityControlPointAttributionType;
+            var updatePeriodicFacilityControlPoints = updateEnablePeriodicFacilityControlRewards ? +rulesetUpdate.PeriodicFacilityControlPoints : null;
+            var updatePeriodicFacilityControlInterval = updateEnablePeriodicFacilityControlRewards ? +rulesetUpdate.PeriodicFacilityControlInterval : null;
+            var updatePeriodFacilityControlPointAttributionType = updateEnablePeriodicFacilityControlRewards ? rulesetUpdate.PeriodFacilityControlPointAttributionType : null;
 
 
             Ruleset oldRuleset = new Ruleset();

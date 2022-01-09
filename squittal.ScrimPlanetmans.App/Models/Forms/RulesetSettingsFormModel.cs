@@ -10,9 +10,28 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         public string RulesetName { get; set; }
         public string DefaultMatchTitle { get; set; }
 
-        public bool EnableRoundTimeLimit { get; set; } = true;
+        private bool _enableRoundTimeLimit = true;
+        private TimerDirection _roundTimerDirection = TimerDirection.Down;
+
+        //public bool EnableRoundTimeLimit { get; set; }
+        public bool EnableRoundTimeLimit
+        {
+            get => _enableRoundTimeLimit;
+            set
+            {
+                _enableRoundTimeLimit = value;
+                if (!value)
+                {
+                    _roundTimerDirection = TimerDirection.Up;
+                }
+                else
+                {
+                    _roundTimerDirection = TimerDirection.Down;
+                }
+            }
+        }
         public int DefaultRoundLength { get; set; }
-        public TimerDirection RoundTimerDirection { get; set; } = TimerDirection.Down;
+        public TimerDirection RoundTimerDirection => _roundTimerDirection; // { get; set; } = TimerDirection.Down;
 
         public bool DefaultEndRoundOnFacilityCapture { get; set; }
 
@@ -53,7 +72,8 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
             EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
             DefaultRoundLength = ruleset.DefaultRoundLength;
-            RoundTimerDirection = ruleset.RoundTimerDirection ?? TimerDirection.Down;
+            //RoundTimerDirection = ruleset.RoundTimerDirection ?? TimerDirection.Down;
+            _roundTimerDirection = ruleset.RoundTimerDirection ?? TimerDirection.Down;
 
             DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
 
@@ -94,7 +114,8 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
             EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
             DefaultRoundLength = ruleset.DefaultRoundLength;
-            RoundTimerDirection = ruleset.RoundTimerDirection ?? TimerDirection.Down;
+            //RoundTimerDirection = ruleset.RoundTimerDirection ?? TimerDirection.Down;
+            _roundTimerDirection = ruleset.RoundTimerDirection ?? TimerDirection.Down;
 
             DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
             
