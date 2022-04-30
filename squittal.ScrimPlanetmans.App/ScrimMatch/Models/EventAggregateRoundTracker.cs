@@ -66,13 +66,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             var maxSubtrahendRound = subtrahend.HighestRound;
 
             RoundStats.Subtract(subtrahend.RoundStats);
-            //if (maxBaseRound == maxSubtrahendRound)
-            //{
-            //    RoundStats.Subtract(subtrahend.RoundStats);
-            //}
-
-            //var maxBaseRound = GetHighestHistoryRound();
-            //var maxAddendRound = subtrahend.GetHighestHistoryRound();
 
             var maxRound = maxBaseRound >= maxSubtrahendRound
                                 ? maxBaseRound
@@ -80,7 +73,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             for (var round = 1; round <= maxRound; round++)
             {
-                //var roundSubtrahend = new ScrimEventAggregate();
 
                 var roundSubtrahend = new ScrimEventAggregate();
 
@@ -97,24 +89,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                 {
                     RoundHistory.Add(round, roundSubtrahend);
                 }
-
-                //if (!subtrahend.RoundHistory.TryGetValue(round, out var roundSubtrahend))
-                //{
-                //    continue;
-                //}
-
-                //if (RoundHistory.TryGetValue(round, out var baseRound))
-                //{
-                //    baseRound.Subtract(roundSubtrahend);
-                //    RoundHistory[round] = baseRound;
-                //}
             }
         }
 
         public bool TryGetTargetRoundStats(int targetRound, out ScrimEventAggregate targetRoundStats)
         {
             targetRoundStats = new ScrimEventAggregate();
-            
+
             if (targetRound < 0)
             {
                 return false;
@@ -181,7 +162,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             {
                 RoundHistory.Add(currentRound, roundStats);
             }
-            
+
             // TODO: take this into account elsewhere
             RoundStats = new ScrimEventAggregate();
         }
