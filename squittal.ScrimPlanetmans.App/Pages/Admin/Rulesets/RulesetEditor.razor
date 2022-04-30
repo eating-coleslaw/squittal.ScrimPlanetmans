@@ -130,42 +130,42 @@
                             <p class="sans-serif-font" style="margin: 0 0 4px 0; font-size: 0.9rem;">
 
                                 <div style="margin-top: 4px; font-weight: 600; display: block;">Match Settings</div>
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Match Win Condition:</span>@GetMatchWinConditionDisplayString(_renderedRuleset.MatchWinCondition)</div>
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Round Win Condition:</span>@GetRoundWinConditionDisplayString(_renderedRuleset.RoundWinCondition)</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Match Win Condition:</span>@GetMatchWinConditionDisplayString(_renderedRuleset.MatchWinCondition)</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Round Win Condition:</span>@GetRoundWinConditionDisplayString(_renderedRuleset.RoundWinCondition)</div>
 
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Round Time Limit:</span>@GetRoundTimeLimitDisplayString()</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Round Time Limit:</span>@GetRoundTimeLimitDisplayString()</div>
                                 @if (_renderedRuleset.RoundTimerDirection.HasValue)
                                 {
                                     <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Timer Direction:</span>@GetTimerDirectionDisplayString(_renderedRuleset.RoundTimerDirection.Value)</div>
                                 }
 
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Round Point Target:</span>@GetTargetPointsDisplayString()</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Round Point Target:</span>@GetTargetPointsDisplayString()</div>
                                 @if (_renderedRuleset.InitialPoints.HasValue && _renderedRuleset.EndRoundOnPointValueReached)
                                 {
                                     <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Initial Round Points:</span>@_renderedRuleset.InitialPoints</div>
                                 }
 
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Periodic Facility Control Points:</span>@GetPeriodicFacilityPointsDisplayString()</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Periodic Facility Control Points:</span>@GetPeriodicFacilityPointsDisplayString()</div>
                                 @if (_renderedRuleset.PeriodFacilityControlPointAttributionType.HasValue && _renderedRuleset.EnablePeriodicFacilityControlRewards)
                                 {
-                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Initial Round Points:</span>@GetPointAttributionTypeDisplayString(_renderedRuleset.PeriodFacilityControlPointAttributionType.Value)</div>
+                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Periodic Attribution Type:</span>@GetPointAttributionTypeDisplayString(_renderedRuleset.PeriodFacilityControlPointAttributionType.Value)</div>
                                 }
 
                                 @*<div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Round Length:</span>@_renderedRuleset.DefaultRoundLength seconds</div>*@
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
-                                <div><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@GetBoolString(_renderedRuleset.DefaultEndRoundOnFacilityCapture)</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Default Match Title:</span>@_renderedRuleset.DefaultMatchTitle</div>
+                                <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px; line-height: 1.2; margin-top: 2px;">Default End Round<br>On Facility Capture:</span>@GetBoolString(_renderedRuleset.DefaultEndRoundOnFacilityCapture)</div>
 
                                 @if (!string.IsNullOrWhiteSpace(_renderedRuleset.SourceFile))
                                 {
-                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
+                                    <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Source File:</span>@_renderedRuleset.SourceFile</div>
                                 }
 
                                 @if (_renderedRuleset.RulesetOverlayConfiguration != null)
                                 {
                                     <div style="margin-top: 8px; font-weight: 600; display: block;">Overlay Settings</div>
-                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
-                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
-                                    <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
+                                    <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Use Compact Layout:</span>@(_renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout ? "Yes" : "No")</div>
+                                    <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Displayed Stats Type:</span>@GetOverlayStatsDisplayString(_renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)</div>
+                                    <div style="line-height: 1; padding: 4px 0;"><span style="display: inline-block; width: 156px; margin-right: 4px;">Show Player Scores:</span>@GetOverlayShowPlayerScoresString(_renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)</div>
                                 }
 
                             </p>
