@@ -184,7 +184,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private bool TrySetMatchRuleset(Ruleset matchRuleset)
         {
-            if (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning)
+            if (CanChangeRuleset())
             {
                 MatchRuleset = matchRuleset;
                 _matchDataService.CurrentMatchRulesetId = matchRuleset.Id;
@@ -432,6 +432,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public MatchTimerTickMessage GetLatestTimerTickMessage()
         {
             return _latestTimerTickMessage;
+        }
+
+        private bool CanChangeRuleset()
+        {
+            return (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning);
         }
 
         private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
