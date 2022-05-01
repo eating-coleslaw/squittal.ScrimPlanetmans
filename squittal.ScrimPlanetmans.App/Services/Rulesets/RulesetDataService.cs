@@ -373,6 +373,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetActionRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .ToListAsync(cancellationToken);
 
@@ -406,6 +407,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetItemCategoryRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .Include("ItemCategory")
                                                .OrderBy(r => r.ItemCategory.Domain)
@@ -442,6 +444,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetItemRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .Include("Item")
                                                .OrderBy(r => r.Item.FactionId)
@@ -478,6 +481,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetItemRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId && r.ItemCategoryId == itemCategoryId)
                                                .Include("Item")
                                                .OrderBy(r => r.Item.FactionId)
@@ -514,6 +518,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetFacilityRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .Include("MapRegion")
                                                .OrderBy(r => r.MapRegion.ZoneId)
@@ -1833,7 +1838,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var rulesets = await dbContext.Rulesets.ToListAsync(cancellationToken);
+                var rulesets = await dbContext.Rulesets.AsNoTracking().ToListAsync(cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -1921,7 +1926,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var currentDefaultRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsCustomDefault);
+                var currentDefaultRuleset = await dbContext.Rulesets.AsNoTracking().FirstOrDefaultAsync(r => r.IsCustomDefault);
 
                 var newDefaultRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
 
