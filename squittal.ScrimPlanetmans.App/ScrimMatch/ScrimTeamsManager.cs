@@ -67,6 +67,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _ordinalTeamMap.GetValueOrDefault(teamOrdinal);
         }
 
+        public int GetEnemyTeamOrdinal(int teamOrdinal)
+        {
+            if (teamOrdinal != 1 && teamOrdinal != 2)
+            {
+                throw new Exception($"{teamOrdinal} is not a valid Team Ordinal value");
+            }
+
+            return teamOrdinal == 1 ? 2 : 1;
+        }
+
         public string GetTeamAliasDisplay(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);

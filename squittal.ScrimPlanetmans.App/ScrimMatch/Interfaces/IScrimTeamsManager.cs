@@ -91,5 +91,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void UpdateAllTeamsMatchSeriesResults(int seriesMatchNumber);
         void UpdateAllTeamsMatchSeriesResults(int teamOrdinal, int seriesMatchNumber, ScrimSeriesMatchResultType matchResultType);
         List<ScrimSeriesMatchResult> GetTeamsScrimSeriesMatchResults(int teamOrdinal);
+        int GetEnemyTeamOrdinal(int teamOrdinal);
     }
 }

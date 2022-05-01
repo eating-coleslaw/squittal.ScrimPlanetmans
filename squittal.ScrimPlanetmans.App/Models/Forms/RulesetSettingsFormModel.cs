@@ -30,6 +30,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
                 }
             }
         }
+
         public int DefaultRoundLength { get; set; }
         public TimerDirection RoundTimerDirection => _roundTimerDirection; // { get; set; } = TimerDirection.Down;
 
@@ -37,7 +38,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
         public bool EndRoundOnPointValueReached { get; set; } = false;
         public int TargetPointValue { get; set; }
-        public int InitialPoints { get; set; }
+        public int InitialPoints { get; set; } = 0;
 
         public MatchWinCondition MatchWinCondition { get; set; }
         public RoundWinCondition RoundWinCondition { get; set; } = RoundWinCondition.NotApplicable;
@@ -79,7 +80,7 @@ namespace squittal.ScrimPlanetmans.Models.Forms
 
             EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
             TargetPointValue = ruleset.TargetPointValue ?? 100;
-            InitialPoints = ruleset.InitialPoints ?? 0;
+            InitialPoints = 0; // ruleset.InitialPoints ?? 0;
 
             MatchWinCondition = ruleset.MatchWinCondition;
             RoundWinCondition = ruleset.RoundWinCondition;
@@ -121,8 +122,8 @@ namespace squittal.ScrimPlanetmans.Models.Forms
             
             EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
             TargetPointValue = ruleset.TargetPointValue ?? 100;
-            InitialPoints = ruleset.InitialPoints ?? 0;
-            
+            InitialPoints = 0; // ruleset.InitialPoints ?? 0;
+
             MatchWinCondition = ruleset.MatchWinCondition;
             RoundWinCondition = ruleset.RoundWinCondition;
             

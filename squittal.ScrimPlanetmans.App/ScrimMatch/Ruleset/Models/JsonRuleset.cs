@@ -27,7 +27,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public bool? EndRoundOnPointValueReached { get; set; }
         public int? TargetPointValue { get; set; }
-        public int? InitialPoints { get; set; }
+        public int? InitialPoints { get; set; } = 0;
 
         public MatchWinCondition? MatchWinCondition { get; set; }
         public RoundWinCondition? RoundWinCondition { get; set; }
@@ -62,7 +62,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
             EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
             TargetPointValue = ruleset.TargetPointValue;
-            InitialPoints = ruleset.InitialPoints;
+            InitialPoints = 0; // ruleset.InitialPoints;
             MatchWinCondition = ruleset.MatchWinCondition;
             RoundWinCondition = ruleset.RoundWinCondition;
             EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;

@@ -688,7 +688,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             
             var updateEndRoundOnPointValueReached = rulesetUpdate.EndRoundOnPointValueReached;
             var updateTargetPointValue = updateEndRoundOnPointValueReached ? +rulesetUpdate.TargetPointValue : null;
-            var updateInitialPoints = updateEndRoundOnPointValueReached ? +rulesetUpdate.InitialPoints : null;
+            //var updateInitialPoints = updateEndRoundOnPointValueReached ? +rulesetUpdate.InitialPoints : null;
+            var updateInitialPoints = updateEndRoundOnPointValueReached ? 0 : (int?)null;
             
             var updateMatchWinCondition = rulesetUpdate.MatchWinCondition;
             var updateRoundWinCondition = rulesetUpdate.RoundWinCondition;
@@ -717,6 +718,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 _logger.LogError($"Error updating Ruleset {updateId} info: invalid default match title");
             }
+            
+            if (!IsValidRoundPointTarget(updateTargetPointValue))
+            {
+                _logger.LogError($"Error updating Ruleset {updateId} info: invalid round target point value");
+                return false;
+            }
 
             using (await _rulesetLock.WaitAsync($"{updateId}"))
             {
@@ -741,7 +748,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     oldRuleset.RoundTimerDirection = storeEntity.RoundTimerDirection;
                     oldRuleset.EndRoundOnPointValueReached = storeEntity.EndRoundOnPointValueReached;
                     oldRuleset.TargetPointValue = storeEntity.TargetPointValue;
-                    oldRuleset.InitialPoints = storeEntity.InitialPoints;
+                    oldRuleset.InitialPoints = 0; // storeEntity.InitialPoints;
                     oldRuleset.MatchWinCondition = storeEntity.MatchWinCondition;
                     oldRuleset.RoundWinCondition = storeEntity.RoundWinCondition;
                     oldRuleset.EnablePeriodicFacilityControlRewards = storeEntity.EnablePeriodicFacilityControlRewards;
@@ -759,7 +766,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     storeEntity.RoundTimerDirection = updateRoundTimerDirection;
                     storeEntity.EndRoundOnPointValueReached = updateEndRoundOnPointValueReached;
                     storeEntity.TargetPointValue = updateTargetPointValue;
-                    storeEntity.InitialPoints = updateInitialPoints;
+                    storeEntity.InitialPoints = 0; //  updateInitialPoints;
                     storeEntity.MatchWinCondition = updateMatchWinCondition;
                     storeEntity.RoundWinCondition = updateRoundWinCondition;
                     storeEntity.EnablePeriodicFacilityControlRewards = updateEnablePeriodicFacilityControlRewards;
@@ -2263,7 +2270,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 RoundTimerDirection = jsonRuleset.RoundTimerDirection,
                 EndRoundOnPointValueReached = jsonRuleset.EndRoundOnPointValueReached ?? false,
                 TargetPointValue = jsonRuleset.TargetPointValue,
-                InitialPoints = jsonRuleset.InitialPoints,
+                InitialPoints = 0, // jsonRuleset.InitialPoints,
                 MatchWinCondition = jsonRuleset.MatchWinCondition ?? MatchWinCondition.MostPoints,
                 RoundWinCondition = roundWinCondition,
                 EnablePeriodicFacilityControlRewards = jsonRuleset.EnablePeriodicFacilityControlRewards ?? false,
@@ -2311,6 +2318,21 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public static bool IsValidRulesetDefaultRoundLength(int seconds)
         {
             return seconds > 0;
+        }
+
+        public static bool IsValidRoundPointTarget(int? points)
+        {
+            if (points == null)
+            {
+                return true;
+            }
+
+            if (points.HasValue && points.Value > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsValidRulesetDefaultMatchTitle(string title)

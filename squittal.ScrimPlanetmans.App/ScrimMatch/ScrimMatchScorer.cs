@@ -266,6 +266,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #region Experience Events
         public async Task<ScrimEventScoringResult> ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
+            var medicTeamOrdinal = revive.MedicPlayer.TeamOrdinal;
+            
             var actionType = revive.ActionType;
             var scoringResult = GetActionRulePoints(actionType);
             var points = scoringResult.Points;
@@ -281,6 +283,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 RevivesTaken = 1
             };
+
+            var enemyActionType = revive.ActionType == ScrimActionType.ReviveMax
+                            ? ScrimActionType.EnemyRevivedMax
+                            : ScrimActionType.EnemyRevivedInfantry;
+            
+            var enemyScoringResult = GetActionRulePoints(enemyActionType);
+            var enemyPoints = enemyScoringResult.Points;
+            
+            var enemyReviveUpdate = new ScrimEventAggregate()
+            {
+                Points = enemyPoints,
+                NetScore = enemyPoints,
+                EnemyRevivesAllowed = 1
+            };
+
+            var enemyTeamOrdinal = _teamsManager.GetEnemyTeamOrdinal(medicTeamOrdinal);
+            _teamsManager.UpdateTeamStats(enemyTeamOrdinal, enemyReviveUpdate);
 
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(revive.MedicPlayer.Id, medicUpdate);
