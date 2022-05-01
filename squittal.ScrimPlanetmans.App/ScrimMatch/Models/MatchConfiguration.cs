@@ -25,17 +25,17 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public string FacilityIdString { get; set; } = "-1";
 
         public bool EndRoundOnFacilityCapture { get; set; } = false; // TODO: move this setting to the Ruleset model
-        public bool IsManualEndRoundOnFacilityCapture { get; set; } = false;
+        public bool IsManualEndRoundOnFacilityCapture { get; private set; } = false;
 
         public int? TargetPointValue { get; set; } = 0;
-        public bool IsManualTargetPointValue { get; set; }
+        public bool IsManualTargetPointValue { get; private set; }
         public int? InitialPoints { get; set; } = 200;
-        public bool IsManualInitialPoints { get; set; }
+        public bool IsManualInitialPoints { get; private set; }
 
         public int? PeriodicFacilityControlPoints { get; set; } = 5;
-        public bool IsManualPeriodicFacilityControlPoints { get; set; }
+        public bool IsManualPeriodicFacilityControlPoints { get; private set; }
         public int? PeriodicFacilityControlInterval { get; set; } = 15;
-        public bool IsManualPeriodicFacilityControlInterval { get; set; }
+        public bool IsManualPeriodicFacilityControlInterval { get; private set; }
 
         #region Values from Ruleset
         public bool EnableRoundTimeLimit { get; set; }
@@ -70,8 +70,12 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
             MatchWinCondition = ruleset.MatchWinCondition;
             RoundWinCondition = ruleset.RoundWinCondition;
+            TargetPointValue = ruleset.TargetPointValue;
+            InitialPoints = ruleset.InitialPoints;
             EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
             PeriodFacilityControlPointAttributionType = ruleset.PeriodFacilityControlPointAttributionType;
+            PeriodicFacilityControlPoints = ruleset.PeriodicFacilityControlPoints;
+            PeriodicFacilityControlInterval = ruleset.PeriodicFacilityControlInterval;
         }
 
 
