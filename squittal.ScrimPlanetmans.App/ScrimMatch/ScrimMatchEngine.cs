@@ -22,6 +22,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private readonly IStatefulTimer _timer;
         private readonly IPeriodicPointsTimer _periodicTimer;
+        private readonly IScrimRoundEndCheckerService _roundEndChecker;
 
         public MatchConfiguration MatchConfiguration { get; set; } = new MatchConfiguration();
         public Ruleset MatchRuleset { get; private set; }
@@ -50,6 +51,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             IScrimMessageBroadcastService messageService,
             IScrimRulesetManager rulesetManager,
             IScrimMatchScorer matchScorer,
+            IScrimRoundEndCheckerService roundEndChecker,
             ILogger<ScrimMatchEngine> logger)
         {
             _teamsManager = teamsManager;
@@ -60,6 +62,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _matchDataService = matchDataService;
             _rulesetManager = rulesetManager;
             _matchScorer = matchScorer;
+            _roundEndChecker = roundEndChecker;
 
             _logger = logger;
 
