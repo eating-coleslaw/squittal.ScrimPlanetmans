@@ -1,0 +1,729 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Rulesets;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using System.Threading;
+@using System.Text.RegularExpressions;
+@using Microsoft.AspNetCore.WebUtilities @*for QueryHelpers*@
+
+@inject IScrimRulesetManager RulesetManager
+@inject IRulesetDataService RulesetDataService
+@inject IScrimMessageBroadcastService MessageService
+@inject NavigationManager NavManager
+
+@implements IDisposable
+
+
+<div class="sq-content sans-serif-font" style="font-family: Roboto, 'Segoe UI', sans-serif; margin: 16px 0 16px 0; padding: 8px 16px; border: 1px solid var(--sq-black-alpha-50); border-radius: 0.2rem; box-shadow: 0px 1px 3px 0px var(--sq-light-blue-gray); font-size: 0.9rem;">
+
+    <EditForm Model="@_editFormRuleset" class="sans-serif-font" style="font-size: 0.9rem; margin-top: 8px; margin-left: 4px;" OnValidSubmit="HandleEditRulesetSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div style="margin-bottom: 0.5rem;"><span class="fixed-width-label">Ruuleset Name:</span><InputText @bind-Value=@_editFormRuleset.RulesetName maxlength="100" pattern="^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 216px;" /></div>
+
+        <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
+        <div style="margin-bottom: 0.5rem;">
+            <span class="fixed-width-label">Match Win Condition:</span><InputSelect @bind-Value=@_editFormRuleset.MatchWinCondition style="display: inline-block; width: 216px;">
+
+                @foreach (MatchWinCondition matchWinCondition in Enum.GetValues(typeof(MatchWinCondition)))
+                {
+                    <option value=@matchWinCondition label=@GetMatchWinConditionDisplayString(matchWinCondition) />
+                }
+
+            </InputSelect>
+        </div>
+
+        <div style="margin-bottom: 0.5rem;">
+            <span class="fixed-width-label">Match Win Condition:</span><InputSelect @bind-Value=@_editFormRuleset.MatchWinCondition style="display: inline-block; width: 216px;">
+
+                @foreach (RoundWinCondition roundWinCondition in Enum.GetValues(typeof(RoundWinCondition)))
+                {
+                    <option value=@roundWinCondition label=@GetRoundWinConditionDisplayString(roundWinCondition) />
+                }
+
+            </InputSelect>
+        </div>
+
+
+        <div style="margin-bottom: 0.5rem;"><span class="fixed-width-label">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
+        <div style="margin-bottom: 0.5rem;"><span class="fixed-width-label">Default Match Title:</span><InputText @bind-Value=@_editFormRuleset.DefaultMatchTitle maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" style="display: inline-block; width: 216px;" /></div>
+        <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative;" @bind-Value="_editFormRuleset.DefaultEndRoundOnFacilityCapture" /><span style="padding-left: 8px;">Default End Round On Facility Capture</span></div>
+
+        <div style="margin-top: 8px; font-weight: 600; display: block; margin-bottom: 4px;">Overlay Settings</div>
+
+        <div style="margin-bottom: 0.5rem;"><InputCheckbox style="position: relative;" @bind-Value="_editFormRuleset.UseCompactOverlayLayout" /><span style="padding-left: 8px;">Use Compact Layout</span></div>
+        <div style="margin-bottom: 0.5rem;">
+            <span class="fixed-width-label">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 216px;">
+
+                @foreach (OverlayStatsDisplayType statsType in Enum.GetValues(typeof(OverlayStatsDisplayType)))
+                {
+                    <option value=@statsType label=@GetOverlayStatsDisplayString(statsType) />
+                }
+
+            </InputSelect>
+        </div>
+
+        <div style="margin-bottom: 0.5rem;">
+            <span class="fixed-width-label">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.ShowOverlayStatusPanelScoresSelection style="display: inline-block; width: 216px;">
+
+                @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
+                {
+                    <option value=@showScoresSelection label=@GetOverlayShowPlayerScoresSelectionString(showScoresSelection) />
+                }
+            </InputSelect>
+        </div>
+
+        <div style="text-align: right; margin-top: 12px;">
+            <button type="submit" class="btn btn-primary">
+                <span class="oi oi-check"></span>Save
+            </button>
+
+            <button type="reset" @onclick="HandleEditRulesetCancel" class="btn btn-outline-primary" style="display: inline-block;" title="Cancel editing team info">
+                <span class="oi oi-x" style="top: 0;"></span>Cancel
+            </button>
+        </div>
+
+    </EditForm>
+
+</div>
+
+
+
+@code {
+    [Parameter]
+    public int i_rulesetId { get; set; }
+    private int _renderedRulesetId { get; set; }
+
+    private Ruleset _renderedRuleset { get; set; }
+
+    [Parameter]
+    public bool i_editMode { get; set; } = false;
+    private bool _renderedEditMode { get; set; } = false;
+
+    [Parameter]
+    public bool? _uriEditMode { get; set; }
+
+    private bool _defaultEditMode = false;
+
+    private bool _isLoadingRuleset { get; set; } = false;
+    private bool _isSavingRuleset { get; set; } = false;
+    private bool _isExportingRuleset { get; set; } = false;
+    private bool _isDeletingRuleset { get; set; } = false;
+
+    private bool _showEditForm { get; set; } = false;
+    private RulesetSettingsFormModel _editFormRuleset { get; set; }
+
+    private bool _canDeleteRuleset { get; set; } = false;
+    private bool _showDeleteConfirmationForm { get; set; } = false;
+
+    private bool _rerenderOnCancelEdit { get; set; } = false;
+
+    private bool _showExportConfirmationForm { get; set; } = false;
+
+    private DateTime? _renderedLastModifiedDateTime { get; set; }
+
+    private CancellationTokenSource cts;
+
+
+    #region Initializtion Methods
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+
+        MessageService.RaiseRulesetRuleChangeEvent += HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetSettingChangeEvent += HandleRulesetSettingChangeEvent;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent += HandleRulesetOverlayConfigurationChangeEvent;
+        MessageService.RaiseActiveRulesetChangeEvent += HandleActiveRulesetChangeEvent;
+
+        _renderedRulesetId = i_rulesetId;
+
+        if (_renderedRulesetId == RulesetDataService.DefaultRulesetId)
+        {
+            NavManager.NavigateTo($"ruleset/{_renderedRulesetId}?edit=false");
+        }
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+
+        MessageService.RaiseRulesetRuleChangeEvent -= HandleRulesetRuleChangeEvent;
+        MessageService.RaiseRulesetSettingChangeEvent -= HandleRulesetSettingChangeEvent;
+        MessageService.RaiseRulesetOverlayConfigurationChangeEvent -= HandleRulesetOverlayConfigurationChangeEvent;
+        MessageService.RaiseActiveRulesetChangeEvent -= HandleActiveRulesetChangeEvent;
+
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRulesetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var paramsChanged = false;
+
+        if (UpdateUriParameters())
+        {
+            await LoadRulesetAsync();
+            paramsChanged = true;
+        }
+
+        if (paramsChanged)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private async Task LoadRulesetAsync()
+    {
+        _isLoadingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            var TaskList = new List<Task>();
+
+            var rulesetTask = RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false, true);
+            TaskList.Add(rulesetTask);
+
+            cts.Token.ThrowIfCancellationRequested();
+
+            var canDeleteTask = RulesetDataService.CanDeleteRuleset(_renderedRulesetId, cts.Token);
+            TaskList.Add(canDeleteTask);
+
+            await Task.WhenAll(TaskList);
+
+            _renderedRuleset = rulesetTask.Result;
+            _canDeleteRuleset = canDeleteTask.Result;
+
+            _editFormRuleset = new RulesetSettingsFormModel(_renderedRuleset);
+
+            _renderedLastModifiedDateTime = _renderedRuleset.DateLastModified;
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isLoadingRuleset = false;
+    }
+    #endregion Initializtion Methods
+
+    #region Event Handling
+    private async void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (UpdateUriParameters())
+        {
+            await LoadRulesetAsync();
+
+            StateHasChanged();
+        }
+    }
+
+    private void HandleActiveRulesetChangeEvent(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> e)
+    {
+        var newRuleset = e.Message.ActiveRuleset;
+        var oldRuleset = e.Message.PreviousActiveRuleset;
+
+        if (oldRuleset.Id == _renderedRulesetId || newRuleset.Id == _renderedRulesetId)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    private void HandleRulesetRuleChangeEvent(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        if (_renderedLastModifiedDateTime == ruleset.DateLastModified)
+        {
+            return;
+        }
+
+        _renderedLastModifiedDateTime = ruleset.DateLastModified;
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleRulesetSettingChangeEvent(object sender, ScrimMessageEventArgs<RulesetSettingChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        var changes = e.Message.ChangedSettings;
+        if (!changes.Any())
+        {
+            return;
+        }
+
+        if (changes.Contains(RulesetSettingChange.Name))
+        {
+            _renderedRuleset.Name = ruleset.Name;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.RulesetName = ruleset.Name;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultMatchTitle))
+        {
+            _renderedRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultRoundLength))
+        {
+            _renderedRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.DefaultRoundLength = ruleset.DefaultRoundLength;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetSettingChange.DefaultEndRoundOnFacilityCapture))
+        {
+            _renderedRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleRulesetOverlayConfigurationChangeEvent(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e)
+    {
+        var ruleset = e.Message.Ruleset;
+
+        if (ruleset.Id != _renderedRulesetId)
+        {
+            return;
+        }
+
+        var changes = e.Message.ChangedSettings;
+        if (!changes.Any())
+        {
+            return;
+        }
+
+        var configuration = e.Message.OverlayConfiguration;
+
+
+        if (_renderedRuleset.RulesetOverlayConfiguration == null)
+        {
+            _renderedRuleset.RulesetOverlayConfiguration = new RulesetOverlayConfiguration();
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.UseCompactLayout))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout = configuration.UseCompactLayout;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.UseCompactOverlayLayout = configuration.UseCompactLayout;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.StatsDisplayType))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType = configuration.StatsDisplayType;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.OverlayStatsDisplayType = configuration.StatsDisplayType;
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        if (changes.Contains(RulesetOverlayConfigurationChange.ShowStatusPanelScores))
+        {
+            _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores = configuration.ShowStatusPanelScores;
+
+            if (!_showEditForm)
+            {
+                _editFormRuleset.ShowOverlayStatusPanelScoresSelection = ConvertToSelectOption(configuration.ShowStatusPanelScores);
+            }
+
+            _rerenderOnCancelEdit = true;
+        }
+
+        InvokeAsyncStateHasChanged();
+    }
+    #endregion Event Handling
+
+    #region Form Handling
+    private async void HandleEditRulesetSubmit()
+    {
+        var updateRuleset = _editFormRuleset;
+
+        updateRuleset.RulesetId = _renderedRulesetId;
+
+        _isSavingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        // If a process is already underway, cancel it
+        if (cts != null)
+        {
+            cts.Cancel();
+        }
+
+        // Set ctsRulesets to cancel the current process if another table refresh is requested
+        CancellationTokenSource newCTS = new CancellationTokenSource();
+        cts = newCTS;
+
+        try
+        {
+            bool infoSuccess = false;
+            bool overlaySuccess = false;
+
+            infoSuccess = await RulesetDataService.UpdateRulesetInfo(updateRuleset.GetRuleset(), cts.Token); // Putting this in an if block results in "entity already being tracked errors"
+            cts.Token.ThrowIfCancellationRequested();
+
+            if (FormHasOverlayConfigurationChanges())
+            {
+                overlaySuccess = await RulesetDataService.SaveRulesetOverlayConfiguration(updateRuleset.RulesetId, updateRuleset.GetOverlayConfiguration(), cts.Token);
+                cts.Token.ThrowIfCancellationRequested();
+            }
+
+            var success = (infoSuccess || overlaySuccess);
+
+            if (success)
+            {
+                _renderedRuleset = await RulesetDataService.GetRulesetFromIdAsync(_renderedRulesetId, cts.Token, false, true);
+
+                cts.Token.ThrowIfCancellationRequested();
+
+                _editFormRuleset.SetProperties(_renderedRuleset);
+
+                _showEditForm = false;
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+        catch
+        {
+            //Ingore
+        }
+
+        // When the process is complete, signal that another process can proceed
+        if (cts == newCTS)
+        {
+            cts = null;
+        }
+
+        _isSavingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleEditRulesetCancel()
+    {
+        _editFormRuleset.SetProperties(_renderedRuleset);
+
+        _showEditForm = false;
+
+        if (_rerenderOnCancelEdit)
+        {
+            InvokeAsyncStateHasChanged();
+        }
+
+        _rerenderOnCancelEdit = false;
+    }
+
+    private void ToggleEditRulesetFormVisibility()
+    {
+        _showEditForm = !_showEditForm;
+
+        if (_showEditForm)
+        {
+            _editFormRuleset.SetProperties(_renderedRuleset);
+        }
+    }
+
+    private void HandleShowExportRulesetConfirmationForm()
+    {
+        _showExportConfirmationForm = true;
+    }
+
+    private async void HandleExportRulesetToJsonFileSubmit()
+    {
+        _isExportingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.ExportRulesetToJsonFile(_renderedRulesetId, CancellationToken.None))
+        {
+            _showExportConfirmationForm = false;
+        }
+
+        _isExportingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleExportRulesetCancel()
+    {
+        _showExportConfirmationForm = false;
+    }
+
+    private void HandleShowDeleteRulesetConfirmationForm()
+    {
+        if (_canDeleteRuleset)
+        {
+            _showDeleteConfirmationForm = true;
+        }
+    }
+
+    private async void HandleDeleteRulesetSubmit()
+    {
+        if (!_canDeleteRuleset)
+        {
+            return;
+        }
+
+        _isDeletingRuleset = true;
+        InvokeAsyncStateHasChanged();
+
+        if (await RulesetDataService.DeleteRulesetAsync(_renderedRulesetId))
+        {
+            NavManager.NavigateTo($"/rulesets");
+
+            _showDeleteConfirmationForm = false;
+        }
+
+        _isDeletingRuleset = false;
+        InvokeAsyncStateHasChanged();
+    }
+
+    private void HandleDeleteRulesetCancel()
+    {
+        _showDeleteConfirmationForm = false;
+    }
+
+    private bool FormHasOverlayConfigurationChanges()
+    {
+        if (_renderedRuleset.RulesetOverlayConfiguration == null)
+        {
+            return true;
+        }
+
+        if (_editFormRuleset.UseCompactOverlayLayout != _renderedRuleset.RulesetOverlayConfiguration.UseCompactLayout)
+        {
+            return true;
+        }
+
+        if (_editFormRuleset.OverlayStatsDisplayType != _renderedRuleset.RulesetOverlayConfiguration.StatsDisplayType)
+        {
+            return true;
+        }
+
+        if (_editFormRuleset.ShowOverlayStatusPanelScores != _renderedRuleset.RulesetOverlayConfiguration.ShowStatusPanelScores)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    #endregion Form Handling
+
+    #region UI Controls
+
+    #endregion UI Controls
+
+    private bool UpdateUriParameters()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var stateChanged = false;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("edit", out var qEdit))
+        {
+            if (bool.TryParse(qEdit, out bool edit))
+            {
+                if (_uriEditMode != edit)
+                {
+                    _uriEditMode = edit;
+                    i_editMode = edit;
+                    _renderedEditMode = edit;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                if (_uriEditMode != null)
+                {
+                    stateChanged = true;
+                }
+
+                _uriEditMode = null;
+                i_editMode = _defaultEditMode;
+                _renderedEditMode = _defaultEditMode;
+            }
+        }
+
+        return stateChanged;
+    }
+
+    private bool IsActiveRuleset(int rulesetId)
+    {
+        return RulesetDataService.ActiveRulesetId == rulesetId;
+    }
+
+    private string GetLocalizedDateTimeString(DateTime dateTime)
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+        var dateTimeLocal = dateTime.ToLocalTime();
+
+        return $"{dateTimeLocal.ToString("f")}";
+    }
+
+    private string GetOverlayStatsDisplayString(OverlayStatsDisplayType statsType)
+    {
+        var rawString = Enum.GetName(typeof(OverlayStatsDisplayType), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions showScoresSelection)
+    {
+        var rawString = Enum.GetName(typeof(ShowStatusPanelScoresSelectOptions), showScoresSelection);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetMatchWinConditionDisplayString(MatchWinCondition statsType)
+    {
+        var rawString = Enum.GetName(typeof(MatchWinCondition), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+    
+    private string GetRoundWinConditionDisplayString(RoundWinCondition statsType)
+    {
+        var rawString = Enum.GetName(typeof(RoundWinCondition), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+    
+    private string GetPointAttributionTypeDisplayString(PointAttributionType statsType)
+    {
+        var rawString = Enum.GetName(typeof(PointAttributionType), statsType);
+
+        if (string.IsNullOrWhiteSpace(rawString))
+        {
+            return "Error";
+        }
+
+        return Regex.Replace(rawString, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+    }
+
+    private string GetOverlayShowPlayerScoresString(bool? showScores)
+    {
+        switch (showScores)
+        {
+            case true:
+                return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.Yes);
+
+            case false:
+                return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.No);
+
+            case null:
+                return GetOverlayShowPlayerScoresSelectionString(ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault);
+        }
+    }
+
+    private ShowStatusPanelScoresSelectOptions ConvertToSelectOption(bool? showStatusPanelScore)
+    {
+        switch (showStatusPanelScore)
+        {
+            case true:
+                return ShowStatusPanelScoresSelectOptions.Yes;
+
+            case false:
+                return ShowStatusPanelScoresSelectOptions.No;
+
+            case null:
+                return ShowStatusPanelScoresSelectOptions.UseStatsDisplayDefault;
+        }
+    }
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}
