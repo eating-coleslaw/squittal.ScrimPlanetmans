@@ -216,6 +216,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await _teamsManager.SaveRoundEndScores(_currentRound);
 
+            // TODO: Save Match Round results & metadata
+
             _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
 
             SendMatchStateUpdateMessage();
