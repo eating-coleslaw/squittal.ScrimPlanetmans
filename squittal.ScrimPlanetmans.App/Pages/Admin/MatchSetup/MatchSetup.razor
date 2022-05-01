@@ -343,25 +343,37 @@
 
             if (_matchConfiguration != null)
             {
-                _matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
-                _matchConfiguration.TrySetEndRoundOnFacilityCapture(_activeRuleset.DefaultEndRoundOnFacilityCapture, false);
+                var newMatchConfiguration = new MatchConfiguration(_activeRuleset);
 
-                var oldTitle = _matchConfiguration.Title;
-                var newTitle = _activeRuleset.DefaultMatchTitle;
-
-                if (newTitle == null)
+                if (_matchConfiguration.IsManualTitle)
                 {
-                    newTitle = string.Empty;
+                    newMatchConfiguration.TrySetTitle(_matchConfiguration.Title, true);
                 }
 
-                if (_matchConfiguration.TrySetTitle(newTitle, true))
-                {
-                    if (newTitle != oldTitle)
-                    {
-                        _matchConfiguration.Title = newTitle;
-                        MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
-                    }
-                }
+                // TODO: carry over old settings depending on what the Round Win Condition is
+
+                _matchConfiguration = newMatchConfiguration;
+                MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                //_matchConfiguration.TrySetRoundLength(_activeRuleset.DefaultRoundLength, false);
+                //_matchConfiguration.TrySetEndRoundOnFacilityCapture(_activeRuleset.DefaultEndRoundOnFacilityCapture, false);
+
+                //var oldTitle = _matchConfiguration.Title;
+                //var newTitle = _activeRuleset.DefaultMatchTitle;
+
+                //if (newTitle == null)
+                //{
+                //    newTitle = string.Empty;
+                //}
+
+                //if (_matchConfiguration.TrySetTitle(newTitle, true))
+                //{
+                //    if (newTitle != oldTitle)
+                //    {
+                //        _matchConfiguration.Title = newTitle;
+                //        MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+                //    }
+                //}
             }
 
             if (_activeRuleset.RulesetFacilityRules.Any())
