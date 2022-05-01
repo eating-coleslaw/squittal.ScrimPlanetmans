@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.Models.ScrimEngine;
+﻿using Microsoft.Extensions.Logging;
+using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.ScrimMatch.Timers;
@@ -12,14 +13,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
     public class ScrimRoundEndCheckerService : IScrimRoundEndCheckerService
     {
         private readonly IScrimMessageBroadcastService _messageService;
+        private readonly ILogger<ScrimRoundEndCheckerService> _logger;
 
-        private Ruleset ActiveRuleset { get; set; }
+        //private Ruleset ActiveRuleset { get; set; }
         private MatchConfiguration MatchConfiguration { get; set; }
 
-        public ScrimRoundEndCheckerService(IScrimMessageBroadcastService messageService)
+        public ScrimRoundEndCheckerService(IScrimMessageBroadcastService messageService, ILogger<ScrimRoundEndCheckerService> logger)
         {
             _messageService = messageService;
-            
+            _logger = logger;
+
             /* Messages to subscribe to:
              *  x Timer Ticks
              *  x Facility Capture Events
@@ -41,6 +44,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private void ReceiveMatchConfigurationUpdateEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
         {
             MatchConfiguration = e.Message.MatchConfiguration;
+
+            _logger.LogInformation("Received MatchConfigurationUpdateEvent");
         }
 
         private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
@@ -55,7 +60,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var teamOrdinal = message.Team.TeamOrdinal;
             var newPoints = message.Team.EventAggregate.Points;
 
-            if (newPoints == MatchConfiguration.TargetPointValue)
+            if (newPoints >= MatchConfiguration.TargetPointValue)
             {
                 BroadcastEndRoundMessage(EndRoundReason.PointTargetReached, teamOrdinal);
                 return;
