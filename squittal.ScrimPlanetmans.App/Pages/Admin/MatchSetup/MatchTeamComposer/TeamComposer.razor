@@ -48,7 +48,7 @@
                 <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
                     @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
                     <span style="font-weight: 700; font-size: larger;">
-                        @(_team.EventAggregate.Points)
+                        @(_team.EventAggregate.Points) (@(_team.RoundEventAggregate.Points))
                     </span>
                 </span>
             }
@@ -649,6 +649,8 @@
         _inputPointAdjustment = new PointAdjustment();
 
         _showPointAdjustmentForm = false;
+
+        InvokeAsyncStateHasChanged();
     }
 
     private void HandlePointAdjustmentCancel()
