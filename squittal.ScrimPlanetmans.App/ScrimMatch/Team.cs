@@ -16,13 +16,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public bool IsLocked { get; set; } = false;
 
-        public ScrimEventAggregate EventAggregate
-        {
-            get
-            {
-                return EventAggregateTracker.TotalStats;
-            }
-        }
+        public ScrimEventAggregate EventAggregate => EventAggregateTracker.TotalStats;
+        public ScrimEventAggregate RoundEventAggregate => EventAggregateTracker.RoundStats;
 
         public ScrimEventAggregateRoundTracker EventAggregateTracker { get; set; } = new ScrimEventAggregateRoundTracker();
 

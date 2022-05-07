@@ -58,7 +58,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var message = e.Message;
 
             var teamOrdinal = message.Team.TeamOrdinal;
-            var newPoints = message.Team.EventAggregate.Points;
+            var newPoints = message.Team.RoundEventAggregate.Points;
 
             if (newPoints >= MatchConfiguration.TargetPointValue)
             {
