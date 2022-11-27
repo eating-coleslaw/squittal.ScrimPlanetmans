@@ -350,6 +350,12 @@
                     newMatchConfiguration.TrySetTitle(_matchConfiguration.Title, true);
                 }
 
+                // Preserve WorldId settings when changing ruleset
+                if (_matchConfiguration.IsWorldIdSet)
+                {
+                    newMatchConfiguration.TrySetWorldId(_matchConfiguration.WorldId, _matchConfiguration.IsManualWorldId);
+                }
+
                 // TODO: carry over old settings depending on what the Round Win Condition is
 
                 _matchConfiguration = newMatchConfiguration;
