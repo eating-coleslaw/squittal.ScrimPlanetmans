@@ -16,7 +16,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
         public TimerState State { get; private set; }
         public bool IsRunning { get; private set; } = false;
 
-        public int PeriodSeconds { get; private set; } = -1;
+        public int PeriodSeconds { get; private set; } = Timeout.Infinite; //- 1;
+        private int _periodMilliseconds => PeriodSeconds == Timeout.Infinite ? Timeout.Infinite : PeriodSeconds * 1000;
+
 
         // For handling pauses
         private DateTime _prevTickTime;
@@ -55,7 +57,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             }
 
             _timer?.Dispose(); // TODO: is this Dispose necessary?
-            _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, PeriodSeconds);
+            _timer = new Timer(HandleTick, _autoEvent, Timeout.Infinite, _periodMilliseconds);
 
             State = TimerState.Configured;
 
@@ -76,7 +78,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Starting;
 
             // Immediately start the clock
-            _timer.Change(0, PeriodSeconds);
+            _timer.Change(0, _periodMilliseconds);
 
             IsRunning = true;
 
@@ -98,7 +100,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 return;
             }
 
-            _timer.Change(Timeout.Infinite, PeriodSeconds);
+            _timer.Change(Timeout.Infinite, _periodMilliseconds);
 
             IsRunning = false;
 
@@ -121,7 +123,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             var now = DateTime.UtcNow;
             _resumeDelayMs = (int)(now - _prevTickTime).TotalMilliseconds;
 
-            _timer.Change(Timeout.Infinite, PeriodSeconds);
+            _timer.Change(Timeout.Infinite, _periodMilliseconds);
 
             IsRunning = false;
 
@@ -143,7 +145,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             State = TimerState.Resuming;
 
-            _timer.Change(_resumeDelayMs, PeriodSeconds);
+            _timer.Change(_resumeDelayMs, _periodMilliseconds);
 
             IsRunning = false;
 
@@ -184,7 +186,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Restarting;
 
             // Immediately start the clock
-            _timer.Change(0, PeriodSeconds);
+            _timer.Change(0, _periodMilliseconds);
 
             IsRunning = true;
 
@@ -208,7 +210,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             State = TimerState.Halting;
 
-            _timer.Change(Timeout.Infinite, PeriodSeconds);
+            _timer.Change(Timeout.Infinite, _periodMilliseconds);
 
             IsRunning = false;
 
