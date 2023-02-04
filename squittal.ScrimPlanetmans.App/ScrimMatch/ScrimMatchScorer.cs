@@ -462,7 +462,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 PeriodicCaptureTicks = 1
             };
 
+            var oldTeamPoints = _teamsManager.GetTeam(controllingTeamOrdinal)?.EventAggregateTracker.RoundStats.Points;
+
+            _logger.LogInformation($"Adding {teamUpdate.Points} to team {controllingTeamOrdinal}");
+
             _teamsManager.UpdateTeamStats(controllingTeamOrdinal, teamUpdate);
+
+            var newTeamPoints = _teamsManager.GetTeam(controllingTeamOrdinal)?.EventAggregateTracker.RoundStats.Points;
+
+            _logger.LogInformation($"Team {controllingTeamOrdinal} points updated from {oldTeamPoints} => {newTeamPoints}");
         }
         #endregion Objective Events
 

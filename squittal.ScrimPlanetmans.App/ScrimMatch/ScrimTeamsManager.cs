@@ -2941,7 +2941,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 SaveTeamRoundEndScores(teamOrdinal, round);
 
+                Console.WriteLine($"Saving round {round} scores for team {teamOrdinal}");
+
                 await SaveTeamMatchResultsToDb(teamOrdinal);
+
+                Console.WriteLine($"Finished saving round {round} scores for team {teamOrdinal}");
             }
         }
 

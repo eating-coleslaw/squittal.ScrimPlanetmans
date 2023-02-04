@@ -1293,6 +1293,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         [CensusEventHandler("FacilityControl", typeof(FacilityControlPayload))]
         private async Task Process(FacilityControlPayload payload)
         {
+            _logger.LogInformation($"Processing FacilityControl payload...");
+            
             if (!await _facilityControlFilter.TryFilterNewPayload(payload, p => p.Timestamp.ToString("s")))
             {
                 _logger.LogWarning("Duplicate Facility Control payload detected, excluded");

@@ -201,6 +201,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public async Task EndRound()
         {
+            Console.WriteLine($"Ending Round {_currentRound}");
+
             _isRunning = false;
             _matchState = MatchState.Stopped;
 
@@ -209,19 +211,24 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             // Stop the timer if forcing the round to end (as opposed to timer reaching 0)
             if (GetLatestTimerTickMessage().State != TimerState.Stopped)
             {
+                Console.WriteLine($"Trying to Halt Match Timer");
                 _timer.Halt();
             }
 
             if (MatchConfiguration.EnablePeriodicFacilityControlRewards)
             {
+                Console.WriteLine($"Trying to Halt Periodic Timer");
                 _periodicTimer.Halt();
             }
 
+            Console.WriteLine($"Saving team scores for round {_currentRound}");
             await _teamsManager.SaveRoundEndScores(_currentRound);
 
             // TODO: Save Match Round results & metadata
 
-            _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring diabled");
+            Console.WriteLine($"Round {_currentRound} ended; scoring disabled");
+
+            _messageService.BroadcastSimpleMessage($"Round {_currentRound} ended; scoring disabled");
 
             SendMatchStateUpdateMessage();
 
@@ -391,6 +398,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private async Task OnEndRoundCheckerMessage(object sender, ScrimMessageEventArgs<EndRoundCheckerMessage> e)
         {
+            Console.WriteLine($"OnEndRoundCheckerMessage received: {Enum.GetName(typeof(EndRoundReason), e.Message.EndRoundReason)}");
+
             if (_isRunning)
             {
                 await EndRound();
@@ -533,6 +542,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             if (!MatchConfiguration.EnablePeriodicFacilityControlRewards)
             {
+                _logger.LogInformation($"PeriodFacilityControlRewards not enabled");
                 return;
             }
 
@@ -545,12 +555,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 if (_periodicTimer.CanStart())
                 {
                     _periodicTimer.Start();
+                    _logger.LogInformation($"PeriodTimer started");
                 }
                 else
                 {
                     _periodicTimer.Restart();
+                    _logger.LogInformation($"PeriodTimer restarted");
                 }
                 FacilityControlTeamOrdinal = controlEvent.ControllingTeamOrdinal;
+                _logger.LogInformation($"FacilityControlTeamOrdinal: {controlEvent.ControllingTeamOrdinal}");
+
             }
         }
         

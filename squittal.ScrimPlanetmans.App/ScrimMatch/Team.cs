@@ -180,6 +180,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return OutfitsMap.ContainsKey(alias.ToLower());
         }
+
         public bool TryAddOutfit(Outfit outfit)
         {
             if (!OutfitsMap.TryAdd(outfit.AliasLower, outfit))
