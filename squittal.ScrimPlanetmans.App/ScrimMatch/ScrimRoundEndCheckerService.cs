@@ -60,7 +60,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var teamOrdinal = message.Team.TeamOrdinal;
             var newPoints = message.Team.RoundEventAggregate.Points;
 
-            if (newPoints >= MatchConfiguration.TargetPointValue)
+            var countingUp = (MatchConfiguration.InitialPoints <= MatchConfiguration.TargetPointValue);
+
+            if (countingUp && newPoints >= MatchConfiguration.TargetPointValue)
+            {
+                BroadcastEndRoundMessage(EndRoundReason.PointTargetReached, teamOrdinal);
+                return;
+            }
+            else if (!countingUp && newPoints <= MatchConfiguration.TargetPointValue)
             {
                 BroadcastEndRoundMessage(EndRoundReason.PointTargetReached, teamOrdinal);
                 return;
