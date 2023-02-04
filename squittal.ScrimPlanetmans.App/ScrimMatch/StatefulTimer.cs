@@ -42,6 +42,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _logger.LogInformation($"Configuring Timer");
 
             _autoEvent.WaitOne();
+
             if (!CanConfigureTimer())
             {
                 _logger.LogInformation($"Failed to configure timer: {Enum.GetName(typeof(TimerState), State)}");
@@ -75,8 +76,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void Start()
         {
             _logger.LogInformation($"Starting Timer");
+            
             // Ensure timer can only be started once
             _autoEvent.WaitOne();
+
             if (IsRunning || State != TimerState.Configured)
             {
                 _logger.LogInformation($"Failed to start timer: {IsRunning} | {Enum.GetName(typeof(TimerState), State)}");
@@ -156,8 +159,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void Resume()
         {
             _logger.LogInformation($"Resuming Timer");
-
             _autoEvent.WaitOne();
+
             if (State != TimerState.Paused)
             {
                 _logger.LogInformation($"Failed to resume timer: timer not paused");
@@ -204,7 +207,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void Halt()
         {
             _logger.LogInformation($"Halting Timer");
+
+            //_logger.LogInformation($"Halting timer current state: {Enum.GetName(typeof(TimerState), State)}");
+
             _autoEvent.WaitOne();
+
+            //_logger.LogInformation($"Finished waiting for timer autoEvent");
 
             if (!CanHaltTimer())
             {
@@ -212,6 +220,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 _autoEvent.Set();
                 return;
             }
+
             State = TimerState.Halting;
 
             _timer.Change(Timeout.Infinite, 1000);
@@ -235,7 +244,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void HandleTick(object stateInfo)
         {
-            _logger.LogDebug($"Handling timer tick");
+            //_logger.LogDebug($"Handling timer tick");
+            //_logger.LogInformation($"Handling timer tick");
 
             _autoEvent.WaitOne();
 
@@ -247,6 +257,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 var message = new MatchTimerTickMessage(this);
 
+                /*
                 if (Tracker.SecondsRemaining.HasValue && Tracker.SecondsRemaining.Value == 0)
                 {
                     State = TimerState.Stopping;
@@ -257,6 +268,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                     return;
                 }
+                */
+                
+                // Signal the waiting thread
+                _autoEvent.Set();
 
                 _messageService.BroadcastMatchTimerTickMessage(message);
             }
