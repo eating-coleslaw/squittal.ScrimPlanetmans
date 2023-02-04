@@ -69,7 +69,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var subscription = new CensusStreamSubscription
             {
                 Characters = new[] { "all" },
-                Worlds = new[] { "all" },
+                Worlds = new[] { "1", "10", "13", "17", "19", "40", "1000", "2000" },
                 EventNames = eventNames
             };
 
