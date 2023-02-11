@@ -123,19 +123,19 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerWeaponStats AS
                             ELSE 0 END ) UnassistedEnemyDeaths,
                   SUM( CASE WHEN match_players.CharacterId = deaths.VictimCharacterId AND deaths.DeathType = 0 AND deaths.IsHeadshot = 1 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL THEN 1
                             ELSE 0 END ) UnassistedHeadshotEnemyDeaths
-              FROM  [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
-                INNER JOIN [PlanetmansDbContext].[dbo].ScrimDeath deaths
+              FROM  [dbo].ScrimMatchParticipatingPlayer match_players
+                INNER JOIN [dbo].ScrimDeath deaths
                   ON match_players.ScrimMatchId = deaths.ScrimMatchId
                       AND ( match_players.CharacterId = deaths.AttackerCharacterId
                             OR match_players.CharacterId = deaths.VictimCharacterId ) 
                 LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, damages.Timestamp, COUNT(*) TotalDamages
-                                    FROM [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                                    FROM [dbo].ScrimDamageAssist damages
                                     GROUP BY ScrimMatchId, Timestamp, VictimCharacterId ) damage_sums
                   ON deaths.ScrimMatchId = damage_sums.ScrimMatchId
                       AND deaths.Timestamp = damage_sums.Timestamp
                       AND deaths.VictimCharacterId = damage_sums.VictimCharacterId
                 LEFT OUTER JOIN ( SELECT ScrimMatchId, VictimCharacterId, grenades.Timestamp, COUNT(*) TotalGrenades
-                                    FROM [PlanetmansDbContext].[dbo].[ScrimGrenadeAssist] grenades
+                                    FROM [dbo].[ScrimGrenadeAssist] grenades
                                     GROUP BY ScrimMatchId, Timestamp, VictimCharacterId ) grenade_sums
                   ON deaths.ScrimMatchId = grenade_sums.ScrimMatchId
                       AND deaths.Timestamp = grenade_sums.Timestamp
