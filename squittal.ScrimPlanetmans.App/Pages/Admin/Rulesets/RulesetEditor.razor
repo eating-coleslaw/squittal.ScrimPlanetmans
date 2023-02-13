@@ -185,23 +185,23 @@
                                     <div style="font-weight: 600; display: block; margin-bottom: 4px;">Match Settings</div>
 
                                     <div style="margin-bottom: 0.5rem;">
-                                        <span style="width: 164px; display: inline-block;">Match Win Condition:</span><InputSelect @bind-Value=@_editFormRuleset.MatchWinCondition style="display: inline-block; width: 216px;">
+                                        <span style="width: 164px; display: inline-block;">Match Win Condition:</span><InputSelect disabled="" @bind-Value=@_editFormRuleset.MatchWinCondition style="display: inline-block; width: 216px;">
 
                                             @foreach (MatchWinCondition matchWinCondition in Enum.GetValues(typeof(MatchWinCondition)))
-                                                        {
+                                            {
                                                 <option value=@matchWinCondition label=@GetMatchWinConditionDisplayString(matchWinCondition) />
-                                                        }
+                                            }
 
                                         </InputSelect>
                                     </div>
 
                                     <div style="margin-bottom: 0.5rem;">
-                                        <span style="width: 164px; display: inline-block;">Round Win Condition:</span><InputSelect @bind-Value=@_editFormRuleset.RoundWinCondition style="display: inline-block; width: 216px;">
+                                        <span style="width: 164px; display: inline-block;">Round Win Condition:</span><InputSelect disabled="" @bind-Value=@_editFormRuleset.RoundWinCondition style="display: inline-block; width: 216px;">
 
                                             @foreach (RoundWinCondition roundWinCondition in Enum.GetValues(typeof(RoundWinCondition)))
-                                                        {
+                                            {
                                                 <option value=@roundWinCondition label=@GetRoundWinConditionDisplayString(roundWinCondition) />
-                                                        }
+                                            }
 
                                         </InputSelect>
                                     </div>
@@ -213,7 +213,7 @@
 
                                         @if (_renderedRuleset.RoundTimerDirection.HasValue)
                                         {
-                                            <div><span style="display: inline-block; width: 156px; margin-right: 4px;">Timer Direction:</span>@GetTimerDirectionDisplayString(_renderedRuleset.RoundTimerDirection.Value)</div>
+                                            <div style="margin-bottom: 0.5rem; margin-left: 1rem;"><span style="display: inline-block; width: 164px;">Timer Direction:</span><span style="color: rgb(109, 109, 109); cursor: default;">@GetTimerDirectionDisplayString(_renderedRuleset.RoundTimerDirection.Value)</span></div>
                                         }
 
                                         @*<div style="margin-bottom: 0.5rem;">
@@ -273,9 +273,9 @@
                                         <span style="width: 164px; display: inline-block;">Displayed Stats Type:</span><InputSelect @bind-Value=@_editFormRuleset.OverlayStatsDisplayType style="display: inline-block; width: 216px;">
 
                                             @foreach (OverlayStatsDisplayType statsType in Enum.GetValues(typeof(OverlayStatsDisplayType)))
-                                                        {
+                                            {
                                                 <option value=@statsType label=@GetOverlayStatsDisplayString(statsType) />
-                                                        }
+                                            }
 
                                         </InputSelect>
                                     </div>
@@ -284,9 +284,9 @@
                                         <span style="width: 164px; display: inline-block;">Show Player Scores:</span><InputSelect @bind-Value=@_editFormRuleset.ShowOverlayStatusPanelScoresSelection style="display: inline-block; width: 216px;">
 
                                             @foreach (ShowStatusPanelScoresSelectOptions showScoresSelection in Enum.GetValues(typeof(ShowStatusPanelScoresSelectOptions)))
-                                                        {
+                                            {
                                                 <option value=@showScoresSelection label=@GetOverlayShowPlayerScoresSelectionString(showScoresSelection) />
-                                                        }
+                                            }
 
                                         </InputSelect>
                                     </div>
