@@ -27,14 +27,17 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public bool EndRoundOnFacilityCapture { get; set; } = false; // TODO: move this setting to the Ruleset model
         public bool IsManualEndRoundOnFacilityCapture { get; private set; } = false;
 
-        public int? TargetPointValue { get; set; } = 0;
+        public int? TargetPointValue { get; set; } //= 200;
+        public int TargetPointValueNonNullable => TargetPointValue.GetValueOrDefault();
         public bool IsManualTargetPointValue { get; private set; }
-        public int? InitialPoints { get; set; } = 200;
+        public int? InitialPoints { get; set; } //= 0;
         public bool IsManualInitialPoints { get; private set; }
 
-        public int? PeriodicFacilityControlPoints { get; set; } = 5;
+        public int? PeriodicFacilityControlPoints { get; set; } //= 5;
+        public int PeriodicFacilityControlPointsNonNullable => PeriodicFacilityControlPoints.GetValueOrDefault();
         public bool IsManualPeriodicFacilityControlPoints { get; private set; }
-        public int? PeriodicFacilityControlInterval { get; set; } = 15;
+        public int? PeriodicFacilityControlInterval { get; set; } //= 15;
+        public int PeriodicFacilityControlIntervalNonNullable => PeriodicFacilityControlInterval.GetValueOrDefault();
         public bool IsManualPeriodicFacilityControlInterval { get; private set; }
 
         #region Values from Ruleset
@@ -175,7 +178,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public void ResetTargetPointValue()
         {
-            TargetPointValue = 0;
+            TargetPointValue = 200;
             IsManualTargetPointValue = false;
         }
 
@@ -207,7 +210,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public void ResetInitialPoints()
         {
-            InitialPoints = 200;
+            InitialPoints = 0;
             IsManualInitialPoints = false;
         }
 
@@ -220,7 +223,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
                 PeriodicFacilityControlPoints = points;
                 IsManualPeriodicFacilityControlPoints = true;
 
-                _autoTargetPointValue.Set();
+                _autoPeriodicFacilityControlPoints.Set();
                 return true;
             }
             else if (!IsManualPeriodicFacilityControlPoints)
@@ -252,7 +255,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
                 PeriodicFacilityControlInterval = points;
                 IsManualPeriodicFacilityControlInterval = true;
 
-                _autoTargetPointValue.Set();
+                _autoPeriodicFacilityControlInterval.Set();
                 return true;
             }
             else if (!IsManualPeriodicFacilityControlInterval)

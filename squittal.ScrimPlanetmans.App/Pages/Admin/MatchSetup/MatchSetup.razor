@@ -45,7 +45,7 @@
 
         <div class="col-lg-4">
 
-            <div class="header-card-container default">
+            <div class="header-card-container default sans-serif-font">
 
                 <div style="display: grid; grid-template-columns: 1fr 115px;">
                     @if (string.IsNullOrWhiteSpace(_matchConfiguration.Title))
@@ -147,13 +147,36 @@
                         </EditForm>
                     }
 
+                    @*<p>RoundSecondsTotal: @_matchConfiguration.RoundSecondsTotal</p>
+                    <p>TargetPointValue: @_matchConfiguration.TargetPointValue</p>
+                    <p>PeriodicFacilityControlPoints: @_matchConfiguration.PeriodicFacilityControlPoints</p>
+                    <p>PeriodicFacilityControlInterval: @_matchConfiguration.PeriodicFacilityControlInterval</p>*@
+
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
                         <p style="margin-bottom: 0.5rem;"><div style="width: 110px; padding-right: 4px; display: inline-block;">Match Title:</div><InputText id="matchTitle" Value="@_matchConfiguration.Title" ValueChanged="@((string s) => OnChangeMatchTitle(s))" ValueExpression="@(() => _matchConfiguration.Title)" style="width: 250px;" maxlength="100" pattern="(?!.)$|^([A-Za-z0-9()\[\]\-_'.][ ]{0,1}){1,49}[A-Za-z0-9()\[\]\-_'.]$" /></p>
-                        <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Round Length:</span><InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => _matchConfiguration.TrySetRoundLength(s, true))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
 
-                        <div style="margin-bottom: 0.2rem;">
-                            <p style="margin-bottom: 0.2rem;">Scrim Server & Base: </p>
+                        @if (_matchConfiguration.EnableRoundTimeLimit)
+                        {
+                            <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Round Length:</span><InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => _matchConfiguration.TrySetRoundLength(s, true))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
+                        }
+
+                        @if (_matchConfiguration.EndRoundOnPointValueReached)
+                        {
+                            <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Point Target:</span><InputNumber min="1" type="text" id="roundPointTarget" Value="@((int)_matchConfiguration.TargetPointValue)" ValueChanged="@((int p) => _matchConfiguration.TrySetTargetPointValue(p, true))" ValueExpression="@(() => _matchConfiguration.TargetPointValueNonNullable)" /></p>
+                        }
+
+                        @if (_matchConfiguration.EnablePeriodicFacilityControlRewards)
+                        {
+                            <div style="margin-top: 0.2rem; margin-bottom: 0.2rem;">
+                                <p style="font-weight: 500; margin-bottom: 0;">Periodic Facility Control Points</p>
+                                <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Points:</span><InputNumber min="1" type="text" id="periodicControlPoints" Value="@((int)_matchConfiguration.PeriodicFacilityControlPoints)" ValueChanged="@((int p) => _matchConfiguration.TrySetPeriodicFacilityControlPoints(p, true))" ValueExpression="@(() => _matchConfiguration.PeriodicFacilityControlPointsNonNullable)" /></p>
+                                <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Interval:</span><InputNumber min="1" type="text" id="periodicControlInterval" Value="@((int)_matchConfiguration.PeriodicFacilityControlInterval)" ValueChanged="@((int s) => _matchConfiguration.TrySetPeriodicFacilityControlInterval(s, true))" ValueExpression="@(() => _matchConfiguration.PeriodicFacilityControlIntervalNonNullable)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
+                            </div>
+                        }
+
+                        <div style="margin-bottom: 0.2rem; margin-top: 0.2rem;">
+                            <p style="font-weight: 500; margin-bottom: 0;">Scrim Server & Base</p>
 
 
                             @if (_worlds != null)
@@ -172,19 +195,23 @@
                                     <option value=@_noFacilitIdValue>No Base</option>
 
                                     @foreach (var zone in _mapZones)
-                                            {
+                                    {
                                         <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
 
                                         @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                                {
+                                        {
                                             <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                                }
-                                            }
+                                        }
+                                    }
                                 </InputSelect>
                             }
                         </div>
 
-                        <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" Value="@_matchConfiguration.EndRoundOnFacilityCapture" ValueChanged="@((bool b) => _matchConfiguration.TrySetEndRoundOnFacilityCapture(b, true))" ValueExpression="@(() => _matchConfiguration.EndRoundOnFacilityCapture)" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
+                        @if (!_matchConfiguration.EnablePeriodicFacilityControlRewards)
+                        {
+                            <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" Value="@_matchConfiguration.EndRoundOnFacilityCapture" ValueChanged="@((bool b) => _matchConfiguration.TrySetEndRoundOnFacilityCapture(b, true))" ValueExpression="@(() => _matchConfiguration.EndRoundOnFacilityCapture)" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
+                        }
+
                     </EditForm>
                 }
 
@@ -354,6 +381,21 @@
                 if (_matchConfiguration.IsWorldIdSet)
                 {
                     newMatchConfiguration.TrySetWorldId(_matchConfiguration.WorldId, _matchConfiguration.IsManualWorldId);
+                }
+
+                if (_matchConfiguration.IsManualTargetPointValue)
+                {
+                    newMatchConfiguration.TrySetTargetPointValue(_matchConfiguration.TargetPointValue, true);
+                }
+
+                if (_matchConfiguration.IsManualPeriodicFacilityControlPoints)
+                {
+                    newMatchConfiguration.TrySetPeriodicFacilityControlInterval(_matchConfiguration.PeriodicFacilityControlPoints, true);
+                }
+
+                if (_matchConfiguration.IsManualPeriodicFacilityControlInterval)
+                {
+                    newMatchConfiguration.TrySetPeriodicFacilityControlInterval(_matchConfiguration.PeriodicFacilityControlInterval, true);
                 }
 
                 // TODO: carry over old settings depending on what the Round Win Condition is
