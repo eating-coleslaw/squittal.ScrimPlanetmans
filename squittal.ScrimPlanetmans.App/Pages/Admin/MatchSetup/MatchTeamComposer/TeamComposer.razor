@@ -82,11 +82,12 @@
 
     @if (!_isTeamLocked && !_isLockingTeam)
     {
+        @*<p>_teamOutfitsLoading.Any(): @_teamOutfitsLoading.Any()</p>*@
         <div style="margin-bottom: 8px; padding: 0 16px 0 0;">
             <TeamAdditionInputForm teamOrdinal="(int)_renderedTeamOrdinal" OnTeamAdditionSubmitted="OnTeamAdditionSubmitted" OnTeamAdditionFailure="OnTeamAdditionFailure" />
         </div>
         
-        <div style="margin: 0.2rem 0;">
+        @*<div style="margin: 0.2rem 0;">
             <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
@@ -110,7 +111,7 @@
                     <span class="oi oi-person"></span>Add
                 </button>
             </EditForm>
-        </div>
+        </div>*@
 
         @if (_availableConstructedTeams.Any())
         {
@@ -515,7 +516,7 @@
             }
 
             // NEW
-            if (!_teamOutfitsLoading.Contains(identifier))
+            if (_teamOutfitsLoading.Contains(identifier))
             {
                 _teamOutfitsLoading.Remove(identifier);
             }
