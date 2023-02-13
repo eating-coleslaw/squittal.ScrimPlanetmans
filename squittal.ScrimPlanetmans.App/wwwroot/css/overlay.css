@@ -799,6 +799,11 @@ body {
                 height: 30px;
             }
 
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .outfitScore.hidePoints {
+                    color: transparent;
+                    cursor: default;
+                }
+
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore {
                 text-align: right;
                 padding-right: 8px;
@@ -808,6 +813,16 @@ body {
                 text-align: left;
                 padding-left: 8px;
             }
+
+/*                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore.hidePoints {
+                    color: transparent;
+                    cursor: none;
+                }
+
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitScore.hidePoints {
+                    color: transparent;
+                    cursor: none;
+                }*/
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .outfitAlias {
                 text-align: left;
