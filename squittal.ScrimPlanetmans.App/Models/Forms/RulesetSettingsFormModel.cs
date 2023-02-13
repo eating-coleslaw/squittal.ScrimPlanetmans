@@ -40,13 +40,13 @@ namespace squittal.ScrimPlanetmans.Models.Forms
         public int TargetPointValue { get; set; }
         public int InitialPoints { get; set; } = 0;
 
-        public MatchWinCondition MatchWinCondition { get; set; }
+        public MatchWinCondition MatchWinCondition { get; set; } = MatchWinCondition.MostPoints;
         public RoundWinCondition RoundWinCondition { get; set; } = RoundWinCondition.NotApplicable;
 
         public bool EnablePeriodicFacilityControlRewards { get; set; } = false;
         public int PeriodicFacilityControlPoints { get; set; }
         public int PeriodicFacilityControlInterval { get; set; }
-        public PointAttributionType PeriodFacilityControlPointAttributionType { get; set; } = PointAttributionType.Tickets;
+        public PointAttributionType PeriodFacilityControlPointAttributionType { get; set; } = PointAttributionType.Standard; // PointAttributionType.Tickets;
 
 
         #region Overlay Settings
