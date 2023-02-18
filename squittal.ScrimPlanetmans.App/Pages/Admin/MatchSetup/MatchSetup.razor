@@ -131,7 +131,7 @@
                 {
                     @if (_currentRound == 0 && _rulesets != null && _rulesets.Any() && _selectedRuleset != null && !string.IsNullOrWhiteSpace(_inputSelectRulesetStringId))
                     {
-                        <EditForm Model="@_inputSelectRulesetStringId" style="display: inline-block; margin-top: 8px;">
+                        <EditForm Model="@_inputSelectRulesetStringId" style="display: block; margin-top: 8px;">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
@@ -147,10 +147,16 @@
                         </EditForm>
                     }
 
-                    @*<p>RoundSecondsTotal: @_matchConfiguration.RoundSecondsTotal</p>
+                    @*<p>EnableRoundTimeLimit: @_matchConfiguration.EnableRoundTimeLimit</p>
+                    <p>EndRoundOnPointValueReached: @_matchConfiguration.EndRoundOnPointValueReached</p>
+                    <p>EnablePeriodicFacilityControlRewards: @_matchConfiguration.EnablePeriodicFacilityControlRewards</p>
+                    <p>RoundSecondsTotal: @_matchConfiguration.RoundSecondsTotal</p>
                     <p>TargetPointValue: @_matchConfiguration.TargetPointValue</p>
                     <p>PeriodicFacilityControlPoints: @_matchConfiguration.PeriodicFacilityControlPoints</p>
                     <p>PeriodicFacilityControlInterval: @_matchConfiguration.PeriodicFacilityControlInterval</p>*@
+                    @*<p>WorldId: @_matchConfiguration.WorldId</p>
+                    <p>WorldIdString: @_matchConfiguration.WorldIdString</p>
+                    <p>IsWorldIdSet: @_matchConfiguration.IsWorldIdSet</p>*@
 
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
@@ -195,14 +201,14 @@
                                     <option value=@_noFacilitIdValue>No Base</option>
 
                                     @foreach (var zone in _mapZones)
-                                    {
+                                            {
                                         <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
 
                                         @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                        {
+                                                {
                                             <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                        }
-                                    }
+                                                }
+                                            }
                                 </InputSelect>
                             }
                         </div>
@@ -326,10 +332,12 @@
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
+            //Console.WriteLine($"MatchSetup: fetching MatchConfiguration from ScrimMatchEngine");
             _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
         }
         else
         {
+            //Console.WriteLine($"MatchSetup: creating new MatchConfiguration");
             _matchConfiguration = new MatchConfiguration();
         }
 
@@ -606,21 +614,136 @@
     }
     #endregion Match Controls
 
+    #region Form Handling
     private void OnChangeMatchTitle(string newTitle)
     {
         var oldTitle = _matchConfiguration.Title;
 
-        if (_matchConfiguration.TrySetTitle(newTitle, true))
+        if (newTitle != oldTitle)
         {
-            if (newTitle != oldTitle)
+            if (_matchConfiguration.TrySetTitle(newTitle, true))
             {
-                _matchConfiguration.Title = newTitle;
-                MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
             }
-
         }
-
     }
+
+    private void OnChangeRoundLength(int newLength)
+    {
+        var oldLength = _matchConfiguration.RoundSecondsTotal;
+
+        if (newLength != oldLength)
+        {
+            if (_matchConfiguration.TrySetRoundLength(newLength, true))
+            {
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+
+    private void OnChangeTargetPointValue(int newTarget)
+    {
+        var oldTarget = _matchConfiguration.TargetPointValue;
+
+        if (newTarget != oldTarget)
+        {
+            if (_matchConfiguration.TrySetTargetPointValue(newTarget, true))
+            {
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+
+    private void OnChangePeriodicControlPoints(int newPoints)
+    {
+        var oldPoints = _matchConfiguration.PeriodicFacilityControlPoints;
+
+        if (newPoints != oldPoints)
+        {
+            if (_matchConfiguration.TrySetPeriodicFacilityControlPoints(newPoints, true))
+            {
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+
+    private void OnChangePeriodicControlPointsInterval(int newInterval)
+    {
+        var oldInterval = _matchConfiguration.TargetPointValue;
+
+        if (newInterval != oldInterval)
+        {
+            if (_matchConfiguration.TrySetPeriodicFacilityControlPoints(newInterval, true))
+            {
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+
+    private void OnChangeWorldId(string newWorldId)
+    {
+        var oldWorldId = _matchConfiguration.WorldIdString;
+
+        if (newWorldId != oldWorldId)
+        {
+            if (_matchConfiguration.TrySetWorldId(newWorldId, true))
+            {
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+
+    private void OnChangeEndRoundOnFacilityCapture(bool newSetting)
+    {
+        var oldSetting = _matchConfiguration.EndRoundOnFacilityCapture;
+
+        if (newSetting != oldSetting)
+        {
+            if (_matchConfiguration.TrySetEndRoundOnFacilityCapture(newSetting, true))
+            {
+                //_matchConfiguration.Title = newTitle;
+                //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
+
+                InvokeAsyncStateHasChanged();
+            }
+        }
+    }
+    #endregion Form Handling
+
+
+
     #endregion Match & Subscription State Buttons
 
     #region  Event Handling
@@ -639,11 +762,27 @@
         InvokeAsyncStateHasChanged();
     }
 
+    // ScrimMatchEngine sends out this message after updating the WorldId from players/outfits
     private void ReceiveMatchConfigurationUpdateMessageEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
     {
         var message = e.Message;
 
-        _matchConfiguration = message.MatchConfiguration;
+        //Console.WriteLine("MatchSetup: received MatchConfigurationUpdateMessage");
+
+        //_matchConfiguration = message.MatchConfiguration;
+        var newWorldId = message.MatchConfiguration.WorldId;
+        var newWorldIdIsManual = message.MatchConfiguration.IsManualWorldId;
+
+        Console.WriteLine($"MatchSetup: received MatchConfigurationUpdateMessage with WorldId {newWorldId} & IsManualWorldId {newWorldIdIsManual}");
+
+        if (newWorldId == _matchConfiguration.WorldId && newWorldIdIsManual == _matchConfiguration.IsManualWorldId)
+        {
+            return;
+        }
+
+        var success = _matchConfiguration.TrySetWorldId(newWorldId, newWorldIdIsManual);
+
+        Console.WriteLine($"MatchSetup set new WorldId? {success}");
 
         InvokeAsyncStateHasChanged();
     }
