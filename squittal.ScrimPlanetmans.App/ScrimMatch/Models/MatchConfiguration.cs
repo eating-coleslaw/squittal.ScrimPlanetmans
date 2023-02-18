@@ -2,6 +2,7 @@
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services.Rulesets;
+using System;
 using System.Threading;
 
 namespace squittal.ScrimPlanetmans.Models.ScrimEngine
@@ -118,6 +119,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public bool TrySetRoundLength(int seconds, bool isManualValue)
         {
+            //Console.WriteLine($"TrySetRoundLength({seconds},{isManualValue})");
+            
             if (seconds <= 0)
             {
                 return false;
@@ -152,6 +155,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public bool TrySetTargetPointValue(int? points, bool isManualValue)
         {
+            //Console.WriteLine($"TrySetTargetPointValue({points},{isManualValue})");
             _autoTargetPointValue.WaitOne();
 
             if (isManualValue)
@@ -184,6 +188,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public bool TrySetInitialPoints(int? points, bool isManualValue)
         {
+            //Console.WriteLine($"TrySetInitialPoints({points},{isManualValue})");
             _autoInitialPoints.WaitOne();
 
             if (isManualValue)
@@ -216,6 +221,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public bool TrySetPeriodicFacilityControlPoints(int? points, bool isManualValue)
         {
+            //Console.WriteLine($"TrySetPeriodicFacilityControlPoints({points},{isManualValue})");
             _autoPeriodicFacilityControlPoints.WaitOne();
 
             if (isManualValue)
@@ -229,6 +235,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             else if (!IsManualPeriodicFacilityControlPoints)
             {
                 PeriodicFacilityControlPoints = points;
+                IsManualPeriodicFacilityControlPoints = isManualValue;
 
                 _autoPeriodicFacilityControlPoints.Set();
                 return true;
@@ -246,13 +253,14 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             IsManualPeriodicFacilityControlPoints = false;
         }
 
-        public bool TrySetPeriodicFacilityControlInterval(int? points, bool isManualValue)
+        public bool TrySetPeriodicFacilityControlInterval(int? interval, bool isManualValue)
         {
+            //Console.WriteLine($"TrySetPeriodicFacilityControlInterval({interval},{isManualValue})");
             _autoPeriodicFacilityControlInterval.WaitOne();
 
             if (isManualValue)
             {
-                PeriodicFacilityControlInterval = points;
+                PeriodicFacilityControlInterval = interval;
                 IsManualPeriodicFacilityControlInterval = true;
 
                 _autoPeriodicFacilityControlInterval.Set();
@@ -260,7 +268,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             }
             else if (!IsManualPeriodicFacilityControlInterval)
             {
-                PeriodicFacilityControlInterval = points;
+                PeriodicFacilityControlInterval = interval;
+                IsManualPeriodicFacilityControlInterval = isManualValue;
 
                 _autoPeriodicFacilityControlInterval.Set();
                 return true;
@@ -294,6 +303,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             else if (!IsManualEndRoundOnFacilityCapture)
             {
                 EndRoundOnFacilityCapture = endOnCapture;
+                IsManualEndRoundOnFacilityCapture = isManualValue;
 
                 _autoEndRoundOnFacilityCapture.Set();
 
@@ -331,6 +341,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public bool TrySetWorldId(string worldIdString, bool isManualValue = false, bool isRollBack = false)
         {
+            //Console.WriteLine("MatchConfiguration: trying to set WorldId");
+            
             _autoEvent.WaitOne();
 
             if (isManualValue)

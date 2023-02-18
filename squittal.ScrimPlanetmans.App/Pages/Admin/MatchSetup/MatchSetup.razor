@@ -146,6 +146,10 @@
                             </InputSelect>
                         </EditForm>
                     }
+                    else if (_selectedRuleset != null)
+                    {
+                        <p>Ruleset: @_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</p>
+                    }
 
                     @*<p>EnableRoundTimeLimit: @_matchConfiguration.EnableRoundTimeLimit</p>
                     <p>EndRoundOnPointValueReached: @_matchConfiguration.EndRoundOnPointValueReached</p>
@@ -157,6 +161,12 @@
                     @*<p>WorldId: @_matchConfiguration.WorldId</p>
                     <p>WorldIdString: @_matchConfiguration.WorldIdString</p>
                     <p>IsWorldIdSet: @_matchConfiguration.IsWorldIdSet</p>*@
+                    @*<p>RoundSecondsTotal: @_matchConfiguration.RoundSecondsTotal</p>
+                    <p>IsManualRoundSeconds: @_matchConfiguration.IsManualRoundSecondsTotal</p>
+                    <p>PeriodicPoints: @_matchConfiguration.PeriodicFacilityControlPoints</p>
+                    <p>IsManualPeriodicPoints: @_matchConfiguration.IsManualPeriodicFacilityControlPoints</p>
+                    <p>PeriodicInterval: @_matchConfiguration.PeriodicFacilityControlInterval</p>
+                    <p>IsManualPeriodicInterval: @_matchConfiguration.IsManualPeriodicFacilityControlInterval</p>*@
 
                     <EditForm Model="@_matchConfiguration" style="margin-top: 0.5rem;">
 
@@ -164,20 +174,20 @@
 
                         @if (_matchConfiguration.EnableRoundTimeLimit)
                         {
-                            <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Round Length:</span><InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => _matchConfiguration.TrySetRoundLength(s, true))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
+                            <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Round Length:</span><InputNumber min="1" type="text" id="roundSecondsTotal" Value="@_matchConfiguration.RoundSecondsTotal" ValueChanged="@((int s) => OnChangeRoundLength(s))" ValueExpression="@(() => _matchConfiguration.RoundSecondsTotal)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
                         }
 
                         @if (_matchConfiguration.EndRoundOnPointValueReached)
                         {
-                            <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Point Target:</span><InputNumber min="1" type="text" id="roundPointTarget" Value="@((int)_matchConfiguration.TargetPointValue)" ValueChanged="@((int p) => _matchConfiguration.TrySetTargetPointValue(p, true))" ValueExpression="@(() => _matchConfiguration.TargetPointValueNonNullable)" /></p>
+                            <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Point Target:</span><InputNumber min="1" type="text" id="roundPointTarget" Value="@((int)_matchConfiguration.TargetPointValue)" ValueChanged="@((int p) => OnChangeTargetPointValue(p))" ValueExpression="@(() => _matchConfiguration.TargetPointValueNonNullable)" /></p>
                         }
 
                         @if (_matchConfiguration.EnablePeriodicFacilityControlRewards)
                         {
                             <div style="margin-top: 0.2rem; margin-bottom: 0.2rem;">
                                 <p style="font-weight: 500; margin-bottom: 0;">Periodic Facility Control Points</p>
-                                <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Points:</span><InputNumber min="1" type="text" id="periodicControlPoints" Value="@((int)_matchConfiguration.PeriodicFacilityControlPoints)" ValueChanged="@((int p) => _matchConfiguration.TrySetPeriodicFacilityControlPoints(p, true))" ValueExpression="@(() => _matchConfiguration.PeriodicFacilityControlPointsNonNullable)" /></p>
-                                <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Interval:</span><InputNumber min="1" type="text" id="periodicControlInterval" Value="@((int)_matchConfiguration.PeriodicFacilityControlInterval)" ValueChanged="@((int s) => _matchConfiguration.TrySetPeriodicFacilityControlInterval(s, true))" ValueExpression="@(() => _matchConfiguration.PeriodicFacilityControlIntervalNonNullable)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
+                                <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Points:</span><InputNumber min="1" type="text" id="periodicControlPoints" Value="@((int)_matchConfiguration.PeriodicFacilityControlPoints)" ValueChanged="@((int p) => OnChangePeriodicControlPoints(p))" ValueExpression="@(() => _matchConfiguration.PeriodicFacilityControlPointsNonNullable)" /></p>
+                                <p style="margin-bottom: 0.5rem;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Interval:</span><InputNumber min="1" type="text" id="periodicControlInterval" Value="@((int)_matchConfiguration.PeriodicFacilityControlInterval)" ValueChanged="@((int s) => OnChangePeriodicControlPointsInterval(s))" ValueExpression="@(() => _matchConfiguration.PeriodicFacilityControlIntervalNonNullable)" /><span style="padding-left: 4px; width: 64px;">seconds</span></p>
                             </div>
                         }
 
@@ -187,7 +197,7 @@
 
                             @if (_worlds != null)
                             {
-                                <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => _matchConfiguration.TrySetWorldId(s, true, false))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
+                                <InputSelect TValue="string" style="margin-right: 5px; width: 125px; padding: 0.1rem;" Value="@_matchConfiguration.WorldIdString" ValueChanged="@((string s) => OnChangeWorldId(s))" ValueExpression="@(() => _matchConfiguration.WorldIdString)">
                                     @foreach (var world in _worlds)
                                     {
                                         <option value=@world.Id.ToString() label="@world.Name">@world.Name (@world.Id.ToString())</option>
@@ -201,24 +211,36 @@
                                     <option value=@_noFacilitIdValue>No Base</option>
 
                                     @foreach (var zone in _mapZones)
-                                            {
+                                    {
                                         <optgroup label="@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())" style="background-color: var(--sq-bg-white-unlit); color: var(--sq-pink); font-size: 1rem;">@(_zones.Where(z => zone == z.Id).Select(z => z.Name).FirstOrDefault())</optgroup>
 
                                         @foreach (var region in _mapRegions.Where(r => r.ZoneId == zone))
-                                                {
+                                        {
                                             <option value=@region.FacilityId.ToString() label="@region.FacilityName">@region.FacilityName (@region.FacilityId.ToString())</option>
-                                                }
-                                            }
+                                        }
+                                    }
                                 </InputSelect>
                             }
                         </div>
 
                         @if (!_matchConfiguration.EnablePeriodicFacilityControlRewards)
                         {
-                            <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" Value="@_matchConfiguration.EndRoundOnFacilityCapture" ValueChanged="@((bool b) => _matchConfiguration.TrySetEndRoundOnFacilityCapture(b, true))" ValueExpression="@(() => _matchConfiguration.EndRoundOnFacilityCapture)" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
+                            <p style="margin-bottom: 0.2rem; margin-top: 8px;"><InputCheckbox id="endRoundOnCapture" Value="@_matchConfiguration.EndRoundOnFacilityCapture" ValueChanged="@((bool b) => OnChangeEndRoundOnFacilityCapture(b))" ValueExpression="@(() => _matchConfiguration.EndRoundOnFacilityCapture)" style="position: relative; top: 1px;" /><span style="padding-left: 8px;">End Round on Base Capture</span></p>
                         }
 
                     </EditForm>
+                }
+                else
+                {
+                    @if (_selectedRuleset != null)
+                    {
+                        <p style="margin: 0.5rem 0;"><span style="font-weight: 500;">Ruleset: </span>@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</p>
+                    }
+
+                    @if (_matchConfiguration != null && _matchConfiguration.TargetPointValue.HasValue && _matchConfiguration.TargetPointValue.Value > 0)
+                    {
+                        <p style="margin: 0.5rem 0;">First to <span style="font-weight: 500;">@(_matchConfiguration.TargetPointValue.Value)</span> points</p>
+                    }
                 }
 
                 @if (!string.IsNullOrWhiteSpace(_matchId))
@@ -332,12 +354,12 @@
 
         if (ScrimMatchEngine.MatchConfiguration != null)
         {
-            //Console.WriteLine($"MatchSetup: fetching MatchConfiguration from ScrimMatchEngine");
+            Console.WriteLine($"MatchSetup: fetching MatchConfiguration from ScrimMatchEngine");
             _matchConfiguration = ScrimMatchEngine.MatchConfiguration;
         }
         else
         {
-            //Console.WriteLine($"MatchSetup: creating new MatchConfiguration");
+            Console.WriteLine($"MatchSetup: creating new MatchConfiguration");
             _matchConfiguration = new MatchConfiguration();
         }
 
@@ -391,6 +413,11 @@
                     newMatchConfiguration.TrySetWorldId(_matchConfiguration.WorldId, _matchConfiguration.IsManualWorldId);
                 }
 
+                if(_matchConfiguration.IsManualRoundSecondsTotal)
+                {
+                    newMatchConfiguration.TrySetRoundLength(_matchConfiguration.RoundSecondsTotal, true);
+                }
+
                 if (_matchConfiguration.IsManualTargetPointValue)
                 {
                     newMatchConfiguration.TrySetTargetPointValue(_matchConfiguration.TargetPointValue, true);
@@ -398,12 +425,17 @@
 
                 if (_matchConfiguration.IsManualPeriodicFacilityControlPoints)
                 {
-                    newMatchConfiguration.TrySetPeriodicFacilityControlInterval(_matchConfiguration.PeriodicFacilityControlPoints, true);
+                    newMatchConfiguration.TrySetPeriodicFacilityControlPoints(_matchConfiguration.PeriodicFacilityControlPoints, true);
                 }
 
                 if (_matchConfiguration.IsManualPeriodicFacilityControlInterval)
                 {
                     newMatchConfiguration.TrySetPeriodicFacilityControlInterval(_matchConfiguration.PeriodicFacilityControlInterval, true);
+                }
+
+                if (_matchConfiguration.IsManualEndRoundOnFacilityCapture)
+                {
+                    newMatchConfiguration.TrySetEndRoundOnFacilityCapture(_matchConfiguration.EndRoundOnFacilityCapture, true);
                 }
 
                 // TODO: carry over old settings depending on what the Round Win Condition is
@@ -626,6 +658,8 @@
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
 
+                //Console.WriteLine($"Set Title succeeded: {newTitle}");
+
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
                 InvokeAsyncStateHasChanged();
@@ -643,6 +677,8 @@
             {
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                //Console.WriteLine($"Set Round Length succeeded: {newLength}");
 
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
@@ -662,6 +698,8 @@
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
 
+                //Console.WriteLine($"Set Target Points succeeded: {newTarget}");
+
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
                 InvokeAsyncStateHasChanged();
@@ -680,6 +718,8 @@
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
 
+                //Console.WriteLine($"Set Periodic Points succeeded: {newPoints}");
+
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
                 InvokeAsyncStateHasChanged();
@@ -689,14 +729,16 @@
 
     private void OnChangePeriodicControlPointsInterval(int newInterval)
     {
-        var oldInterval = _matchConfiguration.TargetPointValue;
+        var oldInterval = _matchConfiguration.PeriodicFacilityControlInterval;
 
         if (newInterval != oldInterval)
         {
-            if (_matchConfiguration.TrySetPeriodicFacilityControlPoints(newInterval, true))
+            if (_matchConfiguration.TrySetPeriodicFacilityControlInterval(newInterval, true))
             {
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                //Console.WriteLine($"Set Periodic Interval succeeded: {newInterval}");
 
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
@@ -716,6 +758,8 @@
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
 
+                //Console.WriteLine($"Set WorldId succeeded: {newWorldId}");
+
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
                 InvokeAsyncStateHasChanged();
@@ -733,6 +777,8 @@
             {
                 //_matchConfiguration.Title = newTitle;
                 //MessageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(_matchConfiguration));
+
+                //Console.WriteLine($"Set End on Capture succeeded: {newSetting}");
 
                 ScrimMatchEngine.ConfigureMatch(_matchConfiguration);
 
@@ -767,22 +813,27 @@
     {
         var message = e.Message;
 
-        //Console.WriteLine("MatchSetup: received MatchConfigurationUpdateMessage");
+        ////Console.WriteLine("MatchSetup: received MatchConfigurationUpdateMessage");
+
+        var config = message.MatchConfiguration;
+
+        //Console.WriteLine($"MatchConfigurationUpdateMessage: {config.RoundSecondsTotal}, {config.PeriodicFacilityControlPoints}, {config.PeriodicFacilityControlInterval}");
 
         //_matchConfiguration = message.MatchConfiguration;
-        var newWorldId = message.MatchConfiguration.WorldId;
-        var newWorldIdIsManual = message.MatchConfiguration.IsManualWorldId;
 
-        Console.WriteLine($"MatchSetup: received MatchConfigurationUpdateMessage with WorldId {newWorldId} & IsManualWorldId {newWorldIdIsManual}");
+        //var newWorldId = message.MatchConfiguration.WorldId;
+        //var newWorldIdIsManual = message.MatchConfiguration.IsManualWorldId;
 
-        if (newWorldId == _matchConfiguration.WorldId && newWorldIdIsManual == _matchConfiguration.IsManualWorldId)
-        {
-            return;
-        }
+        ////Console.WriteLine($"MatchSetup: received MatchConfigurationUpdateMessage with WorldId {newWorldId} & IsManualWorldId {newWorldIdIsManual}");
 
-        var success = _matchConfiguration.TrySetWorldId(newWorldId, newWorldIdIsManual);
+        //if (newWorldId == _matchConfiguration.WorldId && newWorldIdIsManual == _matchConfiguration.IsManualWorldId)
+        //{
+        //    return;
+        //}
 
-        Console.WriteLine($"MatchSetup set new WorldId? {success}");
+        //var success = _matchConfiguration.TrySetWorldId(newWorldId, newWorldIdIsManual);
+
+        ////Console.WriteLine($"MatchSetup set new WorldId? {success}");
 
         InvokeAsyncStateHasChanged();
     }
@@ -843,7 +894,6 @@
 
         _isChangingRuleset = false;
         InvokeAsyncStateHasChanged();
-
     }
     #endregion Ruleset Form Controls
 
