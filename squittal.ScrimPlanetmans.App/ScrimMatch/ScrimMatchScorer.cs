@@ -264,7 +264,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #endregion Vehicle Destruction Events
 
         #region Experience Events
-        public async Task<ScrimEventScoringResult> ScoreReviveEvent(ScrimReviveActionEvent revive)
+        public async Task<ScrimEventScoringReviveResult> ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
             var medicTeamOrdinal = revive.MedicPlayer.TeamOrdinal;
             
@@ -305,7 +305,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             await _teamsManager.UpdatePlayerStats(revive.MedicPlayer.Id, medicUpdate);
             await _teamsManager.UpdatePlayerStats(revive.RevivedPlayer.Id, revivedUpdate);
 
-            return scoringResult;
+            return new ScrimEventScoringReviveResult(scoringResult, enemyScoringResult, enemyActionType);
+
+            //return scoringResult;
         }
 
         public async Task<ScrimEventScoringResult> ScoreAssistEvent(ScrimAssistActionEvent assist)

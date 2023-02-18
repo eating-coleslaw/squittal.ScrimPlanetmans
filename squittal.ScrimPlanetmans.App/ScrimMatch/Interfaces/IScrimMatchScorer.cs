@@ -12,7 +12,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void HandlePlayerLogin(PlayerLogin login);
         void HandlePlayerLogout(PlayerLogout login);
         Task SetActiveRulesetAsync();
-        Task<ScrimEventScoringResult> ScoreReviveEvent(ScrimReviveActionEvent revive);
+        Task<ScrimEventScoringReviveResult> ScoreReviveEvent(ScrimReviveActionEvent revive);
         Task<ScrimEventScoringResult> ScoreAssistEvent(ScrimAssistActionEvent assist);
         Task<ScrimEventScoringResult> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective);
         void ScorePeriodicFacilityControlTick(int controllingTeamOrdinal);

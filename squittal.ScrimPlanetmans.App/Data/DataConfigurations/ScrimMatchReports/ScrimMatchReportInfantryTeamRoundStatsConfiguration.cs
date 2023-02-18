@@ -65,6 +65,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.KillDamageDealt).HasDefaultValue(0);
             builder.Property(e => e.AssistDamageDealt).HasDefaultValue(0);
             builder.Property(e => e.TotalDamageDealt).HasDefaultValue(0);
+            builder.Property(e => e.Revives).HasDefaultValue(0);
+            builder.Property(e => e.EnemyRevivesAllowed).HasDefaultValue(0);
 
         }
     }

@@ -984,8 +984,11 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 if (_isScoringEnabled && !involvesBenchedPlayer)
                 {
                     var scoringResult = await _scorer.ScoreReviveEvent(reviveEvent);
-                    reviveEvent.Points = scoringResult.Points;
-                    reviveEvent.IsBanned = scoringResult.IsBanned;
+                    reviveEvent.Points = scoringResult.Result.Points;
+                    reviveEvent.IsBanned = scoringResult.Result.IsBanned;
+
+                    reviveEvent.EnemyPoints = scoringResult.EnemyResult.Points;
+                    reviveEvent.EnemyActionType = scoringResult.EnemyActionType;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1009,6 +1012,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                             ZoneId = (int)reviveEvent.ZoneId,
                             WorldId = payload.WorldId,
                             Points = reviveEvent.Points,
+                            EnemyPoints = reviveEvent.EnemyPoints,
+                            EnemyActionType = reviveEvent.EnemyActionType
                         };
 
                         using var factory = _dbContextHelper.GetFactory();

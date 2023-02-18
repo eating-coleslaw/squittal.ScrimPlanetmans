@@ -50,6 +50,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string MedicCharacterId { get; set; }
         public string RevivedCharacterId { get; set; }
 
+        public int EnemyPoints { get; set; }
+        public ScrimActionType EnemyActionType { get; set; }
+
         public ScrimReviveActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
         {
             Timestamp = baseExperienceEvent.Timestamp;

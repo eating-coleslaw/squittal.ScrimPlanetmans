@@ -1,6 +1,6 @@
 ﻿namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 {
-    public class ScrimMatchReportInfantryPlayerRoundStats : ScrimMatchReportStats //ScrimMatchReportInfantryPlayerStats
+    public class ScrimMatchReportInfantryPlayerRoundStats : ScrimMatchReportStats
     {
         public string ScrimMatchId { get; set; }
         public int ScrimMatchRound { get; set; }
@@ -11,5 +11,9 @@
         public int FactionId { get; set; }
         public int WorldId { get; set; }
         public int PrestigeLevel { get; set; }
+
+        public int RevivesGiven { get; set; }
+        public int RevivesTaken { get; set; }
+
     }
 }

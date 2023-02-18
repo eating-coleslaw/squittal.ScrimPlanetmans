@@ -39,6 +39,9 @@ namespace squittal.ScrimPlanetmans.Data.Models
 
         public int Points { get; set; }
 
+        public ScrimActionType EnemyActionType {get; set;}
+        public int EnemyPoints { get; set; }
+
         #region Navigation Properties
         public ScrimMatch ScrimMatch { get; set; }
         public ScrimMatchParticipatingPlayer MedicParticipatingPlayer { get; set; }

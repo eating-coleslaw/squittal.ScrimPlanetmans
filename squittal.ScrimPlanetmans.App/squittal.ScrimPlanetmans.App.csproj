@@ -91,6 +91,8 @@
     <Compile Remove="Migrations\20201011190616_AddIsCurrentToMapRegionModel.Designer.cs" />
     <Compile Remove="Migrations\20201216161329_AddOverlayRulesetSettings.cs" />
     <Compile Remove="Migrations\20201216161329_AddOverlayRulesetSettings.Designer.cs" />
+    <Compile Remove="Migrations\20230214224923_AddRevivesToReportModels.cs" />
+    <Compile Remove="Migrations\20230214224923_AddRevivesToReportModels.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -160,6 +162,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\MigrationHelpers\Backfill_ItemsTable.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_ScrimReviveEnemyActionType.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQL\Views\View_ScrimDamageAssistDamageDealt.sql">

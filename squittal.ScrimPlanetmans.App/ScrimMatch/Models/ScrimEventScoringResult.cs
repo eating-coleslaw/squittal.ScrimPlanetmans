@@ -19,4 +19,18 @@
             IsBanned = isBanned;
         }
     }
+
+    public class ScrimEventScoringReviveResult : ScrimEventScoringResult
+    {
+        public ScrimEventScoringResult Result { get; set; }
+        public ScrimEventScoringResult EnemyResult { get; set; }
+        public ScrimActionType EnemyActionType { get; set; }
+
+        public ScrimEventScoringReviveResult(ScrimEventScoringResult medicResult, ScrimEventScoringResult enemyResult, ScrimActionType enemyActionType)
+        {
+            Result = medicResult;
+            EnemyResult = enemyResult;
+            EnemyActionType = enemyActionType;
+        }
+    }
 }

@@ -11,5 +11,8 @@
         public int SpotAssists { get; set; }
 
         public int GrenadeTeamAssists { get; set; }
+
+        public int Revives { get; set; }
+        public int EnemyRevivesAllowed { get; set; }
     }
 }

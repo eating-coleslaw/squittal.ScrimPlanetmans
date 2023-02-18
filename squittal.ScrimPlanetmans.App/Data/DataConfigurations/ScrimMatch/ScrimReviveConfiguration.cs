@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using squittal.ScrimPlanetmans.Data.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Models;
 
 namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 {
@@ -20,6 +21,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
 
             builder.Property(e => e.ExperienceGainAmount).HasDefaultValue(0);
             builder.Property(e => e.Points).HasDefaultValue(0);
+            builder.Property(e => e.EnemyPoints).HasDefaultValue(0);
+            builder.Property(e => e.EnemyActionType).HasDefaultValue(ScrimActionType.Unknown);
 
             builder.Ignore(e => e.ScrimMatch);
             builder.Ignore(e => e.MedicParticipatingPlayer);
