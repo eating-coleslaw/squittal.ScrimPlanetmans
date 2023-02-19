@@ -21,8 +21,8 @@
 
 @if (_players && _activeStatsDisplayType != null)
 {
-    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores i_CurrentRoundOnly=_currentRoundOnly />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores i_CurrentRoundOnly=_currentRoundOnly />
 }
 
 @if (_scoreboard)
@@ -405,6 +405,12 @@ else if (_report && _analytic)
                 _currentRoundOnly = false;
                 stateChanged = true;
             }
+        }
+
+        if (_analytic == true && _players == true)
+        {
+            _players = false;
+            stateChanged = true;
         }
 
         return stateChanged;
