@@ -110,6 +110,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return team.RoundEventAggregate.Points;
         }
 
+        public int? GetTeamRoundScoreDisplay(int teamOrdinal, int matchRound)
+        {
+            var team = GetTeam(teamOrdinal);
+            if (team == null)
+            {
+                return null;
+            }
+
+            var success = team.EventAggregateTracker.RoundHistory.TryGetValue(matchRound, out var roundStats);
+
+            if (success)
+            {
+                return roundStats.Points;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public Team GetTeamOne()
         {
             return Team1;
