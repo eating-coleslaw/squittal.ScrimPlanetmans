@@ -15,11 +15,11 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
          MAX(COALESCE(kill_sums.Points, 0)
              + COALESCE(capture_sums.Points, 0)
              + COALESCE(revive_sums.Points, 0)
-             + COALESCE(enemy_revive_sums.Points, 0)) Points,
+             + COALESCE(enemy_revive_sums.EnemyPoints, 0)) Points,
          MAX(COALESCE(kill_sums.NetScore, 0)
              + COALESCE(capture_sums.Points, 0)
              + COALESCE(revive_sums.Points, 0)
-             + COALESCE(enemy_revive_sums.Points, 0)) NetScore,
+             + COALESCE(enemy_revive_sums.EnemyPoints, 0)) NetScore,
          MAX(COALESCE(adjustment_sums.Points, 0)) PointAdjustments,
          MAX(COALESCE(capture_sums.Points, 0)) FacilityCapturePoints,
          MAX(COALESCE(kill_sums.Kills, 0)) Kills,
@@ -270,9 +270,9 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
         LEFT OUTER JOIN (SELECT ScrimMatchId,
                                  MedicTeamOrdinal TeamOrdinal,
                                  COUNT(1) Revives,
-                                 SUM(Points) Points
+                                 SUM(EnemyPoints) EnemyPoints
                             FROM [dbo].ScrimRevive
                             GROUP BY ScrimMatchId, MedicTeamOrdinal) enemy_revive_sums
-          ON match_teams.ScrimMatchId = revive_sums.ScrimMatchId
-            AND match_teams.TeamOrdinal <> revive_sums.TeamOrdinal
+          ON match_teams.ScrimMatchId = enemy_revive_sums.ScrimMatchId
+            AND match_teams.TeamOrdinal <> enemy_revive_sums.TeamOrdinal
   GROUP BY match_teams.ScrimMatchId, match_teams.TeamOrdinal
