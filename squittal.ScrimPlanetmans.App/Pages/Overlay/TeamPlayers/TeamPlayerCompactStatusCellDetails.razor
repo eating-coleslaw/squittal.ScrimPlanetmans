@@ -333,7 +333,8 @@
             IsHeadshot = deathEvent.IsHeadshot,
             PreviousRenderTime = DateTime.Now,
             FirstRenderTime = DateTime.Now,
-            EffectiveDurationMilliseconds = 10000
+            //EffectiveDurationMilliseconds = 10000
+            EffectiveDurationMilliseconds = 7000
         };
     }
 
@@ -398,7 +399,7 @@
             {
                 if (playerIsActor)
                 {
-                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 10)
+                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 7)
                     {
                         _renderedStatus = PlayerStatus.Alive;
                         _timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -422,7 +423,7 @@
             {
                 if (playerIsActor)
                 {
-                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 10)
+                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 7)
                     {
                         _renderedStatus = PlayerStatus.Alive;
                         _timer.Change(Timeout.Infinite, Timeout.Infinite);

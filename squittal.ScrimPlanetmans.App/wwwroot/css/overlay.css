@@ -473,9 +473,9 @@ body {
     height: 100%;
     background-color: var(--sq-ov-ps2-primary);
     opacity: 0.75;
-    -moz-animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
-    -webkit-animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
-    animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
+    -moz-animation: 7s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 7s 1 normal forwards wipeUp;
+    -webkit-animation: 7s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 7s 1 normal forwards wipeUp;
+    animation: 7s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 7s 1 normal forwards wipeUp;
     border-style: solid;
     border-width: 1px 0px 0px 0px;
     border-color: var(--sq-ov-ps2-primary-dark-alpha-80);
@@ -530,9 +530,9 @@ body {
 }
 
 .deadTextPlay {
-    -moz-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
-    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
-    animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
+    -moz-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 7s 1 normal forwards deadText;
+    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 7s 1 normal forwards deadText;
+    animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 7s 1 normal forwards deadText;
     border-color: var(--sq-ov-bg-dark-gray-alpha-33) !important;
     color: var(--sq-bg-white-lit-alpha-30) !important;
 }
@@ -561,9 +561,9 @@ body {
 
 
 .deadIconPlay {
-    -moz-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
-    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
-    animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
+    -moz-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 7s 1 normal forwards fadeOutSimple;
+    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 7s 1 normal forwards fadeOutSimple;
+    animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 7s 1 normal forwards fadeOutSimple;
 }
 
 .revivedFlashPlay {
