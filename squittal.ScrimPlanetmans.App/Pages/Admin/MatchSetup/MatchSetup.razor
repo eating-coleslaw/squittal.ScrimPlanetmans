@@ -148,7 +148,7 @@
                     }
                     else if (_selectedRuleset != null)
                     {
-                        <p>Ruleset: @_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</p>
+                        <p style="margin: 0.5rem 0;"><span style="width: 110px; padding-right: 4px; display: inline-block;">Ruleset: </span>@_selectedRuleset.Name [@_selectedRuleset.Id.ToString()]</p>
                     }
 
                     @*<p>EnableRoundTimeLimit: @_matchConfiguration.EnableRoundTimeLimit</p>
@@ -821,17 +821,17 @@
 
         //_matchConfiguration = message.MatchConfiguration;
 
-        //var newWorldId = message.MatchConfiguration.WorldId;
-        //var newWorldIdIsManual = message.MatchConfiguration.IsManualWorldId;
+        var newWorldId = config.WorldId;
+        var newWorldIdIsManual = config.IsManualWorldId;
 
-        ////Console.WriteLine($"MatchSetup: received MatchConfigurationUpdateMessage with WorldId {newWorldId} & IsManualWorldId {newWorldIdIsManual}");
+        //Console.WriteLine($"MatchSetup: received MatchConfigurationUpdateMessage with WorldId {newWorldId} & IsManualWorldId {newWorldIdIsManual}");
 
-        //if (newWorldId == _matchConfiguration.WorldId && newWorldIdIsManual == _matchConfiguration.IsManualWorldId)
-        //{
-        //    return;
-        //}
+        if (newWorldId == _matchConfiguration.WorldId && newWorldIdIsManual == _matchConfiguration.IsManualWorldId)
+        {
+            return;
+        }
 
-        //var success = _matchConfiguration.TrySetWorldId(newWorldId, newWorldIdIsManual);
+        var success = _matchConfiguration.TrySetWorldId(newWorldId, newWorldIdIsManual);
 
         ////Console.WriteLine($"MatchSetup set new WorldId? {success}");
 
