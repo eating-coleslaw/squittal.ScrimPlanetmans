@@ -678,6 +678,10 @@ No-Link Brand Header
             font-weight: 400;
         }
 
+/*        .header-card-container.default .table-striped-light tbody tr {
+            line-height: 1;
+        }*/
+
         .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1) {
             background-color: var(--sq-light-blue-gray-alpha);
         }
@@ -706,6 +710,10 @@ No-Link Brand Header
             .header-card-container.default .table-striped-dark thead th {
                 font-weight: 400;
             }
+
+/*            .header-card-container.default .table-striped-dark tbody tr {
+                line-height: 1;
+            }*/
 
             .header-card-container.default .table-striped-dark tbody tr:nth-of-type(2n+1) {
                 background-color: var(--sq-ov-bg-dark-gray-alpha-90);
