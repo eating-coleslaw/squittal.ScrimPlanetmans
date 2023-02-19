@@ -9,6 +9,7 @@
 @using System.Threading;
 @using System.Text.RegularExpressions;
 
+@inject IScrimTeamsManager ScrimTeamsManager 
 @inject IScrimMatchEngine ScrimMatchEngine
 @inject IScrimMessageBroadcastService MessageService
 @inject IScrimMatchReportDataService ReportDataService
@@ -16,7 +17,7 @@
 
 @implements IDisposable
 
-@if (!string.IsNullOrWhiteSpace(_scrimMatchId))
+@if (!string.IsNullOrWhiteSpace(_scrimMatchId) && _currentRound > 0)
 {
     <div class="container-fluid" style="margin-top: 16px;">
 
@@ -26,7 +27,7 @@
 
                 <div class="header-card-container default" style="color: rgb(245, 245, 255); background-color: var(--sq-ov-bg-dark-gray-alpha-90); box-shadow: 0px 2px 5px 0px var(--sq-ov-bg-dark-gray-alpha-90); overflow-x: auto; border: 2px solid var(--sq-ov-bg-dark-gray); border-radius: 0;">
 
-                    <p style="margin: 0;">_scrimMatchId: @_scrimMatchId</p>
+                    @*<p style="margin: 0;">_scrimMatchId: @_scrimMatchId</p>
                     <p style="margin: 0;">_renderedScrimMatchId: @_renderedScrimMatchId</p>
                     <p style="margin: 0;">_isLoadingScrimPlayers: @_isLoadingScrimPlayers</p>
                     <p style="margin: 0;">_isChangingScrimMatch: @_isChangingScrimMatch</p>
@@ -47,14 +48,19 @@
                     {
                         <p style="margin: 0;">_playerRoundStats count: @(_playerRoundStats.Count())</p>
                     }
-
-                    @if (_matchInfo == null  || _isChangingScrimMatch)
+                    <p style="margin: 0;">_playerRoundStats is null?: @(_playerRoundStats == null)</p>
+                    @if (_playerRoundStats != null)
                     {
-                        <p>Spin 1</p>
+                        <p style="margin: 0;">_playerRoundStats count: @(_playerRoundStats.Count())</p>
+                    }
+                    <p style="margin: 0;">_matchInfo is null?: @(_matchInfo == null)</p>*@
+
+                    @if (_matchInfo == null  && _isChangingScrimMatch)
+                    {
                         <SpinnerEllipsis />
                     }
                     else
-    {
+                    {
                         @*<div style="display: grid; grid-template-columns: 60% 40%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 12px;">
                             <!--<h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4>--> @*margin-bottom: 2px;
                             @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
@@ -87,7 +93,7 @@
                         }
                         else if (!_matchInfo.TeamAliases.Any() || (!_renderedCurrentRoundOnly && (_playerStats == null || !_playerStats.Any() || _teamStats == null || !_teamStats.Any())) || (_renderedCurrentRoundOnly && (_playerRoundStats == null || _teamRoundStats == null || !_teamRoundStats.Any())))
                         {
-                            <p style="color: rgb(245, 245, 255);">No player data found for match @_scrimMatchId</p>
+                            <p class="sans-serif-font" style="color: rgb(245, 245, 255);">No player data found for match @_scrimMatchId</p>
                         }
                         else
                         {
@@ -116,7 +122,7 @@
 
                             <table style="width: 100%; text-align: right; margin-bottom: 10px;" class="table-responsive-sm table-striped-dark">
 
-                                <tbody style="font-size: 0.8rem;">
+                                <tbody style="font-size: 0.85rem;">
                                     @if (!_renderedCurrentRoundOnly && _teamStats != null)
                                     {
                                         @foreach (var team in _teamStats)
@@ -140,7 +146,13 @@
                                                 
                                                 <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
-                                                
+
+                                                @if (_anyRevives)
+                                                {
+                                                    <th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
+                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Revives<br />Taken</th>
+                                                }
+
                                                 @if (_renderedShowHsr)
                                                 {
                                                     <th style="font-weight: 300; width: 55px;" title="Head Shot Percent">
@@ -150,6 +162,7 @@
                                                 
                                                 <th style="font-weight: 300; width: 55px;" title="Damage Assists">Dmg.<br />Asst.</th>
                                                 <th style="font-weight: 300; width: 70px;" title="Damage Dealt">Dmg.<br />Dealt</th>
+
                                                 <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo<br />Kills</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst.<br />Deaths</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Trickle Deaths">Trickle<br />Deaths</th>
@@ -158,7 +171,7 @@
                                                 <th style="font-weight: 300; width: 60px; padding-right: 8px;" title="One vs One Kill Death Ratio">1v1<br />KDR</th>
                                             </tr>
 
-                                            <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ov-ps2-primary); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ov-ps2-primary); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
+                                            <tr class="@SqCssHelper.GetFactionClassFromId(ScrimTeamsManager.GetTeam(team.TeamOrdinal).FactionId)" style="color: var(--sq-ov-ps2-primary-light); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ov-ps2-primary); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
                                                 <td style="padding-left: 8px; padding-top: 0px;"></td>
                                                 <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                                 
@@ -172,6 +185,12 @@
                                                 <td style="padding-top: 0px;">@team.Kills</td>
                                                 <td style="padding-top: 0px;">@team.Deaths</td>
                                                 
+                                                @if (_anyRevives)
+                                                {
+                                                    <td style="padding-top: 0px;">@team.Revives</td>
+                                                    <td style="padding-top: 0px;"></td>
+                                                }
+
                                                 @if (_renderedShowHsr)
                                                 {
                                                     <td style="padding-top: 0px;" title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
@@ -196,7 +215,8 @@
                                                     <td style="text-align: left;" title="@player.NameFull [@(player.CharacterId)]">
 
                                                         <div class="nav-link" style="color: rgb(245, 245, 255); ">
-                                                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "110px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
+                                                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 120px; display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
+                                                            @*<span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "108px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
                                                             @if (player.PrestigeLevel != 0)
                                                             {
                                                                 <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
@@ -204,41 +224,47 @@
                                                                         <span class="oi oi-star small" aria-hidden="true"></span>
                                                                     </sup>
                                                                 </div>
-                                                            }
+                                                            }*@
                                                         </div>
 
                                                     </td>
                                                     
                                                     @if (!_useObjectiveStats)
                                                     {
-                                                        <td style="text-align: right;">@player.Points</td>
+                                                        <td style="text-align: right; opacity: @(GetStatOpacity(player.Points));">@player.Points</td>
                                                         <td>
                                                             <div class="graph" style="width: 90px;">
                                                                 <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                             </div>
                                                         </td>
                                                         <td >
-                                                            <div class="net stats-value">
+                                                            <div class="net stats-value" style="margin-top: -0.1rem !important;">
                                                                 <span class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
                                                             </div>
                                                         </td>
                                                     }
                                                     
-                                                    <td>@player.Kills</td>
-                                                    <td>@player.Deaths</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                     
+                                                    @if (_anyRevives)
+                                                    {
+                                                        <td style="padding-top: 0px;">@player.RevivesGiven</td>
+                                                        <td style="padding-top: 0px;">@player.RevivesTaken</td>
+                                                    }
+
                                                     @if (_renderedShowHsr)
                                                     { 
-                                                        <td title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                        <td style="opacity: @(GetStatOpacity(player.Kills));" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     }
                                                     
-                                                    <td>@player.DamageAssists</td>
-                                                    <td title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")">@player.TotalDamageDealt.ToString("N0")</td>
-                                                    <td>@player.UnassistedKills</td>
-                                                    <td>@player.DamageAssistedEnemyDeaths</td>
-                                                    <td>@player.TrickleDeaths</td>
-                                                    <td title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                                    <td title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                    <td style="opacity: @(GetStatOpacity(player.DamageAssists));">@player.DamageAssists</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.TotalDamageDealt));" title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")">@player.TotalDamageDealt.ToString("N0")</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.UnassistedKills));">@player.UnassistedKills</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.DamageAssistedEnemyDeaths));">@player.DamageAssistedEnemyDeaths</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.TrickleDeaths));">@player.TrickleDeaths</td>
+                                                    <td style="opacity: @(GetStatOpacity((int)player.WeightedEnemyEngagementCount));" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                    <td style="opacity: @(GetStatOpacity(player.EnemyKillDeathEngagementCount));" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     <td style="padding-right: 8px;" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
                                                 </tr>
                                             }
@@ -292,6 +318,12 @@
                                                 <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
                                                 
+                                                @if (_anyRevives)
+                                                {
+                                                    <th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
+                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Revives<br />Taken</th>
+                                                }
+
                                                 @if (_renderedShowHsr)
                                                 {
                                                     <th style="font-weight: 300; width: 55px;" title="Head Shot Percent">
@@ -309,7 +341,7 @@
                                                 <th style="font-weight: 300; width: 60px; padding-right: 8px;" title="One vs One Kill Death Ratio">1v1<br />KDR</th>
                                             </tr>
 
-                                            <tr class="@SqCssHelper.GetFactionClassFromId(_playerRoundStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ov-ps2-primary); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ov-ps2-primary); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
+                                            <tr class="@SqCssHelper.GetFactionClassFromId(ScrimTeamsManager.GetTeam(team.TeamOrdinal).FactionId)" style="color: var(--sq-ov-ps2-primary-light); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ov-ps2-primary); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
                                                 <td style="padding-left: 8px; padding-top: 0px;"></td>
                                                 <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                                 
@@ -323,6 +355,12 @@
                                                 <td style="padding-top: 0px;">@team.Kills</td>
                                                 <td style="padding-top: 0px;">@team.Deaths</td>
                                                
+                                                @if (_anyRevives)
+                                                {
+                                                    <td style="padding-top: 0px;">@team.Revives</td>
+                                                    <td style="padding-top: 0px;"></td>
+                                                }
+
                                                 @if (_renderedShowHsr)
                                                 {
                                                     <td style="padding-top: 0px;" title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
@@ -346,7 +384,8 @@
                                                     </td>
                                                     <td style="text-align: left;" title="@player.NameFull [@(player.CharacterId)]">
                                                         <div class="nav-link" style="color: rgb(245, 245, 255);">
-                                                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "110px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
+                                                            <span style="text-overflow: ellipsis; overflow: hidden; max-width: 120px; display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
+                                                            @*<span style="text-overflow: ellipsis; overflow: hidden; max-width: @(player.PrestigeLevel != 0 ? "108px" : "120px"); display: inline-block; vertical-align: bottom;">@player.NameDisplay</span>
                                                             @if (player.PrestigeLevel != 0)
                                                             {
                                                                 <div style="display: inline-block; margin-left: -4px;" title="ASP Active">
@@ -354,40 +393,46 @@
                                                                         <span class="oi oi-star small" aria-hidden="true"></span>
                                                                     </sup>
                                                                 </div>
-                                                            }
+                                                            }*@
                                                         </div>
                                                     </td>
 
                                                     @if (!_useObjectiveStats)
                                                     {
-                                                        <td style="text-align: right;">@player.Points</td>
+                                                        <td style="text-align: right; opacity: @(GetStatOpacity(player.Points));">@player.Points</td>
                                                         <td>
                                                             <div class="graph" style="width: 90px;">
                                                                 <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <div class="net stats-value">
+                                                            <div class="net stats-value" style="margin-top: -0.1rem !important;">
                                                                 <span class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
                                                             </div>
                                                         </td>
                                                     }
 
-                                                    <td>@player.Kills</td>
-                                                    <td>@player.Deaths</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                     
-                                                    @if (_renderedShowHsr)
-                                                    { 
-                                                        <td title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                    @if (_anyRevives)
+                                                    {
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>
                                                     }
 
-                                                    <td>@player.DamageAssists</td>
-                                                    <td title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")">@player.TotalDamageDealt.ToString("N0")</td>
-                                                    <td>@player.UnassistedKills</td>
-                                                    <td>@player.DamageAssistedEnemyDeaths</td>
-                                                    <td>@player.TrickleDeaths</td>
-                                                    <td title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                                    <td title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                    @if (_renderedShowHsr)
+                                                    { 
+                                                        <td style="opacity: @(GetStatOpacity(player.Kills));" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                    }
+
+                                                    <td style="opacity: @(GetStatOpacity(player.DamageAssists));">@player.DamageAssists</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.TotalDamageDealt));" title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")">@player.TotalDamageDealt.ToString("N0")</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.UnassistedKills));">@player.UnassistedKills</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.DamageAssistedEnemyDeaths));">@player.DamageAssistedEnemyDeaths</td>
+                                                    <td style="opacity: @(GetStatOpacity(player.TrickleDeaths));">@player.TrickleDeaths</td>
+                                                    <td style="opacity: @(GetStatOpacity((int)player.WeightedEnemyEngagementCount));" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                    <td style="opacity: @(GetStatOpacity(player.EnemyKillDeathEngagementCount));" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     <td style="padding-right: 8px;" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
                                                 </tr>
                                                 @*<tr style="height: 8px; background-color: transparent;"></tr>*@
@@ -455,6 +500,7 @@ else
 
     private Timer _refreshTimer { get; set; }
 
+    private bool _anyRevives { get; set; } = false;
 
     private IEnumerable<ScrimMatchReportInfantryPlayerStats> _playerStats { get; set; }
     private IEnumerable<ScrimMatchReportInfantryTeamStats> _teamStats { get; set; }
@@ -470,7 +516,7 @@ else
     private int _maxPlayerPoints { get; set; } = 1;
 
     private bool _isLoadingScrimPlayers { get; set; } = false;
-    private bool _isChangingScrimMatch { get; set; } = false;
+    private bool _isChangingScrimMatch { get; set; } = true;
     private bool _isChangingMatchRound { get; set; } = false;
 
     //private bool _isChangingSelectedPlayer { get; set; } = false;
@@ -572,7 +618,7 @@ else
 
         if (!string.IsNullOrWhiteSpace(_scrimMatchId))
         {
-            Console.WriteLine($"Refreshing stats for match {_scrimMatchId}");
+            //Console.WriteLine($"Refreshing stats for match {_scrimMatchId}");
 
             // If a process is already underway, cancel it
             if (cts != null)
@@ -628,6 +674,15 @@ else
             {
                 cts = null;
             }
+        }
+
+        if (_renderedCurrentRoundOnly && _teamRoundStats != null && _teamRoundStats.Any())
+        {
+            _anyRevives = _teamRoundStats.Where(r => r.ScrimMatchRound == _currentRound).Max(r => r.Revives) > 0;
+        }
+        else if (!_renderedCurrentRoundOnly && _teamStats != null && _teamStats.Any())
+        {
+            _anyRevives = _teamStats.Max(r => r.Revives) > 0;
         }
 
         _isLoadingScrimPlayers = false;
@@ -731,11 +786,11 @@ else
 
         _matchState = matchState;
 
-
         if (string.IsNullOrWhiteSpace(_scrimMatchId) || (!string.IsNullOrWhiteSpace(updateMatchId) && (_scrimMatchId != updateMatchId)))
         {
             _scrimMatchId = updateMatchId;
             _isChangingScrimMatch = true;
+
             InvokeAsyncStateHasChanged();
 
             //await RefreshAllStats();
@@ -849,7 +904,7 @@ else
     {
         return (value != 0)
             ? 1.0
-            : 0.5;
+            : 0.25;
     }
 
     private string GetNetScoreLabelCssClass(int netScore)
@@ -914,17 +969,20 @@ else
 
     private string GetLoadoutIconFilterStyle(int factionId)
     {
-        if (factionId == 1)
+        if (factionId == 1) // VS
         {
-            return "brightness(0) saturate(100%) invert(39%) sepia(41%) saturate(1794%) hue-rotate(224deg) brightness(98%) contrast(91%);";
+            //return "brightness(0) saturate(100%) invert(39%) sepia(41%) saturate(1794%) hue-rotate(224deg) brightness(98%) contrast(91%);";
+            return "brightness(0) saturate(100%) invert(78%) sepia(7%) saturate(3557%) hue-rotate(203deg) brightness(101%) contrast(104%)";
         }
-        if (factionId == 2)
+        if (factionId == 2) // NC
         {
-            return "brightness(0) saturate(100%) invert(49%) sepia(57%) saturate(1428%) hue-rotate(184deg) brightness(101%) contrast(98%);";
+            //return "brightness(0) saturate(100%) invert(49%) sepia(57%) saturate(1428%) hue-rotate(184deg) brightness(101%) contrast(98%);";
+            return "brightness(0) saturate(100%) invert(79%) sepia(13%) saturate(853%) hue-rotate(177deg) brightness(105%) contrast(98%);";
         }
-        if (factionId == 3)
+        if (factionId == 3) // TR
         {
-            return "brightness(0) saturate(100%) invert(50%) sepia(34%) saturate(1466%) hue-rotate(307deg) brightness(98%) contrast(88%);";
+            //return "brightness(0) saturate(100%) invert(50%) sepia(34%) saturate(1466%) hue-rotate(307deg) brightness(98%) contrast(88%);";
+            return "brightness(0) saturate(100%) invert(84%) sepia(7%) saturate(946%) hue-rotate(309deg) brightness(101%) contrast(101%);";
         }
 
         return string.Empty;
