@@ -106,8 +106,6 @@
 
         _renderedCurrentRoundOnly = i_CurrentRoundOnly;
 
-
-
         SyncMatchAndTeamState();
 
         //_teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
@@ -184,6 +182,9 @@
 
     private void SyncMatchAndTeamState()
     {
+        _matchState = ScrimMatchEngine.GetMatchState();
+        _currentRound = ScrimMatchEngine.GetCurrentRound();
+
         _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
         _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
 
@@ -206,8 +207,6 @@
         //_teamPoints1 = (teamPoints1 == null) ? 0 : teamPoints1.Value;
         //_teamPoints2 = (teamPoints2 == null) ? 0 : teamPoints2.Value;
 
-        _matchState = ScrimMatchEngine.GetMatchState();
-        _currentRound = ScrimMatchEngine.GetCurrentRound();
 
         //UpdateShouldShowPoints();
 
@@ -256,8 +255,13 @@
 
         if (_renderedCurrentRoundOnly)
         {
-            teamPoints1 = ScrimTeamsManager.GetTeamCurrentRoundScoreDisplay(1);
-            teamPoints2 = ScrimTeamsManager.GetTeamCurrentRoundScoreDisplay(2);
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+            teamPoints1 = ScrimTeamsManager.GetTeamRoundScoreDisplay(1, _currentRound);
+            teamPoints2 = ScrimTeamsManager.GetTeamRoundScoreDisplay(2, _currentRound);
+
+            //teamPoints1 = ScrimTeamsManager.GetTeamCurrentRoundScoreDisplay(1);
+            //teamPoints2 = ScrimTeamsManager.GetTeamCurrentRoundScoreDisplay(2);
         }
         else
         {

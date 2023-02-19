@@ -5,11 +5,11 @@
     if (i_TeamOrdinal == 1)
     {
         <TeamPlayerStatusRowLoadout i_player=i_player />
-        <TeamPlayerStatusRowDetails i_player=i_player i_NoScore=i_NoScore />
+        <TeamPlayerStatusRowDetails i_player=i_player i_NoScore=i_NoScore i_CurrentRoundOnly=_renderedCurrentRoundOnly />
     }
     else if (i_TeamOrdinal == 2)
     {
-        <TeamPlayerStatusRowDetails i_player=i_player  i_NoScore=i_NoScore />
+        <TeamPlayerStatusRowDetails i_player=i_player  i_NoScore=i_NoScore i_CurrentRoundOnly=_renderedCurrentRoundOnly />
         <TeamPlayerStatusRowLoadout i_player=i_player />
     }
 }
@@ -18,15 +18,19 @@
 @code {
     [Parameter]
     public Player i_player { get; set; }
+    private string _renderedPlayerId;
 
     [Parameter]
     public int i_TeamOrdinal { get; set; }
+    private int _renderedTeamOrdinal { get; set; }
 
     [Parameter]
     public bool i_NoScore { get; set; }
 
-    private string _renderedPlayerId;
-    private int _renderedTeamOrdinal { get; set; }
+    [Parameter]
+    public bool i_CurrentRoundOnly { get; set; }
+    private bool _renderedCurrentRoundOnly { get; set; } = false;
+
 
     protected override void OnParametersSet()
     {
@@ -42,6 +46,13 @@
         if (i_TeamOrdinal != _renderedTeamOrdinal && i_TeamOrdinal >= 0)
         {
             _renderedTeamOrdinal = i_TeamOrdinal;
+
+            stateChanged = true;
+        }
+
+        if (i_CurrentRoundOnly != _renderedCurrentRoundOnly)
+        {
+            _renderedCurrentRoundOnly = i_CurrentRoundOnly;
 
             stateChanged = true;
         }
