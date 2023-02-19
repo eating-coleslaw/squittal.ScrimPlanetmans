@@ -339,6 +339,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var configuration = await dbContext.RulesetOverlayConfigurations
+                                                    .AsNoTracking()
                                                     .Where(c => c.RulesetId == rulesetId)
                                                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -737,7 +738,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
 
-                    var storeEntity = await GetRulesetFromIdAsync(updateId, cancellationToken, false, false);
+                    var storeEntity = await dbContext.Rulesets.Where(r => r.Id == updateId)
+                                                              .FirstOrDefaultAsync();
 
                     if (storeEntity == null)
                     {
@@ -784,6 +786,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     dbContext.Rulesets.Update(storeEntity);
 
                     await dbContext.SaveChangesAsync();
+
+                    dbContext.Dispose();
 
                     await SetUpRulesetsMapAsync(cancellationToken);
 
@@ -912,7 +916,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetActionRules.AddRange(newEntities);
                     }
 
-                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+
                     if (storeRuleset != null)
                     {
                         storeRuleset.DateLastModified = DateTime.UtcNow;
