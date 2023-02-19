@@ -45,7 +45,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             MatchConfiguration = e.Message.MatchConfiguration;
 
-            _logger.LogInformation("Received MatchConfigurationUpdateEvent");
+            //_logger.LogInformation("Received MatchConfigurationUpdateEvent");
         }
 
         private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
