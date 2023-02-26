@@ -142,6 +142,10 @@
                 {
                     newNetScore = roundStats.NetScore;
                 }
+                else
+                {
+                    newNetScore = i_player.EventAggregateTracker.RoundStats.Points;
+                }
             }
             else
             {
@@ -295,7 +299,7 @@
 
             if (!i_player.EventAggregateTracker.RoundHistory.TryGetValue(_currentRound, out var roundStats))
             {
-                return;
+                roundStats = i_player.EventAggregateTracker.RoundStats;
             }
 
             var newNetScore = roundStats.NetScore;
@@ -501,16 +505,45 @@
             stateHasChanged = true;
         }
 
-        if (!_renderedNoScore && !_renderedCurrentRoundOnly && player.EventAggregate.NetScore != _renderedNetScore && !_renderedNoScore)
+        if (_renderedCurrentRoundOnly && !_renderedNoScore)
         {
-            _renderedNetScore = player.EventAggregate.NetScore;
-            stateHasChanged = true;
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+            if (!player.EventAggregateTracker.TryGetTargetRoundStats(_currentRound, out var roundStats))
+            {
+                roundStats = player.EventAggregateTracker.RoundStats;
+            }
+
+            var playerNetScore = roundStats.NetScore;
+
+            if (playerNetScore != _renderedNetScore)
+            {
+                _renderedNetScore = playerNetScore;
+                stateHasChanged = true;
+            }
         }
-        else if (!_renderedNoScore && _renderedCurrentRoundOnly && player.EventAggregateTracker.RoundStats.NetScore != _renderedNetScore && !_renderedNoScore)
+        else if (!_renderedCurrentRoundOnly && !_renderedNoScore)
         {
-            _renderedNetScore = player.EventAggregateTracker.RoundStats.NetScore;
-            stateHasChanged = true;
+            var playerNetScore = player.EventAggregate.NetScore;
+
+            if (playerNetScore != _renderedNetScore)
+            {
+                _renderedNetScore = playerNetScore;
+                stateHasChanged = true;
+            }
         }
+
+
+        //if (!_renderedNoScore && !_renderedCurrentRoundOnly && player.EventAggregate.NetScore != _renderedNetScore && !_renderedNoScore)
+        //{
+        //    _renderedNetScore = player.EventAggregate.NetScore;
+        //    stateHasChanged = true;
+        //}
+        //else if (!_renderedNoScore && _renderedCurrentRoundOnly && player.EventAggregateTracker.RoundStats.NetScore != _renderedNetScore && !_renderedNoScore)
+        //{
+        //    _renderedNetScore = player.EventAggregateTracker.RoundStats.NetScore;
+        //    stateHasChanged = true;
+        //}
 
         return stateHasChanged;
     }
