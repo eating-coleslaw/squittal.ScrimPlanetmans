@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using squittal.ScrimPlanetmans.Data;
 
 namespace squittal.ScrimPlanetmans.App.Migrations
 {
     [DbContext(typeof(PlanetmansDbContext))]
-    partial class PlanetmansDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230219184731_AddPeriodicControlTickModel")]
+    partial class AddPeriodicControlTickModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -627,11 +629,6 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.Property<int>("ExperienceGainId")
                         .HasColumnType("int");
-
-                    b.Property<string>("LastKilledByCharacterId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue(null);
 
                     b.Property<int?>("MedicLoadoutId")
                         .HasColumnType("int");

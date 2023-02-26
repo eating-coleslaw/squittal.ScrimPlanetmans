@@ -41,11 +41,13 @@ namespace squittal.ScrimPlanetmans.Data.Models
 
         public ScrimActionType EnemyActionType {get; set;}
         public int EnemyPoints { get; set; }
+        public string LastKilledByCharacterId { get; set; }
 
         #region Navigation Properties
         public ScrimMatch ScrimMatch { get; set; }
         public ScrimMatchParticipatingPlayer MedicParticipatingPlayer { get; set; }
         public ScrimMatchParticipatingPlayer RevivedParticipatingPlayer { get; set; }
+        public ScrimMatchParticipatingPlayer LastKilledByParticipatingPlayer { get; set; }
         public Zone Zone { get; set; }
         public World World { get; set; }
         #endregion Navigation Properties

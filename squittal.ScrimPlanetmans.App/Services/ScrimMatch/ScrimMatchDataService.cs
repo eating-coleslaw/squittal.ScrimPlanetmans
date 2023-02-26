@@ -282,5 +282,14 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 ConstructedTeamId = player.IsFromConstructedTeam ? player.ConstructedTeamId : null
             };
         }
+
+        public async Task SaveScrimPeriodicControlTick(ScrimPeriodicControlTick dataModel)
+        {
+            using var factory = _dbContextHelper.GetFactory();
+            var dbContext = factory.GetDbContext();
+
+            dbContext.ScrimPeriodicControlTicks.Add(dataModel);
+            await dbContext.SaveChangesAsync();
+        }
     }
 }

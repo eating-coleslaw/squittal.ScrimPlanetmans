@@ -15,6 +15,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<ScrimEventScoringReviveResult> ScoreReviveEvent(ScrimReviveActionEvent revive);
         Task<ScrimEventScoringResult> ScoreAssistEvent(ScrimAssistActionEvent assist);
         Task<ScrimEventScoringResult> ScoreObjectiveTickEvent(ScrimObjectiveTickActionEvent objective);
-        void ScorePeriodicFacilityControlTick(int controllingTeamOrdinal);
+        int? ScorePeriodicFacilityControlTick(int controllingTeamOrdinal);
     }
 }

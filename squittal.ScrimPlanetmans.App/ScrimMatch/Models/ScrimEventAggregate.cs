@@ -64,6 +64,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public int RevivesTaken { get; set; } = 0;
 
         public int EnemyRevivesAllowed { get; set; } = 0;
+        public int KillsUndoneByRevive { get; set; } = 0;
+
+        public int SecuredKills => Kills - KillsUndoneByRevive;
+        public int ConfirmedDeaths => Deaths - RevivesTaken;
 
         public int DamageAssists { get; set; } = 0;
 
@@ -333,6 +337,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             ProtectAlliesAssists += addend.ProtectAlliesAssists;
 
             EnemyRevivesAllowed += addend.EnemyRevivesAllowed;
+            KillsUndoneByRevive += addend.KillsUndoneByRevive;
 
             DamageAssistedDeaths += addend.DamageAssistedDeaths;
             //UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
@@ -437,6 +442,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             ProtectAlliesAssistedDeaths -= subtrahend.ProtectAlliesAssistedDeaths;
 
             EnemyRevivesAllowed -= subtrahend.EnemyRevivesAllowed;
+            KillsUndoneByRevive += subtrahend.KillsUndoneByRevive;
 
             DamageTeamAssists -= subtrahend.DamageTeamAssists;
             DamageSelfAssists -= subtrahend.DamageSelfAssists;

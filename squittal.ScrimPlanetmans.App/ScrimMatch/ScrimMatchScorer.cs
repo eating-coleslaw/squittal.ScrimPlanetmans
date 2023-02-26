@@ -83,6 +83,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 HeadshotDeaths = isHeadshot
             };
 
+            _teamsManager.TrySetPlayerLastKilledBy(death.VictimPlayer.Id, death.AttackerPlayer.Id);
+
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(death.AttackerPlayer.Id, attackerUpdate);
             await _teamsManager.UpdatePlayerStats(death.VictimPlayer.Id, victimUpdate);
@@ -291,21 +293,37 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var enemyScoringResult = GetActionRulePoints(enemyActionType);
             var enemyPoints = enemyScoringResult.Points;
             
+            // Additional same-team check is becasue players could technically be on different
+            // factions but the same scrim team
+            var lastKilledByPlayer = _teamsManager.GetLastKilledByPlayer(revive.RevivedPlayer.Id);
+            var lastDeathWasToEnemy = !_teamsManager.DoPlayersShareTeam(revive.RevivedPlayer, lastKilledByPlayer);
+
             var enemyReviveUpdate = new ScrimEventAggregate()
             {
                 Points = enemyPoints,
                 NetScore = enemyPoints,
-                EnemyRevivesAllowed = 1
+                EnemyRevivesAllowed = 1,
+                KillsUndoneByRevive = (lastKilledByPlayer != null && lastDeathWasToEnemy) ? 1 : 0
             };
 
-            var enemyTeamOrdinal = _teamsManager.GetEnemyTeamOrdinal(medicTeamOrdinal);
-            _teamsManager.UpdateTeamStats(enemyTeamOrdinal, enemyReviveUpdate);
+            if (lastKilledByPlayer != null)
+            {
+                await _teamsManager.UpdatePlayerStats(lastKilledByPlayer.Id, enemyReviveUpdate);
+            }
+            else
+            {
+                var enemyTeamOrdinal = _teamsManager.GetEnemyTeamOrdinal(medicTeamOrdinal);
+                _teamsManager.UpdateTeamStats(enemyTeamOrdinal, enemyReviveUpdate);
+            }
+
+            //var enemyTeamOrdinal = _teamsManager.GetEnemyTeamOrdinal(medicTeamOrdinal);
+            //_teamsManager.UpdateTeamStats(enemyTeamOrdinal, enemyReviveUpdate);
 
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(revive.MedicPlayer.Id, medicUpdate);
             await _teamsManager.UpdatePlayerStats(revive.RevivedPlayer.Id, revivedUpdate);
 
-            return new ScrimEventScoringReviveResult(scoringResult, enemyScoringResult, enemyActionType);
+            return new ScrimEventScoringReviveResult(scoringResult, enemyScoringResult, enemyActionType, lastKilledByPlayer);
 
             //return scoringResult;
         }
@@ -450,12 +468,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return scoringResult;
         }
 
-        public void ScorePeriodicFacilityControlTick(int controllingTeamOrdinal)
+        public int? ScorePeriodicFacilityControlTick(int controllingTeamOrdinal)
         {
             var points = GetPeriodicControlPoints();
             if (!points.HasValue)
             {
-                return;
+                return null;
             }
 
             var teamUpdate = new ScrimEventAggregate()
@@ -473,6 +491,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var newTeamPoints = _teamsManager.GetTeam(controllingTeamOrdinal)?.EventAggregateTracker.RoundStats.Points;
 
             _logger.LogInformation($"Team {controllingTeamOrdinal} points updated from {oldTeamPoints} => {newTeamPoints}");
+
+            return points;
         }
         #endregion Objective Events
 

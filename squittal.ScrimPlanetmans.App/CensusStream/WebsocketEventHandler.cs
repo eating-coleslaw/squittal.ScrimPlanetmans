@@ -989,6 +989,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     reviveEvent.EnemyPoints = scoringResult.EnemyResult.Points;
                     reviveEvent.EnemyActionType = scoringResult.EnemyActionType;
+                    reviveEvent.LastKilledByPlayer = scoringResult.LastKilledByPlayer;
+                    reviveEvent.LastKilledByCharacterId = scoringResult.LastKilledByPlayer?.Id;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1013,7 +1015,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
                             WorldId = payload.WorldId,
                             Points = reviveEvent.Points,
                             EnemyPoints = reviveEvent.EnemyPoints,
-                            EnemyActionType = reviveEvent.EnemyActionType
+                            EnemyActionType = reviveEvent.EnemyActionType,
+                            LastKilledByCharacterId = (reviveEvent.LastKilledByPlayer?.Id != null) ? reviveEvent.LastKilledByPlayer.Id : null
                         };
 
                         using var factory = _dbContextHelper.GetFactory();

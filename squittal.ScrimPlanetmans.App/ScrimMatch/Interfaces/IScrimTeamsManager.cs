@@ -94,5 +94,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         int GetEnemyTeamOrdinal(int teamOrdinal);
         int? GetTeamCurrentRoundScoreDisplay(int teamOrdinal);
         int? GetTeamRoundScoreDisplay(int teamOrdinal, int matchRound);
+        void ClearPlayerLastKilledByMap();
+        bool TrySetPlayerLastKilledBy(string victimId, string attackerId);
+        Player GetLastKilledByPlayer(string victimId);
     }
 }
