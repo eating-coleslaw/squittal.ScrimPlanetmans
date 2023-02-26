@@ -591,7 +591,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             if (!MatchConfiguration.EnablePeriodicFacilityControlRewards)
             {
-                _logger.LogInformation($"PeriodFacilityControlRewards not enabled");
+                _logger.LogInformation($"PeriodicFacilityControlRewards not enabled");
                 return;
             }
 
@@ -609,12 +609,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 if (_periodicTimer.CanStart())
                 {
                     _periodicTimer.Start();
-                    _logger.LogInformation($"PeriodTimer started");
+                    _logger.LogInformation($"PeriodicTimer started");
                 }
                 else
                 {
                     _periodicTimer.Restart();
-                    _logger.LogInformation($"PeriodTimer restarted");
+                    _logger.LogInformation($"PeriodicTimer restarted");
                 }
 
                 _captureAutoEvent.Set();
