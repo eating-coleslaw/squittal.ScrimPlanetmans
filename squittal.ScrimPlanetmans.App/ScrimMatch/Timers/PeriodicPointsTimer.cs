@@ -61,6 +61,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             State = TimerState.Configured;
 
+            _logger.LogInformation($"Periodic Timer Configured");
+
             // Signal the waiting thread
             _autoEvent.Set();
         }
@@ -86,6 +88,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             BroadcastEvent(false);
 
+            _logger.LogInformation($"Periodic Timer Started");
+
             // Signal the waiting thread
             _autoEvent.Set();
         }
@@ -107,6 +111,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Stopped;
 
             BroadcastEvent(false);
+
+            _logger.LogInformation($"Periodic Timer Stopped");
 
             _autoEvent.Set();
         }
@@ -131,6 +137,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             BroadcastEvent(false);
 
+            _logger.LogInformation($"Periodic Timer Paused");
+
             _autoEvent.Set();
         }
 
@@ -153,6 +161,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             BroadcastEvent(false);
 
+            _logger.LogInformation($"Periodic Timer Resumed");
+
             // Signal the waiting thread
             _autoEvent.Set();
         }
@@ -172,6 +182,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             {
                 Configure(Timeout.InfiniteTimeSpan);
             }
+
+            _logger.LogInformation($"Periodic Timer Reset");
         }
 
         public void Restart()
@@ -193,6 +205,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = TimerState.Running;
 
             BroadcastEvent(false);
+
+            _logger.LogInformation($"Periodic Timer Restarted");
 
             // Signal the waiting thread
             _autoEvent.Set();
@@ -218,6 +232,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             BroadcastEvent(false);
 
+            _logger.LogInformation($"Periodic Timer Halted");
+
             _autoEvent.Set();
         }
 
@@ -228,6 +244,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             if (ShouldProcessTick())
             {
                 _prevTickTime = DateTime.UtcNow;
+
+                _autoEvent.Set();
 
                 BroadcastEvent(true);
             }
@@ -271,6 +289,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             return true;
         }
+
         private bool CanConfigure()
         {
             if (IsRunning)
