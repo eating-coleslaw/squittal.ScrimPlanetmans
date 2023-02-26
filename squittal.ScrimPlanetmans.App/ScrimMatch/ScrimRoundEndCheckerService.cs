@@ -4,6 +4,7 @@ using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
+using System;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
 {
@@ -17,6 +18,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         //private Ruleset ActiveRuleset { get; set; }
         private MatchConfiguration MatchConfiguration { get; set; }
+
+        private bool IsEnabled { get; set; } = false;
 
         public ScrimRoundEndCheckerService(IScrimMessageBroadcastService messageService, ILogger<ScrimRoundEndCheckerService> logger)
         {
@@ -41,6 +44,18 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _messageService.RaiseTeamStatUpdateEvent += ReceiveTeamStatUpdateEvent;
         }
 
+        public void Enable()
+        {
+            IsEnabled = true;
+            _logger.LogInformation($"ScrimRoundEndChecker Enabled");
+        }
+
+        public void Disable()
+        {
+            IsEnabled = false;
+            _logger.LogInformation($"ScrimRoundEndChecker Disabled");
+        }
+
         private void ReceiveMatchConfigurationUpdateEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
         {
             MatchConfiguration = e.Message.MatchConfiguration;
@@ -50,6 +65,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void ReceiveTeamStatUpdateEvent(object sender, ScrimMessageEventArgs<TeamStatUpdateMessage> e)
         {
+            if (!IsEnabled)
+            {
+                return;
+            }
+            
             if (!MatchConfiguration.EndRoundOnPointValueReached)
             {
                 return;
@@ -60,7 +80,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var teamOrdinal = message.Team.TeamOrdinal;
             var newPoints = message.Team.RoundEventAggregate.Points;
 
-            var countingUp = (MatchConfiguration.InitialPoints <= MatchConfiguration.TargetPointValue);
+            //_logger.LogInformation($"Team {teamOrdinal} now has {newPoints} points");
+
+            var countingUp = (MatchConfiguration.InitialPoints < MatchConfiguration.TargetPointValue);
 
             if (countingUp && newPoints >= MatchConfiguration.TargetPointValue)
             {
@@ -76,6 +98,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
+            if (!IsEnabled)
+            {
+                return;
+            }
+
             if (!MatchConfiguration.EnableRoundTimeLimit)
             {
                 return;
@@ -84,6 +111,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var message = e.Message;
 
             var state = message.State;
+
+            //_logger.LogInformation($"")
 
             if (MatchConfiguration.RoundSecondsTotal == message.SecondsElapsed)
             {
@@ -100,6 +129,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void OnFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
         {
+            if (!IsEnabled)
+            {
+                return;
+            }
+
             if (!MatchConfiguration.EndRoundOnFacilityCapture)
             {
                 return;
