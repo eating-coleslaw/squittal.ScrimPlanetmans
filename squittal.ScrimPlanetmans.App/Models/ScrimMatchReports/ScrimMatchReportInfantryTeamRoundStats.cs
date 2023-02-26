@@ -14,5 +14,11 @@
 
         public int Revives { get; set; }
         public int EnemyRevivesAllowed { get; set; }
+
+        public int PeriodicControlTicks { get; set; }
+        public int PeriodicControlTickPoints { get; set; }
+
+        public int SecuredKills => Kills - EnemyRevivesAllowed;
+        public int ConfirmedDeaths => Deaths - Revives;
     }
 }

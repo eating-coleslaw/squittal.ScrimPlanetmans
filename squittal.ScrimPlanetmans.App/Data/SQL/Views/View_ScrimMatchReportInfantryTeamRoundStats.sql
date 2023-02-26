@@ -79,7 +79,9 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamRoundStats AS
          CAST(MAX(ROUND(COALESCE(damage_sums.AssistDamageDealt, 0), 0)) AS int) AssistDamageDealt,
          CAST(MAX(ROUND(COALESCE(kill_sums.KillDamageDealt, 0) + COALESCE(damage_sums.AssistDamageDealt, 0), 0)) AS int) TotalDamageDealt,
          MAX(COALESCE(revive_sums.Revives, 0)) as Revives,
-         MAX(COALESCE(enemy_revive_sums.Revives, 0)) as EnemyRevivesAllowed
+         MAX(COALESCE(enemy_revive_sums.Revives, 0)) as EnemyRevivesAllowed,
+         MAX(COALESCE(periodic_tick_sums.PeriodicControlTickCount, 0)) as PeriodicControlTicks,
+         MAX(COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)) as PeriodicControlTickPoints
       FROM (SELECT match_players.ScrimMatchId,
                     match_players.TeamOrdinal
               FROM [dbo].ScrimMatchParticipatingPlayer match_players
@@ -282,7 +284,17 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamRoundStats AS
                                  SUM(EnemyPoints) EnemyPoints
                             FROM [dbo].ScrimRevive
                             GROUP BY ScrimMatchId, ScrimMatchRound, MedicTeamOrdinal) enemy_revive_sums
-          ON match_teams.ScrimMatchId = revive_sums.ScrimMatchId
+          ON match_teams.ScrimMatchId = enemy_revive_sums.ScrimMatchId
             AND match_teams.TeamOrdinal <> enemy_revive_sums.TeamOrdinal
             AND match_rounds.ScrimMatchRound = enemy_revive_sums.ScrimMatchRound
+        LEFT OUTER JOIN (SELECT ScrimMatchId,
+                                ScrimMatchRound,
+                                TeamOrdinal,
+                                COUNT(1) as PeriodicControlTickCount,
+                                SUM(Points) as PeriodicControlTickPoints
+                           FROM [dbo].ScrimPeriodicControlTick
+                           GROUP BY ScrimMatchId, ScrimMatchRound, TeamOrdinal) periodic_tick_sums
+          ON match_teams.ScrimMatchId = periodic_tick_sums.ScrimMatchId
+            AND match_teams.TeamOrdinal = periodic_tick_sums.TeamOrdinal
+            AND match_rounds.ScrimMatchRound = periodic_tick_sums.ScrimMatchRound
     GROUP BY match_teams.ScrimMatchId, match_rounds.ScrimMatchRound, match_teams.TeamOrdinal

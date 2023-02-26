@@ -14,6 +14,11 @@
 
         public int RevivesGiven { get; set; }
         public int RevivesTaken { get; set; }
+        public int KillsUndoneByRevive { get; set; }
+        public int KillsUndoneByRevivePoints { get; set; }
+
+        public int SecuredKills => Kills - KillsUndoneByRevive;
+        public int ConfirmedDeaths => Deaths - RevivesTaken;
 
     }
 }
