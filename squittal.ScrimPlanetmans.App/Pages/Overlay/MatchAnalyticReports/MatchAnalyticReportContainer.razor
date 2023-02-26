@@ -136,14 +136,14 @@
                                             <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; color: rgb(245, 245, 255);">
                                                 <th style="padding-left: 8px; width: 10px;" title="Primary Class"></th>
                                                 <th style="width: 145px"></th>
-                                                
+
                                                 @if (!_useObjectiveStats)
                                                 {
                                                     <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
                                                     <th style=" width: 90px;"></th>
                                                     <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
                                                 }
-                                                
+
                                                 <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
 
@@ -159,7 +159,7 @@
                                                         <div class="ps2-icon headshot tr" style="filter: brightness(100) saturate(100%); display: inline-block; margin-top: 0px;"></div>%
                                                     </th>
                                                 }
-                                                
+
                                                 <th style="font-weight: 300; width: 55px;" title="Damage Assists">Dmg.<br />Asst.</th>
                                                 <th style="font-weight: 300; width: 70px;" title="Damage Dealt">Dmg.<br />Dealt</th>
 
@@ -167,24 +167,24 @@
                                                 <th style="font-weight: 300; width: 60px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst.<br />Deaths</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Trickle Deaths">Trickle<br />Deaths</th>
                                                 <th style="font-weight: 300; width: 65px;" title="Favorable Engagement Percent">Favorable<br />Eng. %</th>
-                                                <th style="font-weight: 300; width: 65px;" title="One vs One Engagement Percent">1v1<br/>Eng. %</th>
+                                                <th style="font-weight: 300; width: 65px;" title="One vs One Engagement Percent">1v1<br />Eng. %</th>
                                                 <th style="font-weight: 300; width: 60px; padding-right: 8px;" title="One vs One Kill Death Ratio">1v1<br />KDR</th>
                                             </tr>
 
                                             <tr class="@SqCssHelper.GetFactionClassFromId(ScrimTeamsManager.GetTeam(team.TeamOrdinal).FactionId)" style="color: var(--sq-ov-ps2-primary-light); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ov-ps2-primary); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
                                                 <td style="padding-left: 8px; padding-top: 0px;"></td>
                                                 <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
-                                                
+
                                                 @if (!_useObjectiveStats)
                                                 {
                                                     <td style="padding-top: 0px;">@team.Points</td>
                                                     <td style="padding-top: 0px;"></td>
                                                     <td style="padding-top: 0px;">@team.NetScore</td>
                                                 }
-                                                
+
                                                 <td style="padding-top: 0px;">@team.Kills</td>
                                                 <td style="padding-top: 0px;">@team.Deaths</td>
-                                                
+
                                                 @if (_anyRevives)
                                                 {
                                                     <td style="padding-top: 0px;">@team.Revives</td>
@@ -195,7 +195,7 @@
                                                 {
                                                     <td style="padding-top: 0px;" title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
                                                 }
-                                                
+
                                                 <td style="padding-top: 0px;">@team.DamageAssists</td>
                                                 <td style="padding-top: 0px;" title="@($"{team.TotalDamageDealt.ToString("N0")}\nKills: {team.KillDamageDealt.ToString("N0")}\nAssists: {team.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(team.TotalDamageDealt, true)</td>
                                                 <td style="padding-top: 0px;">@team.UnassistedKills</td>
@@ -228,7 +228,7 @@
                                                         </div>
 
                                                     </td>
-                                                    
+
                                                     @if (!_useObjectiveStats)
                                                     {
                                                         <td style="text-align: right; opacity: @(GetStatOpacity(player.Points));">@player.Points</td>
@@ -237,16 +237,16 @@
                                                                 <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
                                                             </div>
                                                         </td>
-                                                        <td >
+                                                        <td>
                                                             <div class="net stats-value" style="margin-top: -0.1rem !important;">
                                                                 <span class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
                                                             </div>
                                                         </td>
                                                     }
-                                                    
+
                                                     <td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                     <td style="opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
-                                                    
+
                                                     @if (_anyRevives)
                                                     {
                                                         <td style="padding-top: 0px;">@player.RevivesGiven</td>
@@ -254,10 +254,10 @@
                                                     }
 
                                                     @if (_renderedShowHsr)
-                                                    { 
+                                                    {
                                                         <td style="opacity: @(GetStatOpacity(player.Kills));" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     }
-                                                    
+
                                                     <td style="opacity: @(GetStatOpacity(player.DamageAssists));">@player.DamageAssists</td>
                                                     <td style="opacity: @(GetStatOpacity(player.TotalDamageDealt));" title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")">@player.TotalDamageDealt.ToString("N0")</td>
                                                     <td style="opacity: @(GetStatOpacity(player.UnassistedKills));">@player.UnassistedKills</td>
@@ -271,27 +271,35 @@
 
                                             @if (team.FacilityCapturePoints != 0)
                                             {
-                                                <tr class="clickable-row @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; @(team.PointAdjustments == 0 ? "border-bottom: 1px solid var(--sq-ov-ps2-primary-light);" : string.Empty)">
+                                                <tr class="clickable-row @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
                                                     <td style="padding-left: 10px;"></td>
-                                                    <td colspan="1" style="font-style: italic; text-align: left;">Captures</td>
+                                                    <td colspan="1" style="text-align: left;">Captures</td>
                                                     <td>@team.FacilityCapturePoints</td>
                                                     <td colspan="12"></td>
                                                 </tr>
                                             }
 
+                                            @if (team.PeriodicControlTickPoints != 0)
+                                            {
+                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
+                                                    <td style="padding-left: 10px;"></td>
+                                                    <td colspan="1" style="text-align: left;">Control Ticks</td>
+                                                    <td colspan="1" >@(team.PeriodicControlTickPoints)</td>
+                                                    <td colspan="2" style="text-align: left; padding-left: 0.25rem; font-weight: 500;">(@(team.PeriodicControlTicks) ticks)</td>
+                                                    <td colspan="9"></td>
+                                                </tr>
+                                            }
+
                                             @if (team.PointAdjustments != 0)
                                             {
-                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ov-ps2-primary);">
-                                                    <td colspan="2" style="font-style: italic; text-align: left;">Adjustments</td>
+                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
+                                                    <td colspan="2" style="text-align: left;">Adjustments</td>
                                                     <td>@team.PointAdjustments</td>
                                                     <td colspan="12"></td>
                                                 </tr>
                                             }
 
-                                            @if (team.FacilityCapturePoints == 0 && team.PointAdjustments == 0)
-                                            {
-                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ov-ps2-primary);"></tr>
-                                            }
+                                            <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ov-ps2-primary);"></tr>
                                         }
                                     }
                                     else if (_renderedCurrentRoundOnly && _teamRoundStats != null)
@@ -307,17 +315,17 @@
                                             <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif; color: rgb(245, 245, 255);">
                                                 <th style="padding-left: 8px; width: 10px;" title="Primary Class"></th>
                                                 <th style="width: 145px"></th>
-                                                
+
                                                 @if (!_useObjectiveStats)
                                                 {
                                                     <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
                                                     <th style=" width: 90px;"></th>
                                                     <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
                                                 }
-                                                
+
                                                 <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
-                                                
+
                                                 @if (_anyRevives)
                                                 {
                                                     <th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
@@ -330,7 +338,7 @@
                                                         <div class="ps2-icon headshot tr" style="filter: brightness(100) saturate(100%); display: inline-block; margin-top: 0px;"></div>%
                                                     </th>
                                                 }
-                                                
+
                                                 <th style="font-weight: 300; width: 55px;" title="Damage Assists">Dmg.<br />Asst.</th>
                                                 <th style="font-weight: 300; width: 70px;" title="Damage Dealt">Dmg.<br />Dealt</th>
                                                 <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo<br />Kills</th>
@@ -344,17 +352,17 @@
                                             <tr class="@SqCssHelper.GetFactionClassFromId(ScrimTeamsManager.GetTeam(team.TeamOrdinal).FactionId)" style="color: var(--sq-ov-ps2-primary-light); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ov-ps2-primary); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
                                                 <td style="padding-left: 8px; padding-top: 0px;"></td>
                                                 <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
-                                                
+
                                                 @if (!_useObjectiveStats)
                                                 {
                                                     <td style="padding-top: 0px;">@team.Points</td>
                                                     <td style="padding-top: 0px;"></td>
                                                     <td style="padding-top: 0px;">@team.NetScore</td>
                                                 }
-                                                
+
                                                 <td style="padding-top: 0px;">@team.Kills</td>
                                                 <td style="padding-top: 0px;">@team.Deaths</td>
-                                               
+
                                                 @if (_anyRevives)
                                                 {
                                                     <td style="padding-top: 0px;">@team.Revives</td>
@@ -414,7 +422,7 @@
 
                                                     <td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                     <td style="opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
-                                                    
+
                                                     @if (_anyRevives)
                                                     {
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
@@ -422,7 +430,7 @@
                                                     }
 
                                                     @if (_renderedShowHsr)
-                                                    { 
+                                                    {
                                                         <td style="opacity: @(GetStatOpacity(player.Kills));" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     }
 
@@ -440,18 +448,27 @@
 
                                             @if (team.FacilityCapturePoints != 0)
                                             {
-                                                <tr class="clickable-row @SqCssHelper.GetFactionClassFromId(_playerRoundStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ov-ps2-primary);">
+                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerRoundStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
                                                     <td style="padding-left: 10px;"></td>
-                                                    <td colspan="1" style="font-style: italic; text-align: left;">Captures</td>
+                                                    <td colspan="1" style="text-align: left;">Captures</td>
                                                     <td>@team.FacilityCapturePoints</td>
                                                     <td colspan="12"></td>
                                                 </tr>
                                             }
 
-                                            @if (team.FacilityCapturePoints == 0)
+                                            @if (team.PeriodicControlTickPoints != 0)
                                             {
-                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerRoundStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ov-ps2-primary);"></tr>
+                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerRoundStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
+                                                    <td style="padding-left: 10px;"></td>
+                                                    <td colspan="1" style="text-align: left;">Control Ticks</td>
+                                                    <td colspan="1" >@(team.PeriodicControlTickPoints)</td>
+                                                    <td colspan="2" style="text-align: left; padding-left: 0.25rem; font-weight: 500;">(@(team.PeriodicControlTicks) ticks)</td>
+                                                    <td colspan="9"></td>
+                                                </tr>
                                             }
+
+                                            <tr class="@SqCssHelper.GetFactionClassFromId(_playerRoundStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent; border-bottom: 1px solid var(--sq-ov-ps2-primary);"></tr>
+
                                         }
                                     }
                                 </tbody>
