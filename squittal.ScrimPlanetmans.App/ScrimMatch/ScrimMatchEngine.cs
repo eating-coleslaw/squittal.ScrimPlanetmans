@@ -296,7 +296,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             FacilityControlTeamOrdinal = null;
 
-            _timer.Configure(TimeSpan.FromSeconds(MatchConfiguration.RoundSecondsTotal));
+            if (MatchConfiguration.EnableRoundTimeLimit)
+            {
+                _timer.Configure(TimeSpan.FromSeconds(MatchConfiguration.RoundSecondsTotal));
+            }
+            else
+            {
+                _timer.Configure(null);
+            }
             
             if (MatchConfiguration.EnablePeriodicFacilityControlRewards && MatchConfiguration.PeriodicFacilityControlInterval.HasValue)
             {

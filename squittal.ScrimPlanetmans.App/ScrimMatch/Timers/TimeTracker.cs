@@ -82,7 +82,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
         {
             int totalMinutes;
 
-            if (HasTimeLimit)
+            if (!HasTimeLimit)
             {
                 totalMinutes = SecondsElapsed;
             }
