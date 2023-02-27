@@ -69,7 +69,9 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public MatchConfiguration(Ruleset ruleset)
         {
+            Title = ruleset.DefaultMatchTitle;
             EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
+            RoundSecondsTotal = ruleset.DefaultRoundLength;
             RoundTimerDirection = ruleset.RoundTimerDirection;
             EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
             MatchWinCondition = ruleset.MatchWinCondition;
