@@ -16,11 +16,14 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamRoundStats AS
          MAX(COALESCE(kill_sums.Points, 0)
              + COALESCE(capture_sums.Points, 0)
              + COALESCE(revive_sums.Points, 0)
-             + COALESCE(enemy_revive_sums.EnemyPoints, 0)) Points,
+             + COALESCE(enemy_revive_sums.EnemyPoints, 0)
+             + COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)) Points,
          MAX(COALESCE(kill_sums.NetScore, 0)
              + COALESCE(capture_sums.Points, 0)
              + COALESCE(revive_sums.Points, 0)
-             + COALESCE(enemy_revive_sums.EnemyPoints, 0)) NetScore,
+             - COALESCE(revive_sums.EnemyPoints, 0)
+             + COALESCE(enemy_revive_sums.EnemyPoints, 0)
+             + COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)) NetScore,
          MAX(COALESCE(capture_sums.Points, 0)) FacilityCapturePoints,
          MAX(COALESCE(kill_sums.Kills, 0)) Kills,
          MAX(COALESCE(kill_sums.HeadshotKills, 0)) HeadshotKills,
@@ -271,7 +274,8 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamRoundStats AS
                                  ScrimMatchRound,
                                  MedicTeamOrdinal TeamOrdinal,
                                  COUNT(1) Revives,
-                                 SUM(Points) Points
+                                 SUM(Points) Points,
+                                 SUM(EnemyPoints) EnemyPoints
                             FROM [dbo].ScrimRevive
                             GROUP BY ScrimMatchId, ScrimMatchRound, MedicTeamOrdinal) revive_sums
           ON match_teams.ScrimMatchId = revive_sums.ScrimMatchId
