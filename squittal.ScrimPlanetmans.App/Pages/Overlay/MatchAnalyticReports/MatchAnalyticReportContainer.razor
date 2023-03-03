@@ -61,28 +61,44 @@
                     }
                     else
                     {
-                        @*<div style="display: grid; grid-template-columns: 60% 40%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 12px;">
+                        <div style="display: grid; grid-template-columns: 60% 40%; align-items: baseline; font-family: Roboto, 'Segoe UI', sans-serif; margin-bottom: 12px;">
                             <!--<h4 style="margin-bottom: 0; font-family: 'Roboto Mono', 'Input Mono', Consolas, monospace">@(_matchInfo.Title)</h4>--> @*margin-bottom: 2px;
-                            @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>
+                            @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right;">@_matchInfo.StartTime.ToString("f")</p>*@
                             @if (string.IsNullOrWhiteSpace(_matchInfo.FacilityName))
                             {
                                 <p style="margin-bottom: 0px; font-size: 1rem;">
-                                    <span>@_matchInfo.WorldName</span>
-                                    <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
-                                    <span style="font-style: italic;">No facility</span>
+                                    @*<span>@_matchInfo.WorldName</span>*@
+                                    @*<span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>*@
+                                    @*<span style="font-style: italic;">No facility</span>*@
+                                    @if (_renderedCurrentRoundOnly)
+                                    {
+                                        <span>Round @_currentRound Report</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Match Report</span>
+                                    }
                                 </p>
                             }
                             else
                             {
                                 <p style="margin-bottom: 0px; font-size: 1rem;">
-                                    <span>@_matchInfo.WorldName</span>
-                                    <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
+                                    @*<span>@_matchInfo.WorldName</span>*@
                                     <span>@_matchInfo.FacilityName</span>
+                                    <span class="oi oi-caret-right small" style="padding-left: 4px; padding-right: 4px;"></span>
+                                    @if (_renderedCurrentRoundOnly)
+                                    {
+                                        <span>Round @_currentRound Report</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Match Report</span>
+                                    }
                                 </p>
                             }
-                            @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds | Ruleset: @_matchInfo.RulesetName</p>
+                            @*<p style="margin-bottom: 0px; font-size: 1rem; text-align: right; font-weight: 300;">@_matchInfo.RoundCount Rounds | Ruleset: @_matchInfo.RulesetName</p>*@
 
-                        </div>*@
+                        </div>
 
                         @*@if (_isLoadingScrimPlayers || _matchInfo == null)*@
 
@@ -144,13 +160,42 @@
                                                     <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
                                                 }
 
-                                                <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
-                                                <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
+                                                @*<th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
+                                                <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>*@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
-                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Revives<br />Taken</th>
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-55);">Kills</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Secured</div>
+                                                        </div>
+                                                    </th>
+
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Deaths">
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-55);">Deaths</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Final</div>
+                                                        </div>
+                                                    </th>
+
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Revives</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Given</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Taken</div>
+                                                        </div>
+                                                    </th>
+
+                                                    @*<th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
+                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Revives<br />Taken</th>*@
+                                                }
+                                                else
+                                                {
+                                                    <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
+                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
                                                 }
 
                                                 @if (_renderedShowHsr)
@@ -182,14 +227,24 @@
                                                     <td style="padding-top: 0px;">@team.NetScore</td>
                                                 }
 
-                                                <td style="padding-top: 0px;">@team.Kills</td>
-                                                <td style="padding-top: 0px;">@team.Deaths</td>
+                                                @*<td style="padding-top: 0px;">@team.Kills</td>
+                                                <td style="padding-top: 0px;">@team.Deaths</td>*@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <td style="padding-top: 0px;">@team.Revives</td>
-                                                    <td style="padding-top: 0px;"></td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Kills</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.SecuredKills</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Deaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.ConfirmedDeaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Revives</td>
+                                                    <td style="padding-top: 0px; width: 60px;"></td>
                                                 }
+                                                else
+                                                {
+                                                    <td style="padding-top: 0px;">@team.Kills</td>
+                                                    <td style="padding-top: 0px;">@team.Deaths</td>
+                                                }
+
 
                                                 @if (_renderedShowHsr)
                                                 {
@@ -244,13 +299,28 @@
                                                         </td>
                                                     }
 
-                                                    <td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                    @*<td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                     <td style="opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
 
                                                     @if (_anyRevives)
                                                     {
                                                         <td style="padding-top: 0px;">@player.RevivesGiven</td>
                                                         <td style="padding-top: 0px;">@player.RevivesTaken</td>
+                                                    }*@
+
+                                                    @if (_anyRevives)
+                                                    {
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.SecuredKills));">@player.SecuredKills</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.ConfirmedDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                     }
 
                                                     @if (_renderedShowHsr)
@@ -323,13 +393,42 @@
                                                     <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
                                                 }
 
-                                                <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
-                                                <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
+                                                @*<th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
+                                                <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>*@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
-                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Revives<br />Taken</th>
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Kills</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Secured</div>
+                                                        </div>
+                                                    </th>
+
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Deaths">
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Deaths</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Final</div>
+                                                        </div>
+                                                    </th>
+
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Revives</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Given</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Taken</div>
+                                                        </div>
+                                                    </th>
+
+                                                    @*<th style="font-weight: 300; width: 60px;" title="Kills">Revives<br />Given</th>
+                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Revives<br />Taken</th>*@
+                                                }
+                                                else
+                                                {
+                                                    <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
+                                                    <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
                                                 }
 
                                                 @if (_renderedShowHsr)
@@ -360,13 +459,28 @@
                                                     <td style="padding-top: 0px;">@team.NetScore</td>
                                                 }
 
-                                                <td style="padding-top: 0px;">@team.Kills</td>
+                                                @*<td style="padding-top: 0px;">@team.Kills</td>
                                                 <td style="padding-top: 0px;">@team.Deaths</td>
 
                                                 @if (_anyRevives)
                                                 {
                                                     <td style="padding-top: 0px;">@team.Revives</td>
                                                     <td style="padding-top: 0px;"></td>
+                                                }*@
+
+                                                @if (_anyRevives)
+                                                {
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Kills</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.SecuredKills</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Deaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.ConfirmedDeaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Revives</td>
+                                                    <td style="padding-top: 0px; width: 60px;"></td>
+                                                }
+                                                else
+                                                {
+                                                    <td style="padding-top: 0px;">@team.Kills</td>
+                                                    <td style="padding-top: 0px;">@team.Deaths</td>
                                                 }
 
                                                 @if (_renderedShowHsr)
@@ -420,13 +534,28 @@
                                                         </td>
                                                     }
 
-                                                    <td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                    @*<td style="opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                     <td style="opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
 
                                                     @if (_anyRevives)
                                                     {
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>
+                                                    }*@
+
+                                                    @if (_anyRevives)
+                                                    {
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.SecuredKills));">@player.SecuredKills</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.ConfirmedDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                     }
 
                                                     @if (_renderedShowHsr)
