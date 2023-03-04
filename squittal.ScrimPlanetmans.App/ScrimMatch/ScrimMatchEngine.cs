@@ -220,12 +220,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 _logger.LogInformation($"Trying to Halt Match Timer");
                 _timer.Halt();
+                _logger.LogInformation($"Halted Match Timer");
             }
 
             if (MatchConfiguration.EnablePeriodicFacilityControlRewards)
             {
                 _logger.LogInformation($"Trying to Halt Periodic Timer");
                 _periodicTimer.Halt();
+                _logger.LogInformation($"Halted Periodic Timer");
             }
 
             _logger.LogInformation($"Saving team scores for round {_currentRound}");
@@ -420,63 +422,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.AddCharacterSubscriptions(_teamsManager.GetAllPlayerIds());
         }
 
-        private async Task OnEndRoundCheckerMessage(object sender, ScrimMessageEventArgs<EndRoundCheckerMessage> e)
-        {
-            _logger.LogInformation($"OnEndRoundCheckerMessage received: {Enum.GetName(typeof(EndRoundReason), e.Message.EndRoundReason)}");
-
-            if (_isRunning)
-            {
-                _captureAutoEvent.WaitOne();
-
-                await EndRound();
-
-                _captureAutoEvent.Set();
-            }
-        }
-
         private void OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             SetLatestTimerTickMessage(e.Message);
-        }
-
-        private async Task OnPeriodiocPointsTimerTick(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
-        {
-            var timestamp = DateTime.Now;
-            
-            if (!MatchConfiguration.EnablePeriodicFacilityControlRewards || !FacilityControlTeamOrdinal.HasValue)
-            {
-                return;
-            }
-
-            if (GetMatchState() != MatchState.Running)
-            {
-                return;
-            }
-
-            _captureAutoEvent.WaitOne();
-
-            var controllingTeamOrdinal = FacilityControlTeamOrdinal.Value;
-
-            var points = _matchScorer.ScorePeriodicFacilityControlTick(controllingTeamOrdinal);
-
-            if (!points.HasValue)
-            {
-                _captureAutoEvent.Set();
-                return;
-            }
-
-            _captureAutoEvent.Set();
-
-            var periodicTickModel = new ScrimPeriodicControlTick()
-            {
-                ScrimMatchId = GetMatchId(),
-                Timestamp = timestamp,
-                ScrimMatchRound = GetCurrentRound(),
-                TeamOrdinal = controllingTeamOrdinal,
-                Points = points.Value
-            };
-
-            await _matchDataService.SaveScrimPeriodicControlTick(periodicTickModel);
         }
 
         public bool IsRunning()
@@ -616,19 +564,139 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 if (_periodicTimer.CanStart())
                 {
                     _periodicTimer.Start();
-                    _logger.LogInformation($"PeriodicTimer started");
+                    _logger.LogInformation($"PeriodicTimer started for team {FacilityControlTeamOrdinal}");
                 }
                 else
                 {
                     _periodicTimer.Restart();
-                    _logger.LogInformation($"PeriodicTimer restarted");
+                    _logger.LogInformation($"PeriodicTimer restarted for team {FacilityControlTeamOrdinal}");
                 }
 
                 _captureAutoEvent.Set();
-
             }
         }
-        
+
+        #pragma warning disable CS1998
+        private async Task OnPeriodiocPointsTimerTick(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
+        {
+            _logger.LogInformation($"Received PeriodPointsTimerStateMessage");
+            
+            //var timestamp = DateTime.Now;
+
+            //if (!MatchConfiguration.EnablePeriodicFacilityControlRewards || !FacilityControlTeamOrdinal.HasValue)
+            //{
+            //    return;
+            //}
+
+            //if (!_isRunning)
+            //{
+            //    return;
+            //}
+
+            if (MatchConfiguration.EnablePeriodicFacilityControlRewards && FacilityControlTeamOrdinal.HasValue && _isRunning)
+            {
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    ProcessPeriodicPointsTick(e.Message);
+
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
+            }
+
+            //_captureAutoEvent.WaitOne();
+
+            //var controllingTeamOrdinal = FacilityControlTeamOrdinal.Value;
+
+            //var points = _matchScorer.ScorePeriodicFacilityControlTick(controllingTeamOrdinal);
+
+            //if (!points.HasValue)
+            //{
+            //    _captureAutoEvent.Set();
+            //    return;
+            //}
+
+            //_captureAutoEvent.Set();
+
+            //var periodicTickModel = new ScrimPeriodicControlTick()
+            //{
+            //    ScrimMatchId = GetMatchId(),
+            //    Timestamp = timestamp,
+            //    ScrimMatchRound = GetCurrentRound(),
+            //    TeamOrdinal = controllingTeamOrdinal,
+            //    Points = points.Value
+            //};
+
+            //await _matchDataService.SaveScrimPeriodicControlTick(periodicTickModel);
+        }
+        #pragma warning restore CS1998
+
+        private async Task ProcessPeriodicPointsTick(PeriodicPointsTimerStateMessage payload)
+        {
+            _logger.LogInformation($"Processing PeriodPointsTimer tick");
+
+            if (!_isRunning)
+            {
+                _logger.LogInformation($"Failed to process PeriodPointsTimer tick: match is not running");
+                return;
+            }
+
+            var timestamp = DateTime.Now;
+
+            //_captureAutoEvent.WaitOne();
+
+            var controllingTeamOrdinal = FacilityControlTeamOrdinal.Value;
+
+            try
+            {
+                var points = _matchScorer.ScorePeriodicFacilityControlTick(controllingTeamOrdinal);
+
+                if (!points.HasValue)
+                {
+                    //_captureAutoEvent.Set();
+                    _logger.LogInformation($"Failed to score PeriodPointsTimer tick: ScrimMatchScorer returned no points value");
+                    return;
+                }
+
+                _logger.LogInformation($"Sscored PeriodPointsTimer tick: {points.Value} points");
+
+                //_captureAutoEvent.Set();
+
+                var periodicTickModel = new ScrimPeriodicControlTick()
+                {
+                    ScrimMatchId = GetMatchId(),
+                    Timestamp = timestamp,
+                    ScrimMatchRound = GetCurrentRound(),
+                    TeamOrdinal = controllingTeamOrdinal,
+                    Points = points.Value
+                };
+
+                await _matchDataService.SaveScrimPeriodicControlTick(periodicTickModel);
+
+                _logger.LogInformation($"ScrimPeriodicControlTick saved to Db: Round {periodicTickModel.ScrimMatchRound}, Team {controllingTeamOrdinal}, {points.Value} points");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return;
+            }
+        }
+
+        private async Task OnEndRoundCheckerMessage(object sender, ScrimMessageEventArgs<EndRoundCheckerMessage> e)
+        {
+            _logger.LogInformation($"OnEndRoundCheckerMessage received: {Enum.GetName(typeof(EndRoundReason), e.Message.EndRoundReason)}");
+
+            if (_isRunning)
+            {
+                //_captureAutoEvent.WaitOne();
+
+                await EndRound();
+
+                //_captureAutoEvent.Set();
+            }
+        }
+
+        #region Outbound Messages
         private void SendMatchStateUpdateMessage()
         {
             _messageService.BroadcastMatchStateUpdateMessage(new MatchStateUpdateMessage(_matchState, _currentRound, DateTime.UtcNow, MatchConfiguration.Title, _matchDataService.CurrentMatchId));
@@ -638,5 +706,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             _messageService.BroadcastMatchConfigurationUpdateMessage(new MatchConfigurationUpdateMessage(MatchConfiguration));
         }
+        #endregion Outbound Messages
     }
 }
