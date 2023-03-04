@@ -15,7 +15,15 @@
     @*<ValidationSummary Model="@newAdditionInput" />*@
     @*<ValidationSummary />*@
 
-    <InputText style="min-width: 300px;" id="@($"NewAdditionInput{teamOrdinal}")" @bind-Value="newAdditionInput.Value" placeholder="Character Name, ID, or [Outfit Tag]"/>
+    @if (isProcessingInput)
+    {
+        <InputText style="min-width: 300px;" disabled="" id="@($"NewAdditionInput{teamOrdinal}")" @bind-Value="newAdditionInput.Value" placeholder="Character Name, ID, or [Outfit Tag]"/>
+
+    }
+    else
+    { 
+        <InputText style="min-width: 300px;" id="@($"NewAdditionInput{teamOrdinal}")" @bind-Value="newAdditionInput.Value" placeholder="Character Name, ID, or [Outfit Tag]"/>
+    }
 
     @if (isProcessingInput)
     {
@@ -30,8 +38,8 @@
         </button>
     }
 
-    @Enum.GetName(typeof(TeamAdditionInputType), newAdditionInput.InputType)
-    @isProcessingInput
+    @*@Enum.GetName(typeof(TeamAdditionInputType), newAdditionInput.InputType)
+    @isProcessingInput*@
 
 </EditForm>
 
@@ -54,7 +62,7 @@
 
     private async void HandleValidSubmit()
     {
-        Console.WriteLine($"isProcessingInput: {isProcessingInput}");
+        //Console.WriteLine($"isProcessingInput: {isProcessingInput}");
 
         if (isProcessingInput)
         {
@@ -77,7 +85,7 @@
 
         isProcessingInput = false;
 
-        Console.WriteLine($"isProcessingInput: {isProcessingInput}");
+        //Console.WriteLine($"isProcessingInput: {isProcessingInput}");
 
         StateHasChanged();
     }
