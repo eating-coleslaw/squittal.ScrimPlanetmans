@@ -1381,6 +1381,11 @@ th.sortable {
     padding: 0.2rem 10px 0.2rem 5px;
 }
 
+.table-striped-dark tbody .nav-link {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
 .table-striped-light tbody .nav-link {
     padding: 0;
     margin-top: 0;
