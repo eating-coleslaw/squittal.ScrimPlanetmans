@@ -71,6 +71,12 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.RevivesTaken).HasDefaultValue(0);
             builder.Property(e => e.KillsUndoneByRevive).HasDefaultValue(0);
             builder.Property(e => e.KillsUndoneByRevivePoints).HasDefaultValue(0);
+            builder.Property(e => e.PostReviveKills).HasDefaultValue(0);
+            builder.Property(e => e.ReviveInstantDeaths).HasDefaultValue(0);
+            builder.Property(e => e.ReviveLivesMoreThan15s).HasDefaultValue(0);
+            builder.Property(e => e.ShortestRevivedLifeSeconds).HasDefaultValue(0);
+            builder.Property(e => e.LongestRevivedLifeSeconds).HasDefaultValue(0);
+            builder.Property(e => e.AvgRevivedLifeSeconds).HasDefaultValue(0);
 
         }
     }

@@ -76,9 +76,15 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerRoundStats AS
          CAST(ROUND(COALESCE(damage_sums.AssistDamageDealt, 0), 0) AS int) AssistDamageDealt,
          CAST(ROUND(COALESCE(kill_sums.KillDamageDealt, 0) + COALESCE(damage_sums.AssistDamageDealt, 0), 0) AS int) TotalDamageDealt,
          COALESCE(revives_given_sums.Revives, 0) as RevivesGiven,
-         COALESCE(revives_taken_sums.Revives, 0) as RevivesTaken,
+         COALESCE(revives_taken_sums.RevivesTaken, 0) as RevivesTaken,
          COALESCE(revives_undone_sums.KillsUndoneByRevive, 0) as KillsUndoneByRevive,
-         COALESCE(revives_undone_sums.KillsUndoneByRevivePoints, 0) as KillsUndoneByRevivePoints
+         COALESCE(revives_undone_sums.KillsUndoneByRevivePoints, 0) as KillsUndoneByRevivePoints,
+         COALESCE(revives_taken_sums.PostReviveKills, 0) as PostReviveKills,
+         COALESCE(revives_taken_sums.ReviveInstantDeaths, 0) as ReviveInstantDeaths,
+         COALESCE(revives_taken_sums.ReviveLivesMoreThan15s, 0) as ReviveLivesMoreThan15s,
+         COALESCE(revives_taken_sums.ShortestRevivedLifeSeconds, 0) as ShortestRevivedLifeSeconds,
+         COALESCE(revives_taken_sums.LongestRevivedLifeSeconds, 0) as LongestRevivedLifeSeconds,
+         COALESCE(revives_taken_sums.AvgRevivedLifeSeconds, 0) as AvgRevivedLifeSeconds
     FROM [dbo].ScrimMatchParticipatingPlayer match_players
       INNER JOIN [dbo].ScrimMatchRoundConfiguration match_rounds
         ON match_players.ScrimMatchId = match_rounds.ScrimMatchId
@@ -232,13 +238,64 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerRoundStats AS
         ON match_players.ScrimMatchId = revives_given_sums.ScrimMatchId
           AND match_players.CharacterId = revives_given_sums.MedicCharacterId
           AND match_rounds.ScrimMatchRound = revives_given_sums.ScrimMatchRound
-      LEFT OUTER JOIN (SELECT ScrimMatchId,
-                              ScrimMatchRound,
-                              RevivedCharacterId,
-                              COUNT(1) Revives,
-                              SUM(EnemyPoints) as EnemyPoints
-                          FROM [dbo].ScrimRevive
-                          GROUP BY ScrimMatchId, ScrimMatchRound, RevivedCharacterId) revives_taken_sums
+      LEFT OUTER JOIN (SELECT ScrimMatchId
+                             ,ScrimMatchRound
+                             ,RevivedCharacterId
+                             ,COUNT(1) as RevivesTaken
+                             ,SUM(EnemyPoints) as EnemyPoints
+                             ,SUM(KillCount) as PostReviveKills
+                             ,SUM(IIF(RevivedLifeSeconds <= 3, 1, 0)) as ReviveInstantDeaths
+                             ,SUM(IIF(RevivedLifeSeconds <= 1, 1, 0)) as ReviveLivesLessThanOrEqual1s
+                             ,SUM(IIF(RevivedLifeSeconds <= 5, 1, 0)) as ReviveLivesLessThanOrEqual5s
+                             ,SUM(IIF(RevivedLifeSeconds <= 10, 1, 0)) as ReviveLivesLessThanOrEqual10s
+                             ,SUM(IIF(RevivedLifeSeconds < 15, 1, 0)) as ReviveLivesLessThan15s
+                             ,SUM(IIF(RevivedLifeSeconds >= 15, 1, 0)) as ReviveLivesMoreThan15s
+                             ,MIN(RevivedLifeSeconds) as ShortestRevivedLifeSeconds
+                             ,MAX(RevivedLifeSeconds) as LongestRevivedLifeSeconds
+                             ,AVG(RevivedLifeSeconds) as AvgRevivedLifeSeconds
+                         FROM (SELECT DISTINCT
+                                      revive_idx.ScrimMatchId
+                                     ,revive_idx.ScrimMatchRound
+                                     ,revive_idx.Timestamp as ReviveTime
+                                     ,revive_idx.RevivedCharacterId
+                                     ,revive_idx.RevivedTeamOrdinal as Team
+                                     ,revive_idx.NextReviveTimestamp
+                                     ,revive_idx.EnemyPoints
+                                     ,death.Timestamp as DeathTime
+                                     ,CASE WHEN death.Timestamp IS NULL THEN NULL
+                                           ELSE CONVERT(int, DATEDIFF(ms, revive_idx.Timestamp, death.Timestamp) / 1000.0) END as RevivedLifeSeconds
+                                     ,COUNT(kills.Timestamp) OVER (PARTITION BY revive_idx.ScrimMatchId, revive_idx.ScrimMatchRound, revive_idx.RevivedCharacterId, revive_idx.Timestamp, death.Timestamp) as KillCount
+                                     ,ROW_NUMBER() OVER (PARTITION BY revive_idx.ScrimMatchId, revive_idx.ScrimMatchRound, revive_idx.RevivedCharacterId, revive_idx.Timestamp ORDER BY death.Timestamp ASC) as RowNum
+                                 FROM (SELECT ScrimMatchId
+                                             ,RevivedTeamOrdinal
+                                             ,Timestamp
+                                             ,RevivedCharacterId
+                                             ,ScrimMatchRound
+                                             ,EnemyPoints
+                                             ,LEAD(Timestamp) OVER (PARTITION BY ScrimMatchId, RevivedCharacterId, ScrimMatchRound ORDER BY Timestamp ASC) as NextReviveTimestamp
+                                         FROM ScrimRevive revive) revive_idx
+                                           LEFT OUTER JOIN ScrimDeath death
+                                             ON revive_idx.ScrimMatchId = death.ScrimMatchId
+                                                 AND revive_idx.ScrimMatchRound = death.ScrimMatchRound
+                                                 AND revive_idx.RevivedCharacterId = death.VictimCharacterId
+                                                 AND death.Timestamp > revive_idx.Timestamp
+                                                 AND death.Timestamp < revive_idx.NextReviveTimestamp
+                                           LEFT OUTER JOIN ScrimDeath kills
+                                             ON revive_idx.ScrimMatchId = kills.ScrimMatchId
+                                                 AND revive_idx.ScrimMatchRound = kills.ScrimMatchRound
+                                                 AND revive_idx.RevivedCharacterId = kills.AttackerCharacterId
+                                                 AND kills.Timestamp > revive_idx.Timestamp
+                                                 AND kills.Timestamp < revive_idx.NextReviveTimestamp
+                                                 AND kills.Timestamp < death.Timestamp) revive_taken_times
+                                 WHERE revive_taken_times.RowNum = 1
+                                 GROUP BY ScrimMatchId, ScrimMatchRound, RevivedCharacterId) revives_taken_sums
+      --LEFT OUTER JOIN (SELECT ScrimMatchId,
+      --                        ScrimMatchRound,
+      --                        RevivedCharacterId,
+      --                        COUNT(1) Revives,
+      --                        SUM(EnemyPoints) as EnemyPoints
+      --                    FROM [dbo].ScrimRevive
+      --                    GROUP BY ScrimMatchId, ScrimMatchRound, RevivedCharacterId) revives_taken_sums
         ON match_players.ScrimMatchId = revives_taken_sums.ScrimMatchId
           AND match_players.CharacterId = revives_taken_sums.RevivedCharacterId
           AND match_rounds.ScrimMatchRound = revives_taken_sums.ScrimMatchRound

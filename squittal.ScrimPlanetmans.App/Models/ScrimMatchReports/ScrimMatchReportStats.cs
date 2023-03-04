@@ -54,6 +54,12 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
         public int AssistDamageDealt { get; set; }
         public int TotalDamageDealt { get; set; }
 
+        public int PostReviveKills { get; set; }
+        public int ReviveInstantDeaths { get; set; }
+        public int ReviveLivesMoreThan15s { get; set; }
+        public int ShortestRevivedLifeSeconds { get; set; }
+        public int LongestRevivedLifeSeconds { get; set; }
+        public int AvgRevivedLifeSeconds { get; set; }
 
         #region Class-Specific Stats
         public int KillsAsHeavyAssault { get; set; }
