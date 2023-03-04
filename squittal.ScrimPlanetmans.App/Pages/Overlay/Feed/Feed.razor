@@ -18,7 +18,7 @@
 
 @implements IDisposable
 
-<div class="killfeed" id="killfeedContainer">
+<div class="killfeed" id="killfeedContainer" style="@(GetFeedTopMarginString())">
     <table>
         <tbody id="killfeed" class="killfeedBody">
             @for (var i = 0; i <= 3; i++)
@@ -35,10 +35,11 @@
 @code {
     [Parameter]
     public bool i_legacyUi { get; set; } = false;
+    private bool _legacyUi { get; set; } = false;
 
     private ScrimKillfeedEvent[] _renderedEvents { get; set; } = new ScrimKillfeedEvent[4];
 
-    private bool _legacyUi { get; set; } = false;
+    private bool _isShowingPointTarget { get; set; } = false;
     private int _renderedEventCount { get; set; } = 0;
     private ConcurrentQueue<ScrimKillfeedEvent> _eventsQueue { get; set; } = new ConcurrentQueue<ScrimKillfeedEvent>();
 
@@ -48,6 +49,8 @@
     {
         MessageService.RaiseScrimDeathActionEvent += ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
+
+        _isShowingPointTarget = ScrimMatchEngine.MatchConfiguration.EndRoundOnPointValueReached;
     }
 
     public void Dispose()
@@ -189,6 +192,18 @@
         else
         {
             return player.NameDisplay;
+        }
+    }
+
+    private string GetFeedTopMarginString()
+    {
+        if (_isShowingPointTarget)
+        {
+            return "margin-top: 6px;";
+        }
+        else
+        {
+            return string.Empty;
         }
     }
 }
