@@ -211,10 +211,10 @@
                                     {
                                         <div style="margin-bottom: 0.5rem; margin-left: 1rem;"><span style="width: 164px; display: inline-block;">Default Round Length:</span><InputNumber min="1" type="text" @bind-Value=@_editFormRuleset.DefaultRoundLength style="display: inline-block; width: 64px; padding-left: 4px;" /><span style="padding-left: 8px;">seconds</span></div>
 
-                                        @if (_renderedRuleset.RoundTimerDirection.HasValue)
+                                        @*@if (_renderedRuleset.RoundTimerDirection.HasValue)
                                         {
                                             <div style="margin-bottom: 0.5rem; margin-left: 1rem;"><span style="display: inline-block; width: 164px;">Timer Direction:</span><span style="color: rgb(109, 109, 109); cursor: default;">@GetTimerDirectionDisplayString(_renderedRuleset.RoundTimerDirection.Value)</span></div>
-                                        }
+                                        }*@
 
                                         @*<div style="margin-bottom: 0.5rem;">
                                             <span style="width: 164px; display: inline-block;">Round Timer Direction:</span><InputSelect @bind-Value=@_editFormRuleset.RoundTimerDirection style="display: inline-block; width: 216px;">
