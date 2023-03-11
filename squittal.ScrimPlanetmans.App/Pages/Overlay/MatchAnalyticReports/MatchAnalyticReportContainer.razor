@@ -165,29 +165,33 @@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <th colspan="3" style="font-weight: 300; width: 180px;" title="Kills">
-                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                        @*<div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">*@
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
                                                             <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-55);">Kills</div>
-                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
-                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Secured</div>
-                                                            <div style="grid-row: 2; grid-column: 3; text-align: right;">Zombie</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Secured</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
+                                                            @*<div style="grid-row: 2; grid-column: 3; text-align: right;">Post-Rev.</div>*@
                                                         </div>
                                                     </th>
 
                                                     <th colspan="2" style="font-weight: 300; width: 120px;" title="Deaths">
                                                         <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
                                                             <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-55);">Deaths</div>
-                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
-                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Final</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Final</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
                                                         </div>
                                                     </th>
 
-                                                    <th colspan="3" style="font-weight: 300; width: 180px;" title="Kills">
-                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">
-                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Revives</div>
-                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Given</div>
-                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Taken</div>
-                                                            <div style="grid-row: 2; grid-column: 3; text-align: right;">Avg Life</div>
+                                                    <th style="font-weight: 300; width: 60px;" title="Revives Given">Revives<br />Given</th>
+                                                    <th colspan="3" style="font-weight: 300; width: 180px;" title="Revives Taken">
+                                                        @*<div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">*@
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 34% 33%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; margin-left: 4px; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Revives Taken</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;" title="Average Life in Seconds">Avg. Life</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;" title="Deaths within 2 seconds of being revived">Inst. Dth.</div>
+                                                            <div style="grid-row: 2; grid-column: 3; text-align: right;" title="Kills while on a revived life">Kills</div>
+                                                            @*<div style="grid-row: 2; grid-column: 2; text-align: right;">Taken</div>*@
                                                         </div>
                                                     </th>
 
@@ -234,14 +238,15 @@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <td style="padding-top: 0px; width: 60px;">@team.Kills</td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.SecuredKills</td>
-                                                    <td style="padding-top: 0px; width: 60px;">@team.PostReviveKills</td>
-                                                    <td style="padding-top: 0px; width: 60px;">@team.Deaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Kills</td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.ConfirmedDeaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Deaths</td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.Revives</td>
-                                                    <td style="padding-top: 0px; width: 60px;"></td>
-                                                    <td style="padding-top: 0px; width: 60px;">@(team.AvgRevivedLifeSeconds)<span style="font-size: smaller;">s</span></td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.ReviveInstantDeaths</td>
+                                                    @*<td style="padding-top: 0px; width: 60px;"></td>*@
+                                                    <td style="padding-top: 0px; width: 60px;">@team.PostReviveKills</td>
                                                 }
                                                 else
                                                 {
@@ -314,14 +319,15 @@
 
                                                     @if (_anyRevives)
                                                     {
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.SecuredKills));">@player.SecuredKills</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.PostReviveKills</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.ConfirmedDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.ReviveInstantDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.PostReviveKills</td>
+                                                        @*<td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>*@
                                                     }
                                                     else
                                                     {
@@ -341,7 +347,7 @@
                                                     <td style="opacity: @(GetStatOpacity(player.TrickleDeaths));">@player.TrickleDeaths</td>
                                                     <td style="opacity: @(GetStatOpacity((int)player.WeightedEnemyEngagementCount));" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     <td style="opacity: @(GetStatOpacity(player.EnemyKillDeathEngagementCount));" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                                    <td style="padding-right: 8px;" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
+                                                    <td style="padding-right: 8px; opacity: @(GetStatOpacity(player.UnassistedKills + player.UnassistedEnemyDeaths));" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
                                                 </tr>
                                             }
 
@@ -404,29 +410,33 @@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <th colspan="3" style="font-weight: 300; width: 180px;" title="Kills">
-                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">
+                                                    <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                        @*<div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">*@
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
                                                             <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Kills</div>
-                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
-                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Secured</div>
-                                                            <div style="grid-row: 2; grid-column: 3; text-align: right;">Zombie</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Secured</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
+                                                            @*<div style="grid-row: 2; grid-column: 3; text-align: right;">Post-Rev.</div>*@
                                                         </div>
                                                     </th>
 
                                                     <th colspan="2" style="font-weight: 300; width: 120px;" title="Deaths">
                                                         <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
                                                             <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Deaths</div>
-                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Total</div>
-                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Final</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Final</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
                                                         </div>
                                                     </th>
 
-                                                    <th colspan="3" style="font-weight: 300; width: 180px;" title="Kills">
-                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">
-                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Revives</div>
-                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;">Given</div>
-                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;">Taken</div>
-                                                            <div style="grid-row: 2; grid-column: 3; text-align: right;">Avg Life</div>
+                                                    <th style="font-weight: 300; width: 60px;" title="Revives Given">Revives<br />Given</th>
+                                                    <th colspan="3" style="font-weight: 300; width: 180px;" title="Revives Taken">
+                                                        @*<div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">*@
+                                                        <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 34% 33%;">
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; margin-left: 4px; background: var(--sq-ov-bg-dark-gray-alpha-90);">Revives Taken</div>
+                                                            <div style="grid-row: 2; grid-column: 1; text-align: right;" title="Average Life in Seconds">Avg. Life</div>
+                                                            <div style="grid-row: 2; grid-column: 2; text-align: right;" title="Deaths within 2 seconds of being revived">Inst. Dth.</div>
+                                                            <div style="grid-row: 2; grid-column: 3; text-align: right;" title="Kills while on a revived life">Kills</div>
+                                                            @*<div style="grid-row: 2; grid-column: 2; text-align: right;">Taken</div>*@
                                                         </div>
                                                     </th>
 
@@ -478,14 +488,15 @@
 
                                                 @if (_anyRevives)
                                                 {
-                                                    <td style="padding-top: 0px; width: 60px;">@team.Kills</td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.SecuredKills</td>
-                                                    <td style="padding-top: 0px; width: 60px;">@team.PostReviveKills</td>
-                                                    <td style="padding-top: 0px; width: 60px;">@team.Deaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Kills</td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.ConfirmedDeaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.Deaths</td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.Revives</td>
-                                                    <td style="padding-top: 0px; width: 60px;"></td>
                                                     <td style="padding-top: 0px; width: 60px;">@team.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.ReviveInstantDeaths</td>
+                                                    <td style="padding-top: 0px; width: 60px;">@team.PostReviveKills</td>
+                                                    @*<td style="padding-top: 0px; width: 60px;"></td>*@
                                                 }
                                                 else
                                                 {
@@ -555,14 +566,15 @@
 
                                                     @if (_anyRevives)
                                                     {
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.SecuredKills));">@player.SecuredKills</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.PostReviveKills</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Kills));">@player.Kills</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.ConfirmedDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.ReviveInstantDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.PostReviveKills</td>
+                                                        @*<td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>*@
                                                     }
                                                     else
                                                     {
@@ -582,7 +594,7 @@
                                                     <td style="opacity: @(GetStatOpacity(player.TrickleDeaths));">@player.TrickleDeaths</td>
                                                     <td style="opacity: @(GetStatOpacity((int)player.WeightedEnemyEngagementCount));" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
                                                     <td style="opacity: @(GetStatOpacity(player.EnemyKillDeathEngagementCount));" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                                    <td style="padding-right: 8px;" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
+                                                    <td style="padding-right: 8px; opacity: @(GetStatOpacity(player.UnassistedKills + player.UnassistedEnemyDeaths));" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
                                                 </tr>
                                                 @*<tr style="height: 8px; background-color: transparent;"></tr>*@
                                             }
