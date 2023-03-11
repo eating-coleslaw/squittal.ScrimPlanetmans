@@ -268,7 +268,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return (Kills > 0 || Deaths > 0 || Teamkills > 0);
+                return Events > 0;
+                //return (Kills > 0 || Deaths > 0 || Teamkills > 0);
             }
         }
 
