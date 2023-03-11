@@ -1221,12 +1221,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1470,12 +1483,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1660,12 +1686,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1850,12 +1889,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -2015,12 +2067,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
