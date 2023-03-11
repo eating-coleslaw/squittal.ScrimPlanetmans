@@ -1000,11 +1000,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var teamOrdinal = (int)GetTeamOrdinalFromPlayerId(characterId);
             
-            var success = RemoveCharacterFromTeam(characterId);
+            var success = RemoveCharacterFromTeam(characterId, out var player);
 
             if (!success)
             {
                 return false;
+            }
+
+            // If player has no events, then there's nothing in the DB to update
+            if (!player.EventAggregate.HasEvents && !player.IsParticipating)
+            {
+                return true;
             }
 
             var TaskList = new List<Task>();
@@ -2055,12 +2061,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
         #endregion Remove Character Match Events From DB
 
-        private bool RemoveCharacterFromTeam(string characterId)
+        private bool RemoveCharacterFromTeam(string characterId, out Player removedPlayer)
         {
             var player = GetPlayerFromId(characterId);
 
             if (player == null)
             {
+                //wasParticipating = false;
+                removedPlayer = null;
+
                 return false;
             }
 
@@ -2070,6 +2079,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //{
             //    aliasLower = player.OutfitAliasLower;
             //}
+
+            //wasParticipating = (player.EventAggregate.Events > 0 || player.IsParticipating);
 
             if (RemovePlayerFromTeam(player))
             {
@@ -2124,10 +2135,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     UpdateTeamFaction(team.TeamOrdinal, null);
                 }
 
+                removedPlayer = player;
+                
                 return true;
             }
             else
             {
+                removedPlayer = null;
+
                 return false;
             }
         }
