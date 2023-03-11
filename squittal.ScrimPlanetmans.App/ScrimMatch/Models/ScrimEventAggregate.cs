@@ -176,7 +176,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return (Kills + Deaths + RevivesGiven + RevivesTaken + Assists + ObjectiveTicks + VehiclesDestroyed + VehiclesLost);
+                return (Kills
+                        + Deaths
+                        + Teamkills
+                        + RevivesGiven 
+                        + RevivesTaken
+                        + Assists
+                        + ObjectiveTicks
+                        + VehiclesDestroyed
+                        + VehiclesLost);
             }
         }
 
