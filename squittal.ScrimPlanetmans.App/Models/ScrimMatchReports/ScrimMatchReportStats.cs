@@ -121,7 +121,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimMatchReports
 
         public double FavorableEngagementCount =>
                         UnassistedKills
-                        + UnassistedEnemyDeaths
+                        + (UnassistedEnemyDeaths - (ReviveInstantDeaths * 0.5))
                         + AssistedKills
                         + (SpotAssistedOnlyKills * 0.25)
                         + ((DamageAssists - WeightedAssistedDeaths) / 2);
