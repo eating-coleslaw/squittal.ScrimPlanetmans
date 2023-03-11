@@ -43,6 +43,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public void AddToHistory(ScrimEventAggregateRoundTracker addend)
         {
+            _autoEvent.WaitOne();
+
             TotalStats.Add(addend.TotalStats);
             RoundStats.Add(addend.RoundStats);
 
@@ -72,6 +74,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
                     RoundHistory.Add(round, result);
                 }
             }
+
+            _autoEvent.Set();
         }
 
         public void SubtractFromHistory(ScrimEventAggregateRoundTracker subtrahend)
@@ -81,11 +85,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             //Console.WriteLine("ScrimEventAggregateRoundTracker => SubtractFromHistory");
 
             TotalStats.Subtract(subtrahend.TotalStats);
+            RoundStats.Subtract(subtrahend.RoundStats);
 
             var maxBaseRound = HighestRound;
             var maxSubtrahendRound = subtrahend.HighestRound;
 
-            RoundStats.Subtract(subtrahend.RoundStats);
 
             var maxRound = maxBaseRound >= maxSubtrahendRound
                                 ? maxBaseRound
@@ -93,7 +97,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             for (var round = 1; round <= maxRound; round++)
             {
-
                 var roundSubtrahend = new ScrimEventAggregate();
 
                 if (subtrahend.RoundHistory.ContainsKey(round))
@@ -202,7 +205,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             _autoEvent.Set();
         }
-
 
         private int GetHighestHistoryRound()
         {
