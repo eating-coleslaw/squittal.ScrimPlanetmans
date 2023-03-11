@@ -27,7 +27,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> RefreshOutfitPlayers(string aliasLower);
 
         bool RemoveOutfitFromTeam(string aliasLower);
-        bool RemoveCharacterFromTeam(string characterId);
+        //bool RemoveCharacterFromTeam(string characterId);
 
         void ClearAllTeams();
         void ClearTeam(int teamOrdinal);

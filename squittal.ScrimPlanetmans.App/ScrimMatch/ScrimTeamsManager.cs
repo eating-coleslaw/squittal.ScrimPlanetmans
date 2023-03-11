@@ -1033,7 +1033,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var revivesTask = RemoveCharacterMatchRevivesFromDb(characterId, teamOrdinal);
             TaskList.Add(revivesTask);
-            
+
             var damageAssistsTask = RemoveCharacterMatchDamageAssistsFromDb(characterId, teamOrdinal);
             TaskList.Add(damageAssistsTask);
             
@@ -1045,7 +1045,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await Task.WhenAll(TaskList);
 
-            await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId); // TODO: add this to TaskList?
+            await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId);
         }
 
         #region Remove Character Match Events From DB
@@ -1308,7 +1308,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     var allReviveEvents = await dbContext.ScrimRevives
                                                             .Where(e => e.ScrimMatchId == currentMatchId
                                                                         && (e.MedicCharacterId == characterId
-                                                                            || e.RevivedCharacterId == characterId))
+                                                                            || e.RevivedCharacterId == characterId
+                                                                            || e.LastKilledByCharacterId == characterId))
+                                                                            //|| (!string.IsNullOrWhiteSpace(e.LastKilledByCharacterId)
+                                                                            //    && e.LastKilledByCharacterId == characterId)))
                                                             .ToListAsync();
 
                     if (allReviveEvents == null || !allReviveEvents.Any())
@@ -1329,27 +1332,53 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                                     .Distinct()
                                                     .ToList();
 
-                    var distinctTeams = new List<int>();
-                    distinctTeams.Add(teamOrdinal);
+                    // TODO: Add LastKilledBy teams from the DB
+                    var enemyTeamOrdinal = GetEnemyTeamOrdinal(teamOrdinal);
+
+                    var distinctTeams = new List<int>
+                    {
+                        teamOrdinal,
+                        enemyTeamOrdinal
+                    };
                     distinctTeams.AddRange(distinctMedicTeams.Where(e => !distinctTeams.Contains(e)).ToList());
                     distinctTeams.AddRange(distinctRevivedTeams.Where(e => !distinctTeams.Contains(e)).ToList());
 
-
+                    // Players who were revived by the removed player
                     var distinctRevivedCharacterIds = allReviveEvents
-                                                .Where(e => e.MedicCharacterId == characterId)
-                                                .Select(e => e.RevivedCharacterId)
-                                                .Distinct()
-                                                .ToList();
+                                                        //.Where(e => e.MedicCharacterId == characterId)
+                                                        .Select(e => e.RevivedCharacterId)
+                                                        .Distinct()
+                                                        .ToList();
 
+                    // Medics who revived the removed player
                     var distinctMedicCharacterIds = allReviveEvents
-                                                    .Where(e => e.RevivedCharacterId == characterId)
+                                                    //.Where(e => e.RevivedCharacterId == characterId)
                                                     .Select(e => e.MedicCharacterId)
                                                     .Distinct()
                                                     .ToList();
 
-                    var distinctCharacterIds = new List<string>();
-                    distinctCharacterIds.AddRange(distinctMedicCharacterIds);
-                    distinctCharacterIds.AddRange(distinctRevivedCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
+                    // Attackers whose kill was undone by the removed player being revived or reviving the victim
+                    var distinctLastKilledByCharacterIds = allReviveEvents
+                                                            //.Where(e => e.MedicCharacterId == characterId
+                                                            //            || e.RevivedCharacterId ==  characterId)
+                                                            .Where(e => !string.IsNullOrWhiteSpace(e.LastKilledByCharacterId))
+                                                            .Select(e => e.LastKilledByCharacterId)
+                                                            .Distinct()
+                                                            .ToList();
+
+                    var distinctCharacterIds = new HashSet<string>()
+                    {
+                        characterId
+                    };
+
+                    distinctCharacterIds.UnionWith(distinctRevivedCharacterIds);
+                    distinctCharacterIds.UnionWith(distinctMedicCharacterIds);
+                    distinctCharacterIds.UnionWith(distinctLastKilledByCharacterIds);
+
+                    //var distinctCharacterIds = new List<string>();
+                    //distinctCharacterIds.AddRange(distinctMedicCharacterIds);
+                    //distinctCharacterIds.AddRange(distinctRevivedCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
+                    //distinctCharacterIds.AddRange(distinctLastKilledByCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
                     #endregion Set Up Distinct Interaction Target Lists
 
                     var teamUpdates = new Dictionary<int, ScrimEventAggregateRoundTracker>();
@@ -1378,13 +1407,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         {
                             var medicId = reviveEvent.MedicCharacterId;
                             var revivedId = reviveEvent.RevivedCharacterId;
+                            var killedById = reviveEvent.LastKilledByCharacterId;
 
                             var medicTeamOrdinal = reviveEvent.MedicTeamOrdinal;
                             var revivedTeamOrdinal = reviveEvent.RevivedTeamOrdinal;
+                            var killedByTeamOrdinal = GetTeamOrdinalFromPlayerId(killedById);
 
                             var points = reviveEvent.Points;
+                            var enemyPoints = reviveEvent.EnemyPoints;
 
-                            var characterIsRevived = (revivedId == characterId);
+                            //var characterIsRevived = (revivedId == characterId);
+
+                            var lastDeathWasToEnemy = true;
+                            if (killedByTeamOrdinal.HasValue && killedByTeamOrdinal.Value == revivedTeamOrdinal)
+                            {
+                                lastDeathWasToEnemy = false;
+                            }
 
                             var medicUpdate = new ScrimEventAggregate()
                             {
@@ -1395,8 +1433,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                             var revivedUpdate = new ScrimEventAggregate()
                             {
-                                NetScore = -points,
+                                NetScore = -enemyPoints,
                                 RevivesTaken = 1
+                            };
+
+                            var killerUpdate = new ScrimEventAggregate()
+                            {
+                                Points = enemyPoints,
+                                NetScore = enemyPoints,
+                                EnemyRevivesAllowed = 1,
+                                KillsUndoneByRevive = (!string.IsNullOrWhiteSpace(killedById) && lastDeathWasToEnemy) ? 1 : 0
                             };
 
                             teamUpdates[medicTeamOrdinal].AddToCurrent(medicUpdate);
@@ -1404,6 +1450,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                             teamUpdates[revivedTeamOrdinal].AddToCurrent(revivedUpdate);
                             playerUpdates[revivedId].AddToCurrent(revivedUpdate);
+
+                            if (!string.IsNullOrWhiteSpace(killedById) && killedByTeamOrdinal.HasValue)
+                            {
+                                teamUpdates[killedByTeamOrdinal.Value].AddToCurrent(killerUpdate);
+                                playerUpdates[killedById].AddToCurrent(killerUpdate);
+                            }
+                            else if (string.IsNullOrWhiteSpace(killedById) || !killedByTeamOrdinal.HasValue)
+                            {
+                                teamUpdates[enemyTeamOrdinal].AddToCurrent(killerUpdate);
+                            }
                         }
 
                         foreach (var team in distinctTeams)
@@ -1999,7 +2055,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
         #endregion Remove Character Match Events From DB
 
-        public bool RemoveCharacterFromTeam(string characterId)
+        private bool RemoveCharacterFromTeam(string characterId)
         {
             var player = GetPlayerFromId(characterId);
 
@@ -2132,7 +2188,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         continue;
                     }
 
-                    if (!player.EventAggregateTracker.RoundHistory.Any() || player.EventAggregate.Events == 0)
+                    //if (!player.EventAggregateTracker.RoundHistory.Any() || player.EventAggregate.Events == 0)
+                    if (player.EventAggregate.Events == 0)
                     {
                         var playerTask = SetPlayerParticipatingStatus(playerId, false);
                         TaskList.Add(playerTask);
@@ -2835,6 +2892,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public int? GetTeamOrdinalFromPlayerId(string characterId)
         {
+            if (string.IsNullOrWhiteSpace(characterId))
+            {
+                return null;
+            }
+            
             if (PlayerTeamOrdinalsMap.TryGetValue(characterId, out var teamOrdinal))
             {
                 return teamOrdinal;
@@ -2949,9 +3011,21 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return false;
         }
 
-        public bool TryRemovePlayerLastKilledBy(string victimId)
+        private bool TryRemovePlayerLastKilledBy(string victimId)
         {
-            return PlayerLastKilledByMap.TryRemove(victimId, out var attackerId);
+            var removedKey = PlayerLastKilledByMap.TryRemove(victimId, out var attackerId);
+
+            var otherVictims = PlayerLastKilledByMap.Where(kv => kv.Value == victimId).Select(kv => kv.Key).ToHashSet();
+
+            var removedOtherVictims = false;
+
+            foreach (var victim in otherVictims)
+            {
+                var success = PlayerLastKilledByMap.TryRemove(victim, out var _);
+                removedOtherVictims = (success || removedOtherVictims);
+            }
+
+            return (removedKey || removedOtherVictims);
         }
 
         public void ClearPlayerLastKilledByMap()
