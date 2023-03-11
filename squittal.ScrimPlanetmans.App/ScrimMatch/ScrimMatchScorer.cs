@@ -306,6 +306,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 KillsUndoneByRevive = (lastKilledByPlayer != null && lastDeathWasToEnemy) ? 1 : 0
             };
 
+            revivedUpdate.NetScore = -enemyPoints;
+
             if (lastKilledByPlayer != null)
             {
                 await _teamsManager.UpdatePlayerStats(lastKilledByPlayer.Id, enemyReviveUpdate);
