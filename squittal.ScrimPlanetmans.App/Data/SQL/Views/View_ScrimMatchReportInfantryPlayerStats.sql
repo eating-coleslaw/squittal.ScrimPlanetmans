@@ -291,6 +291,6 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerStats AS
                               COUNT(1) as KillsUndoneByRevive,
                               SUM(EnemyPoints) as KillsUndoneByRevivePoints
                            FROM [dbo].ScrimRevive revive
-                          GROUP BY ScrimMatchId, ScrimMatchRound, LastKilledByCharacterId) revives_undone_sums
+                          GROUP BY ScrimMatchId, LastKilledByCharacterId) revives_undone_sums
         ON match_players.ScrimMatchId = revives_undone_sums.ScrimMatchId
           AND match_players.CharacterId = revives_undone_sums.LastKilledByCharacterId
