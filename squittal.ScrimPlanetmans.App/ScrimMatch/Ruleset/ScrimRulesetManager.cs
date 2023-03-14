@@ -726,6 +726,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             return new RulesetItemRule[]
             {
+                /* These items are no longer in the Census API
+                   6009459
+                   6009524
+                   6009583
+                   803008
+                 */
+                
                 // One-Hit Knives
                 BuildRulesetItemRule(271, 2, 0, true),     // Carver
                 BuildRulesetItemRule(285, 2, 0, true),     // Ripper
@@ -744,7 +751,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 BuildRulesetItemRule(1869, 8, 0, true),      // 19A Fortuna 
                 BuildRulesetItemRule(1914, 8, 0, true),      // TRAC-Shot 
                 BuildRulesetItemRule(6005967, 157, 0, true), // NSX-A Kuwa 
-                BuildRulesetItemRule(6009583, 17, 0, true),  // Infernal Grenade 
+                //BuildRulesetItemRule(6009583, 17, 0, true),  // Infernal Grenade 
                 BuildRulesetItemRule(6003418, 17, 0, true),  // NSX Fujin 
                 BuildRulesetItemRule(802025, 2, 0, true),    // Auraxium Slasher 
                 BuildRulesetItemRule(800626, 2, 0, true),    // Auraxium Force-Blade 
@@ -815,7 +822,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 BuildRulesetItemRule(6004992, 11, 0, true), // NS-AM8 Shortbow 
 
                 // Campaign Reward Weapons
-                BuildRulesetItemRule(6009524, 17, 0, true), // Condensate Grenade 
+                //BuildRulesetItemRule(6009524, 17, 0, true), // Condensate Grenade 
                 BuildRulesetItemRule(6009515, 2, 0, true),  // NS Icebreaker 
                 BuildRulesetItemRule(6009516, 2, 0, true),  // NS Icebreaker 
                 BuildRulesetItemRule(6009517, 2, 0, true),  // NS Icebreaker 
@@ -825,7 +832,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 // Misc. Weapons
                 BuildRulesetItemRule(6050, 17, 0, true),    // Decoy Grenade 
                 BuildRulesetItemRule(6004750, 17, 0, true), // Flamewake Grenade 
-                BuildRulesetItemRule(6009459, 17, 0, true), // Lightning Grenade 
+                //BuildRulesetItemRule(6009459, 17, 0, true), // Lightning Grenade 
                 BuildRulesetItemRule(6005472, 17, 0, true), // NSX Raijin 
                 BuildRulesetItemRule(6005304, 17, 0, true), // Smoke Grenade 
                 BuildRulesetItemRule(882, 17, 0, true),     // Sticky Grenade 
@@ -845,7 +852,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 BuildRulesetItemRule(75517, 3, 0, true),  // NC Patriot Flare Gun 
                 BuildRulesetItemRule(803007, 3, 0, true), // NC Triumph Flare Gun 
                 BuildRulesetItemRule(75519, 3, 0, true),  // TR Patriot Flare Gun 
-                BuildRulesetItemRule(803008, 3, 0, true)  // TR Triumph Flare Gun 
+                //BuildRulesetItemRule(803008, 3, 0, true)  // TR Triumph Flare Gun 
             };
         }
 
