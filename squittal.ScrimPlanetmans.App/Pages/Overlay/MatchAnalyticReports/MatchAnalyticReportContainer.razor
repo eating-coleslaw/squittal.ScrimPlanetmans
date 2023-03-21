@@ -168,7 +168,7 @@
                                                     <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
                                                         @*<div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 33% 34%;">*@
                                                         <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
-                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-55);">Kills</div>
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Kills</div>
                                                             <div style="grid-row: 2; grid-column: 1; text-align: right;">Secured</div>
                                                             <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
                                                             @*<div style="grid-row: 2; grid-column: 3; text-align: right;">Post-Rev.</div>*@
@@ -177,7 +177,7 @@
 
                                                     <th colspan="2" style="font-weight: 300; width: 120px;" title="Deaths">
                                                         <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
-                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-55);">Deaths</div>
+                                                            <div style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; background: var(--sq-ov-bg-dark-gray-alpha-90);">Deaths</div>
                                                             <div style="grid-row: 2; grid-column: 1; text-align: right;">Final</div>
                                                             <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
                                                         </div>
@@ -325,7 +325,7 @@
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.ReviveInstantDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.ReviveInstantDeaths</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.PostReviveKills</td>
                                                         @*<td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>*@
                                                     }
@@ -353,7 +353,7 @@
 
                                             @if (team.FacilityCapturePoints != 0)
                                             {
-                                                <tr class="clickable-row @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
+                                                <tr class="@SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="background-color: transparent;">
                                                     <td style="padding-left: 10px;"></td>
                                                     <td colspan="1" style="text-align: left;">Captures</td>
                                                     <td>@team.FacilityCapturePoints</td>
@@ -572,7 +572,7 @@
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.Deaths));">@player.Deaths</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.RevivesGiven</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.ConfirmedDeaths));">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
-                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesGiven));">@player.ReviveInstantDeaths</td>
+                                                        <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.ReviveInstantDeaths</td>
                                                         <td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.PostReviveKills</td>
                                                         @*<td style="padding-top: 0px; opacity: @(GetStatOpacity(player.RevivesTaken));">@player.RevivesTaken</td>*@
                                                     }
