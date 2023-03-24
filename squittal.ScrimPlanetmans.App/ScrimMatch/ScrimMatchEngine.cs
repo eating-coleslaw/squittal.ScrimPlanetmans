@@ -333,6 +333,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _wsMonitor.EnableScoring();
 
             SendMatchStateUpdateMessage();
+
+            _logger.LogInformation($"Match Configuration Settings:\n            Title: {MatchConfiguration.Title} (IsManual={MatchConfiguration.IsManualTitle})\n            Round Length: {MatchConfiguration.RoundSecondsTotal} (IsManual={MatchConfiguration.IsManualRoundSecondsTotal})\n            Point Target: {MatchConfiguration.TargetPointValue} (IsManual={MatchConfiguration.IsManualTargetPointValue})\n            Periodic Control Points: {MatchConfiguration.PeriodicFacilityControlPoints} (IsManual={MatchConfiguration.IsManualPeriodicFacilityControlPoints})\n            Periodic Control Interval: {MatchConfiguration.PeriodicFacilityControlInterval} (IsManual={MatchConfiguration.IsManualPeriodicFacilityControlInterval})\n            World ID: {MatchConfiguration.WorldIdString} (IsManual={MatchConfiguration.IsManualWorldId})\n            Facility ID: {MatchConfiguration.FacilityIdString}\n            World ID: {MatchConfiguration.WorldIdString} (IsManual={MatchConfiguration.IsManualWorldId})\n            End Round on Capture?: {MatchConfiguration.EndRoundOnFacilityCapture} (IsManual={MatchConfiguration.IsManualEndRoundOnFacilityCapture})");
         }
 
         public void PauseRound()
