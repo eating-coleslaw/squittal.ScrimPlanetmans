@@ -1380,6 +1380,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                         ControlType = controlEvent.ControlType,
                         ControllingFactionId = (int)controllingFaction,
                         ZoneId = controlEvent.ZoneId != null ? controlEvent.ZoneId : (int?)null,
+                        FacilityId = payload.FacilityId,
                         WorldId = payload.WorldId,
                         Points = controlEvent.Points,
                     };
