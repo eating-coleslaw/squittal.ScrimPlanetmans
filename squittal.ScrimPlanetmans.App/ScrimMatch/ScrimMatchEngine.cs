@@ -38,6 +38,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private int _currentRound = 0;
 
         private MatchTimerTickMessage _latestTimerTickMessage;
+        private PeriodicPointsTimerStateMessage _latestPeriodicPointsTimerTickMessage;
+        private ScrimFacilityControlActionEventMessage _latestFacilityControlMessage;
 
         private MatchState _matchState = MatchState.Uninitialized;
 
@@ -250,6 +252,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _matchStartTime = DateTime.UtcNow;
             FacilityControlTeamOrdinal = null;
+            _latestFacilityControlMessage = null;
+            _latestPeriodicPointsTimerTickMessage = null;
 
             CurrentSeriesMatch++;
 
@@ -297,6 +301,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             _matchDataService.CurrentMatchRound = _currentRound;
 
             FacilityControlTeamOrdinal = null;
+            _latestFacilityControlMessage = null;
+            _latestPeriodicPointsTimerTickMessage = null;
 
             if (MatchConfiguration.EnableRoundTimeLimit)
             {
@@ -388,6 +394,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             FacilityControlTeamOrdinal = null;
+            _latestFacilityControlMessage = null;
+            _latestPeriodicPointsTimerTickMessage = null;
 
             _matchDataService.CurrentMatchRound = _currentRound;
 
@@ -426,9 +434,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private void OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
-            SetLatestTimerTickMessage(e.Message);
+            
+            //SetLatestTimerTickMessage(e.Message);
+            _latestTimerTickMessage = e.Message;
         }
-
+        
         public bool IsRunning()
         {
             return _isRunning;
@@ -454,15 +464,30 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _latestTimerTickMessage;
         }
 
+        public PeriodicPointsTimerStateMessage GetLatestPeriodicPointsTimerTickMessage()
+        {
+            return _latestPeriodicPointsTimerTickMessage;
+        }
+
+        public ScrimFacilityControlActionEventMessage GetLatestFacilityControlMessage()
+        {
+            return _latestFacilityControlMessage;
+        }
+
+        public int? GetFacilityControlTeamOrdinal()
+        {
+            return FacilityControlTeamOrdinal;
+        }
+
         private bool CanChangeRuleset()
         {
             return (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning);
         }
 
-        private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
-        {
-            _latestTimerTickMessage = value;
-        }
+        //private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
+        //{
+        //    _latestTimerTickMessage = value;
+        //}
 
         private void OnTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
         {
@@ -560,6 +585,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 _captureAutoEvent.WaitOne();
 
+                _latestFacilityControlMessage = e.Message;
+
                 FacilityControlTeamOrdinal = controlEvent.ControllingTeamOrdinal;
                 _logger.LogInformation($"FacilityControlTeamOrdinal: {controlEvent.ControllingTeamOrdinal}");
 
@@ -582,7 +609,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private async Task OnPeriodiocPointsTimerTick(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
         {
             _logger.LogInformation($"Received PeriodPointsTimerStateMessage");
-            
+
+            _latestPeriodicPointsTimerTickMessage = e.Message;
+
             //var timestamp = DateTime.Now;
 
             //if (!MatchConfiguration.EnablePeriodicFacilityControlRewards || !FacilityControlTeamOrdinal.HasValue)
@@ -595,7 +624,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //    return;
             //}
 
-            if (MatchConfiguration.EnablePeriodicFacilityControlRewards && FacilityControlTeamOrdinal.HasValue && _isRunning)
+            if (e.Message.PeriodElapsed && MatchConfiguration.EnablePeriodicFacilityControlRewards && FacilityControlTeamOrdinal.HasValue && _isRunning)
             {
                 #pragma warning disable CS4014
                 Task.Run(() =>

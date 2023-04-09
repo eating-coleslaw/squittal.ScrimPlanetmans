@@ -51,7 +51,7 @@
 
     <div class="series-tally-container" style="@(GetSeriesTallyMarginString())">
         <div class="team team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
-            @foreach(var matchResult in _teamSeriesResults1)
+            @foreach (var matchResult in _teamSeriesResults1)
             {
                 <div class="tally @GetSeriesMatchTallyCssClass(matchResult.ResultType)"></div>
             }
@@ -59,9 +59,9 @@
             {
                 <div class="tally @GetSeriesMatchTallyCssClass(null)"></div>
             }
-            
+
         </div>
-        
+
         <div class="team team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
             @foreach (var matchResult in _teamSeriesResults2)
             {
@@ -73,6 +73,29 @@
             }
 
         </div>
+
+        @*<div style="grid-area: blank; background-color: var(--sq-ov-semantic-orange); height: 6px; margin: auto 0; border: 1px solid var(--sq-yellow);"></div>*@
+        @*<div style="grid-area: blank;">
+            <div style=" background-color: var(--sq-ov-semantic-orange); height: 6px; margin: auto 0; border: 1px solid var(--sq-yellow); transform-origin: center center; animation: 7s linear 0s infinite reverse forwards respawnIn;"></div>
+            <div class="capture-flag-container" style="background-color: var(--sq-ov-semantic-orange); border-radius: 2rem; width: 17px; height: 16px; position: relative; top: -11px; border: 1px solid var(--sq-yellow); animation: 1s ease-out infinite normal forwards periodicControlTickFlash;">
+                <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false" style="color: var(--sq-ov-bg-dark-gray-alpha-90); font-size: 12px; filter: none; margin-top: -10px; margin-left: 1px;"></span>
+            </div>
+        </div>*@
+        <PeriodControlTickProgressBar MatchState="_matchState" SecondsPerTick="_periodicPointsInterval" PointsPerTick="@_periodicPointsValue"/>
+        @if (_isPeriodPointsEnabled)
+        { 
+        }
+        <!--<div class="periodic-control-progress-container">-->
+            @*<div style=" background-color: var(--sq-ov-semantic-orange); height: 5px; /*! margin: auto 0; */ /*! border: 1px solid var(--sq-yellow); */ transform-origin: center right; animation: 7s linear 0s infinite reverse forwards pointControlTickProgressLeft;width: 50%;display: inline-block;background: linear-gradient(90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);border-bottom: 1px solid #F8BA0FA0;position: relative;top: -11px;"></div>*@
+            @*<div style=" background-color: var(--sq-ov-semantic-orange); height: 5px; /*! margin: auto 0; */ /*! border: 1px solid var(--sq-yellow); */ transform-origin: center left; animation: 7s linear 0s infinite reverse forwards pointControlTickProgressRight;width: 50%;display: inline-block;background: linear-gradient(-90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);border-bottom: 1px solid #F8BA0FA0;position: relative;top: -11px;"></div>*@
+            <!--<div class="tick-bar left"></div><div class="tick-bar right"></div>
+            <div style="width: 0; height: 0; position: relative; left: calc(50% - 8px); top: -16px;">
+                <div class="capture-flag-container nc" style="border-radius: 2rem; width: 17px; height: 16px; position: relative; top: -12px; position: relative;" >
+                    <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false" style="color: var(--sq-ov-bg-dark-gray-alpha-90); font-size: 12px; filter: drop-shadow(-1px 0px 1px var(--sq-black)); margin-top: -10px; margin-left: 1px; color: var(--sq-ov-ps2-primary);"></span>
+                </div>
+            </div>
+        </div>-->
+
     </div>
 
 </div>
@@ -117,6 +140,10 @@
     private int? _pointTarget { get; set; }
     private bool _shouldShowPointTarget { get; set; } = false;
     private bool _shouldShowMatchTimer { get; set; } = false;
+
+    private bool _isPeriodPointsEnabled { get; set; } = false;
+    private int _periodicPointsInterval { get; set; }
+    private int _periodicPointsValue { get; set; }
 
     private string _teamPointBarTransform1 { get; set; } = "scaleX(0)";
     private string _teamPointBarTransform2 { get; set; } = "scaleX(0)";
@@ -213,6 +240,10 @@
         _currentRound = ScrimMatchEngine.GetCurrentRound();
         _shouldShowPointTarget = ScrimMatchEngine.MatchConfiguration.EndRoundOnPointValueReached;
         _shouldShowMatchTimer = ScrimMatchEngine.MatchConfiguration.EnableRoundTimeLimit;
+
+        _isPeriodPointsEnabled = ScrimMatchEngine.MatchConfiguration.EnablePeriodicFacilityControlRewards;
+        _periodicPointsInterval = ScrimMatchEngine.MatchConfiguration.PeriodicFacilityControlIntervalNonNullable;
+        _periodicPointsValue = ScrimMatchEngine.MatchConfiguration.PeriodicFacilityControlPointsNonNullable;
 
         _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
         _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
@@ -424,6 +455,8 @@
 
     private void UpdateTeamsControlCounts()
     {
+        //_teamControls1 = 2; // ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(1);
+        //_teamControls2 = 4; // ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(2);
         _teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(1);
         _teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(2);
     }

@@ -16,9 +16,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
         public TimerState State { get; private set; }
         public bool IsRunning { get; private set; } = false;
 
+
         public int PeriodSeconds { get; private set; } = Timeout.Infinite; //- 1;
         private int PeriodMilliseconds => PeriodSeconds == Timeout.Infinite ? Timeout.Infinite : PeriodSeconds * 1000;
 
+        public DateTime? LastElapsedTime { get; private set; } = null;
+        public DateTime? LastPausedTime { get; private set; } = null;
+        public DateTime? LastResumedTime { get; private set; } = null;
 
         // For handling pauses
         private DateTime _prevTickTime;
@@ -49,6 +53,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             }
 
             State = TimerState.Configuring;
+
+            LastElapsedTime = null;
+            LastPausedTime = null;
+            LastResumedTime = null;
 
             if (timeSpan.HasValue)
             {
@@ -88,8 +96,13 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             State = TimerState.Starting;
 
+            LastElapsedTime = DateTime.UtcNow;
+            LastPausedTime = null;
+            LastResumedTime = null;
+
             // Immediately start the clock
-            _timer.Change(0, PeriodMilliseconds);
+            //_timer.Change(0, PeriodMilliseconds);
+            _timer.Change(PeriodMilliseconds, PeriodMilliseconds);
 
             IsRunning = true;
 
@@ -117,7 +130,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 return;
             }
 
-            _timer.Change(Timeout.Infinite, PeriodMilliseconds);
+            LastElapsedTime = null;
+            LastPausedTime = null;
+            LastResumedTime = null;
+
+            //_timer.Change(Timeout.Infinite, PeriodMilliseconds);
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
 
             IsRunning = false;
 
@@ -143,13 +161,29 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 return;
             }
 
-            var now = DateTime.UtcNow;
-            _resumeDelayMs = (int)(now - _prevTickTime).TotalMilliseconds;
-
-            _timer.Change(Timeout.Infinite, PeriodMilliseconds);
-
             IsRunning = false;
+            State = TimerState.Pausing;
 
+            //_timer.Change(Timeout.Infinite, PeriodMilliseconds);
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+            var now = DateTime.UtcNow;
+            //_resumeDelayMs = PeriodMilliseconds - (int)(now - _prevTickTime).TotalMilliseconds;
+
+            //_logger.LogInformation($"now: {now}");
+            //_logger.LogInformation($"LastElapsedTime: {LastElapsedTime.Value}");
+            //_logger.LogInformation($"PeriodMilliseconds: {PeriodMilliseconds}");
+
+            _resumeDelayMs = PeriodMilliseconds - (int)(now - LastElapsedTime.Value).TotalMilliseconds;
+
+            if (_resumeDelayMs < 0)
+            {
+                _resumeDelayMs = 0;
+            }
+
+            LastPausedTime = now;
+
+            //IsRunning = false;
             State = TimerState.Paused;
 
             BroadcastEvent(false);
@@ -173,7 +207,34 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             State = TimerState.Resuming;
 
+            LastResumedTime = DateTime.UtcNow;
+
+            ////*******************************************
+            //var currentTime = DateTime.UtcNow;
+
+            //// Step 1: Current Time - Last Tick Time
+            //var millisecondsFromLastElapsed = (int)(currentTime - LastElapsedTime.Value).TotalMilliseconds;
+
+            //// Step 2: Get pause delay, if there is one
+            //int pauseDelayMilliseconds = 0;
+
+            //if (LastPausedTime.HasValue && LastResumedTime.HasValue)
+            //{
+            //    pauseDelayMilliseconds = (int)(LastResumedTime.Value - LastPausedTime.Value).TotalMilliseconds;
+            //}
+
+            //var updateDelayMilliseconds = PeriodMilliseconds - (millisecondsFromLastElapsed - pauseDelayMilliseconds);
+
+            ////if (updateDelayMilliseconds < Timeout.Infinite)
+            ////{
+            ////    updateDelayMilliseconds = 0;
+            ////}
+            ////*******************************************
+
+            //_logger.LogInformation($"_resumeDelayMs: {_resumeDelayMs}");
+
             _timer.Change(_resumeDelayMs, PeriodMilliseconds);
+            //_timer.Change(updateDelayMilliseconds, PeriodMilliseconds);
 
             IsRunning = false;
 
@@ -197,6 +258,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 return;
             }
 
+
             if (PeriodSeconds != Timeout.Infinite)
             {
                 Configure(TimeSpan.FromSeconds(PeriodSeconds));
@@ -205,6 +267,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             {
                 Configure(Timeout.InfiniteTimeSpan);
             }
+
+            LastElapsedTime = null;
+            LastPausedTime = null;
+            LastResumedTime = null;
 
             _logger.LogInformation($"Periodic Timer Reset");
         }
@@ -223,6 +289,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             }
 
             State = TimerState.Restarting;
+
+            LastElapsedTime = DateTime.UtcNow;
+            LastPausedTime = null;
+            LastResumedTime = null;
 
             // Immediately start the clock
             //_timer.Change(0, PeriodMilliseconds);
@@ -256,7 +326,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
             State = TimerState.Halting;
 
-            _timer.Change(Timeout.Infinite, PeriodMilliseconds);
+            //_timer.Change(Timeout.Infinite, PeriodMilliseconds);
+            _timer.Change(Timeout.Infinite,  Timeout.Infinite);
+
+            LastElapsedTime = null;
+            LastPausedTime = null;
+            LastResumedTime = null;
 
             IsRunning = false;
 
@@ -276,6 +351,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             if (ShouldProcessTick())
             {
                 _prevTickTime = DateTime.UtcNow;
+
+                LastElapsedTime = _prevTickTime;
+                LastPausedTime = null;
+                LastResumedTime = null;
 
                 _autoEvent.Set();
 
@@ -308,6 +387,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 TimerState.Configuring => false,
                 TimerState.Configured => false,
                 TimerState.Restarting => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -343,6 +423,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
                 TimerState.Restarting => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -368,6 +449,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
                 TimerState.Restarting => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -388,6 +470,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 TimerState.Halting => false,
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -408,6 +491,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
                 TimerState.Configuring => false,
                 TimerState.Configured => false,
                 TimerState.Restarting => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }

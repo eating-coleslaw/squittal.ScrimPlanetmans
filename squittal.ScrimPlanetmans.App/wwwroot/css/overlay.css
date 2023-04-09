@@ -738,6 +738,51 @@ body {
     }
 }
 
+/*@keyframes pointControlTickProgressLeft {
+    0% {*/
+        /*background: rgba(248,194,117, 0.8);*/
+        /*transform: scaleX(0);
+    }
+
+    100% {*/
+        /*background: linear-gradient(90deg, rgba(248,194,117, 0.25) 0%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 15%, rgba(248,194,117, 0.8) 100%);*/
+        /*transform: scaleX(1);
+    }
+}
+
+@keyframes pointControlTickProgressRight {
+    0% {*/
+        /*background: rgba(248,194,117, 0.8);*/
+        /*transform: scaleX(0);
+    }
+
+    100% {*/
+        /*background: linear-gradient(-90deg, rgba(248,194,117, 0.25) 0%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 15%, rgba(248,194,117, 0.8) 100%);*/
+        /*background: linear-gradient(-160deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 35%, rgba(248,194,117, 0.9) 100%);*/
+        /*transform: scaleX(1);
+    }
+}
+
+@keyframes periodicControlTickFlash {
+    0% {
+        background-color: var(--sq-ov-semantic-orange);*/ /*#FFF; */
+    /*}
+
+    100% {
+        background-color: var(--sq-ov-ps2-primary);*/ /* var(--sq-ov-semantic-orange);*/
+    /*}
+}
+
+@keyframes delayFrams {
+    0% {
+        background-color: var(--sq-ov-semantic-orange);
+    }
+
+    100% {
+        background-color: var(--sq-ov-semantic-orange);
+    }
+}*/
+
 /**********************
     Scoreboard
 ***********************/
@@ -996,7 +1041,88 @@ body {
     text-shadow: 0px 0px 2px var(--sq-ov-bg-dark-gray-alpha-33) !important;
 }
 
+.overlay .series-tally-container .periodic-control-progress-container {
+    grid-area: blank;
+    height: 24px;
+    /*padding-top: 6px;*/
+}
 
+    .overlay .series-tally-container .periodic-control-progress-container .legend-container {
+        width: 100%;
+        height: 0;
+        position: relative;
+        left: calc(50% - 64px);
+        top: -28px;
+        white-space: nowrap;
+        display: grid;
+        grid-auto-columns: 50% 50%;
+        grid-template-areas: "left right";
+        color: var(--sq-ov-ps2-primary);
+    }
+
+        .overlay .series-tally-container .periodic-control-progress-container .legend-container .points {
+            /*font-size: 12px;*/
+            font-size: 16px;
+            /*filter: drop-shadow(-1px 0px 1px var(--sq-black));*/
+            filter: drop-shadow(-1px 0px 0px var(--sq-black));
+            color: var(--sq-ov-ps2-primary);
+            display: inline;
+            position: relative;
+            /*top: -3px;*/
+            top: -4px;
+            height: 12px;
+            grid-area: left;
+            text-align: right;
+        }
+
+        .overlay .series-tally-container .periodic-control-progress-container .legend-container .flag {
+            width: 17px;
+            /*height: 16px;*/
+            height: 12px;
+            position: relative;
+            /*top: -1px;*/
+            top: 1px;
+            grid-area: right;
+            text-align: left;
+            display: inline;
+            font-size: 16px !important;
+        }
+
+            .overlay .series-tally-container .periodic-control-progress-container .legend-container .flag .capture-flag {
+                /*color: var(--sq-ov-bg-dark-gray-alpha-90);*/
+                color: var(--sq-ov-ps2-primary);
+                filter: drop-shadow(-1px 0px 0px var(--sq-black)) !important;
+                font-size: 16px !important;
+                margin-top: -10px;
+                margin-left: 1px;
+            }
+
+
+    .overlay .series-tally-container .periodic-control-progress-container .tick-bar {
+        height: 6px;
+        width: 50%;
+        display: inline-block;
+        /*border-bottom: 1px solid var(--sq-yellow);*/
+        /*border-bottom: 1px solid #F8BA0FA0;*/
+        border-top: 1px solid rgba(248,194,117, 0.25);
+        position: relative;
+        top: -10px;
+        transition: transform 0.25s linear;
+    }
+
+        .overlay .series-tally-container .periodic-control-progress-container .tick-bar.left {
+            transform-origin: center right;
+            /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressLeft;*/
+            /*background: linear-gradient(175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
+            background: linear-gradient(90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
+        }
+
+    .overlay .series-tally-container .periodic-control-progress-container .tick-bar.right {
+        transform-origin: center left;
+        /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressRight;*/
+        /*background: linear-gradient(-175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
+        background: linear-gradient(-90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
+    }
 
 
 .inactiveWhiteText {

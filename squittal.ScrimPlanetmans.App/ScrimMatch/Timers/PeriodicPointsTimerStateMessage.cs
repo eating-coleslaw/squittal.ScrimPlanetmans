@@ -17,6 +17,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
         //public string TimerDisplay { get; private set; }
 
         public bool PeriodElapsed { get; private set; }
+        public DateTime Timestamp { get; private set; }
+
+        public DateTime? LastElapsedTime { get; private set; } = null;
+        public DateTime? LastPausedTime { get; private set; } = null;
+        public DateTime? LastResumedTime { get; private set; } = null;
 
         public PeriodicPointsTimerStateMessage(PeriodicPointsTimer timer, bool periodElapsed = false)
         {
@@ -25,6 +30,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             State = timer.State;
             PeriodSeconds = timer.PeriodSeconds;
 
+            LastElapsedTime = timer.LastElapsedTime;
+            LastPausedTime = timer.LastPausedTime;
+            LastResumedTime = timer.LastResumedTime;
+
             //SecondsMax = timer.Tracker.SecondsMax;
             //SecondsRemaining = timer.Tracker.SecondsRemaining;
             //SecondsElapsed = timer.Tracker.SecondsElapsed;
@@ -32,6 +41,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
             //TimerDisplay = timer.Tracker.ToString();
 
             PeriodElapsed = periodElapsed;
+            Timestamp = DateTime.UtcNow;
         }
     }
 }

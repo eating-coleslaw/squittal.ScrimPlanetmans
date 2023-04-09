@@ -1,6 +1,7 @@
 ﻿using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using System.Threading.Tasks;
 
 namespace squittal.ScrimPlanetmans.ScrimMatch
@@ -27,5 +28,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         void SubmitPlayersList();
         string GetMatchId();
+        PeriodicPointsTimerStateMessage GetLatestPeriodicPointsTimerTickMessage();
+        ScrimFacilityControlActionEventMessage GetLatestFacilityControlMessage();
+        int? GetFacilityControlTeamOrdinal();
     }
 }
