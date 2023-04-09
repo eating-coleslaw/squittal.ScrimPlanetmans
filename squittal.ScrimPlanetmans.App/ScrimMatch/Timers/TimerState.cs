@@ -13,6 +13,7 @@
         Stopped,
         Halting,
         Resuming,
-        Restarting
+        Restarting,
+        Pausing
     }
 }
