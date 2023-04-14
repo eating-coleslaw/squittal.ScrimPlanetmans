@@ -7,7 +7,8 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
 {
     public interface IOverlayStateService
     {
-        Guid GetActivePeriodicPointsProgressBarGuid();
+        void InactivatePeriodicPointsProgressBarGuid(Guid guid);
+        bool IsActivePeriodicPointsProgressBarGuid(Guid guid);
         void SetActivePeriodicPointsProgressBarGuid(Guid newGuid);
     }
 }
