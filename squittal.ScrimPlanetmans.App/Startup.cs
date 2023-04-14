@@ -96,6 +96,8 @@ namespace squittal.ScrimPlanetmans.App
             services.AddSingleton<IPeriodicPointsTimer, PeriodicPointsTimer>();
             services.AddSingleton<IScrimRoundEndCheckerService, ScrimRoundEndCheckerService>();
 
+            services.AddSingleton<IOverlayStateService, OverlayStateService>();
+
             services.AddTransient<IStreamClient, StreamClient>();
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
             services.AddSingleton<IWebsocketMonitor, WebsocketMonitor>();

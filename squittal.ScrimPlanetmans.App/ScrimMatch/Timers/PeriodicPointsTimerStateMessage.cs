@@ -4,6 +4,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 {
     public class PeriodicPointsTimerStateMessage
     {
+        public Guid Guid { get; private set; }
         public string TimerName { get; private set; }
         public TimerState State { get; private set; }
         public TimerDirection Direction { get; private set; }
@@ -25,6 +26,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Timers
 
         public PeriodicPointsTimerStateMessage(PeriodicPointsTimer timer, bool periodElapsed = false)
         {
+            Guid = Guid.NewGuid();
+
             TimerName = timer.TimerName;
             IsRunning = timer.IsRunning;
             State = timer.State;

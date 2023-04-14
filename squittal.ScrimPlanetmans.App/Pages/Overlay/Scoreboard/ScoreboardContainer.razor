@@ -81,10 +81,12 @@
                 <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false" style="color: var(--sq-ov-bg-dark-gray-alpha-90); font-size: 12px; filter: none; margin-top: -10px; margin-left: 1px;"></span>
             </div>
         </div>*@
-        <PeriodControlTickProgressBar MatchState="_matchState" SecondsPerTick="_periodicPointsInterval" PointsPerTick="@_periodicPointsValue"/>
-        @if (_isPeriodPointsEnabled)
+        @*<PeriodControlTickProgressBar MatchState="_matchState" SecondsPerTick="_periodicPointsInterval" PointsPerTick="@_periodicPointsValue"/>*@
+        @if(_isPeriodPointsEnabled)
         { 
+            <PeriodControlTickProgressBar />
         }
+
         <!--<div class="periodic-control-progress-container">-->
             @*<div style=" background-color: var(--sq-ov-semantic-orange); height: 5px; /*! margin: auto 0; */ /*! border: 1px solid var(--sq-yellow); */ transform-origin: center right; animation: 7s linear 0s infinite reverse forwards pointControlTickProgressLeft;width: 50%;display: inline-block;background: linear-gradient(90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);border-bottom: 1px solid #F8BA0FA0;position: relative;top: -11px;"></div>*@
             @*<div style=" background-color: var(--sq-ov-semantic-orange); height: 5px; /*! margin: auto 0; */ /*! border: 1px solid var(--sq-yellow); */ transform-origin: center left; animation: 7s linear 0s infinite reverse forwards pointControlTickProgressRight;width: 50%;display: inline-block;background: linear-gradient(-90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);border-bottom: 1px solid #F8BA0FA0;position: relative;top: -11px;"></div>*@
