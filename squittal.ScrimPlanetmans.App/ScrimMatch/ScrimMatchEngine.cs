@@ -435,7 +435,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private void OnMatchTimerTick(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e)
         {
             
-            //SetLatestTimerTickMessage(e.Message);
             _latestTimerTickMessage = e.Message;
         }
         
@@ -484,10 +483,6 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return (_currentRound == 0 && _matchState == MatchState.Uninitialized && !_isRunning);
         }
 
-        //private void SetLatestTimerTickMessage(MatchTimerTickMessage value)
-        //{
-        //    _latestTimerTickMessage = value;
-        //}
 
         private void OnTeamOutfitChangeEvent(object sender, ScrimMessageEventArgs<TeamOutfitChangeMessage> e)
         {
@@ -573,7 +568,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             if (!MatchConfiguration.EnablePeriodicFacilityControlRewards)
             {
-                _logger.LogInformation($"PeriodicFacilityControlRewards not enabled");
+                //_logger.LogInformation($"PeriodicFacilityControlRewards not enabled");
                 return;
             }
 
@@ -608,21 +603,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #pragma warning disable CS1998
         private async Task OnPeriodiocPointsTimerTick(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
         {
-            _logger.LogInformation($"Received PeriodPointsTimerStateMessage");
+            _logger.LogInformation($"Received PeriodicPointsTimerStateMessage");
 
             _latestPeriodicPointsTimerTickMessage = e.Message;
 
-            //var timestamp = DateTime.Now;
-
-            //if (!MatchConfiguration.EnablePeriodicFacilityControlRewards || !FacilityControlTeamOrdinal.HasValue)
-            //{
-            //    return;
-            //}
-
-            //if (!_isRunning)
-            //{
-            //    return;
-            //}
 
             if (e.Message.PeriodElapsed && MatchConfiguration.EnablePeriodicFacilityControlRewards && FacilityControlTeamOrdinal.HasValue && _isRunning)
             {
@@ -635,46 +619,20 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 #pragma warning restore CS4014
             }
 
-            //_captureAutoEvent.WaitOne();
-
-            //var controllingTeamOrdinal = FacilityControlTeamOrdinal.Value;
-
-            //var points = _matchScorer.ScorePeriodicFacilityControlTick(controllingTeamOrdinal);
-
-            //if (!points.HasValue)
-            //{
-            //    _captureAutoEvent.Set();
-            //    return;
-            //}
-
-            //_captureAutoEvent.Set();
-
-            //var periodicTickModel = new ScrimPeriodicControlTick()
-            //{
-            //    ScrimMatchId = GetMatchId(),
-            //    Timestamp = timestamp,
-            //    ScrimMatchRound = GetCurrentRound(),
-            //    TeamOrdinal = controllingTeamOrdinal,
-            //    Points = points.Value
-            //};
-
-            //await _matchDataService.SaveScrimPeriodicControlTick(periodicTickModel);
         }
         #pragma warning restore CS1998
 
         private async Task ProcessPeriodicPointsTick(PeriodicPointsTimerStateMessage payload)
         {
-            _logger.LogInformation($"Processing PeriodPointsTimer tick");
+            _logger.LogInformation($"Processing PeriodicPointsTimer tick");
 
             if (!_isRunning)
             {
-                _logger.LogInformation($"Failed to process PeriodPointsTimer tick: match is not running");
+                _logger.LogInformation($"Failed to process PeriodicPointsTimer tick: match is not running");
                 return;
             }
 
             var timestamp = DateTime.Now;
-
-            //_captureAutoEvent.WaitOne();
 
             var controllingTeamOrdinal = FacilityControlTeamOrdinal.Value;
 
@@ -684,14 +642,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                 if (!points.HasValue)
                 {
-                    //_captureAutoEvent.Set();
-                    _logger.LogInformation($"Failed to score PeriodPointsTimer tick: ScrimMatchScorer returned no points value");
+                    _logger.LogInformation($"Failed to score PeriodicPointsTimer tick: ScrimMatchScorer returned no points value");
                     return;
                 }
 
-                _logger.LogInformation($"Sscored PeriodPointsTimer tick: {points.Value} points");
+                _logger.LogInformation($"Scored PeriodicPointsTimer tick: {points.Value} points");
 
-                //_captureAutoEvent.Set();
 
                 var periodicTickModel = new ScrimPeriodicControlTick()
                 {
@@ -719,11 +675,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             if (_isRunning)
             {
-                //_captureAutoEvent.WaitOne();
 
                 await EndRound();
-
-                //_captureAutoEvent.Set();
             }
         }
 
