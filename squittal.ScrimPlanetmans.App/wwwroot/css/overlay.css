@@ -1057,15 +1057,19 @@ body {
         display: grid;
         grid-auto-columns: 50% 50%;
         grid-template-areas: "left right";
-        color: var(--sq-ov-ps2-primary);
+        /*color: var(--sq-ov-ps2-primary);*/
+        /*color: var(--sq-ps2-primary-light);*/
+        color: var(--sq-ov-ps2-primary-lightest);
     }
 
         .overlay .series-tally-container .periodic-control-progress-container .legend-container .points {
             /*font-size: 12px;*/
             font-size: 16px;
             /*filter: drop-shadow(-1px 0px 1px var(--sq-black));*/
-            filter: drop-shadow(-1px 0px 0px var(--sq-black));
-            color: var(--sq-ov-ps2-primary);
+            /*filter: drop-shadow(-1px 0px 0px var(--sq-black));*/
+            /*filter: drop-shadow(0px 0px 1px var(--sq-bg-white));*/
+            filter: drop-shadow(0px 0px 1px var(--sq-ov-ps2-primary-dark)) !important;
+            /*color: var(--sq-ov-ps2-primary);*/
             display: inline;
             position: relative;
             /*top: -3px;*/
@@ -1073,6 +1077,9 @@ body {
             height: 12px;
             grid-area: left;
             text-align: right;
+            /*text-shadow: 0 0 1px var(--sq-black);*/
+            /*text-shadow: 0 0 -1px var(--sq-bg-white);
+            color: var(--sq-ov-bg-dark-gray-alpha-90) !important;*/
         }
 
         .overlay .series-tally-container .periodic-control-progress-container .legend-container .flag {
@@ -1081,7 +1088,8 @@ body {
             height: 12px;
             position: relative;
             /*top: -1px;*/
-            top: 1px;
+            /*top: 1px;*/
+            top: 2px;
             grid-area: right;
             text-align: left;
             display: inline;
@@ -1090,11 +1098,16 @@ body {
 
             .overlay .series-tally-container .periodic-control-progress-container .legend-container .flag .capture-flag {
                 /*color: var(--sq-ov-bg-dark-gray-alpha-90);*/
-                color: var(--sq-ov-ps2-primary);
-                filter: drop-shadow(-1px 0px 0px var(--sq-black)) !important;
+                /*color: var(--sq-ov-ps2-primary);*/
+                /*color: var(--sq-ps2-primary-light);*/
+                color: var(--sq-ov-ps2-primary-lightest);
+                /*filter: drop-shadow(-1px 0px 0px var(--sq-black)) !important;*/
+                /*filter: drop-shadow(0px 0px 1px var(--sq-black)) !important;*/
+                filter: drop-shadow(0px 0px 1px var(--sq-ov-ps2-primary-dark)) !important;
                 font-size: 16px !important;
                 margin-top: -10px;
                 margin-left: 1px;
+                /*color: var(--sq-ov-bg-dark-gray-alpha-90) !important;*/
             }
 
 
@@ -1104,10 +1117,12 @@ body {
         display: inline-block;
         /*border-bottom: 1px solid var(--sq-yellow);*/
         /*border-bottom: 1px solid #F8BA0FA0;*/
-        border-top: 1px solid rgba(248,194,117, 0.25);
+        /*border-top: 1px solid rgba(248, 194, 117, 0.25);*/
+        /*border-top: 1px solid rgba(248, 194, 117, 0.5);*/
         position: relative;
         top: -10px;
         transition: transform 0.25s linear;
+        border: 1px solid rgba(248, 194, 117, 1);
     }
 
         .overlay .series-tally-container .periodic-control-progress-container .tick-bar.left {
@@ -1115,14 +1130,20 @@ body {
             /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressLeft;*/
             /*background: linear-gradient(175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
             background: linear-gradient(90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
+            background: rgba(248,194,117, 0.9);
+            /*border-left: 1px solid rgba(248, 194, 117, 1);*/
+            border-right: none;
         }
 
-    .overlay .series-tally-container .periodic-control-progress-container .tick-bar.right {
-        transform-origin: center left;
-        /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressRight;*/
-        /*background: linear-gradient(-175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
-        background: linear-gradient(-90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
-    }
+        .overlay .series-tally-container .periodic-control-progress-container .tick-bar.right {
+            transform-origin: center left;
+            /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressRight;*/
+            /*background: linear-gradient(-175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
+            background: linear-gradient(-90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
+            background: rgba(248,194,117, 0.9);
+            /*border-right: 1px solid rgba(248, 194, 117, 0.5);*/
+            border-left: none;
+        }
 
 
 .inactiveWhiteText {
@@ -1840,3 +1861,11 @@ body {
     .overlay .match-report .stats-row .stats-value.objective-ticks, .stats-col-header.objective-ticks {
         grid-area: objective-ticks;
     }
+
+
+.overlay .analytic-match-report .multi-col-header {
+    /*background: #212632;*/
+    background: #171a23 !important;
+    border-bottom: 1px solid rgba(252, 246, 255, 0.7);
+    /*margin-bottom: 2px;*/
+}
