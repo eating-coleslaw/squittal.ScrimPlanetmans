@@ -115,7 +115,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            _timer.Change(Timeout.Infinite, 1000);
+            //_timer.Change(Timeout.Infinite, 1000);
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
 
             IsRunning = false;
             State = TimerState.Stopped;
@@ -140,12 +141,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
 
-            var now = DateTime.UtcNow;
-            _resumeDelayMs = (int)(now - _prevTickTime).TotalMilliseconds;
-
-            _timer.Change(Timeout.Infinite, 1000);
-
             IsRunning = false;
+            State = TimerState.Pausing;
+
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+            var now = DateTime.UtcNow;
+            _resumeDelayMs = 1000 - (int)(now - _prevTickTime).TotalMilliseconds;
+
+            //_logger.LogInformation($"now: {now}");
+            //_logger.LogInformation($"_prevTickTime: {_prevTickTime}");
+            //_logger.LogInformation($"_resumeDelayMs: {_resumeDelayMs}");
+
+            if (_resumeDelayMs < 0)
+            {
+                _resumeDelayMs = 0;
+            }
+
+            //_timer.Change(Timeout.Infinite, 1000);
+
+            //IsRunning = false;
             State = TimerState.Paused;
 
             var message = new MatchTimerTickMessage(this);
@@ -294,6 +309,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
                 TimerState.Configured => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -317,6 +333,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 TimerState.Halting => false,
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -340,6 +357,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 TimerState.Halting => false,
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
@@ -358,6 +376,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 TimerState.Halting => false,
                 TimerState.Resuming => false,
                 TimerState.Configuring => false,
+                TimerState.Pausing => false,
                 _ => false,
             };
         }
