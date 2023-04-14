@@ -149,18 +149,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             var now = DateTime.UtcNow;
             _resumeDelayMs = 1000 - (int)(now - _prevTickTime).TotalMilliseconds;
 
-            //_logger.LogInformation($"now: {now}");
-            //_logger.LogInformation($"_prevTickTime: {_prevTickTime}");
-            //_logger.LogInformation($"_resumeDelayMs: {_resumeDelayMs}");
-
             if (_resumeDelayMs < 0)
             {
                 _resumeDelayMs = 0;
             }
 
-            //_timer.Change(Timeout.Infinite, 1000);
-
-            //IsRunning = false;
             State = TimerState.Paused;
 
             var message = new MatchTimerTickMessage(this);
