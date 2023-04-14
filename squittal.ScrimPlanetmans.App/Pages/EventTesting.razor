@@ -1,0 +1,59 @@
+﻿@page "/EventTesting"
+
+@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IScrimMessageBroadcastService MessageService
+@inject IFactionService FactionService
+
+<div>
+    <p>Facility: Acan Southern Labs [302030]</p>
+</div>
+
+<div>
+    <button class="btn btn-primary" @onclick="() => SendFacilityControl(1, 2)">
+        <span class="oi oi-media-play"></span>Team 1 Facility Control
+    </button>
+</div>
+
+<div>
+    <button class="btn btn-primary" @onclick="() => SendFacilityControl(2, 1)">
+        <span class="oi oi-media-play"></span>Team 2 Facility Control
+    </button>
+</div>
+
+@code {
+    private void SendFacilityControl(int teamOrdinal, int enemyTeamOrdinal)
+    {
+        var factionId1 = ScrimTeamsManager.GetTeam(teamOrdinal).FactionId;
+
+        var factionId2 = ScrimTeamsManager.GetTeam(enemyTeamOrdinal).FactionId;
+
+        var controlEvent = new ScrimFacilityControlActionEvent
+        {
+            FacilityId = 302030,
+            FacilityName = "Acan Southern Labs",
+            NewFactionId = factionId1,
+            OldFactionId = factionId2,
+            DurationHeld = 1000,
+            OutfitId = String.Empty,
+            Timestamp = DateTime.UtcNow,
+            WorldId = 17,
+            ZoneId = 4,
+            ControllingTeamOrdinal = teamOrdinal,
+            ControlType = FacilityControlType.Capture,
+            ActionType = ScrimActionType.FirstBaseCapture,
+            Points = 3,
+            IsBanned = false
+        };
+
+        MessageService.BroadcastScrimFacilityControlActionEventMessage(new ScrimFacilityControlActionEventMessage(controlEvent));
+    }
+}
