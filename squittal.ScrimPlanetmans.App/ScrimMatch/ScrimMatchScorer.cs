@@ -18,6 +18,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private Ruleset _activeRuleset;
 
+        private int? _periodicControlPointsValue;
+
         public ScrimMatchScorer(IScrimRulesetManager rulesets, IScrimTeamsManager teamsManager, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
             _rulesets = rulesets;
@@ -27,6 +29,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
             _messageService.RaiseRulesetRuleChangeEvent += OnRulesetRuleChangeEvent;
+            _messageService.RaiseMatchConfigurationUpdateEvent += OnMatchConfigurationUpdateEvent;
         }
 
         private async void OnActiveRulesetChangeEvent(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> e)
@@ -42,6 +45,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             // TODO: specific methods for only updating Rule Type that changed (Action Rules or Item Category Rules)
+        }
+
+        private void OnMatchConfigurationUpdateEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
+        {
+            var message = e.Message;
+            var matchConfiguration = message.MatchConfiguration;
+
+            _periodicControlPointsValue = matchConfiguration.PeriodicFacilityControlPoints;
         }
 
         public async Task SetActiveRulesetAsync()
@@ -604,6 +615,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private int? GetPeriodicControlPoints()
         {
+            if (_periodicControlPointsValue.HasValue)
+            {
+                return _periodicControlPointsValue;
+            }
+            
             return _activeRuleset.PeriodicFacilityControlPoints;
         }
 
