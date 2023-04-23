@@ -256,9 +256,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var dbContext = factory.GetDbContext();
 
                 var storedEntities = await dbContext.Items.ToListAsync();
+                var storedRuleEntities = await dbContext.RulesetItemRules.ToListAsync();
 
                 foreach (var censusEntity in censusEntities)
                 {
+                    // First, update the Item entities
                     var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
                     if (storeEntity == null)
                     {
@@ -268,6 +270,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                     {
                         storeEntity = censusEntity;
                         dbContext.Items.Update(storeEntity);
+                    }
+
+                    // Then, update any Item Rule entities. It's simpler to just do this in bulk here,
+                    // instead of handling it in RulesetDataService
+                    var ruleStoreEntities = storedRuleEntities.Where(rule => rule.ItemId == censusEntity.Id).ToList();
+                    foreach (var ruleStoreEntity in ruleStoreEntities)
+                    {
+                        if (ruleStoreEntity.ItemCategoryId != censusEntity.ItemCategoryId)
+                        {
+                            ruleStoreEntity.ItemCategoryId = censusEntity.ItemCategoryId.GetValueOrDefault();
+                            dbContext.RulesetItemRules.Update(ruleStoreEntity);
+                        }
                     }
                 }
 
