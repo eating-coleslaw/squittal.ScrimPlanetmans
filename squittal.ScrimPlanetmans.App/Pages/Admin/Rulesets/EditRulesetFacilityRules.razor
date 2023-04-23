@@ -416,7 +416,7 @@
             _isSavingRules = true;
             InvokeAsyncStateHasChanged();
 
-            await RulesetDataService.SaveRulesetFacilityRules(_renderedRulesetId, _ruleChanges.Values.AsEnumerable());
+            await RulesetDataService.SaveRulesetFacilityRules(_renderedRulesetId, _ruleChanges.Values.AsEnumerable(), false);
 
             await LoadRulesetAsync();
 

@@ -167,6 +167,9 @@
     <None Update="Data\SQL\MigrationHelpers\Backfill_ScrimReviveEnemyActionType.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Data\SQL\MigrationHelpers\Backfill_UpdateItemCategoryDomains.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\SQL\Views\View_ScrimDamageAssistDamageDealt.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

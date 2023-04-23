@@ -84,7 +84,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             100, // Infantry
             102, // Infantry Weapons
             147, // Aerial Combat Weapon (i.e. rocklet rifles)
-            157  // Hybrid Rifle
+            157, // Hybrid Rifle
+            219, // Heavy Crossbow
+            220, // Amphibious Rifle
+            223, // Amphibious Sidearm
+            224  // Anti-Materiel Rifle
         };
 
         private static readonly List<int> _maxItemCategoryIds = new List<int>()
@@ -111,7 +115,17 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             130, // Sunderer Rear Gunner
             131, // Vanguard Gunner Weapon
             132, // Vanguard Primary Weapon
-            144  // ANT Top Turret
+            144, // ANT Top Turret
+            211, // Colossus Primary Weapon
+            212, // Colossus Front Right Weapon
+            213, // Colossus Front Left Weapon
+            214, // Colossus Rear Right Weapon
+            215, // Colossus Rear Left Weapon
+            216, // Javelin Primary Weapon
+            217, // Chimera Primary Weapons
+            218, // Chimera Secondary Weapons
+            221, // Corsair Front Turret
+            222  // Corsair Rear Turret
         };
 
         private static readonly List<int> _airVehicleItemCategoryIds = new List<int>()
@@ -129,7 +143,10 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             126, // Reaver Wing Mount
             127, // Scythe Nose Cannon
             128, // Scythe Wing Mount
-            138  // Valkyrie Nose Gunner
+            138, // Valkyrie Nose Gunner
+            208, // Bastion Point Defense
+            209, // Bastion Bombard
+            210  // Bastion Weapon System
         };
 
         private static readonly List<int> _lockedItemCategoryIds = new List<int>()
@@ -345,6 +362,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             await SetUpWeaponCategoriesListAsync();
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -364,10 +383,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             if (itemCategories != null && itemCategories.Any())
             {
                 await UpsertRangeAsync(itemCategories.Select(ConvertToDbModel));
+                //UpsertRangeAsync(itemCategories.Select(ConvertToDbModel)).Wait();
 
                 _logger.LogInformation($"Refreshed Item Categories store: {itemCategories.Count()} entries");
 
-                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
+                //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -408,6 +428,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 await dbContext.SaveChangesAsync();
             }
+
+            _logger.LogInformation($"Finished upserting Item Categories");
         }
 
         private static ItemCategory ConvertToDbModel(CensusItemCategoryModel itemCategory)
@@ -478,7 +500,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
 
-            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
+            //SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
 
         #endregion Store Management methods

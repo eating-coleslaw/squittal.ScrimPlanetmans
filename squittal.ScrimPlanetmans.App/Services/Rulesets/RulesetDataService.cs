@@ -103,7 +103,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var newRules = missingItemCategoryIds.Select(id => BuildRulesetItemCategoryRule(ruleset.Id, id, 0));
 
-                await SaveRulesetItemCategoryRules(ruleset.Id, newRules);
+                await SaveRulesetItemCategoryRules(ruleset.Id, newRules, true);
 
                 _logger.LogInformation($"Updated Item Category Rules for Ruleset {ruleset.Id} post-Item Category Store Refresh. Source: {refreshSource}. New Rules: {newRules.Count()}");
             }
@@ -154,7 +154,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var newRules = missingItemIds.Select(w => BuildRulesetItemRule(ruleset.Id, w.Id, (int)w.ItemCategoryId, 0));
 
-                await SaveRulesetItemRules(ruleset.Id, newRules);
+                await SaveRulesetItemRules(ruleset.Id, newRules, true);
 
                 _logger.LogInformation($"Updated Item Rules for Ruleset {ruleset.Id} post-Item Category Store Refresh. Source: {refreshSource}. New Rules: {newRules.Count()}");
             }
@@ -941,9 +941,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         /*
          * Upsert New or Modified RulesetItemCategoryRules for a specific ruleset.
          */
-        public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules)
+        public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules, bool isFromStoreRefresh)
         {
-            if (rulesetId == DefaultRulesetId)
+            if (rulesetId == DefaultRulesetId && !isFromStoreRefresh)
             {
                 return;
             }
@@ -1031,9 +1031,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         /*
          * Upsert New or Modified RulesetItemRules for a specific ruleset.
          */
-        public async Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules)
+        public async Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules, bool isFromStoreRefresh)
         {
-            if (rulesetId == DefaultRulesetId)
+            if (rulesetId == DefaultRulesetId && !isFromStoreRefresh)
             {
                 return;
             }
@@ -1104,9 +1104,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         /*
          * Upsert New or Modified RulesetFacilityRules for a specific ruleset.
          */
-        public async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules)
+        public async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules, bool isFromStoreRefresh)
         {
-            if (rulesetId == DefaultRulesetId)
+            if (rulesetId == DefaultRulesetId && !isFromStoreRefresh)
             {
                 return;
             }
@@ -2083,7 +2083,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 if (jsonRuleset.RulesetItemCategoryRules != null && jsonRuleset.RulesetItemCategoryRules.Any())
                 {
                     ruleset.RulesetItemCategoryRules = jsonRuleset.RulesetItemCategoryRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
-                    var itemCategoryRulesTask = SaveRulesetItemCategoryRules(ruleset.Id, ruleset.RulesetItemCategoryRules);
+                    var itemCategoryRulesTask = SaveRulesetItemCategoryRules(ruleset.Id, ruleset.RulesetItemCategoryRules, false);
                     TaskList.Add(itemCategoryRulesTask);
 
                     var rulesetItemRules = new List<RulesetItemRule>();
@@ -2104,7 +2104,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     ruleset.RulesetItemRules = new List<RulesetItemRule>(rulesetItemRules);
 
-                    var itemRulesTask = SaveRulesetItemRules(ruleset.Id, ruleset.RulesetItemRules);
+                    var itemRulesTask = SaveRulesetItemRules(ruleset.Id, ruleset.RulesetItemRules, false);
                     TaskList.Add(itemRulesTask);
                 }
 

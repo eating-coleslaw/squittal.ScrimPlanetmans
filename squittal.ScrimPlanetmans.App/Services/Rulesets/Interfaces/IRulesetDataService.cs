@@ -33,9 +33,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         Task<bool> UpdateRulesetInfo(Ruleset rulesetUpdate, CancellationToken cancellationToken);
         Task<bool> SaveRulesetOverlayConfiguration(int rulesetId, RulesetOverlayConfiguration rulesetOverlayConfiguration, CancellationToken cancellationToken);
         Task SaveRulesetActionRules(int rulesetId, IEnumerable<RulesetActionRule> rules);
-        Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules);
-        Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules);
-        Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules);
+        Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules, bool isFromStoreRefresh);
+        Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules, bool isFromStoreRefresh);
+        Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules, bool isFromStoreRefresh);
 
         void SetActiveRulesetId(int rulesetId);
         Task<Ruleset> SetCustomDefaultRulesetAsync(int rulesetId);

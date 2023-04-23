@@ -213,6 +213,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             await SetUpWeaponsMapAsync();
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -235,7 +237,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 _logger.LogInformation($"Refreshed Items store: {items.Count()} entries");
 
-                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
+                //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -276,6 +278,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 await dbContext.SaveChangesAsync();
             }
+
+            _logger.LogInformation($"Finished upserting Items");
         }
         
         private static Item ConvertToDbModel(CensusItemModel item)
@@ -311,7 +315,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
 
-            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
+            //SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
     }
 }
