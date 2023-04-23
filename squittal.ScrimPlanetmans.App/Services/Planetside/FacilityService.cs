@@ -128,13 +128,37 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
         private async Task<IEnumerable<MapRegion>> GetAllStoredScrimmableZoneMapRegionsAsync()
         {
-            var realZones = new List<int> { 2, 4, 6, 8 };
-            var scrimFacilityTypes = new List<int> { 5, 6 }; // Small Outpost, Large Outpost
+            var realZones = new List<int> { 2, 4, 6, 8, 344 };
+
+            var nonScrimFacilityTypes = new List<int>
+            {
+                1, // Default
+                7, // Warpgate
+                10 // Relic Outpost (Desolation)
+            };
+
+            var scrimFacilityTypes = new List<int>
+            {
+                2,  // Amp Station
+                3,  // Bio Lab
+                4,  // Tech Plant
+                5,  // Large Outpost
+                6,  // Small Outpost
+                8,  // Interlink Facility
+                9,  // Construction Outpost
+                11, // Containment Site
+                12, // Trident Relay
+                13, // Seapost
+                14, // Large CTF Outpost
+                15, // Small CTF Outpost
+                16, // Amp Station CTF
+                17  // Construction Outpost CTF
+            };
 
             using var factory = _dbContextHelper.GetFactory();
             var dbContext = factory.GetDbContext();
-
-            return await dbContext.MapRegions.Where(region => realZones.Contains(region.ZoneId) && scrimFacilityTypes.Contains(region.FacilityTypeId) && region.IsCurrent)
+            
+            return await dbContext.MapRegions.Where(region => realZones.Contains(region.ZoneId) && !nonScrimFacilityTypes.Contains(region.FacilityTypeId) && region.IsCurrent)
                                              .ToListAsync();
         }
 
