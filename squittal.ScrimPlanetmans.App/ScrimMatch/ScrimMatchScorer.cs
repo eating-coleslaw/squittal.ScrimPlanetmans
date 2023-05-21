@@ -297,23 +297,34 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 RevivesTaken = 1
             };
 
+            // Additional same-team check is becasue players could technically be on different
+            // factions but the same scrim team
+            var lastKilledByPlayer = revive.LastKilledByPlayer; // _teamsManager.GetLastKilledByPlayer(revive.RevivedPlayer.Id);
+            var lastDeathWasToEnemy = !_teamsManager.DoPlayersShareTeam(revive.RevivedPlayer, lastKilledByPlayer);
+
             var enemyActionType = revive.ActionType == ScrimActionType.ReviveMax
                             ? ScrimActionType.EnemyRevivedMax
                             : ScrimActionType.EnemyRevivedInfantry;
             
+            // if there was a revive experience event, but lastKilledByPlayer is null, then the player was killed via Outside Interference
+            if (lastKilledByPlayer == null)
+            {
+                enemyActionType = ScrimActionType.OutsideInterference;
+            }
+
             var enemyScoringResult = GetActionRulePoints(enemyActionType);
             var enemyPoints = enemyScoringResult.Points;
-            
-            // Additional same-team check is becasue players could technically be on different
-            // factions but the same scrim team
-            var lastKilledByPlayer = _teamsManager.GetLastKilledByPlayer(revive.RevivedPlayer.Id);
-            var lastDeathWasToEnemy = !_teamsManager.DoPlayersShareTeam(revive.RevivedPlayer, lastKilledByPlayer);
+
+            //// Additional same-team check is becasue players could technically be on different
+            //// factions but the same scrim team
+            //var lastKilledByPlayer = revive.LastKilledByPlayer; // _teamsManager.GetLastKilledByPlayer(revive.RevivedPlayer.Id);
+            //var lastDeathWasToEnemy = !_teamsManager.DoPlayersShareTeam(revive.RevivedPlayer, lastKilledByPlayer);
 
             var enemyReviveUpdate = new ScrimEventAggregate()
             {
                 Points = enemyPoints,
                 NetScore = enemyPoints,
-                EnemyRevivesAllowed = 1,
+                EnemyRevivesAllowed = (lastKilledByPlayer != null && lastDeathWasToEnemy) ? 1 : 0, //1,
                 KillsUndoneByRevive = (lastKilledByPlayer != null && lastDeathWasToEnemy) ? 1 : 0
             };
 

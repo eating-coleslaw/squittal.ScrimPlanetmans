@@ -213,7 +213,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                     Id = (int)payload.AttackerWeaponId
                 };
             }
-            
+
 
             try
             {
@@ -221,7 +221,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 {
                     deathEvent.AttackerCharacterId = attackerId;
                     deathEvent.AttackerLoadoutId = payload.AttackerLoadoutId;
-                    
+
                     attackerPlayer = _teamsManager.GetPlayerFromId(attackerId);
                     deathEvent.AttackerPlayer = attackerPlayer;
 
@@ -622,10 +622,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 return DeathEventType.Kill;
             }
         }
-        
+
         private ScrimActionType GetVehicleDestructionScrimActionType(ScrimVehicleDestructionActionEvent destruction)
         {
-            
+
             // TODO: determine what a bailed-then-crashed undamaged vehicle looks like
             // Determine if this is involves a non-tracked player
             if ((destruction.AttackerPlayer == null && !string.IsNullOrWhiteSpace(destruction.AttackerCharacterId))
@@ -814,7 +814,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var characterId = payload.CharacterId;
 
             var player = _teamsManager.GetPlayerFromId(characterId);
-            
+
             // TODO: use ScrimActionLoginEvent instead of PlayerLogin
 
             var dataModel = new PlayerLogin
@@ -946,6 +946,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             Player medicPlayer;
             Player revivedPlayer;
+            Player lastKilledByPlayer;
+
 
             bool involvesBenchedPlayer = false;
 
@@ -974,6 +976,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
                 if (revivedPlayer != null)
                 {
                     involvesBenchedPlayer = involvesBenchedPlayer || revivedPlayer.IsBenched;
+
+                    lastKilledByPlayer = _teamsManager.GetLastKilledByPlayer(revivedId);
+                    if (lastKilledByPlayer != null)
+                    {
+                        reviveEvent.LastKilledByCharacterId = lastKilledByPlayer.Id;
+                        reviveEvent.LastKilledByPlayer = lastKilledByPlayer;
+                    }
                 }
             }
 
@@ -989,8 +998,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
                     reviveEvent.EnemyPoints = scoringResult.EnemyResult.Points;
                     reviveEvent.EnemyActionType = scoringResult.EnemyActionType;
-                    reviveEvent.LastKilledByPlayer = scoringResult.LastKilledByPlayer;
-                    reviveEvent.LastKilledByCharacterId = scoringResult.LastKilledByPlayer?.Id;
+
+                    // TODO: remove these two redundant sets
+                    //reviveEvent.LastKilledByPlayer = scoringResult.LastKilledByPlayer;
+                    //reviveEvent.LastKilledByCharacterId = scoringResult.LastKilledByPlayer?.Id;
 
                     var currentMatchId = _scrimMatchService.CurrentMatchId;
                     var currentRound = _scrimMatchService.CurrentMatchRound;
@@ -1035,7 +1046,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
         {
             // Determine if this is involves a non-tracked player
             if ((reviveEvent.MedicPlayer == null && !string.IsNullOrWhiteSpace(reviveEvent.MedicCharacterId))
-                    || (reviveEvent.RevivedPlayer == null && !string.IsNullOrWhiteSpace(reviveEvent.RevivedCharacterId)))
+                    || (reviveEvent.RevivedPlayer == null && !string.IsNullOrWhiteSpace(reviveEvent.RevivedCharacterId))
+                    || (reviveEvent.LastKilledByPlayer == null))
             {
                 return ScrimActionType.OutsideInterference;
             }

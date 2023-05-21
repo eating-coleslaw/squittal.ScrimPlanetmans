@@ -99,9 +99,16 @@
             return;
         }
 
-        var killfeedEvent = ConvertToKillfeedEvent(reviveEvent);
+        var killfeedEvent = ConvertToKillfeedEvent(reviveEvent, KillfeedEventType.Revive);
 
         _eventsQueue.Enqueue(killfeedEvent);
+
+        if (reviveEvent.EnemyPoints != 0) // && reviveEvent.LastKilledByPlayer != null)
+        {
+            var enemyKillfeedEvent = ConvertToKillfeedEvent(reviveEvent, KillfeedEventType.ReviveTaken);
+
+            _eventsQueue.Enqueue(enemyKillfeedEvent);
+        }
 
         UpdateRenderedEvents();
     }
@@ -143,19 +150,36 @@
         };
     }
 
-    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimReviveActionEvent reviveEvent)
+    private ScrimKillfeedEvent ConvertToKillfeedEvent(ScrimReviveActionEvent reviveEvent, KillfeedEventType eventType)
     {
+        var actingPlayer = (eventType == KillfeedEventType.ReviveTaken) ? reviveEvent.LastKilledByPlayer : reviveEvent.MedicPlayer;
+        var recipientPlayer = (eventType == KillfeedEventType.ReviveTaken) ? reviveEvent.RevivedPlayer : reviveEvent.RevivedPlayer;
+        var weaponName = (eventType == KillfeedEventType.ReviveTaken) ? "Revive Allowed" : "Revive";
+        var points = (eventType == KillfeedEventType.ReviveTaken) ? reviveEvent.EnemyPoints : reviveEvent.Points;
+
         return new ScrimKillfeedEvent
         {
-            ActingPlayer = reviveEvent.MedicPlayer,
-            RecipientPlayer = reviveEvent.RevivedPlayer,
+            ActingPlayer = actingPlayer,
+            RecipientPlayer = recipientPlayer,
             Timestamp = reviveEvent.Timestamp,
-            EventType = KillfeedEventType.Revive,
-            WeaponName = "Revive",
-            Points = reviveEvent.Points,
+            EventType = eventType,
+            WeaponName = weaponName,
+            Points = points,
             PreviousRenderTime = DateTime.Now,
             FirstRenderTime = DateTime.Now
         };
+
+        //return new ScrimKillfeedEvent
+        //{
+        //    ActingPlayer = reviveEvent.MedicPlayer,
+        //    RecipientPlayer = reviveEvent.RevivedPlayer,
+        //    Timestamp = reviveEvent.Timestamp,
+        //    EventType = KillfeedEventType.Revive,
+        //    WeaponName = "Revive",
+        //    Points = reviveEvent.Points,
+        //    PreviousRenderTime = DateTime.Now,
+        //    FirstRenderTime = DateTime.Now
+        //};
     }
     #endregion ScrimKillfeedEvent Conversions
 
