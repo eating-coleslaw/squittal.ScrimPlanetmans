@@ -872,6 +872,8 @@
             _teamOutfits.RemoveAll(o => o.Id == outfit.Id);
         }
 
+        _anyPlayersOnTeam = (_team.Players.Count > 0);
+
         InvokeAsyncStateHasChanged();
     }
 
@@ -951,6 +953,8 @@
         {
             UpdateConstructedTeamFactionAvailabilities(constructedTeam.Id);
         }
+
+        _anyPlayersOnTeam = (_team.Players.Count > 0);
 
         InvokeAsyncStateHasChanged();
     }
