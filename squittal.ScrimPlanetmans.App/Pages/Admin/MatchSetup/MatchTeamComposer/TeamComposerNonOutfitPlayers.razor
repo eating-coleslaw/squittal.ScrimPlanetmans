@@ -273,7 +273,10 @@
     #region Event Handling
     private void LogMessage(string message)
     {
-        MessageService.BroadcastSimpleMessage(message);
+        Task.Run(() =>
+        {
+            MessageService.BroadcastSimpleMessage(message);
+        }).ConfigureAwait(false);
     }
 
     private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)

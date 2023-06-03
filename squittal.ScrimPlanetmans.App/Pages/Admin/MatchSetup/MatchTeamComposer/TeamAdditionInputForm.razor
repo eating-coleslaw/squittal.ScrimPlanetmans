@@ -152,15 +152,25 @@
             if (!string.IsNullOrWhiteSpace(seedInput))
             {
                 eventArgs.AdditionIdentifier = seedInput;
+                Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
                 await OnTeamAdditionFailure.InvokeAsync(eventArgs);
+            }
+            else
+            {
+                Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
             }
         }
         else if (!string.IsNullOrWhiteSpace(eventArgs.AdditionIdentifier))
         {
+            Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
             await OnTeamAdditionFailure.InvokeAsync(eventArgs);
         }
+        else
+        {
+            Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+        }
 
-        Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+        //Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
     }
 
     private async Task<bool> SendCharacterRequest(string input)
@@ -277,6 +287,9 @@
 
     private void LogMessage(string message)
     {
-        MessageService.BroadcastSimpleMessage(message);
+        Task.Run(() =>
+        {
+            MessageService.BroadcastSimpleMessage(message);
+        }).ConfigureAwait(false);
     }
 }

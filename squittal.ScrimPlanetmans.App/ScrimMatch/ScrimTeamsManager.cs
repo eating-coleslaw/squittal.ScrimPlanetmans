@@ -292,7 +292,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             else
             {
-                _messageService.BroadcastSimpleMessage($"<span style=\"color: red; font-weight: 700;\">Couldn't change {player.NameFull} match alias: new alias is invalid</span>");
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    _messageService.BroadcastSimpleMessage($"<span style=\"color: red; font-weight: 700;\">Couldn't change {player.NameFull} match alias: new alias is invalid</span>");
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
                 return false;
             }
         }
