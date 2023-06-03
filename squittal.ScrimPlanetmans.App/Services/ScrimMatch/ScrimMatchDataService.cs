@@ -188,7 +188,20 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
                 WorldId = matchConfiguration.WorldId,
                 IsManualWorldId = matchConfiguration.IsManualWorldId,
                 FacilityId = matchConfiguration.FacilityId > 0 ? matchConfiguration.FacilityId : (int?)null,
-                IsRoundEndedOnFacilityCapture = matchConfiguration.EndRoundOnFacilityCapture
+                IsRoundEndedOnFacilityCapture = matchConfiguration.EndRoundOnFacilityCapture,
+
+                TargetPointValue = matchConfiguration.TargetPointValue,
+                InitialPoints = matchConfiguration.InitialPoints,
+
+                PeriodicFacilityControlPoints = matchConfiguration.PeriodicFacilityControlPoints,
+                PeriodicFacilityControlInterval = matchConfiguration.PeriodicFacilityControlInterval,
+
+                EnableRoundTimeLimit = matchConfiguration.EnableRoundTimeLimit,
+                RoundTimerDirection = matchConfiguration.RoundTimerDirection,
+                EndRoundOnPointValueReached = matchConfiguration.EndRoundOnPointValueReached,
+                MatchWinCondition = matchConfiguration.MatchWinCondition,
+                RoundWinCondition = matchConfiguration.RoundWinCondition,
+                EnablePeriodicFacilityControlRewards = matchConfiguration.EnablePeriodicFacilityControlRewards
             };
         }
 
