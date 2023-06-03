@@ -8,7 +8,7 @@ using System.Threading;
 namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 {
     public class MatchConfiguration
-    {
+    {    
         public string Title { get; set; } = "PS2 Scrims";
 
         public bool IsManualTitle { get; private set; } = false;
@@ -65,7 +65,8 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
         public bool SaveEventsToDatabase { get; set; } = true;
 
         public MatchConfiguration()
-        { }
+        {
+        }
 
         public MatchConfiguration(Ruleset ruleset)
         {
@@ -84,6 +85,34 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
             PeriodicFacilityControlInterval = ruleset.PeriodicFacilityControlInterval;
         }
 
+        public void CopyValues(MatchConfiguration sourceConfig)
+        {
+            Title = sourceConfig.Title;
+            IsManualTitle = sourceConfig.IsManualTitle;
+            RoundSecondsTotal = sourceConfig.RoundSecondsTotal;
+            IsManualRoundSecondsTotal = sourceConfig.IsManualRoundSecondsTotal;
+            IsManualWorldId = sourceConfig.IsManualWorldId;
+            IsWorldIdSet = sourceConfig.IsWorldIdSet;
+            WorldIdString = sourceConfig.WorldIdString;
+            FacilityIdString = sourceConfig.FacilityIdString;
+            EndRoundOnFacilityCapture = sourceConfig.EndRoundOnFacilityCapture;
+            IsManualEndRoundOnFacilityCapture = sourceConfig.IsManualEndRoundOnFacilityCapture;
+            TargetPointValue = sourceConfig.TargetPointValue;
+            IsManualTargetPointValue = sourceConfig.IsManualTargetPointValue;
+            InitialPoints = sourceConfig.InitialPoints;
+            IsManualInitialPoints = sourceConfig.IsManualInitialPoints;
+            PeriodicFacilityControlPoints = sourceConfig.PeriodicFacilityControlPoints;
+            IsManualPeriodicFacilityControlPoints = sourceConfig.IsManualPeriodicFacilityControlPoints;
+            PeriodicFacilityControlInterval = sourceConfig.PeriodicFacilityControlInterval;
+            IsManualPeriodicFacilityControlInterval = sourceConfig.IsManualPeriodicFacilityControlInterval;
+            EnableRoundTimeLimit = sourceConfig.EnableRoundTimeLimit;
+            RoundTimerDirection = sourceConfig.RoundTimerDirection;
+            EndRoundOnPointValueReached = sourceConfig.EndRoundOnPointValueReached;
+            MatchWinCondition = sourceConfig.MatchWinCondition;
+            RoundWinCondition = sourceConfig.RoundWinCondition;
+            EnablePeriodicFacilityControlRewards = sourceConfig.EnablePeriodicFacilityControlRewards;
+            PeriodFacilityControlPointAttributionType = sourceConfig.PeriodFacilityControlPointAttributionType;
+        }
 
         public bool TrySetTitle(string title, bool isManualValue)
         {
@@ -327,6 +356,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public void ResetWorldId()
         {
+            //Console.WriteLine($"Resetting World ID!");
             WorldIdString = "19";
             IsManualWorldId = false;
             IsWorldIdSet = false;
@@ -343,7 +373,7 @@ namespace squittal.ScrimPlanetmans.Models.ScrimEngine
 
         public bool TrySetWorldId(string worldIdString, bool isManualValue = false, bool isRollBack = false)
         {
-            //Console.WriteLine("MatchConfiguration: trying to set WorldId");
+            //Console.WriteLine($"MatchConfiguration: trying to set WorldId);
             
             _autoEvent.WaitOne();
 
