@@ -1,4 +1,4 @@
-USE [PlanetmansDbContext_Conquest];
+USE [PlanetmansDbContext];
 
 DECLARE @nCursorRulesetId INT;
 

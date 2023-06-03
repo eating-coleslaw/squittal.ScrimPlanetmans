@@ -1,4 +1,4 @@
-USE [PlanetmansDbContext_Conquest];
+USE [PlanetmansDbContext];
 GO
 
 SET NOCOUNT ON;

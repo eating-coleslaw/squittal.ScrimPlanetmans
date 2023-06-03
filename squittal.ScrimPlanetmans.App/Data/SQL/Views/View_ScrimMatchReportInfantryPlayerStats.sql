@@ -1,4 +1,4 @@
-USE [PlanetmansDbContext_Conquest];
+USE [PlanetmansDbContext];
 
 IF (NOT EXISTS (SELECT 1 FROM sys.views WHERE name = 'View_ScrimMatchReportInfantryPlayerStats'))
 BEGIN
