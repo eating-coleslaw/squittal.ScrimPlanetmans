@@ -20,7 +20,7 @@ An app for running, streaming, and collecting data for Planetside 2 scrims.
 
 ### .NET Core 3.1 SDK
 
-The .NET Core 3.1 SDK and Runtime (the runtime is included with the SDK) is required to build and run the app. [Download the latest version of the .NET Core 3.1 SDK from the downloads page.](https://dotnet.microsoft.com/download "Download .NET Core 3.0")
+The .NET Core 3.1 SDK and Runtime (the runtime is included with the SDK) is required to build and run the app. [Download the latest version of the .NET Core 3.1 SDK from the downloads page.](https://dotnet.microsoft.com/en-us/download/dotnet "Download .NET Core 3.0"). Expand the "Out of support versions" section to see the .NET Core 3.1 option.
 
 ### SQL Server Express LocalDb
 
@@ -55,31 +55,19 @@ Using a registered Service ID permits unthrottled querying of the Census API. Wi
 3. Under __User veriables for <*Windows username*>__, select `New..`. to add a new user variable with name "DaybreakGamesServiceKey" (without the quotes) and a value of your census API service key. Click OK to accept the new variable.  
    * Note: The "s:" prefix in an API query string is not part of the service key. For example, you would set the environment variable to `example`, not `s:example`.  
 
-### _(For Streaming & Development)_ Visual Studio 2019 Community Edition
+### For Streaming - Create Trusted Dev Certificate
 
-.NET Core 3.1 is only compatible with Visual Studio 2019.
+OBS won't show the contents of a webpage if it doesn't have a trusted certificate. You can fix this by generating a self-signed, trusted certificate to enable HTTPS for the localhost site used by the app. For more information, refer to Microsoft's [dotnet dev-certs](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs) guide.
 
-1. Download the free Community 2019 edition [here](https://visualstudio.microsoft.com/vs/ "Visual Studio 2019 download page").
+_Note: These steps replace the old "install Visual Studio" instructions._
 
-2. Select these workloads in the installer: ASP.NET and web development, .NET desktop development, & .NET Core cross-platform development (this will be ~8-10 GB).
+1. Open a new Command Prompt window.
 
-If you intend to stream matches using OBS (or other software), you'll need to run the app from Visual Studio once before the app will be picked up by OBS's browser source.
+2. Optionally, enter `dotnet dev-certs https --check --trust` to see if a trusted certificate is already present on your local machine. If it says that one was found, then you should be able to skip to step 4.
 
-1. Open `squittal.ScrimPlanetmans.sln` in Visual Studio (it's in the top-level directory).
+3. Enter `dotnet dev-certs https --trust` to create a certificate and trust it.
 
-2. Open any file with a .cs file extension via the Solution Explorer panel (should be on right of the screen by default), such as `Startup.cs` or `Program.cs` The specific file doesn't matter.
-
-3. Press "Ctrl + Shift + B" to Build the solution. Wait a moment for it to finish (the Output panel should open, displaying the progress).
-
-4. (Assuming the Build is successful) At the top of the screen should be a green "play" button (sideways triangle) with an "IIS Express" label and a dropdown arrow. Click the dropdown arrow, then select "squittal.ScrimPlanetmans.App". __Don't press the button__.
-
-5. Press Ctrl + F5 to run the app from Visual Studio. It should automatically open a browser to https://localhost:5001/.
-
-6. Open OBS and configure a browser source with a URL of https://localhost:5001/overlay, following the instructions in the [Streaming Overlay](#streaming-overlay) section below. Disable & re-enable the browser source to refresh it. After enabling, it might take a second or two for the site to render. __If the overlay is visible in OBS, then you're done with these steps__.
-
-7. If it still didn't work, close the command line window that open with Ctrl + c, disable the firewall again, then re-doing steps 5 - 6.
-
-8. If it still doesn't work, restart your computer and try again.
+4. Open OBS and configure a browser source with a URL of https://localhost:5001/overlay, following the instructions in the [Streaming Overlay](#streaming-overlay) section below. Disable & re-enable the browser source to refresh it. After enabling, it might take a second or two for the site to render.
 
 ## Running the App
 
@@ -178,12 +166,14 @@ The general formula for using the parameters is `.../overlay?param1=value1&param
 
 | URL Parameters | Controls... |
 |-|-|
-| _players_    | List of players on the left & right side of the page |
-| _report_     | The match stats report in the center of the page     |
-| _scoreboard_ | The scoreboard at the top center of the page. Disabling the scoreboard also hides the killfeed. |
-| _feed_       | The killfeed in the center, below the scoreboard. The killfeed is always hidden if the scoreboard is hidden. |
-| _title_      | The match title at the top center of the page        |
-| _reportHsr_  | The HSR column in the match report                   |
+| players    | List of players on the left & right side of the page |
+| report     | The match stats report in the center of the page     |
+| scoreboard | The scoreboard at the top center of the page. Disabling the scoreboard also hides the killfeed. |
+| feed       | The killfeed in the center, below the scoreboard. The killfeed is always hidden if the scoreboard is hidden. |
+| title      | The match title at the top center of the page        |
+| reportHsr  | The HSR column in the match report                   |
+| analytic    | Set to true to switch the match stats report to a more detailed version, similar to the Analytic Match Reports (see below)|). Note that the _players_ status components are automatically hidden when this setting is enabled. The data in the report is refreshed on page load and then every 5 seconds. |
+| currentRound | Enable to show stats for the current round instead of the match totals. Currently supported by the scoreboard, player status boxes, and analytic report. The real-time report doesn't support this parameter. Omit or set this parameter to false to show match totals (the original/default behavior). |
 
 #### Examples
 
@@ -193,11 +183,19 @@ https://localhost:5001/Overlay?players=false&feed=false
 
 https://localhost:5001/Overlay?players=false&feed=false&reportHsr=false
 
-* Same as above, except that the HSR column is excluded from the match report. 
+* Same as above, except that the HSR column is excluded from the match report.
 
 https://localhost:5001/Overlay?report=false
 
 * Hides the match stats report. This is what you'd want for streaming a match in-progress.
+
+https://localhost:5001/Overlay?feed=false&analytic=true&currendRound=true
+
+* Hides the feed and shows the "fancy" stats report for the current round. This is what you'd want to use after the first round of a match that's using a Conquest-like ruleset.
+
+https://localhost:5001/Overlay?report=false&currentRound=true
+
+* Hides the match report and shows stats for the current round. This is what you'd want to use for streaming an in-progress match that's using a Conquest-like ruleset.
 
 ## Reporting
 
