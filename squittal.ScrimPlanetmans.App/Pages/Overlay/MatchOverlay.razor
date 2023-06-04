@@ -3,6 +3,7 @@
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.TeamPlayers;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Scoreboard;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.MatchReports;
+@using squittal.ScrimPlanetmans.App.Pages.Overlay.MatchAnalyticReports;
 @using squittal.ScrimPlanetmans.App.Pages.Overlay.Feed;
 @using squittal.ScrimPlanetmans.ScrimMatch;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
@@ -20,19 +21,24 @@
 
 @if (_players && _activeStatsDisplayType != null)
 {
-    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
-    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=1 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores i_CurrentRoundOnly=_currentRoundOnly />
+    <TeamPlayerStatusesContainer i_TeamOrdinal=2 i_Compact=_compact i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_ShowPlayerScoresSetting=_showStatusPanelScores i_CurrentRoundOnly=_currentRoundOnly />
 }
 
 @if (_scoreboard)
 {
-    <ScoreboardContainer i_showFeed=_feed />
+    <ScoreboardContainer i_CurrentRoundOnly=_currentRoundOnly />
 }
 
-@if (_report && _activeStatsDisplayType != null)
+@if (_report && _activeStatsDisplayType != null && !_analytic)
 {
     <MatchReportContainer i_ShowHsr=_showHsr i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType i_Compact=_compact i_ShowPlayerScoresSetting=_showStatusPanelScores />
 }
+else if (_report && _analytic)
+{
+    <MatchAnalyticReportContainer i_CurrentRoundOnly=_currentRoundOnly i_ShowHsr=_showHsr i_StatsType=(OverlayStatsDisplayType)_activeStatsDisplayType />
+}
+
 
 @if (_feed)
 {
@@ -42,6 +48,9 @@
 @code {
     [Parameter]
     public bool _report { get; set; } = true;
+
+    [Parameter]
+    public bool _analytic { get; set; } = false;
 
     [Parameter]
     public bool _feed { get; set; } = true;
@@ -64,6 +73,9 @@
     [Parameter]
     public bool _compact { get; set; } = false;
     private bool _compactIsManual { get; set; } = false;
+
+    [Parameter]
+    public bool _currentRoundOnly { get; set; } = false;
 
     private bool _objectiveStats { get; set; } = false;
     private bool? _showStatusPanelScores { get; set; } = null;
@@ -239,6 +251,23 @@
             }
         }
 
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("analytic", out var qAnalytic))
+        {
+            if (bool.TryParse(qAnalytic, out var analytic))
+            {
+                if (analytic != _analytic)
+                {
+                    _analytic = analytic;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _analytic = false;
+                stateChanged = true;
+            }
+        }
+
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("feed", out var qFeed))
         {
             if (bool.TryParse(qFeed, out var feed))
@@ -359,6 +388,29 @@
                 _compactIsManual = false;
                 stateChanged = true;
             }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("currentRound", out var qCurrentRoundOnly))
+        {
+            if (bool.TryParse(qCurrentRoundOnly, out var currentRoundOnly))
+            {
+                if (currentRoundOnly != _currentRoundOnly)
+                {
+                    _currentRoundOnly = currentRoundOnly;
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                _currentRoundOnly = false;
+                stateChanged = true;
+            }
+        }
+
+        if (_analytic == true && _players == true)
+        {
+            _players = false;
+            stateChanged = true;
         }
 
         return stateChanged;

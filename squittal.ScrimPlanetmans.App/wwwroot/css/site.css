@@ -678,6 +678,10 @@ No-Link Brand Header
             font-weight: 400;
         }
 
+/*        .header-card-container.default .table-striped-light tbody tr {
+            line-height: 1;
+        }*/
+
         .header-card-container.default .table-striped-light tbody tr:nth-of-type(2n+1) {
             background-color: var(--sq-light-blue-gray-alpha);
         }
@@ -697,6 +701,38 @@ No-Link Brand Header
                 margin-top: 0.2rem;
             }
 
+        .header-card-container.default .table-striped-dark {
+            /*font-size: medium;*/
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+            .header-card-container.default .table-striped-dark thead th {
+                font-weight: 400;
+            }
+
+/*            .header-card-container.default .table-striped-dark tbody tr {
+                line-height: 1;
+            }*/
+
+            .header-card-container.default .table-striped-dark tbody tr:nth-of-type(2n+1) {
+                background-color: var(--sq-ov-bg-dark-gray-alpha-90);
+            }
+
+                .header-card-container.default .table-striped-dark tbody tr:nth-of-type(2n+1).vs,
+                .header-card-container.default .table-striped-dark tbody tr:nth-of-type(2n+1).nc,
+                .header-card-container.default .table-striped-dark tbody tr:nth-of-type(2n+1).tr {
+                    background-color: var(--sq-ov-bg-dark-gray-alpha-90);
+                }
+
+                .header-card-container.default .table-striped-dark tbody tr:nth-of-type(2n+1).default {
+                    /*background-color: var(--sq-pink-lighter-alpha-10);*/
+                    background-color: var(--sq-ov-bg-dark-gray-alpha-90);
+                }
+
+            .header-card-container.default .table-striped-light tbody tr .btn {
+                margin-top: 0.2rem;
+            }
 
 
 .leaderboard-card {
@@ -1343,6 +1379,11 @@ th.sortable {
 
 .table-striped-light td {
     padding: 0.2rem 10px 0.2rem 5px;
+}
+
+.table-striped-dark tbody .nav-link {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
 }
 
 .table-striped-light tbody .nav-link {

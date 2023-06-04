@@ -183,9 +183,9 @@
                                     <td>@ruleset.Name <span style="color: var(--sq-gray);">[@ruleset.Id]</span></td>
                                     <td>@GetLocalizedDateTimeString(ruleset.DateCreated)</td>
                                     <td>@(ruleset.DateLastModified != null ? $"{GetLocalizedDateTimeString((DateTime)ruleset.DateLastModified)}" : "--")</td>
-                                    <td>
+                                    @*<td>
                                         <NavLink class="nav-link" href=@($"ruleset/{ruleset.Id}?edit=false") target="_self" style="padding: 4px 8px;">View<span class="oi oi-external-link" style="padding-left: 8px; font-size: 0.7rem;"></span></NavLink>
-                                    </td>
+                                    </td>*@
                                     @if (ruleset.IsDefault)
                                     {
                                         <td></td>
@@ -213,7 +213,7 @@
                                     {
                                         <td style="width: 132px;">
                                             <div class="btn btn-outline-primary" style="padding: 4px 8px; display: inline-block;" @onclick="@(() => OnSetAsDefaultClick(ruleset.Id))">
-                                                <span class="oi oi-pin" style="padding-right: 4px; padding-left: 0.1rem;"></span>Set as Default
+                                                <span class="oi oi-pin" style="padding-right: 4px; padding-left: 0.1rem;"></span>Make Default
                                             </div>
                                         </td>
                                     }

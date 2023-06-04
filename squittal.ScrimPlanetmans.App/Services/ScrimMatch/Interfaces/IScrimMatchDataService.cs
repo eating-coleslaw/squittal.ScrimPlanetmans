@@ -1,4 +1,5 @@
-﻿using squittal.ScrimPlanetmans.Models.ScrimEngine;
+﻿using squittal.ScrimPlanetmans.Data.Models;
+using squittal.ScrimPlanetmans.Models.ScrimEngine;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -22,5 +23,6 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         IEnumerable<Data.Models.ScrimMatch> GetAllMatches();
         Task<bool> TryRemoveMatchParticipatingPlayer(string characterId);
         Task SaveMatchParticipatingPlayer(Player player);
+        Task SaveScrimPeriodicControlTick(ScrimPeriodicControlTick dataModel);
     }
 }

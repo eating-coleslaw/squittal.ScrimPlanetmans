@@ -407,8 +407,28 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int>("ScrimMatchRound")
                         .HasColumnType("int");
 
+                    b.Property<bool?>("EnablePeriodicFacilityControlRewards")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool?>("EnableRoundTimeLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool?>("EndRoundOnPointValueReached")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<int?>("FacilityId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("InitialPoints")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(null);
 
                     b.Property<bool>("IsManualWorldId")
                         .ValueGeneratedOnAdd()
@@ -420,8 +440,36 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("MatchWinCondition")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int?>("PeriodicFacilityControlInterval")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(null);
+
+                    b.Property<int?>("PeriodicFacilityControlPoints")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(null);
+
                     b.Property<int>("RoundSecondsTotal")
                         .HasColumnType("int");
+
+                    b.Property<int?>("RoundTimerDirection")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoundWinCondition")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int?>("TargetPointValue")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(null);
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
@@ -569,6 +617,30 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.ToTable("ScrimMatchTeamResult");
                 });
 
+            modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimPeriodicControlTick", b =>
+                {
+                    b.Property<string>("ScrimMatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ScrimMatchRound")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamOrdinal")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScrimMatchId", "Timestamp");
+
+                    b.ToTable("ScrimPeriodicControlTick");
+                });
+
             modelBuilder.Entity("squittal.ScrimPlanetmans.Data.Models.ScrimRevive", b =>
                 {
                     b.Property<string>("ScrimMatchId")
@@ -586,6 +658,16 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                     b.Property<int>("ActionType")
                         .HasColumnType("int");
 
+                    b.Property<int>("EnemyActionType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(9001);
+
+                    b.Property<int>("EnemyPoints")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<int>("ExperienceGainAmount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -593,6 +675,11 @@ namespace squittal.ScrimPlanetmans.App.Migrations
 
                     b.Property<int>("ExperienceGainId")
                         .HasColumnType("int");
+
+                    b.Property<string>("LastKilledByCharacterId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue(null);
 
                     b.Property<int?>("MedicLoadoutId")
                         .HasColumnType("int");
@@ -1065,6 +1152,22 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(900);
 
+                    b.Property<bool>("EnablePeriodicFacilityControlRewards")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("EnableRoundTimeLimit")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EndRoundOnPointValueReached")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("InitialPoints")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsCustomDefault")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1075,14 +1178,39 @@ namespace squittal.ScrimPlanetmans.App.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("MatchWinCondition")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PeriodFacilityControlPointAttributionType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PeriodicFacilityControlInterval")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PeriodicFacilityControlPoints")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RoundTimerDirection")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoundWinCondition")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("SourceFile")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("");
+
+                    b.Property<int?>("TargetPointValue")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

@@ -57,6 +57,7 @@
                     <button type="button" title="View infantry item category rules" class="btn btn-link @GetViewTabStyle(2)" @onclick="@(() => OnSelectNewView(2))">Indar</button>
                     <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(8)" @onclick="@(() => OnSelectNewView(8))">Esamir</button>
                     <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(6)" @onclick="@(() => OnSelectNewView(6))">Amerish</button>
+                    <button type="button" title="View MAX item category rules" class="btn btn-link @GetViewTabStyle(344)" @onclick="@(() => OnSelectNewView(344))">Oshur</button>
                 </div>
 
                 @if (_ruleChanges.Values.Any())
@@ -416,7 +417,7 @@
             _isSavingRules = true;
             InvokeAsyncStateHasChanged();
 
-            await RulesetDataService.SaveRulesetFacilityRules(_renderedRulesetId, _ruleChanges.Values.AsEnumerable());
+            await RulesetDataService.SaveRulesetFacilityRules(_renderedRulesetId, _ruleChanges.Values.AsEnumerable(), false);
 
             await LoadRulesetAsync();
 

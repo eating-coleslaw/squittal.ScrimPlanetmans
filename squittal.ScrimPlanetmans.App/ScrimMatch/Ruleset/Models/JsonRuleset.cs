@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Internal;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +17,26 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         public string FileName { get; set; }
 
         public string DefaultMatchTitle { get; set; } = string.Empty;
+
+        public bool? EnableRoundTimeLimit { get; set; }
         public int DefaultRoundLength { get; set; } = 900;
+        public TimerDirection? RoundTimerDirection { get; set; }
+
+
         public bool DefaultEndRoundOnFacilityCapture { get; set; } = false;
+
+        public bool? EndRoundOnPointValueReached { get; set; }
+        public int? TargetPointValue { get; set; }
+        public int? InitialPoints { get; set; } = 0;
+
+        public MatchWinCondition? MatchWinCondition { get; set; }
+        public RoundWinCondition? RoundWinCondition { get; set; }
+
+        public bool? EnablePeriodicFacilityControlRewards { get; set; }
+        public int? PeriodicFacilityControlPoints { get; set; }
+        public int? PeriodicFacilityControlInterval { get; set; }
+        public PointAttributionType? PeriodFacilityControlPointAttributionType { get; set; }
+
 
         public ICollection<JsonRulesetActionRule> RulesetActionRules { get; set; }
         public ICollection<JsonRulesetItemCategoryRule> RulesetItemCategoryRules { get; set; }
@@ -37,8 +56,19 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             IsDefault = ruleset.IsDefault;
             FileName = fileName;
             DefaultMatchTitle = ruleset.DefaultMatchTitle;
+            EnableRoundTimeLimit = ruleset.EnableRoundTimeLimit;
             DefaultRoundLength = ruleset.DefaultRoundLength;
+            RoundTimerDirection = ruleset.RoundTimerDirection;
             DefaultEndRoundOnFacilityCapture = ruleset.DefaultEndRoundOnFacilityCapture;
+            EndRoundOnPointValueReached = ruleset.EndRoundOnPointValueReached;
+            TargetPointValue = ruleset.TargetPointValue;
+            InitialPoints = 0; // ruleset.InitialPoints;
+            MatchWinCondition = ruleset.MatchWinCondition;
+            RoundWinCondition = ruleset.RoundWinCondition;
+            EnablePeriodicFacilityControlRewards = ruleset.EnablePeriodicFacilityControlRewards;
+            PeriodicFacilityControlPoints = ruleset.PeriodicFacilityControlPoints;
+            PeriodicFacilityControlInterval = ruleset.PeriodicFacilityControlInterval;
+            PeriodFacilityControlPointAttributionType = ruleset.PeriodFacilityControlPointAttributionType;
 
             if (ruleset.RulesetActionRules.Any())
             {

@@ -192,6 +192,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         #region Support: 300 - 399
         ReviveInfantry              = 300,
         ReviveMax                   = 301,
+        EnemyRevivedInfantry        = 302,
+        EnemyRevivedMax             = 303,
         //InfantryTakeRevive          = 302,
         //MaxTakeRevive               = 303,
         DamageAssist                = 304,

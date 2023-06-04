@@ -82,7 +82,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var allLoadouts = new List<CensusLoadoutModel>();
 
                 allLoadouts.AddRange(censusLoadouts.ToList());
-                allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
+                //allLoadouts.AddRange(GetFakeNsCensusLoadoutModels());
 
                 await UpsertRangeAsync(allLoadouts.AsEnumerable().Select(ConvertToDbModel));
 

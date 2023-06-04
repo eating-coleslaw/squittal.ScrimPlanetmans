@@ -51,8 +51,8 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
          COALESCE(death_sums.AssistedDeaths, 0) AssistedDeaths,
          COALESCE(death_sums.UnassistedDeaths, 0) UnassistedDeaths,
          COALESCE(death_sums.UnassistedHeadshotDeaths, 0) UnassistedHeadshotDeaths
-    FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
-      FULL OUTER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players2
+    FROM [dbo].ScrimMatchParticipatingPlayer match_players
+      FULL OUTER JOIN [dbo].ScrimMatchParticipatingPlayer match_players2
         ON match_players.ScrimMatchId = match_players2.ScrimMatchId
             AND ( match_players.CharacterId <> match_players2.CharacterId )
       LEFT OUTER JOIN ( SELECT deaths.ScrimMatchId,
@@ -104,29 +104,29 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
                                SUM( CASE WHEN deaths.IsHeadshot = 1 AND damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL
                                            THEN 1
                                          ELSE 0 END ) UnassistedHeadshotDeaths
-                          FROM [PlanetmansDbContext].[dbo].ScrimDeath deaths
+                          FROM [dbo].ScrimDeath deaths
                             LEFT OUTER JOIN ( SELECT ScrimMatchId, damages.VictimTeamOrdinal, VictimCharacterId, damages.Timestamp, COUNT(*) TotalDamages
-                                                FROM [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                                                FROM [dbo].ScrimDamageAssist damages
                                                 GROUP BY ScrimMatchId, VictimTeamOrdinal, Timestamp, VictimCharacterId ) damage_sums
                               ON deaths.ScrimMatchId = damage_sums.ScrimMatchId
                                  AND deaths.Timestamp = damage_sums.Timestamp
                                  AND deaths.VictimTeamOrdinal = damage_sums.VictimTeamOrdinal
                                  AND deaths.VictimCharacterId = damage_sums.VictimCharacterId
                             LEFT OUTER JOIN ( SELECT ScrimMatchId, grenades.VictimTeamOrdinal, VictimCharacterId, grenades.Timestamp, COUNT(*) TotalGrenades
-                                                FROM [PlanetmansDbContext].[dbo].[ScrimGrenadeAssist] grenades
+                                                FROM [dbo].[ScrimGrenadeAssist] grenades
                                                 GROUP BY ScrimMatchId, VictimTeamOrdinal, Timestamp, VictimCharacterId ) grenade_sums
                               ON deaths.ScrimMatchId = grenade_sums.ScrimMatchId
                                  AND deaths.Timestamp = grenade_sums.Timestamp
                                  AND deaths.VictimTeamOrdinal = grenade_sums.VictimTeamOrdinal
                                  AND deaths.VictimCharacterId = grenade_sums.VictimCharacterId
                             LEFT OUTER JOIN ( SELECT ScrimMatchId, spots.VictimTeamOrdinal, VictimCharacterId, spots.Timestamp, COUNT(*) TotalSpots
-                                                FROM [PlanetmansDbContext].[dbo].[ScrimSpotAssist] spots
+                                                FROM [dbo].[ScrimSpotAssist] spots
                                                 GROUP BY ScrimMatchId, VictimTeamOrdinal, Timestamp, VictimCharacterId ) spot_sums
                               ON deaths.ScrimMatchId = spot_sums.ScrimMatchId
                                  AND deaths.Timestamp = spot_sums.Timestamp
                                  AND deaths.VictimTeamOrdinal = spot_sums.VictimTeamOrdinal
                                  AND deaths.VictimCharacterId = spot_sums.VictimCharacterId
-                            LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer attacker_players
+                            LEFT OUTER JOIN [dbo].ScrimMatchParticipatingPlayer attacker_players
                               ON attacker_players.ScrimMatchId = deaths.ScrimMatchId
                                  AND attacker_players.CharacterId = deaths.AttackerCharacterId
                         GROUP BY deaths.ScrimMatchId, deaths.VictimCharacterId, deaths.AttackerCharacterId ) death_sums
@@ -145,11 +145,11 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
                                SUM( CASE WHEN match_players.CharacterId = damages.AttackerCharacterId
                                            THEN 1
                                          ELSE 0 END ) TotalDamageAssistsDealt
-                          FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
-                            LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                          FROM [dbo].ScrimMatchParticipatingPlayer match_players
+                            LEFT OUTER JOIN [dbo].ScrimDamageAssist damages
                               ON match_players.ScrimMatchId = damages.ScrimMatchId
                                   AND match_players.CharacterId = damages.AttackerCharacterId
-                            INNER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer victim_players
+                            INNER JOIN [dbo].ScrimMatchParticipatingPlayer victim_players
                               ON victim_players.ScrimMatchId = damages.ScrimMatchId
                                   AND victim_players.CharacterId = damages.VictimCharacterId
                           GROUP BY match_players.ScrimMatchId, match_players.CharacterId, damages.VictimCharacterId ) damages_dealt
@@ -167,11 +167,11 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
                                SUM( CASE WHEN match_players.CharacterId = damages.VictimCharacterId
                                            THEN 1
                                          ELSE 0 END ) TotalDamageAssistsTaken
-                          FROM [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer match_players
-                            LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                          FROM [dbo].ScrimMatchParticipatingPlayer match_players
+                            LEFT OUTER JOIN [dbo].ScrimDamageAssist damages
                               ON match_players.ScrimMatchId = damages.ScrimMatchId
                                  AND match_players.CharacterId = damages.VictimCharacterId
-                            INNER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer attacker_players
+                            INNER JOIN [dbo].ScrimMatchParticipatingPlayer attacker_players
                               ON attacker_players.ScrimMatchId = damages.ScrimMatchId
                                  AND attacker_players.CharacterId = damages.AttackerCharacterId
                           GROUP BY match_players.ScrimMatchId, match_players.CharacterId, damages.AttackerCharacterId ) damages_taken
@@ -226,29 +226,29 @@ ALTER VIEW View_ScrimMatchReportInfantryPlayerHeadToHeadStats AS
                                SUM( CASE WHEN damage_sums.TotalDamages IS NULL AND grenade_sums.TotalGrenades IS NULL AND kills.IsHeadshot = 1
                                            THEN 1
                                          ELSE 0 END ) UnassistedHeadshotKills
-                          FROM [PlanetmansDbContext].[dbo].ScrimDeath kills
+                          FROM [dbo].ScrimDeath kills
                             LEFT OUTER JOIN ( SELECT ScrimMatchId, damages.AttackerTeamOrdinal, VictimCharacterId, damages.Timestamp, COUNT(*) TotalDamages
-                                                FROM [PlanetmansDbContext].[dbo].ScrimDamageAssist damages
+                                                FROM [dbo].ScrimDamageAssist damages
                                                 GROUP BY ScrimMatchId, AttackerTeamOrdinal, Timestamp, VictimCharacterId ) damage_sums
                               ON kills.ScrimMatchId = damage_sums.ScrimMatchId
                                  AND kills.Timestamp = damage_sums.Timestamp
                                  AND kills.AttackerTeamOrdinal = damage_sums.AttackerTeamOrdinal
                                  AND kills.VictimCharacterId = damage_sums.VictimCharacterId
                             LEFT OUTER JOIN ( SELECT ScrimMatchId, grenades.AttackerTeamOrdinal, VictimCharacterId, grenades.Timestamp, COUNT(*) TotalGrenades
-                                                FROM [PlanetmansDbContext].[dbo].[ScrimGrenadeAssist] grenades
+                                                FROM [dbo].[ScrimGrenadeAssist] grenades
                                                 GROUP BY ScrimMatchId, AttackerTeamOrdinal, Timestamp, VictimCharacterId ) grenade_sums
                                   ON kills.ScrimMatchId = grenade_sums.ScrimMatchId
                                      AND kills.Timestamp = grenade_sums.Timestamp
                                      AND kills.AttackerTeamOrdinal = grenade_sums.AttackerTeamOrdinal
                                      AND kills.VictimCharacterId = grenade_sums.VictimCharacterId
                             LEFT OUTER JOIN ( SELECT ScrimMatchId, spots.SpotterTeamOrdinal, VictimCharacterId, spots.Timestamp, COUNT(*) TotalSpots
-                                                FROM [PlanetmansDbContext].[dbo].[ScrimSpotAssist] spots
+                                                FROM [dbo].[ScrimSpotAssist] spots
                                                 GROUP BY ScrimMatchId, SpotterTeamOrdinal, Timestamp, VictimCharacterId ) spot_sums
                               ON kills.ScrimMatchId = spot_sums.ScrimMatchId
                                  AND kills.Timestamp = spot_sums.Timestamp
                                  AND kills.AttackerTeamOrdinal = spot_sums.SpotterTeamOrdinal
                                  AND kills.VictimCharacterId = spot_sums.VictimCharacterId
-                            LEFT OUTER JOIN [PlanetmansDbContext].[dbo].ScrimMatchParticipatingPlayer victim_players
+                            LEFT OUTER JOIN [dbo].ScrimMatchParticipatingPlayer victim_players
                               ON victim_players.ScrimMatchId = kills.ScrimMatchId
                                   AND victim_players.CharacterId = kills.VictimCharacterId
                           GROUP BY kills.ScrimMatchId, kills.AttackerCharacterId, kills.VictimCharacterId ) kill_sums

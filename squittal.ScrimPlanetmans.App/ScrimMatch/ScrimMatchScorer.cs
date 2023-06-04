@@ -18,6 +18,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         private Ruleset _activeRuleset;
 
+        private int? _periodicControlPointsValue;
+
         public ScrimMatchScorer(IScrimRulesetManager rulesets, IScrimTeamsManager teamsManager, IScrimMessageBroadcastService messageService, ILogger<ScrimMatchEngine> logger)
         {
             _rulesets = rulesets;
@@ -27,6 +29,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             _messageService.RaiseActiveRulesetChangeEvent += OnActiveRulesetChangeEvent;
             _messageService.RaiseRulesetRuleChangeEvent += OnRulesetRuleChangeEvent;
+            _messageService.RaiseMatchConfigurationUpdateEvent += OnMatchConfigurationUpdateEvent;
         }
 
         private async void OnActiveRulesetChangeEvent(object sender, ScrimMessageEventArgs<ActiveRulesetChangeMessage> e)
@@ -42,6 +45,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             // TODO: specific methods for only updating Rule Type that changed (Action Rules or Item Category Rules)
+        }
+
+        private void OnMatchConfigurationUpdateEvent(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e)
+        {
+            var message = e.Message;
+            var matchConfiguration = message.MatchConfiguration;
+
+            _periodicControlPointsValue = matchConfiguration.PeriodicFacilityControlPoints;
         }
 
         public async Task SetActiveRulesetAsync()
@@ -82,6 +93,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 Deaths = 1,
                 HeadshotDeaths = isHeadshot
             };
+
+            _teamsManager.TrySetPlayerLastKilledBy(death.VictimPlayer.Id, death.AttackerPlayer.Id);
 
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(death.AttackerPlayer.Id, attackerUpdate);
@@ -264,8 +277,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #endregion Vehicle Destruction Events
 
         #region Experience Events
-        public async Task<ScrimEventScoringResult> ScoreReviveEvent(ScrimReviveActionEvent revive)
+        public async Task<ScrimEventScoringReviveResult> ScoreReviveEvent(ScrimReviveActionEvent revive)
         {
+            var medicTeamOrdinal = revive.MedicPlayer.TeamOrdinal;
+            
             var actionType = revive.ActionType;
             var scoringResult = GetActionRulePoints(actionType);
             var points = scoringResult.Points;
@@ -282,11 +297,59 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 RevivesTaken = 1
             };
 
+            // Additional same-team check is becasue players could technically be on different
+            // factions but the same scrim team
+            var lastKilledByPlayer = revive.LastKilledByPlayer; // _teamsManager.GetLastKilledByPlayer(revive.RevivedPlayer.Id);
+            var lastDeathWasToEnemy = !_teamsManager.DoPlayersShareTeam(revive.RevivedPlayer, lastKilledByPlayer);
+
+            var enemyActionType = revive.ActionType == ScrimActionType.ReviveMax
+                            ? ScrimActionType.EnemyRevivedMax
+                            : ScrimActionType.EnemyRevivedInfantry;
+            
+            // if there was a revive experience event, but lastKilledByPlayer is null, then the player was killed via Outside Interference
+            if (lastKilledByPlayer == null)
+            {
+                enemyActionType = ScrimActionType.OutsideInterference;
+            }
+
+            var enemyScoringResult = GetActionRulePoints(enemyActionType);
+            var enemyPoints = enemyScoringResult.Points;
+
+            //// Additional same-team check is becasue players could technically be on different
+            //// factions but the same scrim team
+            //var lastKilledByPlayer = revive.LastKilledByPlayer; // _teamsManager.GetLastKilledByPlayer(revive.RevivedPlayer.Id);
+            //var lastDeathWasToEnemy = !_teamsManager.DoPlayersShareTeam(revive.RevivedPlayer, lastKilledByPlayer);
+
+            var enemyReviveUpdate = new ScrimEventAggregate()
+            {
+                Points = enemyPoints,
+                NetScore = enemyPoints,
+                EnemyRevivesAllowed = (lastKilledByPlayer != null && lastDeathWasToEnemy) ? 1 : 0, //1,
+                KillsUndoneByRevive = (lastKilledByPlayer != null && lastDeathWasToEnemy) ? 1 : 0
+            };
+
+            revivedUpdate.NetScore = -enemyPoints;
+
+            if (lastKilledByPlayer != null)
+            {
+                await _teamsManager.UpdatePlayerStats(lastKilledByPlayer.Id, enemyReviveUpdate);
+            }
+            else
+            {
+                var enemyTeamOrdinal = _teamsManager.GetEnemyTeamOrdinal(medicTeamOrdinal);
+                _teamsManager.UpdateTeamStats(enemyTeamOrdinal, enemyReviveUpdate);
+            }
+
+            //var enemyTeamOrdinal = _teamsManager.GetEnemyTeamOrdinal(medicTeamOrdinal);
+            //_teamsManager.UpdateTeamStats(enemyTeamOrdinal, enemyReviveUpdate);
+
             // Player Stats update automatically updates the appropriate team's stats
             await _teamsManager.UpdatePlayerStats(revive.MedicPlayer.Id, medicUpdate);
             await _teamsManager.UpdatePlayerStats(revive.RevivedPlayer.Id, revivedUpdate);
 
-            return scoringResult;
+            return new ScrimEventScoringReviveResult(scoringResult, enemyScoringResult, enemyActionType, lastKilledByPlayer);
+
+            //return scoringResult;
         }
 
         public async Task<ScrimEventScoringResult> ScoreAssistEvent(ScrimAssistActionEvent assist)
@@ -428,6 +491,33 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             return scoringResult;
         }
+
+        public int? ScorePeriodicFacilityControlTick(int controllingTeamOrdinal)
+        {
+            var points = GetPeriodicControlPoints();
+            if (!points.HasValue)
+            {
+                return null;
+            }
+
+            var teamUpdate = new ScrimEventAggregate()
+            {
+                Points = points.Value,
+                PeriodicCaptureTicks = 1
+            };
+
+            var oldTeamPoints = _teamsManager.GetTeam(controllingTeamOrdinal)?.EventAggregateTracker.RoundStats.Points;
+
+            _logger.LogInformation($"Adding {teamUpdate.Points} to team {controllingTeamOrdinal}");
+
+            _teamsManager.UpdateTeamStats(controllingTeamOrdinal, teamUpdate);
+
+            var newTeamPoints = _teamsManager.GetTeam(controllingTeamOrdinal)?.EventAggregateTracker.RoundStats.Points;
+
+            _logger.LogInformation($"Team {controllingTeamOrdinal} points updated from {oldTeamPoints} => {newTeamPoints}");
+
+            return points;
+        }
         #endregion Objective Events
 
         #region Misc. Non-Scored Events
@@ -532,6 +622,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _activeRuleset.RulesetItemRules
                                     .Where(rule => rule.ItemId == itemId)
                                     .FirstOrDefault();
+        }
+
+        private int? GetPeriodicControlPoints()
+        {
+            if (_periodicControlPointsValue.HasValue)
+            {
+                return _periodicControlPointsValue;
+            }
+            
+            return _activeRuleset.PeriodicFacilityControlPoints;
         }
 
         private ScrimEventScoringResult GetActionRulePoints(ScrimActionType actionType)

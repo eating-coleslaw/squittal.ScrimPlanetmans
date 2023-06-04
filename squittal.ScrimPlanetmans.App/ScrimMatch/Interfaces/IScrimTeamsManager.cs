@@ -27,7 +27,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         Task<bool> RefreshOutfitPlayers(string aliasLower);
 
         bool RemoveOutfitFromTeam(string aliasLower);
-        bool RemoveCharacterFromTeam(string characterId);
+        //bool RemoveCharacterFromTeam(string characterId);
 
         void ClearAllTeams();
         void ClearTeam(int teamOrdinal);
@@ -91,5 +91,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         void UpdateAllTeamsMatchSeriesResults(int seriesMatchNumber);
         void UpdateAllTeamsMatchSeriesResults(int teamOrdinal, int seriesMatchNumber, ScrimSeriesMatchResultType matchResultType);
         List<ScrimSeriesMatchResult> GetTeamsScrimSeriesMatchResults(int teamOrdinal);
+        int GetEnemyTeamOrdinal(int teamOrdinal);
+        int? GetTeamCurrentRoundScoreDisplay(int teamOrdinal);
+        int? GetTeamRoundScoreDisplay(int teamOrdinal, int matchRound);
+        void ClearPlayerLastKilledByMap();
+        bool TrySetPlayerLastKilledBy(string victimId, string attackerId);
+        Player GetLastKilledByPlayer(string victimId);
     }
 }

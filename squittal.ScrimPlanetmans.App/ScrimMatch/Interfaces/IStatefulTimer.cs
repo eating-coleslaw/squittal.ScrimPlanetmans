@@ -6,9 +6,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 {
     public interface IStatefulTimer
     {
-        event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
+        //event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
 
-        void Configure(TimeSpan timeSpan);
+        void Configure(TimeSpan? timeSpan);
         void Start();
         void Pause();
         void Reset();

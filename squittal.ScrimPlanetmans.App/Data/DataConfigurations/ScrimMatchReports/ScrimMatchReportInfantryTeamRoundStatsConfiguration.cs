@@ -24,6 +24,8 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Ignore(p => p.EnemyDeaths);
             builder.Ignore(p => p.HeadshotPercent);
             builder.Ignore(p => p.HeadshotEnemyDeathPercent);
+            builder.Ignore(p => p.SecuredKills);
+            builder.Ignore(p => p.ConfirmedDeaths);
 
             builder.Property(e => e.Points).HasDefaultValue(0);
             builder.Property(e => e.NetScore).HasDefaultValue(0);
@@ -65,6 +67,16 @@ namespace squittal.ScrimPlanetmans.Data.DataConfigurations
             builder.Property(e => e.KillDamageDealt).HasDefaultValue(0);
             builder.Property(e => e.AssistDamageDealt).HasDefaultValue(0);
             builder.Property(e => e.TotalDamageDealt).HasDefaultValue(0);
+            builder.Property(e => e.Revives).HasDefaultValue(0);
+            builder.Property(e => e.EnemyRevivesAllowed).HasDefaultValue(0);
+            builder.Property(e => e.PeriodicControlTicks).HasDefaultValue(0);
+            builder.Property(e => e.PeriodicControlTickPoints).HasDefaultValue(0);
+            builder.Property(e => e.PostReviveKills).HasDefaultValue(0);
+            builder.Property(e => e.ReviveInstantDeaths).HasDefaultValue(0);
+            builder.Property(e => e.ReviveLivesMoreThan15s).HasDefaultValue(0);
+            builder.Property(e => e.ShortestRevivedLifeSeconds).HasDefaultValue(0);
+            builder.Property(e => e.LongestRevivedLifeSeconds).HasDefaultValue(0);
+            builder.Property(e => e.AvgRevivedLifeSeconds).HasDefaultValue(0);
 
         }
     }

@@ -1,0 +1,472 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Timers;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Threading;
+
+@inject IScrimMatchEngine ScrimMatchEngine
+@inject IScrimTeamsManager ScrimTeamsManager
+@inject IScrimMessageBroadcastService MessageService
+@inject IFactionService FactionService
+@inject IOverlayStateService OverlayState 
+
+@implements IDisposable
+
+
+@if ((MatchState == MatchState.Running || MatchState == MatchState.Paused) && _showComponent)
+{
+    <div class="periodic-control-progress-container">
+        <div class="tick-bar left" style="transform: scaleX(@_scaleValue);"></div><div class="tick-bar right" style="transform: scaleX(@_scaleValue);"></div>
+        <div class="legend-container @SqCssHelper.GetFactionClassFromId(_controllingFactionId)">
+            <span class="points @SqCssHelper.GetFactionClassFromId(_controllingFactionId)">+@PointsPerTick</span>
+            <span class="flag capture-flag-container @SqCssHelper.GetFactionClassFromId(_controllingFactionId)">
+                <span class="iconify capture-flag" data-icon="ion:flag" data-inline="false"></span>
+            </span>
+        </div>
+    </div>
+}
+
+
+@code {
+    private Guid _instanceGuid;
+
+    private MatchState MatchState { get; set; }
+    private bool IsPeriodPointsEnabled { get; set; } = false;
+    private int SecondsPerTick { get; set; }
+    private int PointsPerTick { get; set; }
+
+    private bool _showComponent { get; set; } = false;
+
+    private int? _controllingTeamOrdinal { get; set; }
+    private int? _controllingFactionId { get; set; }
+
+    private PeriodicPointsTimerStateMessage _latestPeriodicPointsTimerTickMessage;
+
+    private Guid lastReceivedGuid { get; set; }
+
+    private Timer _updateTimer { get; set; }
+    private int _updateTimerPeriod = 1000;
+    private DateTime? _lastUpdateTime { get; set; }
+    private int _resumeDelayMs { get; set; }
+    private readonly AutoResetEvent _autoEvent = new AutoResetEvent(true);
+
+    private readonly AutoResetEvent _msgAutoEvent = new AutoResetEvent(true);
+    private bool _disposed = false;
+
+    private double _scaleValue { get; set; }
+
+    private DateTime? LastElapsedTime => _latestPeriodicPointsTimerTickMessage == null ? null : _latestPeriodicPointsTimerTickMessage.LastElapsedTime;
+    private DateTime? LastPausedTime  => _latestPeriodicPointsTimerTickMessage == null ? null : _latestPeriodicPointsTimerTickMessage.LastPausedTime;
+    private DateTime? LastResumedTime  => _latestPeriodicPointsTimerTickMessage == null ? null : _latestPeriodicPointsTimerTickMessage.LastResumedTime;
+
+
+    #region Initialization
+    protected override void OnInitialized()
+    {
+        _instanceGuid = Guid.NewGuid();
+        OverlayState.SetActivePeriodicPointsProgressBarGuid(_instanceGuid);
+
+        SyncMatchStateAndConfig();
+
+        //Console.WriteLine($"======= OnInitialized ({_instanceGuid}) =======");
+        //Console.WriteLine($"  {OverlayState.GetActivePeriodicPointsProgressBarGuid()}");
+
+        var resumeDelay = GetUpdateDelayMilliseconds();
+
+        //Console.WriteLine($"  resumeDelay = {resumeDelay}");
+
+        _updateTimer = new Timer(HandleUpdateTimerTick, _autoEvent, resumeDelay, _updateTimerPeriod);
+
+        SyncProgressState();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+
+        if (firstRender)
+        {
+            //Console.WriteLine($"======= OnAfterRender({firstRender}) ({_instanceGuid}) =======");
+            //Console.WriteLine($"  {OverlayState.GetActivePeriodicPointsProgressBarGuid()}");
+
+            MessageService.RaisePeriodicPointsTimerTickEvent += ReceivePeriodicPointsTimerTickEvent;
+            MessageService.RaiseScrimFacilityControlActionEvent += ReceiveFacilityControlEvent;
+            MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateEvent;
+        }
+    }
+
+    public void Dispose()
+    {
+        //Console.WriteLine($"======= OnDispose ({_instanceGuid}) =======");
+        //Console.WriteLine($"  {OverlayState.GetActivePeriodicPointsProgressBarGuid()}");
+
+        OverlayState.InactivatePeriodicPointsProgressBarGuid(_instanceGuid);
+
+        _updateTimer?.Dispose();
+
+        _msgAutoEvent.Set();
+
+        MessageService.RaisePeriodicPointsTimerTickEvent -= ReceivePeriodicPointsTimerTickEvent;
+        MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveFacilityControlEvent;
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
+
+        _disposed = true;
+    }
+
+    private void SyncMatchStateAndConfig()
+    {
+        MatchState = ScrimMatchEngine.GetMatchState();
+
+        IsPeriodPointsEnabled = ScrimMatchEngine.MatchConfiguration.EnablePeriodicFacilityControlRewards;
+        SecondsPerTick = ScrimMatchEngine.MatchConfiguration.PeriodicFacilityControlIntervalNonNullable;
+        PointsPerTick = ScrimMatchEngine.MatchConfiguration.PeriodicFacilityControlPointsNonNullable;
+
+        if (MatchState == MatchState.Stopped || MatchState == MatchState.Uninitialized || !IsPeriodPointsEnabled)
+        {
+            _controllingTeamOrdinal = null;
+            _latestPeriodicPointsTimerTickMessage = null;
+
+            _lastUpdateTime = null;
+
+            _controllingTeamOrdinal = null;
+            _controllingFactionId = null;
+
+            _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+
+            _showComponent = false;
+        }
+        else
+        {
+            _latestPeriodicPointsTimerTickMessage = ScrimMatchEngine.GetLatestPeriodicPointsTimerTickMessage();
+
+            _controllingTeamOrdinal = ScrimMatchEngine.GetFacilityControlTeamOrdinal();
+
+            if (_controllingTeamOrdinal.HasValue)
+            {
+                _controllingFactionId = ScrimTeamsManager.GetTeam(_controllingTeamOrdinal.Value).FactionId;
+            }
+
+            if (_controllingFactionId.HasValue)
+            {
+                _showComponent = true;
+            }
+            else
+            {
+                _showComponent = false;
+            }
+
+            if (_updateTimer == null)
+            {
+                //Console.WriteLine($"======= SyncMatchStateAndConfig ({_instanceGuid})  =======");
+                //Console.WriteLine($"  {OverlayState.GetActivePeriodicPointsProgressBarGuid()}");
+
+                var resumeDelay = GetUpdateDelayMilliseconds();
+
+                //Console.WriteLine($"  resumeDelay = {resumeDelay}");
+
+                _updateTimer = new Timer(HandleUpdateTimerTick, _autoEvent, resumeDelay, _updateTimerPeriod);
+            }
+        }
+    }
+
+    #endregion Initialization
+
+    #region Progress Bar Display
+    private void SyncProgressState()
+    {
+        if (_controllingTeamOrdinal.HasValue)
+        {
+            _controllingFactionId = ScrimTeamsManager.GetTeam(_controllingTeamOrdinal.Value).FactionId;
+        }
+        else
+        {
+            _showComponent = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
+        if (!_controllingFactionId.HasValue)
+        {
+            _showComponent = false;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+        else
+        {
+            _showComponent = true;
+        }
+
+        var millisecondsFromLastPeriodicTick = GetMillisecondsElapsedFromLastPeriodicTick();
+
+        if (millisecondsFromLastPeriodicTick == Timeout.Infinite)
+        {
+            _scaleValue = 0;
+            InvokeAsyncStateHasChanged();
+            return;
+        }
+
+        var intervalMilliseconds = SecondsPerTick * 1000;
+        var millisecondsRemaining = intervalMilliseconds - millisecondsFromLastPeriodicTick;
+
+        if (millisecondsRemaining < 0)
+        {
+            millisecondsRemaining = 0;
+        }
+
+        _scaleValue = (millisecondsRemaining * 1.0) / intervalMilliseconds;
+
+        InvokeAsyncStateHasChanged();
+    }
+
+    private int GetUpdateDelayMilliseconds()
+    {
+        //Console.WriteLine($"  _lastUpdateTime (1): {_lastUpdateTime}");
+
+        if (_latestPeriodicPointsTimerTickMessage == null)
+        {
+            return Timeout.Infinite;
+        }
+
+        var currentTime = DateTime.UtcNow;
+
+        if (!_lastUpdateTime.HasValue && !LastElapsedTime.HasValue)
+        {
+            return Timeout.Infinite;
+        }
+        else if (!_lastUpdateTime.HasValue && LastElapsedTime.HasValue)
+        {
+            var millisecondsFromLastElapsed = GetMillisecondsElapsedFromLastPeriodicTick();
+
+            //Console.WriteLine($"  millisecondsFromLastElapsed = {millisecondsFromLastElapsed}");
+
+            var timeSpanRemainder = TimeSpan.FromMilliseconds(millisecondsFromLastElapsed % _updateTimerPeriod);
+
+            _lastUpdateTime = currentTime.Subtract(timeSpanRemainder);
+        }
+
+        var lastState = _latestPeriodicPointsTimerTickMessage.State;
+
+        // TODO: Do we need to check more states here?
+        if (lastState == TimerState.Paused)
+        {
+            return Timeout.Infinite;
+        }
+
+        var millisecondsFromLastUpdateTick = (int)(currentTime - _lastUpdateTime.Value).TotalMilliseconds;
+
+        int pauseDelayMilliseconds = 0;
+
+        if (LastPausedTime.HasValue && LastResumedTime.HasValue)
+        {
+            pauseDelayMilliseconds = (int)(LastResumedTime.Value - LastPausedTime.Value).TotalMilliseconds;
+        }
+
+        var updateDelayMilliseconds = _updateTimerPeriod - (millisecondsFromLastUpdateTick - pauseDelayMilliseconds);
+
+        //Console.WriteLine($"  _lastUpdateTime (2): {_lastUpdateTime}");
+        //Console.WriteLine($"  millisecondsFromLastUpdateTick = {millisecondsFromLastUpdateTick}");
+        //Console.WriteLine($"  pauseDelayMilliseconds = {pauseDelayMilliseconds}");
+        //Console.WriteLine($"  updateDelayMilliseconds = {updateDelayMilliseconds}");
+
+        if (updateDelayMilliseconds < Timeout.Infinite || updateDelayMilliseconds > 1000)
+        {
+            updateDelayMilliseconds = 0;
+        }
+
+        return updateDelayMilliseconds;
+    }
+
+    private int GetMillisecondsElapsedFromLastPeriodicTick()
+    {
+        if (_latestPeriodicPointsTimerTickMessage == null)
+        {
+            return Timeout.Infinite;
+        }
+
+        if (!LastElapsedTime.HasValue)
+        {
+            return Timeout.Infinite;
+        }
+
+        // Step 1: Current Time - Last Elapsed Tick Time
+        var currentTime = DateTime.UtcNow;
+
+        var millisecondsFromLastElapsedTick = (int)(currentTime - LastElapsedTime.Value).TotalMilliseconds;
+
+        // Step 2: Get pause delay, if there was one
+        int pauseDelayMilliseconds = 0;
+
+        if (LastPausedTime.HasValue && LastResumedTime.HasValue)
+        {
+            pauseDelayMilliseconds = (int)(LastResumedTime.Value - LastPausedTime.Value).TotalMilliseconds;
+        }
+        else if (LastPausedTime.HasValue && !LastResumedTime.HasValue)
+        {
+            pauseDelayMilliseconds = (int)(currentTime - LastPausedTime.Value).TotalMilliseconds;
+        }
+
+        var intervalMilliseconds = SecondsPerTick * 1000;
+
+        var millisecondsElapsed = (millisecondsFromLastElapsedTick - pauseDelayMilliseconds);
+
+        return millisecondsElapsed;
+
+    }
+
+    #endregion Progress Bar Display
+
+    #region Event Handling
+    private void ReceivePeriodicPointsTimerTickEvent(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
+    {
+        //Console.WriteLine($"======= ReceivePeriodicPointsTimerTickEvent ({_instanceGuid})  =======");
+        //Console.WriteLine($"  {OverlayState.GetActivePeriodicPointsProgressBarGuid()}");
+
+        _msgAutoEvent.WaitOne();
+
+        //Console.WriteLine($"  InstanceID: {_instanceGuid}");
+        //Console.WriteLine($"  Message GUID: {e.Message.Guid}");
+        //Console.WriteLine($"  _disposed: {_disposed}");
+
+        //if (_instanceGuid != OverlayState.GetActivePeriodicPointsProgressBarGuid())
+        if (!OverlayState.IsActivePeriodicPointsProgressBarGuid(_instanceGuid))
+        {
+            //Console.WriteLine($"  Discarded periodic tick message for mismatched component GUID");
+
+            OverlayState.InactivatePeriodicPointsProgressBarGuid(_instanceGuid);
+
+            _updateTimer?.Dispose();
+
+            MessageService.RaisePeriodicPointsTimerTickEvent -= ReceivePeriodicPointsTimerTickEvent;
+            MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveFacilityControlEvent;
+            MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
+
+            _msgAutoEvent.Set();
+
+            return;
+        }
+
+
+        if (_disposed)
+        {
+            //Console.WriteLine($"  Discarded periodic tick message for disposed component");
+
+            _msgAutoEvent.Set();
+            return;
+        }
+
+        var message = e.Message;
+
+        if (_latestPeriodicPointsTimerTickMessage != null && message.Guid == _latestPeriodicPointsTimerTickMessage.Guid)
+        {
+            //Console.WriteLine($"  Discarded duplicate periodic tick message (1)");
+
+            _msgAutoEvent.Set();
+            return;
+        }
+
+        if (lastReceivedGuid == message.Guid)
+        {
+            //Console.WriteLine($"  Discarded duplicate periodic tick message (2)");
+
+            _msgAutoEvent.Set();
+            return;
+        }
+
+        lastReceivedGuid = message.Guid;
+
+        var latestTickTime = (_latestPeriodicPointsTimerTickMessage == null) ? DateTime.UtcNow : _latestPeriodicPointsTimerTickMessage.Timestamp;
+        var latestElapsedTime = (_latestPeriodicPointsTimerTickMessage == null) ? DateTime.UtcNow : _latestPeriodicPointsTimerTickMessage.LastElapsedTime;
+        var latestState = (_latestPeriodicPointsTimerTickMessage == null) ? TimerState.Uninitialized : _latestPeriodicPointsTimerTickMessage.State;
+        bool? latestElapsed = (_latestPeriodicPointsTimerTickMessage == null) ? (bool?)null : _latestPeriodicPointsTimerTickMessage.PeriodElapsed;
+        var newState = message.State;
+
+        _latestPeriodicPointsTimerTickMessage = message;
+
+        //Console.WriteLine($"  Periodic TimerState: {Enum.GetName(typeof(TimerState), latestState)} => {Enum.GetName(typeof(TimerState), newState)}");
+        //Console.WriteLine($"  Periodic ElapsedTime: {latestElapsedTime} => {message.LastElapsedTime}");
+        //Console.WriteLine($"  Periodic PeriodElapsed?: {latestElapsed} => {message.PeriodElapsed}");
+
+        var resumeDelay = 0;
+
+        if (!message.PeriodElapsed)
+        {
+            resumeDelay = GetUpdateDelayMilliseconds();
+        }
+
+        //Console.WriteLine($"  resumeDelay: {resumeDelay}");
+
+        _updateTimer.Change(resumeDelay, _updateTimerPeriod);
+
+        _msgAutoEvent.Set();
+    }
+
+    private void ReceiveFacilityControlEvent(object sender, ScrimMessageEventArgs<ScrimFacilityControlActionEventMessage> e)
+    {
+        //Console.WriteLine($"======= ReceiveFacilityControlEvent ({_instanceGuid})  =======");
+        //Console.WriteLine($"  {OverlayState.GetActivePeriodicPointsProgressBarGuid()}");
+
+        var stateChanged = false;
+
+        var message = e.Message;
+
+        var newControllingTeamOrdinal = message.FacilityControl.ControllingTeamOrdinal;
+
+        if (!_controllingTeamOrdinal.HasValue)
+        {
+            _controllingTeamOrdinal = newControllingTeamOrdinal;
+            stateChanged = true;
+        }
+        else if (newControllingTeamOrdinal != _controllingTeamOrdinal.Value)
+        {
+            _controllingTeamOrdinal = newControllingTeamOrdinal;
+            stateChanged = true;
+        }
+
+        if (stateChanged)
+        {
+            _controllingFactionId = ScrimTeamsManager.GetTeam(_controllingTeamOrdinal.Value).FactionId;
+
+            SyncProgressState();
+        }
+    }
+
+    private void ReceiveMatchStateUpdateEvent(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e)
+    {
+        var message = e.Message;
+
+        var oldMatchState = MatchState;
+        var newMatchState = message.MatchState;
+
+        if (oldMatchState != newMatchState)
+        {
+            MatchState = newMatchState;
+
+            SyncMatchStateAndConfig();
+
+            InvokeAsyncStateHasChanged();
+        }
+    }
+
+    #endregion Event Handling
+
+    #region Update Timer
+    private void HandleUpdateTimerTick(object state)
+    {
+        _lastUpdateTime = DateTime.UtcNow;
+
+        SyncProgressState();
+    }
+
+    #endregion Update Timer
+
+    private void InvokeAsyncStateHasChanged()
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+}

@@ -1,4 +1,4 @@
-USE PlanetmansDbContext;
+USE [PlanetmansDbContext];
 
 SET NOCOUNT ON;
 

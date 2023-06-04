@@ -31,6 +31,8 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public List<string> CharacterSubscriptions = new List<string>();
 
+        public HashSet<string> SubscribedCharacterIDs = new HashSet<string>();
+
         public int? SubscribedFacilityId;
         public int? SubscribedWorldId;
 
@@ -69,7 +71,7 @@ namespace squittal.ScrimPlanetmans.CensusStream
             var subscription = new CensusStreamSubscription
             {
                 Characters = new[] { "all" },
-                Worlds = new[] { "all" },
+                Worlds = new[] { "1", "10", "13", "17", "19", "40", "1000", "2000" },
                 EventNames = eventNames
             };
 
@@ -78,12 +80,19 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
         public void AddCharacterSubscription(string characterId)
         {
-            if (CharacterSubscriptions.Contains(characterId))
-            {
-                return;
-            }
+            //if (CharacterSubs.Contains(characterId))
+            //{
+            //    return;
+            //}
 
-            CharacterSubscriptions.Add(characterId);
+            SubscribedCharacterIDs.Add(characterId);
+            
+            //if (CharacterSubscriptions.Contains(characterId))
+            //{
+            //    return;
+            //}
+
+            //CharacterSubscriptions.Add(characterId);
         }
 
         public void AddCharacterSubscriptions(IEnumerable<string> characterIds)
@@ -95,32 +104,42 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             _logger.LogInformation(string.Join(",", characterIds));
 
-            var newCharacterIds = characterIds.Where(id => !CharacterSubscriptions.Contains(id)).ToList();
+            SubscribedCharacterIDs.UnionWith(characterIds);
 
-            CharacterSubscriptions.AddRange(newCharacterIds);
+            _logger.LogInformation(SubscribedCharacterIDs.Count().ToString());
 
-            _logger.LogInformation(CharacterSubscriptions.Count().ToString());
+            //var newCharacterIds = characterIds.Where(id => !CharacterSubscriptions.Contains(id)).ToList();
+
+            //CharacterSubscriptions.AddRange(newCharacterIds);
+
+            //_logger.LogInformation(CharacterSubscriptions.Count().ToString());
         }
 
         public void RemoveCharacterSubscription(string characterId)
         {
-            if (CharacterSubscriptions.Contains(characterId))
-            {
-                CharacterSubscriptions.Remove(characterId);
-            }
+            SubscribedCharacterIDs.Remove(characterId);
+            
+            //if (CharacterSubscriptions.Contains(characterId))
+            //{
+            //    CharacterSubscriptions.Remove(characterId);
+            //}
         }
 
         public void RemoveCharacterSubscriptions(IEnumerable<string> characterIds)
         {
-            foreach (var id in characterIds)
-            {
-                RemoveCharacterSubscription(id);
-            }
+            SubscribedCharacterIDs.ExceptWith(characterIds);
+            
+            //foreach (var id in characterIds)
+            //{
+            //    RemoveCharacterSubscription(id);
+            //}
         }
 
         public void RemoveAllCharacterSubscriptions()
         {
-            CharacterSubscriptions.Clear();
+            SubscribedCharacterIDs.Clear();
+
+            //CharacterSubscriptions.Clear();
         }
 
         public void SetFacilitySubscription(int facilityId)
@@ -307,10 +326,10 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             var characterId = payload.Value<string>("character_id");
 
-
             if (!string.IsNullOrWhiteSpace(characterId))
             {
-                if (CharacterSubscriptions.Contains(characterId))
+                //if (CharacterSubscriptions.Contains(characterId))
+                if (SubscribedCharacterIDs.Contains(characterId))
                 {
                     _logger.LogDebug($"[cid] Payload receive for message: {message}");
                     return true;
@@ -321,11 +340,13 @@ namespace squittal.ScrimPlanetmans.CensusStream
 
             if (!string.IsNullOrWhiteSpace(attackerId))
             {
-                if (CharacterSubscriptions.Contains(attackerId))
+                //if (CharacterSubscriptions.Contains(attackerId))
+                if (SubscribedCharacterIDs.Contains(attackerId))
                 {
                     _logger.LogDebug($"[aid] Payload receive for message: {message}");
                 }
-                return CharacterSubscriptions.Contains(attackerId);
+                //return CharacterSubscriptions.Contains(attackerId);
+                return SubscribedCharacterIDs.Contains(attackerId);
             }
 
             return false;

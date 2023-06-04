@@ -62,6 +62,7 @@ namespace squittal.ScrimPlanetmans.Data
         public DbSet<ScrimSpotAssist> ScrimSpotAssists { get; set; }
         public DbSet<ScrimRevive> ScrimRevives { get; set; }
         public DbSet<ScrimFacilityControl> ScrimFacilityControls { get; set; }
+        public DbSet<ScrimPeriodicControlTick> ScrimPeriodicControlTicks { get; set; }
 
         public DbSet<ConstructedTeam> ConstructedTeams { get; set; }
         public DbSet<ConstructedTeamPlayerMembership> ConstructedTeamPlayerMemberships { get; set; }
@@ -134,6 +135,7 @@ namespace squittal.ScrimPlanetmans.Data
             builder.ApplyConfiguration(new ScrimSpotAssistConfiguration());
             builder.ApplyConfiguration(new ScrimReviveConfiguration());
             builder.ApplyConfiguration(new ScrimFacilityControlConfiguration());
+            builder.ApplyConfiguration(new ScrimPeriodicControlTickConfiguration());
 
             builder.ApplyConfiguration(new ConstructedTeamConfiguration());
             builder.ApplyConfiguration(new ConstructedTeamPlayerMembershipConfiguration());

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using squittal.ScrimPlanetmans.Logging;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using System;
 using System.Threading.Tasks;
 
@@ -80,9 +81,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public event EventHandler<ScrimMessageEventArgs<MatchConfigurationUpdateMessage>> RaiseMatchConfigurationUpdateEvent;
         public delegate void MatchConfigurationUpdateEventHandler(object sender, ScrimMessageEventArgs<MatchConfigurationUpdateMessage> e);
 
-        public event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
-        public delegate void MatchTimerTickEventHandler(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e);
-        
+
         public event EventHandler<ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage>> RaiseConstructedTeamMemberChangeEvent;
         public delegate void ConstructedTeamMemberChangeEventHandler(object sender, ScrimMessageEventArgs<ConstructedTeamMemberChangeMessage> e);
         
@@ -100,6 +99,10 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         public delegate void ActiveRulesetRuleChangeEventHandler(object sender, ScrimMessageEventArgs<RulesetRuleChangeMessage> e);
         
         public event EventHandler<ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage>> RaiseRulesetOverlayConfigurationChangeEvent;
+
+        public event EventHandler<ScrimMessageEventArgs<EndRoundCheckerMessage>> RaiseEndRoundCheckerMessage;
+        public delegate void EndRoundCheckerMessageEventHandler(object sender, ScrimMessageEventArgs<EndRoundCheckerMessage> e);
+
         public delegate void RulesetOverlayConfigurationChangeEventHandler(object sender, ScrimMessageEventArgs<RulesetOverlayConfigurationChangeMessage> e);
 
         #endregion Handler Events & Delegates
@@ -169,6 +172,9 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         #endregion Match State Change
 
         #region Match Timer Tick
+        public event EventHandler<ScrimMessageEventArgs<MatchTimerTickMessage>> RaiseMatchTimerTickEvent;
+        public delegate void MatchTimerTickEventHandler(object sender, ScrimMessageEventArgs<MatchTimerTickMessage> e);
+
         public void BroadcastMatchTimerTickMessage(MatchTimerTickMessage message)
         {
             OnRaiseMatchTimerTickEvent(new ScrimMessageEventArgs<MatchTimerTickMessage>(message));
@@ -178,6 +184,20 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
             RaiseMatchTimerTickEvent?.Invoke(this, e);
         }
         #endregion Match Timer Tick
+
+        #region Period Points Timer Tick
+        public event EventHandler<ScrimMessageEventArgs<PeriodicPointsTimerStateMessage>> RaisePeriodicPointsTimerTickEvent;
+        public delegate void PeriodicPointsTimerTickEventHandler(object sender, ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e);
+
+        public void BroadcastPeriodicPointsTimerTickMessage(PeriodicPointsTimerStateMessage message)
+        {
+            OnRaisePeriodicPointsTimerTickEvent(new ScrimMessageEventArgs<PeriodicPointsTimerStateMessage>(message));
+        }
+        protected virtual void OnRaisePeriodicPointsTimerTickEvent(ScrimMessageEventArgs<PeriodicPointsTimerStateMessage> e)
+        {
+            RaisePeriodicPointsTimerTickEvent?.Invoke(this, e);
+        }
+        #endregion Period Points Timer Tick
 
         #region Player Login / Logout
         public void BroadcastPlayerLoginMessage(PlayerLoginMessage message)
@@ -453,6 +473,15 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatch
         protected virtual void OnRaiseRulesetRuleChangeEvent(ScrimMessageEventArgs<RulesetRuleChangeMessage> e)
         {
             RaiseRulesetRuleChangeEvent?.Invoke(this, e);
+        }
+
+        public void BroadcastEndRoundCheckerMessage(EndRoundCheckerMessage message)
+        {
+            OnRaiseEndRoundCheckerEvent(new ScrimMessageEventArgs<EndRoundCheckerMessage>(message));
+        }
+        protected virtual void OnRaiseEndRoundCheckerEvent(ScrimMessageEventArgs<EndRoundCheckerMessage> e)
+        {
+            RaiseEndRoundCheckerMessage?.Invoke(this, e);
         }
         #endregion Ruleset Messages
     }

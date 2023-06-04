@@ -1,0 +1,295 @@
+﻿@using squittal.ScrimPlanetmans.App.Pages.Shared;
+@using squittal.ScrimPlanetmans.Models.Forms;
+@using squittal.ScrimPlanetmans.Models.MessageLogs
+@using squittal.ScrimPlanetmans.Models.Planetside;
+@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.Services.Planetside;
+@using squittal.ScrimPlanetmans.Services.ScrimMatch;
+
+@inject IScrimTeamsManager TeamsManager
+@inject IScrimMessageBroadcastService MessageService
+@inject IOutfitService OutfitService
+
+<EditForm Model="@newAdditionInput" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    @*<ValidationSummary Model="@newAdditionInput" />*@
+    @*<ValidationSummary />*@
+
+    @if (isProcessingInput)
+    {
+        <InputText style="min-width: 300px;" disabled="" id="@($"NewAdditionInput{teamOrdinal}")" @bind-Value="newAdditionInput.Value" placeholder="Character Name, ID, or [Outfit Tag]"/>
+
+    }
+    else
+    { 
+        <InputText style="min-width: 300px;" id="@($"NewAdditionInput{teamOrdinal}")" @bind-Value="newAdditionInput.Value" placeholder="Character Name, ID, or [Outfit Tag]"/>
+    }
+
+    @if (isProcessingInput)
+    {
+        <span class="inline">
+            <SpinnerEllipsis />
+        </span>
+    }
+    else
+    {
+        <button type="submit" class="btn btn-primary btn-inline">
+            <span class="oi oi-people"></span>Add
+        </button>
+    }
+
+    @*@Enum.GetName(typeof(TeamAdditionInputType), newAdditionInput.InputType)
+    @isProcessingInput*@
+
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public int teamOrdinal { get; set; }
+
+    [Parameter]
+    public EventCallback<TeamAdditionEventArgs> OnTeamAdditionSubmitted { get; set; }
+
+    [Parameter]
+    public EventCallback<TeamAdditionEventArgs> OnTeamAdditionFailure { get; set; }
+
+    private TeamAdditionInput newAdditionInput = new TeamAdditionInput();
+    private bool isProcessingInput = false;
+
+    private List<string> failedInputs = new List<string>();
+
+
+    private async void HandleValidSubmit()
+    {
+        //Console.WriteLine($"isProcessingInput: {isProcessingInput}");
+
+        if (isProcessingInput)
+        {
+            return;
+        }
+
+        isProcessingInput = true;
+
+        StateHasChanged();
+
+        var newAddition = newAdditionInput;
+
+        Console.WriteLine($"Tried Submitting Input: {newAddition.Value}");
+
+        if (newAddition.InputType != TeamAdditionInputType.Invalid && newAddition.InputType != TeamAdditionInputType.Null)
+        {
+            Console.WriteLine($"Processing submission of type: {Enum.GetName(typeof(TeamAdditionInputType), newAddition.InputType)}");
+            await ProcessSubmission(newAddition);
+        }
+
+        isProcessingInput = false;
+
+        //Console.WriteLine($"isProcessingInput: {isProcessingInput}");
+
+        StateHasChanged();
+    }
+
+    private async Task ProcessSubmission(TeamAdditionInput newAddition)
+    {
+        var success = false;
+        failedInputs.Clear();
+
+        var eventArgs = new TeamAdditionEventArgs(newAddition.InputType);
+
+        if (newAddition.InputType == TeamAdditionInputType.Character)
+        {
+            var identifier = newAdditionInput.GetCharacter();
+
+            eventArgs.AdditionIdentifier = identifier;
+
+            Console.WriteLine($"Trying to add Character: {identifier}");
+
+            await OnTeamAdditionSubmitted.InvokeAsync(eventArgs);
+
+            success = await SendCharacterRequest(identifier);
+        }
+        else if (newAddition.InputType == TeamAdditionInputType.Outfit)
+        {
+            var identifier = newAdditionInput.GetOutfitAlias();
+
+            eventArgs.AdditionIdentifier = identifier;
+
+            Console.WriteLine($"Trying to add Outfit: {identifier}");
+
+            await OnTeamAdditionSubmitted.InvokeAsync(eventArgs);
+
+            success = await SendOutfitRequest(identifier);
+
+            if (success)
+            {
+                Console.WriteLine($"Successfully added Outfit: {identifier}");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to add Outfit: {identifier}");
+            }
+        }
+        else if (newAddition.InputType == TeamAdditionInputType.CharacterList)
+        {
+            var identifier = string.Join(",", newAdditionInput.GetCleanedCharacterList());
+
+            eventArgs.AdditionIdentifier = identifier;
+
+            Console.WriteLine($"Trying to add CharacterList: {identifier}");
+
+            await OnTeamAdditionSubmitted.InvokeAsync(eventArgs);
+
+            success = await SendCharacterListRequests(newAdditionInput.GetCleanedCharacterList());
+        }
+
+        if (success)
+        {
+            var seedInput = failedInputs.Any() ? string.Join(",", failedInputs) : string.Empty;
+
+            newAdditionInput = new TeamAdditionInput(seedInput);
+
+            if (!string.IsNullOrWhiteSpace(seedInput))
+            {
+                eventArgs.AdditionIdentifier = seedInput;
+                Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+                await OnTeamAdditionFailure.InvokeAsync(eventArgs);
+            }
+            else
+            {
+                Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(eventArgs.AdditionIdentifier))
+        {
+            Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+            await OnTeamAdditionFailure.InvokeAsync(eventArgs);
+        }
+        else
+        {
+            Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+        }
+
+        //Console.WriteLine($"Finished Processing Submission: {newAddition.Value}");
+    }
+
+    private async Task<bool> SendCharacterRequest(string input)
+    {
+        //var request = new TeamCharacterRequest(input);
+
+        //var response = await Http.PostAsJsonAsync<TeamCharacterRequest>($"server/TeamAdmin/character/{matchId}/{teamOrdinal}", request);
+
+        //return response.StatusCode == HttpStatusCode.OK;
+
+        try
+        {
+            Console.WriteLine($"Attempting to add character {input}");
+            return await TeamsManager.TryAddFreeTextInputCharacterToTeam(teamOrdinal, input);
+        }
+        catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+        {
+            LogError($"Failed to add character {input}", $"The Census API Character service may be broken: {ex}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            LogError($"Failed to add character {input}", $"Error: {ex}");
+            return false;
+        }
+    }
+
+    private async Task<bool> SendOutfitRequest(string input)
+    {
+        //var request = new TeamOutfitRequest(input);
+
+        //var response = await Http.PostAsJsonAsync<TeamOutfitRequest>($"server/TeamAdmin/outfit/{matchId}/{teamOrdinal}", request);
+
+        //return response.StatusCode == HttpStatusCode.OK;
+
+        var newAlias = input;
+        var newAliasLower = newAlias.ToLower();
+
+        if (!TeamsManager.IsOutfitAvailable(newAliasLower, out Team owningTeam))
+        {
+            LogError($"Failed to add outfit [{newAliasLower}]", "Outfit is not available.");
+            return false;
+        }
+
+        try
+        {
+            var newOutfit = await OutfitService.GetOutfitByAlias(newAliasLower);
+
+            if (newOutfit == null)
+            {
+                LogError($"Failed to add outfit [{newAlias}]", "Outfit may not exist.");
+                //LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAlias}]</span>. Outfit may not exist.</span>");
+                return false;
+            }
+
+            if (newOutfit.MemberCount > 0)
+            {
+                Console.WriteLine($"Trying to add outfit alias [{newAlias}] to team");
+                return await TeamsManager.AddOutfitAliasToTeam(teamOrdinal, newAliasLower, newAlias);
+            }
+            else
+            {
+                LogError($"Failed to add outfit [{newAlias}]", "Outfit has no members.");
+                //LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAlias}]</span>. Outfit has no members</span>");
+                return false;
+            }
+        }
+        catch (DaybreakGames.Census.Exceptions.CensusServiceUnavailableException ex)
+        {
+            LogError($"Failed to add outfit [{newAliasLower}]", $"The Census API Outfit service may be broken: {ex}");
+            //LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>. The Census API Outfit service may be broken: {ex}</span>");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            LogError($"Failed to add outfit [{newAliasLower}]", $"Error: {ex}");
+            //LogMessage($"<span style=\"color: red;\"><span style=\"font-weight: 600;\">Failed to add outfit [{newAliasLower}]</span>: {ex}</span>");
+            return false;
+        }
+    }
+
+    private async Task<bool> SendCharacterListRequests(IEnumerable<string> characters)
+    {
+        var charactersMap = characters.ToDictionary(c => c, c => SendCharacterRequest(c));
+
+        await Task.WhenAll(charactersMap.Values);
+
+        var anySuccesses = false;
+
+        foreach (var characterTaskPair in charactersMap)
+        {
+            var result = characterTaskPair.Value.Result;
+
+            if (result)
+            {
+                anySuccesses = true;
+            }
+            else
+            {
+                if (!failedInputs.Contains(characterTaskPair.Key))
+                {
+                    failedInputs.Add(characterTaskPair.Key);
+                }
+            }
+        }
+
+        return anySuccesses;
+    }
+
+    private void LogError(string header, string body)
+    {
+        LogMessage(LogMessageFormatter.Error(header, body));
+    }
+
+    private void LogMessage(string message)
+    {
+        Task.Run(() =>
+        {
+            MessageService.BroadcastSimpleMessage(message);
+        }).ConfigureAwait(false);
+    }
+}

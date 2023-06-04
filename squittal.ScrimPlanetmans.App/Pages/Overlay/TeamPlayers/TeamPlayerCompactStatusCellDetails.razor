@@ -1,9 +1,11 @@
-﻿@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
+﻿@using squittal.ScrimPlanetmans.ScrimMatch;
+@using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
 @using System.Threading;
 @using System.Collections.Concurrent;
 
+@inject IScrimMatchEngine ScrimMatchEngine 
 @inject IScrimMessageBroadcastService MessageService
 
 @implements IDisposable
@@ -45,6 +47,12 @@
     public bool i_NoScore { get; set; }
     private bool _renderedNoScore { get; set; } = false;
 
+    [Parameter]
+    public bool i_CurrentRoundOnly { get; set; }
+    private bool _renderedCurrentRoundOnly { get; set; } = false;
+
+    private int _currentRound { get; set; }
+
     private string _noScoreCssClass { get; set; } = string.Empty;
 
     private string _renderedPlayerId;
@@ -77,6 +85,10 @@
         MessageService.RaiseScrimReviveActionEvent += ReceiveScrimReviveActionEvent;
         MessageService.RaiseScrimObjectiveTickActionEvent += ReceiveScrimObjectiveTickActionEvent;
 
+        MessageService.RaiseMatchStateUpdateEvent += ReceiveMatchStateUpdateEvent;
+
+        _currentRound = ScrimMatchEngine.GetCurrentRound();
+
         InitializeTimer();
     }
 
@@ -89,6 +101,8 @@
         MessageService.RaiseScrimDeathActionEvent -= ReceiveScrimDeathActionEvent;
         MessageService.RaiseScrimReviveActionEvent -= ReceiveScrimReviveActionEvent;
         MessageService.RaiseScrimObjectiveTickActionEvent -= ReceiveScrimObjectiveTickActionEvent;
+
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
     }
 
     protected override void OnParametersSet()
@@ -107,6 +121,43 @@
             SetNoScoreCssClass();
 
             stateHasChanged = true;
+        }
+
+        if (i_CurrentRoundOnly != _renderedCurrentRoundOnly)
+        {
+            _renderedCurrentRoundOnly = i_CurrentRoundOnly;
+
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+            stateHasChanged = true;
+        }
+
+        if (!_renderedNoScore)
+        {
+            int newNetScore = 0;
+
+            if (_renderedCurrentRoundOnly)
+            {
+                if (i_player.EventAggregateTracker.RoundHistory.TryGetValue(_currentRound, out var roundStats))
+                {
+                    newNetScore = roundStats.NetScore;
+                }
+                else
+                {
+                    newNetScore = i_player.EventAggregateTracker.RoundStats.Points;
+                }
+            }
+            else
+            {
+                newNetScore = i_player.EventAggregate.NetScore;
+            }
+
+            if (_renderedNetScore != newNetScore)
+            {
+                _renderedNetScore = newNetScore;
+
+                stateHasChanged = true;
+            }
         }
 
         if (stateHasChanged)
@@ -230,6 +281,40 @@
         }
     }
 
+    private void ReceiveMatchStateUpdateEvent(object sender, ScrimMessageEventArgs<MatchStateUpdateMessage> e)
+    {
+        if (!_renderedCurrentRoundOnly || _renderedNoScore)
+        {
+            return;
+        }
+
+        var message = e.Message;
+
+        var oldCurrentRound = _currentRound;
+        var newCurrentRound = message.CurrentRound;
+
+        if (oldCurrentRound != newCurrentRound)
+        {
+            _currentRound = newCurrentRound;
+
+            if (!i_player.EventAggregateTracker.RoundHistory.TryGetValue(_currentRound, out var roundStats))
+            {
+                roundStats = i_player.EventAggregateTracker.RoundStats;
+            }
+
+            var newNetScore = roundStats.NetScore;
+            if (_renderedNetScore != newNetScore)
+            {
+                _renderedNetScore = newNetScore;
+
+                InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+        }
+    }
+
     #endregion
 
     #region ScrimKillfeedEvent Conversions
@@ -252,7 +337,8 @@
             IsHeadshot = deathEvent.IsHeadshot,
             PreviousRenderTime = DateTime.Now,
             FirstRenderTime = DateTime.Now,
-            EffectiveDurationMilliseconds = 10000
+            //EffectiveDurationMilliseconds = 10000
+            EffectiveDurationMilliseconds = 7000
         };
     }
 
@@ -317,7 +403,7 @@
             {
                 if (playerIsActor)
                 {
-                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 10)
+                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 7)
                     {
                         _renderedStatus = PlayerStatus.Alive;
                         _timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -341,7 +427,7 @@
             {
                 if (playerIsActor)
                 {
-                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 10)
+                    if (_renderedStatus != PlayerStatus.ContestingObjective && secondsSinceLastRenderedDeath > 7)
                     {
                         _renderedStatus = PlayerStatus.Alive;
                         _timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -419,11 +505,45 @@
             stateHasChanged = true;
         }
 
-        if (!_renderedNoScore && player.EventAggregate.NetScore != _renderedNetScore)
+        if (_renderedCurrentRoundOnly && !_renderedNoScore)
         {
-            _renderedNetScore = player.EventAggregate.NetScore;
-            stateHasChanged = true;
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+            if (!player.EventAggregateTracker.TryGetTargetRoundStats(_currentRound, out var roundStats))
+            {
+                roundStats = player.EventAggregateTracker.RoundStats;
+            }
+
+            var playerNetScore = roundStats.NetScore;
+
+            if (playerNetScore != _renderedNetScore)
+            {
+                _renderedNetScore = playerNetScore;
+                stateHasChanged = true;
+            }
         }
+        else if (!_renderedCurrentRoundOnly && !_renderedNoScore)
+        {
+            var playerNetScore = player.EventAggregate.NetScore;
+
+            if (playerNetScore != _renderedNetScore)
+            {
+                _renderedNetScore = playerNetScore;
+                stateHasChanged = true;
+            }
+        }
+
+
+        //if (!_renderedNoScore && !_renderedCurrentRoundOnly && player.EventAggregate.NetScore != _renderedNetScore && !_renderedNoScore)
+        //{
+        //    _renderedNetScore = player.EventAggregate.NetScore;
+        //    stateHasChanged = true;
+        //}
+        //else if (!_renderedNoScore && _renderedCurrentRoundOnly && player.EventAggregateTracker.RoundStats.NetScore != _renderedNetScore && !_renderedNoScore)
+        //{
+        //    _renderedNetScore = player.EventAggregateTracker.RoundStats.NetScore;
+        //    stateHasChanged = true;
+        //}
 
         return stateHasChanged;
     }

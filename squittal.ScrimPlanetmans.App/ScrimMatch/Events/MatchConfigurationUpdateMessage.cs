@@ -9,7 +9,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Messages
 
         public MatchConfigurationUpdateMessage(MatchConfiguration matchConfiguration)
         {
-            MatchConfiguration = matchConfiguration;
+            MatchConfiguration = new MatchConfiguration();
+
+            MatchConfiguration.CopyValues(matchConfiguration);
 
             Info = "Match Configuration updated";
         }

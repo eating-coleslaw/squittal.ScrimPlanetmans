@@ -473,9 +473,9 @@ body {
     height: 100%;
     background-color: var(--sq-ov-ps2-primary);
     opacity: 0.75;
-    -moz-animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
-    -webkit-animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
-    animation: 10s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 10s 1 normal forwards wipeUp;
+    -moz-animation: 7s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 7s 1 normal forwards wipeUp;
+    -webkit-animation: 7s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 7s 1 normal forwards wipeUp;
+    animation: 7s linear 0s 1 reverse forwards respawnIn, 0.1s ease-in 7s 1 normal forwards wipeUp;
     border-style: solid;
     border-width: 1px 0px 0px 0px;
     border-color: var(--sq-ov-ps2-primary-dark-alpha-80);
@@ -530,9 +530,9 @@ body {
 }
 
 .deadTextPlay {
-    -moz-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
-    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
-    animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 10s 1 normal forwards deadText;
+    -moz-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 7s 1 normal forwards deadText;
+    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 7s 1 normal forwards deadText;
+    animation: 0.5s ease-in 0s 1 reverse forwards deadText, 0.75s ease-in 7s 1 normal forwards deadText;
     border-color: var(--sq-ov-bg-dark-gray-alpha-33) !important;
     color: var(--sq-bg-white-lit-alpha-30) !important;
 }
@@ -561,9 +561,9 @@ body {
 
 
 .deadIconPlay {
-    -moz-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
-    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
-    animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 10s 1 normal forwards fadeOutSimple;
+    -moz-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 7s 1 normal forwards fadeOutSimple;
+    -webkit-animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 7s 1 normal forwards fadeOutSimple;
+    animation: 0.5s ease-in 0s 1 reverse forwards fadeOutSimple, 0.75s ease-in 7s 1 normal forwards fadeOutSimple;
 }
 
 .revivedFlashPlay {
@@ -738,6 +738,51 @@ body {
     }
 }
 
+/*@keyframes pointControlTickProgressLeft {
+    0% {*/
+        /*background: rgba(248,194,117, 0.8);*/
+        /*transform: scaleX(0);
+    }
+
+    100% {*/
+        /*background: linear-gradient(90deg, rgba(248,194,117, 0.25) 0%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 15%, rgba(248,194,117, 0.8) 100%);*/
+        /*transform: scaleX(1);
+    }
+}
+
+@keyframes pointControlTickProgressRight {
+    0% {*/
+        /*background: rgba(248,194,117, 0.8);*/
+        /*transform: scaleX(0);
+    }
+
+    100% {*/
+        /*background: linear-gradient(-90deg, rgba(248,194,117, 0.25) 0%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 15%, rgba(248,194,117, 0.8) 100%);*/
+        /*background: linear-gradient(-160deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 35%, rgba(248,194,117, 0.9) 100%);*/
+        /*transform: scaleX(1);
+    }
+}
+
+@keyframes periodicControlTickFlash {
+    0% {
+        background-color: var(--sq-ov-semantic-orange);*/ /*#FFF; */
+    /*}
+
+    100% {
+        background-color: var(--sq-ov-ps2-primary);*/ /* var(--sq-ov-semantic-orange);*/
+    /*}
+}
+
+@keyframes delayFrams {
+    0% {
+        background-color: var(--sq-ov-semantic-orange);
+    }
+
+    100% {
+        background-color: var(--sq-ov-semantic-orange);
+    }
+}*/
+
 /**********************
     Scoreboard
 ***********************/
@@ -799,6 +844,11 @@ body {
                 height: 30px;
             }
 
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .outfitScore.hidePoints {
+                    color: transparent;
+                    cursor: default;
+                }
+
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore {
                 text-align: right;
                 padding-right: 8px;
@@ -808,6 +858,16 @@ body {
                 text-align: left;
                 padding-left: 8px;
             }
+
+/*                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .outfitScore.hidePoints {
+                    color: transparent;
+                    cursor: none;
+                }
+
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .outfitScore.hidePoints {
+                    color: transparent;
+                    cursor: none;
+                }*/
 
             .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .outfitAlias {
                 text-align: left;
@@ -898,6 +958,51 @@ body {
                 left: 3px;
             }
 
+            .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .pointProgressContainer {
+                display: block;
+                height: 6px;
+                width: 100%;
+                border: 1px solid transparent;
+                position: relative;
+                top: -4px;
+                background-color: var(--sq-ov-bg-dark-gray-alpha-90);
+            }
+
+            .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .pointProgressContainer.hide {
+                display: none;
+            }
+
+            .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .pointProgressContainer {
+                right: -1px;
+                /*border-right: 3px solid var(--sq-ov-ps2-primary, rgb(20, 20, 20)) !important;*/
+                border-right: 3px solid rgb(20, 20, 20) !important;
+                /*border-top: 1px solid var(--sq-ov-bg-dark-gray) !important;*/
+                box-shadow: -1px 1px 3px rgba(47, 47, 47, 0.75);
+            }
+
+            .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .pointProgressContainer {
+                left: -1px;
+                /*border-left: 3px solid var(--sq-ov-ps2-primary, rgb(20, 20, 20)) !important;*/
+                border-left: 3px solid rgb(20, 20, 20) !important;
+                /*border-top: 1px solid var(--sq-ov-bg-dark-gray) !important;*/
+                box-shadow: 2px 1px 3px rgba(47, 47, 47, 0.75);
+            }
+
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow .pointProgressContainer .pointProgressBar {
+                    background-color: var(--sq-ov-semantic-green);
+                    height: 100%;
+                    transition: 0.1s transform ease-in;
+                }
+
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team1 .pointProgressContainer .pointProgressBar {
+                    transform-origin: center right;
+                }
+
+                .overlay .scoreboard .outfitScoresContainer .outfitScoresRow.team2 .pointProgressContainer .pointProgressBar {
+                    transform-origin: center left;
+                }
+
+
 .iconify.capture-flag {
     font-size: 1.25rem;
     color: var(--sq-ov-ps2-primary);
@@ -936,7 +1041,109 @@ body {
     text-shadow: 0px 0px 2px var(--sq-ov-bg-dark-gray-alpha-33) !important;
 }
 
+.overlay .series-tally-container .periodic-control-progress-container {
+    grid-area: blank;
+    height: 24px;
+    /*padding-top: 6px;*/
+}
 
+    .overlay .series-tally-container .periodic-control-progress-container .legend-container {
+        width: 100%;
+        height: 0;
+        position: relative;
+        left: calc(50% - 64px);
+        top: -28px;
+        white-space: nowrap;
+        display: grid;
+        grid-auto-columns: 50% 50%;
+        grid-template-areas: "left right";
+        /*color: var(--sq-ov-ps2-primary);*/
+        /*color: var(--sq-ps2-primary-light);*/
+        color: var(--sq-ov-ps2-primary-lightest);
+    }
+
+        .overlay .series-tally-container .periodic-control-progress-container .legend-container .points {
+            /*font-size: 12px;*/
+            font-size: 16px;
+            /*filter: drop-shadow(-1px 0px 1px var(--sq-black));*/
+            /*filter: drop-shadow(-1px 0px 0px var(--sq-black));*/
+            /*filter: drop-shadow(0px 0px 1px var(--sq-bg-white));*/
+            filter: drop-shadow(0px 0px 1px var(--sq-ov-ps2-primary-dark)) !important;
+            /*color: var(--sq-ov-ps2-primary);*/
+            display: inline;
+            position: relative;
+            /*top: -3px;*/
+            top: -4px;
+            height: 12px;
+            grid-area: left;
+            text-align: right;
+            /*text-shadow: 0 0 1px var(--sq-black);*/
+            /*text-shadow: 0 0 -1px var(--sq-bg-white);
+            color: var(--sq-ov-bg-dark-gray-alpha-90) !important;*/
+        }
+
+        .overlay .series-tally-container .periodic-control-progress-container .legend-container .flag {
+            width: 17px;
+            /*height: 16px;*/
+            height: 12px;
+            position: relative;
+            /*top: -1px;*/
+            /*top: 1px;*/
+            top: 2px;
+            grid-area: right;
+            text-align: left;
+            display: inline;
+            font-size: 16px !important;
+        }
+
+            .overlay .series-tally-container .periodic-control-progress-container .legend-container .flag .capture-flag {
+                /*color: var(--sq-ov-bg-dark-gray-alpha-90);*/
+                /*color: var(--sq-ov-ps2-primary);*/
+                /*color: var(--sq-ps2-primary-light);*/
+                color: var(--sq-ov-ps2-primary-lightest);
+                /*filter: drop-shadow(-1px 0px 0px var(--sq-black)) !important;*/
+                /*filter: drop-shadow(0px 0px 1px var(--sq-black)) !important;*/
+                filter: drop-shadow(0px 0px 1px var(--sq-ov-ps2-primary-dark)) !important;
+                font-size: 16px !important;
+                margin-top: -10px;
+                margin-left: 1px;
+                /*color: var(--sq-ov-bg-dark-gray-alpha-90) !important;*/
+            }
+
+
+    .overlay .series-tally-container .periodic-control-progress-container .tick-bar {
+        height: 6px;
+        width: 50%;
+        display: inline-block;
+        /*border-bottom: 1px solid var(--sq-yellow);*/
+        /*border-bottom: 1px solid #F8BA0FA0;*/
+        /*border-top: 1px solid rgba(248, 194, 117, 0.25);*/
+        /*border-top: 1px solid rgba(248, 194, 117, 0.5);*/
+        position: relative;
+        top: -10px;
+        transition: transform 0.25s linear;
+        border: 1px solid rgba(248, 194, 117, 1);
+    }
+
+        .overlay .series-tally-container .periodic-control-progress-container .tick-bar.left {
+            transform-origin: center right;
+            /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressLeft;*/
+            /*background: linear-gradient(175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
+            background: linear-gradient(90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
+            background: rgba(248,194,117, 0.9);
+            /*border-left: 1px solid rgba(248, 194, 117, 1);*/
+            border-right: none;
+        }
+
+        .overlay .series-tally-container .periodic-control-progress-container .tick-bar.right {
+            transform-origin: center left;
+            /*animation: 8s linear 0s infinite reverse forwards pointControlTickProgressRight;*/
+            /*background: linear-gradient(-175deg, #fff0 0%, rgba(248,194,117, 0.25) 5%, rgba(248,194,117, 0.5) 15%, rgba(248,194,117, 0.8) 25%, rgba(248,194,117, 0.9) 100%);*/
+            background: linear-gradient(-90deg, #fff0 0%, rgba(248,194,117, 0.25) 2.5%, rgba(248,194,117, 0.5) 5%, rgba(248,194,117, 0.8) 10%, rgba(248,194,117, 0.9) 100%);
+            background: rgba(248,194,117, 0.9);
+            /*border-right: 1px solid rgba(248, 194, 117, 0.5);*/
+            border-left: none;
+        }
 
 
 .inactiveWhiteText {
@@ -973,6 +1180,7 @@ body {
     color: rgb(245, 245, 255);
     background: linear-gradient(180deg, rgba(20, 20, 20, 1) 0%, rgba(20, 20, 20, 0.9) 10%, rgba(35, 35, 35, 0.9) 100%);
     height: 36.5px;
+    line-height: 1.1;
 }
 
     .timerContainer .timer-text {
@@ -1653,3 +1861,11 @@ body {
     .overlay .match-report .stats-row .stats-value.objective-ticks, .stats-col-header.objective-ticks {
         grid-area: objective-ticks;
     }
+
+
+.overlay .analytic-match-report .multi-col-header {
+    /*background: #212632;*/
+    background: #171a23 !important;
+    border-bottom: 1px solid rgba(252, 246, 255, 0.7);
+    /*margin-bottom: 2px;*/
+}

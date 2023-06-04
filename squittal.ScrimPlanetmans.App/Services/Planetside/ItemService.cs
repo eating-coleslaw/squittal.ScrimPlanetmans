@@ -213,6 +213,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             }
 
             await SetUpWeaponsMapAsync();
+
+            SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
         }
 
         public async Task<bool> RefreshStoreFromCensus()
@@ -235,7 +237,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 _logger.LogInformation($"Refreshed Items store: {items.Count()} entries");
 
-                SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
+                //SendStoreRefreshEventMessage(StoreRefreshSource.CensusApi);
 
                 return true;
             }
@@ -254,9 +256,11 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                 var dbContext = factory.GetDbContext();
 
                 var storedEntities = await dbContext.Items.ToListAsync();
+                var storedRuleEntities = await dbContext.RulesetItemRules.ToListAsync();
 
                 foreach (var censusEntity in censusEntities)
                 {
+                    // First, update the Item entities
                     var storeEntity = storedEntities.FirstOrDefault(e => e.Id == censusEntity.Id);
                     if (storeEntity == null)
                     {
@@ -267,6 +271,18 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
                         storeEntity = censusEntity;
                         dbContext.Items.Update(storeEntity);
                     }
+
+                    // Then, update any Item Rule entities. It's simpler to just do this in bulk here,
+                    // instead of handling it in RulesetDataService
+                    var ruleStoreEntities = storedRuleEntities.Where(rule => rule.ItemId == censusEntity.Id).ToList();
+                    foreach (var ruleStoreEntity in ruleStoreEntities)
+                    {
+                        if (ruleStoreEntity.ItemCategoryId != censusEntity.ItemCategoryId)
+                        {
+                            ruleStoreEntity.ItemCategoryId = censusEntity.ItemCategoryId.GetValueOrDefault();
+                            dbContext.RulesetItemRules.Update(ruleStoreEntity);
+                        }
+                    }
                 }
 
                 if (createdEntities.Any())
@@ -276,6 +292,8 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
 
                 await dbContext.SaveChangesAsync();
             }
+
+            _logger.LogInformation($"Finished upserting Items");
         }
         
         private static Item ConvertToDbModel(CensusItemModel item)
@@ -311,7 +329,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
         {
             _sqlScriptRunner.RunSqlScript(BackupSqlScriptFileName);
 
-            SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
+            //SendStoreRefreshEventMessage(StoreRefreshSource.BackupSqlScript);
         }
     }
 }

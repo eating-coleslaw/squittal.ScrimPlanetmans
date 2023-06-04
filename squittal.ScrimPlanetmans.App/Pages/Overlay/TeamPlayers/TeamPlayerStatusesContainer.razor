@@ -27,11 +27,11 @@
             {
                 if (_renderedCompact)
                 {
-                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores />
+                    <TeamPlayerCompactStatusCell i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores i_CurrentRoundOnly=_renderedCurrentRoundOnly />
                 }
                 else
                 {
-                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores />
+                    <TeamPlayerStatusRow i_TeamOrdinal=i_TeamOrdinal i_player=player i_NoScore=!_resolvedShowScores i_CurrentRoundOnly=_renderedCurrentRoundOnly />
                 }
             }
         }
@@ -51,6 +51,10 @@
     [Parameter]
     public OverlayStatsDisplayType i_StatsType { get; set; }
     private OverlayStatsDisplayType? _renderedStatsType { get; set; }
+
+    [Parameter]
+    public bool i_CurrentRoundOnly { get; set; }
+    private bool _renderedCurrentRoundOnly { get; set; } = false;
 
     [Parameter]
     public bool? i_ShowPlayerScoresSetting { get; set; }
@@ -116,6 +120,16 @@
             _renderedShowPlayerScoresSetting = i_ShowPlayerScoresSetting;
 
             showScoreSettingsChanged = true;
+        }
+
+        if (i_CurrentRoundOnly != _renderedCurrentRoundOnly)
+        {
+            _renderedCurrentRoundOnly = i_CurrentRoundOnly;
+
+            if (_renderedShowPlayerScoresSetting.HasValue && _renderedShowPlayerScoresSetting.Value)
+            {
+                stateChanged = true;
+            }
         }
 
         if (showScoreSettingsChanged)

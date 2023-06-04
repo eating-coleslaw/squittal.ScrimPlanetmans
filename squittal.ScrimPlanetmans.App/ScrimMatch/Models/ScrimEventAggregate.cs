@@ -40,14 +40,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public int FirstCapturePoints { get; set; } = 0;
         public int SubsequentCapturePoints { get; set; } = 0;
+        public int PeriodicCapturePoints { get; set; }
+        public int PeriodicCaptureTicks { get; set; }
 
         public int CapturePoints
         {
             get
             {
-                return FirstCapturePoints + SubsequentCapturePoints;
+                return FirstCapturePoints + SubsequentCapturePoints + PeriodicCaptureTicks;
             }
         }
+
 
         public int Kills { get; set; } = 0;
         public int Deaths { get; set; } = 0;
@@ -59,6 +62,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
         public int RevivesGiven { get; set; } = 0;
         public int RevivesTaken { get; set; } = 0;
+
+        public int EnemyRevivesAllowed { get; set; } = 0;
+        public int KillsUndoneByRevive { get; set; } = 0;
+
+        public int SecuredKills => Kills - KillsUndoneByRevive;
+        public int ConfirmedDeaths => Deaths - RevivesTaken;
 
         public int DamageAssists { get; set; } = 0;
 
@@ -167,7 +176,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return (Kills + Deaths + RevivesGiven + RevivesTaken + Assists + ObjectiveTicks + VehiclesDestroyed + VehiclesLost);
+                return (Kills
+                        + Deaths
+                        + Teamkills
+                        + RevivesGiven 
+                        + RevivesTaken
+                        + Assists
+                        + ObjectiveTicks
+                        + VehiclesDestroyed
+                        + VehiclesLost);
             }
         }
 
@@ -251,7 +268,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
         {
             get
             {
-                return (Kills > 0 || Deaths > 0 || Teamkills > 0);
+                return Events > 0;
+                //return (Kills > 0 || Deaths > 0 || Teamkills > 0);
             }
         }
 
@@ -305,9 +323,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             FirstCaptures += addend.FirstCaptures;
             SubsequentCaptures += addend.SubsequentCaptures;
+            PeriodicCaptureTicks += addend.PeriodicCaptureTicks;
 
             FirstCapturePoints += addend.FirstCapturePoints;
             SubsequentCapturePoints += addend.SubsequentCapturePoints;
+            PeriodicCapturePoints += addend.PeriodicCapturePoints;
 
             Kills += addend.Kills;
             Deaths += addend.Deaths;
@@ -324,6 +344,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             SpotAssists += addend.SpotAssists;
             HealSupportAssists += addend.HealSupportAssists;
             ProtectAlliesAssists += addend.ProtectAlliesAssists;
+
+            EnemyRevivesAllowed += addend.EnemyRevivesAllowed;
+            KillsUndoneByRevive += addend.KillsUndoneByRevive;
 
             DamageAssistedDeaths += addend.DamageAssistedDeaths;
             //UtilityAssistedDeaths += addend.UtilityAssistedDeaths;
@@ -398,9 +421,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
 
             FirstCaptures -= subtrahend.FirstCaptures;
             SubsequentCaptures -= subtrahend.SubsequentCaptures;
+            PeriodicCaptureTicks -= subtrahend.PeriodicCaptureTicks;
 
             FirstCapturePoints -= subtrahend.FirstCapturePoints;
             SubsequentCapturePoints -= subtrahend.SubsequentCapturePoints;
+            PeriodicCapturePoints -= subtrahend.PeriodicCapturePoints;
 
             Kills -= subtrahend.Kills;
             Deaths -= subtrahend.Deaths;
@@ -424,6 +449,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
             GrenadeAssistedDeaths -= subtrahend.GrenadeAssistedDeaths;
             SpotAssistedDeaths -= subtrahend.SpotAssistedDeaths;
             ProtectAlliesAssistedDeaths -= subtrahend.ProtectAlliesAssistedDeaths;
+
+            EnemyRevivesAllowed -= subtrahend.EnemyRevivesAllowed;
+            KillsUndoneByRevive += subtrahend.KillsUndoneByRevive;
 
             DamageTeamAssists -= subtrahend.DamageTeamAssists;
             DamageSelfAssists -= subtrahend.DamageSelfAssists;

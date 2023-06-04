@@ -10,10 +10,13 @@
         public int FactionId { get; set; }
         public int WorldId { get; set; }
         public int PrestigeLevel { get; set; }
-        //public bool IsFromOutfit { get; set; }
-        //public string OutfitId { get; set; }
-        //public string OutfitTag { get; set; }
-        //public bool IsFromConstructedTeam { get; set; }
-        //public int? ConstructedTeamId { get; set; }
+
+        public int RevivesGiven { get; set; }
+        public int RevivesTaken { get; set; }
+        public int KillsUndoneByRevive { get; set; }
+        public int KillsUndoneByRevivePoints { get; set; }
+
+        public int SecuredKills => Kills - KillsUndoneByRevive;
+        public int ConfirmedDeaths => Deaths - RevivesTaken;
     }
 }

@@ -1,4 +1,4 @@
-USE PlanetmansDbContext;
+USE [PlanetmansDbContext];
 
 DECLARE @vMessage nvarchar(150);
 

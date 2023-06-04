@@ -9,6 +9,7 @@
 @using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Services.Planetside;
 @using squittal.ScrimPlanetmans.Services.ScrimMatch;
+@using System.Collections.Concurrent;
 
 @inject IScrimTeamsManager TeamsManager
 @inject IConstructedTeamService ConstructedTeamsService
@@ -48,7 +49,7 @@
                 <span style="font-size: 0.85rem; font-weight: 500;position: absolute;vertical-align: bottom;right: 2rem;top: 0.85rem;">
                     @(_team.EventAggregate.Kills)k @(_team.EventAggregate.Deaths)d
                     <span style="font-weight: 700; font-size: larger;">
-                        @(_team.EventAggregate.Points)
+                        @(_team.EventAggregate.Points) (@(_team.RoundEventAggregate.Points))
                     </span>
                 </span>
             }
@@ -81,7 +82,12 @@
 
     @if (!_isTeamLocked && !_isLockingTeam)
     {
-        <div style="margin: 0.2rem 0;">
+        @*<p>_teamOutfitsLoading.Any(): @_teamOutfitsLoading.Any()</p>*@
+        <div style="margin-bottom: 8px; padding: 0 16px 0 0;">
+            <TeamAdditionInputForm teamOrdinal="(int)_renderedTeamOrdinal" OnTeamAdditionSubmitted="OnTeamAdditionSubmitted" OnTeamAdditionFailure="OnTeamAdditionFailure" />
+        </div>
+        
+        @*<div style="margin: 0.2rem 0;">
             <EditForm Model="@_inputAlias" OnValidSubmit="HandleValidOutfitAliasSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
@@ -105,7 +111,7 @@
                     <span class="oi oi-person"></span>Add
                 </button>
             </EditForm>
-        </div>
+        </div>*@
 
         @if (_availableConstructedTeams.Any())
         {
@@ -158,7 +164,7 @@
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" style="position: relative; top: 1px;"/> Show Removal Controls
+                <InputCheckbox id="showRemovalsCheckBox" @bind-Value="_showRemovals" style="position: relative; top: 1px;" /> Show Removal Controls
             </EditForm>
         </div>
     }
@@ -307,6 +313,16 @@
 
     private List<string> _validOutfitAliasHistory = new List<string>();
 
+    #region Team Addition
+    private bool _isLoadingNewMembersGroup = false;
+    private bool _isLoadingAdHocMembers = false;
+
+    private ConcurrentDictionary<string, string> _loadingOutfits = new ConcurrentDictionary<string, string>();
+    private ConcurrentDictionary<string, string> _loadingAdHocMembers = new ConcurrentDictionary<string, string>();
+
+    private ConcurrentDictionary<string, string> _outfitsLoadingMembers = new ConcurrentDictionary<string, string>();
+    #endregion Team Addition
+
     #endregion
 
     #region Team & Players
@@ -430,6 +446,85 @@
     #endregion Initialization Methods
 
     #region  Form Submission & Validation
+    public void OnTeamAdditionSubmitted(TeamAdditionEventArgs eventArgs)
+    {
+        var identifier = eventArgs.AdditionIdentifier.ToLower();
+
+        if (eventArgs.AdditionType == TeamAdditionInputType.Character)
+        {
+            if (_loadingAdHocMembers.TryAdd(identifier, identifier))
+            {
+                _isLoadingAdHocMembers = true;
+            }
+        }
+        else if (eventArgs.AdditionType == TeamAdditionInputType.CharacterList)
+        {
+            var identifierList = identifier.Split(",").ToList();
+
+            foreach (var character in identifierList)
+            {
+                if (_loadingAdHocMembers.TryAdd(character, character))
+                {
+                    _isLoadingAdHocMembers = true;
+                }
+            }
+        }
+        else if (eventArgs.AdditionType == TeamAdditionInputType.Outfit)
+        {
+            if (_loadingOutfits.TryAdd(identifier, identifier))
+            {
+                _isLoadingNewMembersGroup = true;
+            }
+
+            // NEW
+            if (!_teamOutfitsLoading.Contains(identifier))
+            {
+                _teamOutfitsLoading.Add(identifier);
+            }
+
+            _isLoadingNewMembersGroup = !_teamOutfitsLoading.Any();
+        }
+    }
+
+    private void OnTeamAdditionFailure(TeamAdditionEventArgs eventArgs)
+    {
+        var identifier = eventArgs.AdditionIdentifier.ToLower();
+
+        if (eventArgs.AdditionType == TeamAdditionInputType.Character)
+        {
+            if (_loadingAdHocMembers.TryRemove(identifier, out var _))
+            {
+                _isLoadingAdHocMembers = !_loadingAdHocMembers.IsEmpty;
+            }
+        }
+        else if (eventArgs.AdditionType == TeamAdditionInputType.CharacterList)
+        {
+            var identifierList = identifier.Split(",").ToList();
+
+            foreach (var character in identifierList)
+            {
+                _loadingAdHocMembers.TryRemove(identifier, out var _);
+            }
+
+            _isLoadingAdHocMembers = !_loadingAdHocMembers.IsEmpty;
+        }
+        else if (eventArgs.AdditionType == TeamAdditionInputType.Outfit)
+        {
+            if (_loadingOutfits.TryRemove(identifier, out var _))
+            {
+                _isLoadingNewMembersGroup = !_loadingOutfits.IsEmpty;
+            }
+
+            // NEW
+            if (_teamOutfitsLoading.Contains(identifier))
+            {
+                _teamOutfitsLoading.Remove(identifier);
+            }
+
+            _isLoadingNewMembersGroup = _teamOutfitsLoading.Any();
+        }
+    }
+
     private async void HandleValidOutfitAliasSubmit()
     {
         Outfit newOutfit;
@@ -649,6 +744,8 @@
         _inputPointAdjustment = new PointAdjustment();
 
         _showPointAdjustmentForm = false;
+
+        InvokeAsyncStateHasChanged();
     }
 
     private void HandlePointAdjustmentCancel()
@@ -721,7 +818,10 @@
     #region Event Handling
     private void LogMessage(string message)
     {
-        MessageService.BroadcastSimpleMessage(message);
+        Task.Run(() =>
+        {
+            MessageService.BroadcastSimpleMessage(message);
+        }).ConfigureAwait(false);
     }
 
     private void ReceiveTeamPlayerChangeEvent(object sender, ScrimMessageEventArgs<TeamPlayerChangeMessage> e)
@@ -771,6 +871,8 @@
             _validOutfitAliasHistory.RemoveAll(alias => alias == aliasLower);
             _teamOutfits.RemoveAll(o => o.Id == outfit.Id);
         }
+
+        _anyPlayersOnTeam = (_team.Players.Count > 0);
 
         InvokeAsyncStateHasChanged();
     }
@@ -851,6 +953,8 @@
         {
             UpdateConstructedTeamFactionAvailabilities(constructedTeam.Id);
         }
+
+        _anyPlayersOnTeam = (_team.Players.Count > 0);
 
         InvokeAsyncStateHasChanged();
     }

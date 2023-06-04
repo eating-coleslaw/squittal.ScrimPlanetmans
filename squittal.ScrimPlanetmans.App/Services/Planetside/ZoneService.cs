@@ -197,7 +197,7 @@ namespace squittal.ScrimPlanetmans.Services.Planetside
             {
                 Id = censusModel.ZoneId,
                 Name = censusModel.Name.English,
-                Description = censusModel.Description.English,
+                Description = censusModel.Description?.English ?? (string)null,
                 Code = censusModel.Code,
                 HexSize = censusModel.HexSize
             };

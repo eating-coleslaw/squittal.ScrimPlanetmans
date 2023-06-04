@@ -46,9 +46,14 @@ namespace squittal.ScrimPlanetmans.ScrimMatch.Models
     {
         public Player MedicPlayer { get; set; }
         public Player RevivedPlayer { get; set; }
+        public Player LastKilledByPlayer { get; set; }
 
         public string MedicCharacterId { get; set; }
         public string RevivedCharacterId { get; set; }
+        public string LastKilledByCharacterId { get; set; }
+
+        public int EnemyPoints { get; set; }
+        public ScrimActionType EnemyActionType { get; set; }
 
         public ScrimReviveActionEvent(ScrimExperienceGainActionEvent baseExperienceEvent)
         {

@@ -7,6 +7,7 @@ using squittal.ScrimPlanetmans.Models.Forms;
 using squittal.ScrimPlanetmans.Models.Planetside;
 using squittal.ScrimPlanetmans.ScrimMatch.Messages;
 using squittal.ScrimPlanetmans.ScrimMatch.Models;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.ScrimMatch;
 using System;
@@ -102,7 +103,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var newRules = missingItemCategoryIds.Select(id => BuildRulesetItemCategoryRule(ruleset.Id, id, 0));
 
-                await SaveRulesetItemCategoryRules(ruleset.Id, newRules);
+                await SaveRulesetItemCategoryRules(ruleset.Id, newRules, true);
 
                 _logger.LogInformation($"Updated Item Category Rules for Ruleset {ruleset.Id} post-Item Category Store Refresh. Source: {refreshSource}. New Rules: {newRules.Count()}");
             }
@@ -153,7 +154,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                 var newRules = missingItemIds.Select(w => BuildRulesetItemRule(ruleset.Id, w.Id, (int)w.ItemCategoryId, 0));
 
-                await SaveRulesetItemRules(ruleset.Id, newRules);
+                await SaveRulesetItemRules(ruleset.Id, newRules, true);
 
                 _logger.LogInformation($"Updated Item Rules for Ruleset {ruleset.Id} post-Item Category Store Refresh. Source: {refreshSource}. New Rules: {newRules.Count()}");
             }
@@ -338,6 +339,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var configuration = await dbContext.RulesetOverlayConfigurations
+                                                    .AsNoTracking()
                                                     .Where(c => c.RulesetId == rulesetId)
                                                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -372,6 +374,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetActionRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .ToListAsync(cancellationToken);
 
@@ -405,6 +408,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetItemCategoryRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .Include("ItemCategory")
                                                .OrderBy(r => r.ItemCategory.Domain)
@@ -441,6 +445,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetItemRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .Include("Item")
                                                .OrderBy(r => r.Item.FactionId)
@@ -477,6 +482,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetItemRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId && r.ItemCategoryId == itemCategoryId)
                                                .Include("Item")
                                                .OrderBy(r => r.Item.FactionId)
@@ -513,6 +519,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 var dbContext = factory.GetDbContext();
 
                 var rules = await dbContext.RulesetFacilityRules
+                                               .AsNoTracking()
                                                .Where(r => r.RulesetId == rulesetId)
                                                .Include("MapRegion")
                                                .OrderBy(r => r.MapRegion.ZoneId)
@@ -682,6 +689,23 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             var updateMatchTitle = rulesetUpdate.DefaultMatchTitle;
             var updateEndRoundOnFacilityCapture = rulesetUpdate.DefaultEndRoundOnFacilityCapture;
 
+            var updateEnableRoundTimeLimit = rulesetUpdate.EnableRoundTimeLimit;
+            var updateRoundTimerDirection = !updateEnableRoundTimeLimit ? TimerDirection.Up : rulesetUpdate.RoundTimerDirection;
+            
+            var updateEndRoundOnPointValueReached = rulesetUpdate.EndRoundOnPointValueReached;
+            var updateTargetPointValue = updateEndRoundOnPointValueReached ? +rulesetUpdate.TargetPointValue : null;
+            //var updateInitialPoints = updateEndRoundOnPointValueReached ? +rulesetUpdate.InitialPoints : null;
+            var updateInitialPoints = updateEndRoundOnPointValueReached ? 0 : (int?)null;
+            
+            var updateMatchWinCondition = rulesetUpdate.MatchWinCondition;
+            var updateRoundWinCondition = rulesetUpdate.RoundWinCondition;
+            
+            var updateEnablePeriodicFacilityControlRewards = rulesetUpdate.EnablePeriodicFacilityControlRewards;
+            var updatePeriodicFacilityControlPoints = updateEnablePeriodicFacilityControlRewards ? +rulesetUpdate.PeriodicFacilityControlPoints : null;
+            var updatePeriodicFacilityControlInterval = updateEnablePeriodicFacilityControlRewards ? +rulesetUpdate.PeriodicFacilityControlInterval : null;
+            var updatePeriodFacilityControlPointAttributionType = updateEnablePeriodicFacilityControlRewards ? rulesetUpdate.PeriodFacilityControlPointAttributionType : null;
+
+
             Ruleset oldRuleset = new Ruleset();
 
             if (!IsValidRulesetName(updateName))
@@ -700,6 +724,12 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
             {
                 _logger.LogError($"Error updating Ruleset {updateId} info: invalid default match title");
             }
+            
+            if (!IsValidRoundPointTarget(updateTargetPointValue))
+            {
+                _logger.LogError($"Error updating Ruleset {updateId} info: invalid round target point value");
+                return false;
+            }
 
             using (await _rulesetLock.WaitAsync($"{updateId}"))
             {
@@ -708,7 +738,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     using var factory = _dbContextHelper.GetFactory();
                     var dbContext = factory.GetDbContext();
 
-                    var storeEntity = await GetRulesetFromIdAsync(updateId, cancellationToken, false, false);
+                    var storeEntity = await dbContext.Rulesets.Where(r => r.Id == updateId)
+                                                              .FirstOrDefaultAsync();
 
                     if (storeEntity == null)
                     {
@@ -719,17 +750,44 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                     oldRuleset.DefaultRoundLength = storeEntity.DefaultRoundLength;
                     oldRuleset.DefaultMatchTitle = storeEntity.DefaultMatchTitle;
                     oldRuleset.DefaultEndRoundOnFacilityCapture = storeEntity.DefaultEndRoundOnFacilityCapture;
+                    
+                    oldRuleset.EnableRoundTimeLimit = storeEntity.EnableRoundTimeLimit;
+                    oldRuleset.RoundTimerDirection = storeEntity.RoundTimerDirection;
+                    oldRuleset.EndRoundOnPointValueReached = storeEntity.EndRoundOnPointValueReached;
+                    oldRuleset.TargetPointValue = storeEntity.TargetPointValue;
+                    oldRuleset.InitialPoints = 0; // storeEntity.InitialPoints;
+                    oldRuleset.MatchWinCondition = storeEntity.MatchWinCondition;
+                    oldRuleset.RoundWinCondition = storeEntity.RoundWinCondition;
+                    oldRuleset.EnablePeriodicFacilityControlRewards = storeEntity.EnablePeriodicFacilityControlRewards;
+                    oldRuleset.PeriodicFacilityControlPoints = storeEntity.PeriodicFacilityControlPoints;
+                    oldRuleset.PeriodicFacilityControlInterval = storeEntity.PeriodicFacilityControlInterval;
+                    oldRuleset.PeriodFacilityControlPointAttributionType = storeEntity.PeriodFacilityControlPointAttributionType;
+
 
                     storeEntity.Name = updateName;
                     storeEntity.DefaultRoundLength = updateRoundLength;
                     storeEntity.DefaultMatchTitle = updateMatchTitle;
                     storeEntity.DefaultEndRoundOnFacilityCapture = updateEndRoundOnFacilityCapture;
 
+                    storeEntity.EnableRoundTimeLimit = updateEnableRoundTimeLimit;
+                    storeEntity.RoundTimerDirection = updateRoundTimerDirection;
+                    storeEntity.EndRoundOnPointValueReached = updateEndRoundOnPointValueReached;
+                    storeEntity.TargetPointValue = updateTargetPointValue;
+                    storeEntity.InitialPoints = 0; //  updateInitialPoints;
+                    storeEntity.MatchWinCondition = updateMatchWinCondition;
+                    storeEntity.RoundWinCondition = updateRoundWinCondition;
+                    storeEntity.EnablePeriodicFacilityControlRewards = updateEnablePeriodicFacilityControlRewards;
+                    storeEntity.PeriodicFacilityControlPoints = updatePeriodicFacilityControlPoints;
+                    storeEntity.PeriodicFacilityControlInterval = updatePeriodicFacilityControlInterval;
+                    storeEntity.PeriodFacilityControlPointAttributionType = updatePeriodFacilityControlPointAttributionType;
+
                     storeEntity.DateLastModified = DateTime.UtcNow;
 
                     dbContext.Rulesets.Update(storeEntity);
 
                     await dbContext.SaveChangesAsync();
+
+                    dbContext.Dispose();
 
                     await SetUpRulesetsMapAsync(cancellationToken);
 
@@ -858,7 +916,8 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                         dbContext.RulesetActionRules.AddRange(newEntities);
                     }
 
-                    var storeRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
+                    var storeRuleset = await dbContext.Rulesets.Where(r => r.Id == rulesetId).FirstOrDefaultAsync();
+
                     if (storeRuleset != null)
                     {
                         storeRuleset.DateLastModified = DateTime.UtcNow;
@@ -882,9 +941,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         /*
          * Upsert New or Modified RulesetItemCategoryRules for a specific ruleset.
          */
-        public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules)
+        public async Task SaveRulesetItemCategoryRules(int rulesetId, IEnumerable<RulesetItemCategoryRule> rules, bool isFromStoreRefresh)
         {
-            if (rulesetId == DefaultRulesetId)
+            if (rulesetId == DefaultRulesetId && !isFromStoreRefresh)
             {
                 return;
             }
@@ -972,9 +1031,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         /*
          * Upsert New or Modified RulesetItemRules for a specific ruleset.
          */
-        public async Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules)
+        public async Task SaveRulesetItemRules(int rulesetId, IEnumerable<RulesetItemRule> rules, bool isFromStoreRefresh)
         {
-            if (rulesetId == DefaultRulesetId)
+            if (rulesetId == DefaultRulesetId && !isFromStoreRefresh)
             {
                 return;
             }
@@ -1045,9 +1104,9 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         /*
          * Upsert New or Modified RulesetFacilityRules for a specific ruleset.
          */
-        public async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules)
+        public async Task SaveRulesetFacilityRules(int rulesetId, IEnumerable<RulesetFacilityRuleChange> rules, bool isFromStoreRefresh)
         {
-            if (rulesetId == DefaultRulesetId)
+            if (rulesetId == DefaultRulesetId && !isFromStoreRefresh)
             {
                 return;
             }
@@ -1784,7 +1843,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var rulesets = await dbContext.Rulesets.ToListAsync(cancellationToken);
+                var rulesets = await dbContext.Rulesets.AsNoTracking().ToListAsync(cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -1872,7 +1931,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 using var factory = _dbContextHelper.GetFactory();
                 var dbContext = factory.GetDbContext();
 
-                var currentDefaultRuleset = await dbContext.Rulesets.FirstOrDefaultAsync(r => r.IsCustomDefault);
+                var currentDefaultRuleset = await dbContext.Rulesets.AsNoTracking().FirstOrDefaultAsync(r => r.IsCustomDefault);
 
                 var newDefaultRuleset = await GetRulesetFromIdAsync(rulesetId, CancellationToken.None, false, false);
 
@@ -2024,7 +2083,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 if (jsonRuleset.RulesetItemCategoryRules != null && jsonRuleset.RulesetItemCategoryRules.Any())
                 {
                     ruleset.RulesetItemCategoryRules = jsonRuleset.RulesetItemCategoryRules.Select(r => ConvertToDbModel(ruleset.Id, r)).ToList();
-                    var itemCategoryRulesTask = SaveRulesetItemCategoryRules(ruleset.Id, ruleset.RulesetItemCategoryRules);
+                    var itemCategoryRulesTask = SaveRulesetItemCategoryRules(ruleset.Id, ruleset.RulesetItemCategoryRules, false);
                     TaskList.Add(itemCategoryRulesTask);
 
                     var rulesetItemRules = new List<RulesetItemRule>();
@@ -2045,7 +2104,7 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
                     ruleset.RulesetItemRules = new List<RulesetItemRule>(rulesetItemRules);
 
-                    var itemRulesTask = SaveRulesetItemRules(ruleset.Id, ruleset.RulesetItemRules);
+                    var itemRulesTask = SaveRulesetItemRules(ruleset.Id, ruleset.RulesetItemRules, false);
                     TaskList.Add(itemRulesTask);
                 }
 
@@ -2194,6 +2253,18 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
 
         private Ruleset ConvertToDbModel(JsonRuleset jsonRuleset, string sourceFileName)
         {
+            RoundWinCondition roundWinCondition;
+
+            if (jsonRuleset.RoundWinCondition.HasValue)
+            {
+                roundWinCondition = jsonRuleset.RoundWinCondition.Value;
+            }
+            else
+            {
+                roundWinCondition = jsonRuleset.DefaultEndRoundOnFacilityCapture ? RoundWinCondition.FacilityCapture
+                                        : RoundWinCondition.NotApplicable;
+            }
+
             return new Ruleset
             {
                 Name = jsonRuleset.Name,
@@ -2204,7 +2275,18 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
                 DefaultMatchTitle = jsonRuleset.DefaultMatchTitle,
                 DefaultRoundLength = jsonRuleset.DefaultRoundLength,
                 DefaultEndRoundOnFacilityCapture = jsonRuleset.DefaultEndRoundOnFacilityCapture,
-                SourceFile = sourceFileName
+                SourceFile = sourceFileName,
+                EnableRoundTimeLimit = jsonRuleset.EnableRoundTimeLimit ?? true,
+                RoundTimerDirection = jsonRuleset.RoundTimerDirection,
+                EndRoundOnPointValueReached = jsonRuleset.EndRoundOnPointValueReached ?? false,
+                TargetPointValue = jsonRuleset.TargetPointValue,
+                InitialPoints = 0, // jsonRuleset.InitialPoints,
+                MatchWinCondition = jsonRuleset.MatchWinCondition ?? MatchWinCondition.MostPoints,
+                RoundWinCondition = roundWinCondition,
+                EnablePeriodicFacilityControlRewards = jsonRuleset.EnablePeriodicFacilityControlRewards ?? false,
+                PeriodicFacilityControlPoints = jsonRuleset.PeriodicFacilityControlPoints,
+                PeriodicFacilityControlInterval = jsonRuleset.PeriodicFacilityControlInterval,
+                PeriodFacilityControlPointAttributionType = jsonRuleset.PeriodFacilityControlPointAttributionType
             };
         }
 
@@ -2246,6 +2328,21 @@ namespace squittal.ScrimPlanetmans.Services.Rulesets
         public static bool IsValidRulesetDefaultRoundLength(int seconds)
         {
             return seconds > 0;
+        }
+
+        public static bool IsValidRoundPointTarget(int? points)
+        {
+            if (points == null)
+            {
+                return true;
+            }
+
+            if (points.HasValue && points.Value > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsValidRulesetDefaultMatchTitle(string title)

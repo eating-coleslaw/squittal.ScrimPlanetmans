@@ -39,6 +39,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         private readonly string _defaultAliasPreText = "tm";
 
         public MaxPlayerPointsTracker MaxPlayerPointsTracker { get; private set; } = new MaxPlayerPointsTracker();
+        private ConcurrentDictionary<string, string> PlayerLastKilledByMap { get; set; } = new ConcurrentDictionary<string, string>();
 
         private readonly KeyedSemaphoreSlim _characterMatchDataLock = new KeyedSemaphoreSlim();
 
@@ -67,6 +68,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             return _ordinalTeamMap.GetValueOrDefault(teamOrdinal);
         }
 
+        public int GetEnemyTeamOrdinal(int teamOrdinal)
+        {
+            if (teamOrdinal != 1 && teamOrdinal != 2)
+            {
+                throw new Exception($"{teamOrdinal} is not a valid Team Ordinal value");
+            }
+
+            return teamOrdinal == 1 ? 2 : 1;
+        }
+
         public string GetTeamAliasDisplay(int teamOrdinal)
         {
             var team = GetTeam(teamOrdinal);
@@ -87,6 +98,37 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             return team.EventAggregate.Points;
+        }
+
+        public int? GetTeamCurrentRoundScoreDisplay(int teamOrdinal)
+        {
+            var team = GetTeam(teamOrdinal);
+            if (team == null)
+            {
+                return null;
+            }
+
+            return team.RoundEventAggregate.Points;
+        }
+
+        public int? GetTeamRoundScoreDisplay(int teamOrdinal, int matchRound)
+        {
+            var team = GetTeam(teamOrdinal);
+            if (team == null)
+            {
+                return null;
+            }
+
+            var success = team.EventAggregateTracker.RoundHistory.TryGetValue(matchRound, out var roundStats);
+
+            if (success)
+            {
+                return roundStats.Points;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Team GetTeamOne()
@@ -250,7 +292,12 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
             else
             {
-                _messageService.BroadcastSimpleMessage($"<span style=\"color: red; font-weight: 700;\">Couldn't change {player.NameFull} match alias: new alias is invalid</span>");
+                #pragma warning disable CS4014
+                Task.Run(() =>
+                {
+                    _messageService.BroadcastSimpleMessage($"<span style=\"color: red; font-weight: 700;\">Couldn't change {player.NameFull} match alias: new alias is invalid</span>");
+                }).ConfigureAwait(false);
+                #pragma warning restore CS4014
                 return false;
             }
         }
@@ -958,11 +1005,17 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         {
             var teamOrdinal = (int)GetTeamOrdinalFromPlayerId(characterId);
             
-            var success = RemoveCharacterFromTeam(characterId);
+            var success = RemoveCharacterFromTeam(characterId, out var player);
 
             if (!success)
             {
                 return false;
+            }
+
+            // If player has no events, then there's nothing in the DB to update
+            if (!player.EventAggregate.HasEvents && !player.IsParticipating)
+            {
+                return true;
             }
 
             var TaskList = new List<Task>();
@@ -991,7 +1044,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             var revivesTask = RemoveCharacterMatchRevivesFromDb(characterId, teamOrdinal);
             TaskList.Add(revivesTask);
-            
+
             var damageAssistsTask = RemoveCharacterMatchDamageAssistsFromDb(characterId, teamOrdinal);
             TaskList.Add(damageAssistsTask);
             
@@ -1003,7 +1056,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             await Task.WhenAll(TaskList);
 
-            await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId); // TODO: add this to TaskList?
+            await _matchDataService.TryRemoveMatchParticipatingPlayer(characterId);
         }
 
         #region Remove Character Match Events From DB
@@ -1173,12 +1226,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1266,7 +1332,10 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     var allReviveEvents = await dbContext.ScrimRevives
                                                             .Where(e => e.ScrimMatchId == currentMatchId
                                                                         && (e.MedicCharacterId == characterId
-                                                                            || e.RevivedCharacterId == characterId))
+                                                                            || e.RevivedCharacterId == characterId
+                                                                            || e.LastKilledByCharacterId == characterId))
+                                                                            //|| (!string.IsNullOrWhiteSpace(e.LastKilledByCharacterId)
+                                                                            //    && e.LastKilledByCharacterId == characterId)))
                                                             .ToListAsync();
 
                     if (allReviveEvents == null || !allReviveEvents.Any())
@@ -1287,27 +1356,53 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                                                     .Distinct()
                                                     .ToList();
 
-                    var distinctTeams = new List<int>();
-                    distinctTeams.Add(teamOrdinal);
+                    // TODO: Add LastKilledBy teams from the DB
+                    var enemyTeamOrdinal = GetEnemyTeamOrdinal(teamOrdinal);
+
+                    var distinctTeams = new List<int>
+                    {
+                        teamOrdinal,
+                        enemyTeamOrdinal
+                    };
                     distinctTeams.AddRange(distinctMedicTeams.Where(e => !distinctTeams.Contains(e)).ToList());
                     distinctTeams.AddRange(distinctRevivedTeams.Where(e => !distinctTeams.Contains(e)).ToList());
 
-
+                    // Players who were revived by the removed player
                     var distinctRevivedCharacterIds = allReviveEvents
-                                                .Where(e => e.MedicCharacterId == characterId)
-                                                .Select(e => e.RevivedCharacterId)
-                                                .Distinct()
-                                                .ToList();
+                                                        //.Where(e => e.MedicCharacterId == characterId)
+                                                        .Select(e => e.RevivedCharacterId)
+                                                        .Distinct()
+                                                        .ToList();
 
+                    // Medics who revived the removed player
                     var distinctMedicCharacterIds = allReviveEvents
-                                                    .Where(e => e.RevivedCharacterId == characterId)
+                                                    //.Where(e => e.RevivedCharacterId == characterId)
                                                     .Select(e => e.MedicCharacterId)
                                                     .Distinct()
                                                     .ToList();
 
-                    var distinctCharacterIds = new List<string>();
-                    distinctCharacterIds.AddRange(distinctMedicCharacterIds);
-                    distinctCharacterIds.AddRange(distinctRevivedCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
+                    // Attackers whose kill was undone by the removed player being revived or reviving the victim
+                    var distinctLastKilledByCharacterIds = allReviveEvents
+                                                            //.Where(e => e.MedicCharacterId == characterId
+                                                            //            || e.RevivedCharacterId ==  characterId)
+                                                            .Where(e => !string.IsNullOrWhiteSpace(e.LastKilledByCharacterId))
+                                                            .Select(e => e.LastKilledByCharacterId)
+                                                            .Distinct()
+                                                            .ToList();
+
+                    var distinctCharacterIds = new HashSet<string>()
+                    {
+                        characterId
+                    };
+
+                    distinctCharacterIds.UnionWith(distinctRevivedCharacterIds);
+                    distinctCharacterIds.UnionWith(distinctMedicCharacterIds);
+                    distinctCharacterIds.UnionWith(distinctLastKilledByCharacterIds);
+
+                    //var distinctCharacterIds = new List<string>();
+                    //distinctCharacterIds.AddRange(distinctMedicCharacterIds);
+                    //distinctCharacterIds.AddRange(distinctRevivedCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
+                    //distinctCharacterIds.AddRange(distinctLastKilledByCharacterIds.Where(e => !distinctCharacterIds.Contains(e)).ToList());
                     #endregion Set Up Distinct Interaction Target Lists
 
                     var teamUpdates = new Dictionary<int, ScrimEventAggregateRoundTracker>();
@@ -1336,13 +1431,22 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         {
                             var medicId = reviveEvent.MedicCharacterId;
                             var revivedId = reviveEvent.RevivedCharacterId;
+                            var killedById = reviveEvent.LastKilledByCharacterId;
 
                             var medicTeamOrdinal = reviveEvent.MedicTeamOrdinal;
                             var revivedTeamOrdinal = reviveEvent.RevivedTeamOrdinal;
+                            var killedByTeamOrdinal = GetTeamOrdinalFromPlayerId(killedById);
 
                             var points = reviveEvent.Points;
+                            var enemyPoints = reviveEvent.EnemyPoints;
 
-                            var characterIsRevived = (revivedId == characterId);
+                            //var characterIsRevived = (revivedId == characterId);
+
+                            var lastDeathWasToEnemy = true;
+                            if (killedByTeamOrdinal.HasValue && killedByTeamOrdinal.Value == revivedTeamOrdinal)
+                            {
+                                lastDeathWasToEnemy = false;
+                            }
 
                             var medicUpdate = new ScrimEventAggregate()
                             {
@@ -1353,8 +1457,16 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                             var revivedUpdate = new ScrimEventAggregate()
                             {
-                                NetScore = -points,
+                                NetScore = -enemyPoints,
                                 RevivesTaken = 1
+                            };
+
+                            var killerUpdate = new ScrimEventAggregate()
+                            {
+                                Points = enemyPoints,
+                                NetScore = enemyPoints,
+                                EnemyRevivesAllowed = 1,
+                                KillsUndoneByRevive = (!string.IsNullOrWhiteSpace(killedById) && lastDeathWasToEnemy) ? 1 : 0
                             };
 
                             teamUpdates[medicTeamOrdinal].AddToCurrent(medicUpdate);
@@ -1362,16 +1474,39 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                             teamUpdates[revivedTeamOrdinal].AddToCurrent(revivedUpdate);
                             playerUpdates[revivedId].AddToCurrent(revivedUpdate);
+
+                            if (!string.IsNullOrWhiteSpace(killedById) && killedByTeamOrdinal.HasValue)
+                            {
+                                teamUpdates[killedByTeamOrdinal.Value].AddToCurrent(killerUpdate);
+                                playerUpdates[killedById].AddToCurrent(killerUpdate);
+                            }
+                            else if (string.IsNullOrWhiteSpace(killedById) || !killedByTeamOrdinal.HasValue)
+                            {
+                                teamUpdates[enemyTeamOrdinal].AddToCurrent(killerUpdate);
+                            }
                         }
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1556,12 +1691,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1746,12 +1894,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1911,12 +2072,25 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
                         foreach (var team in distinctTeams)
                         {
-                            teamUpdates[team].SaveRoundToHistory(round);
+                            if (round != currentMatchRound || GetTeam(team).EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                teamUpdates[team].SaveRoundToHistory(round);
+                            }
                         }
 
                         foreach (var character in distinctCharacterIds)
                         {
-                            playerUpdates[character].SaveRoundToHistory(round);
+                            var player = GetPlayerFromId(character);
+
+                            if (player == null)
+                            {
+                                continue;
+                            }
+
+                            if (round != currentMatchRound || player.EventAggregateTracker.HighestRound == currentMatchRound)
+                            {
+                                playerUpdates[character].SaveRoundToHistory(round);
+                            }
                         }
                     }
 
@@ -1957,12 +2131,15 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         }
         #endregion Remove Character Match Events From DB
 
-        public bool RemoveCharacterFromTeam(string characterId)
+        private bool RemoveCharacterFromTeam(string characterId, out Player removedPlayer)
         {
             var player = GetPlayerFromId(characterId);
 
             if (player == null)
             {
+                //wasParticipating = false;
+                removedPlayer = null;
+
                 return false;
             }
 
@@ -1972,6 +2149,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             //{
             //    aliasLower = player.OutfitAliasLower;
             //}
+
+            //wasParticipating = (player.EventAggregate.Events > 0 || player.IsParticipating);
 
             if (RemovePlayerFromTeam(player))
             {
@@ -2026,16 +2205,23 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                     UpdateTeamFaction(team.TeamOrdinal, null);
                 }
 
+                removedPlayer = player;
+                
                 return true;
             }
             else
             {
+                removedPlayer = null;
+
                 return false;
             }
         }
 
         public bool RemovePlayerFromTeam(Player player)
         {
+            //PlayerLastKilledByMap.TryRemove(player.Id, out var _);
+            TryRemovePlayerLastKilledBy(player.Id);
+
             var team = GetTeam(player.TeamOrdinal);
 
             if(team.TryRemovePlayer(player.Id))
@@ -2087,7 +2273,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                         continue;
                     }
 
-                    if (!player.EventAggregateTracker.RoundHistory.Any() || player.EventAggregate.Events == 0)
+                    //if (!player.EventAggregateTracker.RoundHistory.Any() || player.EventAggregate.Events == 0)
+                    if (player.EventAggregate.Events == 0)
                     {
                         var playerTask = SetPlayerParticipatingStatus(playerId, false);
                         TaskList.Add(playerTask);
@@ -2113,6 +2300,7 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             }
 
             MaxPlayerPointsTracker = new MaxPlayerPointsTracker();
+            PlayerLastKilledByMap.Clear();
         }
 
         public void ClearTeam(int teamOrdinal)
@@ -2254,7 +2442,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         public void ResetAllTeamsMatchData()
         {
             MaxPlayerPointsTracker = new MaxPlayerPointsTracker();
-            
+            PlayerLastKilledByMap.Clear();
+
             foreach (var teamOrdinal in _ordinalTeamMap.Keys)
             {
                 ResetTeamMatchData(teamOrdinal);
@@ -2364,6 +2553,8 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
         #region Roll Back Round
         public async Task RollBackAllTeamStats(int currentRound)
         {
+            PlayerLastKilledByMap.Clear();
+
             var TaskList = new List<Task>();
             
             foreach (var teamOrdinal in _ordinalTeamMap.Keys.ToList())
@@ -2439,6 +2630,9 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             
             var controlsTask = RemoveAllMatchRoundFacilityControlsFromDb(roundToRemove);
             TaskList.Add(controlsTask);
+
+            var periodControlTicksTask = RemoveAllMatchRoundPeriodicControlTicksFromDb(roundToRemove);
+            TaskList.Add(periodControlTicksTask);
 
             await Task.WhenAll(TaskList);
         }
@@ -2614,6 +2808,32 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
                 return;
             }
         }
+
+        private async Task RemoveAllMatchRoundPeriodicControlTicksFromDb(int roundToRemove)
+        {
+            var currentMatchId = _matchDataService.CurrentMatchId;
+
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var allPeriodicTickEvents = dbContext.ScrimPeriodicControlTicks
+                                                        .Where(e => e.ScrimMatchId == currentMatchId
+                                                                    && e.ScrimMatchRound == roundToRemove)
+                                                        .AsEnumerable();
+
+                dbContext.ScrimPeriodicControlTicks.RemoveRange(allPeriodicTickEvents);
+
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return;
+            }
+        }
         #endregion Remove All Match Round Events From DB
 
         #endregion Roll Back Round
@@ -2757,6 +2977,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
         public int? GetTeamOrdinalFromPlayerId(string characterId)
         {
+            if (string.IsNullOrWhiteSpace(characterId))
+            {
+                return null;
+            }
+            
             if (PlayerTeamOrdinalsMap.TryGetValue(characterId, out var teamOrdinal))
             {
                 return teamOrdinal;
@@ -2853,8 +3078,57 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
 
             team.AddStatsUpdate(updates);
 
+            //_logger.LogInformation($"Finished stats update for team {teamOrdinal}");
+
             SendTeamStatUpdateMessage(team);
+
+            //_logger.LogInformation($"Finished broadcasting stats update for team {teamOrdinal}");
         }
+
+        public bool TrySetPlayerLastKilledBy(string victimId, string attackerId)
+        {
+            if (GetPlayerFromId(victimId) != null && GetPlayerFromId(attackerId) != null)
+            {
+                PlayerLastKilledByMap.AddOrUpdate(victimId, attackerId, (key, oldValue) => attackerId);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryRemovePlayerLastKilledBy(string victimId)
+        {
+            var removedKey = PlayerLastKilledByMap.TryRemove(victimId, out var attackerId);
+
+            var otherVictims = PlayerLastKilledByMap.Where(kv => kv.Value == victimId).Select(kv => kv.Key).ToHashSet();
+
+            var removedOtherVictims = false;
+
+            foreach (var victim in otherVictims)
+            {
+                var success = PlayerLastKilledByMap.TryRemove(victim, out var _);
+                removedOtherVictims = (success || removedOtherVictims);
+            }
+
+            return (removedKey || removedOtherVictims);
+        }
+
+        public void ClearPlayerLastKilledByMap()
+        {
+            PlayerLastKilledByMap.Clear();
+        }
+
+        public Player GetLastKilledByPlayer(string victimId)
+        {
+            if (!PlayerLastKilledByMap.TryGetValue(victimId, out var attackerId))
+            {
+                return null;
+            }
+
+            return GetPlayerFromId(attackerId);
+        }
+
+
 
         public int GetCurrentMatchRoundBaseControlsCount()
         {
@@ -2931,7 +3205,11 @@ namespace squittal.ScrimPlanetmans.ScrimMatch
             {
                 SaveTeamRoundEndScores(teamOrdinal, round);
 
+                _logger.LogInformation($"Saving round {round} scores for team {teamOrdinal}");
+
                 await SaveTeamMatchResultsToDb(teamOrdinal);
+
+                _logger.LogInformation($"Finished saving round {round} scores for team {teamOrdinal}");
             }
         }
 

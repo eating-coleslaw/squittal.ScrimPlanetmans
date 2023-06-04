@@ -17,18 +17,41 @@
     <div class="outfitScoresContainer">
         <ScoreboardBaseCaptures i_captureCount=_teamControls1 i_factionId=_teamFactionId1 i_teamOrdinal=1 />
         <div class="outfitScoresRow team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
-            <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div>
+            <div class="outfitAlias">@_teamAlias1</div><div class="outfitScore @_hidePointsClass">@_teamPointsDisplay1</div><div class="wedge"></div><div class="factionLabel">@_teamFactionDisplay1[0]<br />@_teamFactionDisplay1[1]</div><div class="pointProgressContainer @(GetShowPointTargetCssClass(_shouldShowPointTarget))"><div class="pointProgressBar" style="transform: @(_teamPointBarTransform1);"></div></div> 
         </div><div class="timerContainer">
-            <div class="timer-text"><MatchTimer /></div>
+            @*@if (_shouldShowMatchTimer && !_shouldShowPointTarget)
+            { 
+                <div class="timer-text"><MatchTimer /></div>
+            }
+            else if (!_shouldShowMatchTimer && _shouldShowPointTarget && _pointTarget.HasValue)
+            {
+                <div style="margin-top: 1px; font-size: 14px; margin-left: 6px; margin-right: 6px;">First to<br />@(_pointTarget.Value)</div>
+            }
+            else if (_shouldShowMatchTimer && _shouldShowPointTarget && _pointTarget.HasValue)
+            {
+              <div class="timer-text" style="font-size: 16px;"><MatchTimer /></div><div style="margin-top: 1px; font-size: 12px; margin-left: 6px; margin-right: 6px;">First to @(_pointTarget.Value)</div>
+            }
+            else
+            {
+                <div class="timer-text"><MatchTimer /></div>
+            }*@
+            @if (_shouldShowPointTarget && _pointTarget.HasValue)
+            {
+              <div class="timer-text" style="font-size: 16px;"><MatchTimer /></div><div style="margin-top: 1px; font-size: 12px; margin-left: 6px; margin-right: 6px;">First to @(_pointTarget.Value)</div>
+            }
+            else
+            {
+                <div class="timer-text"><MatchTimer /></div>
+            }
         </div><div class="outfitScoresRow team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
-            <div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore">@_teamPointsDisplay2</div><div class="outfitAlias">@_teamAlias2</div>
+            <div class="factionLabel">@_teamFactionDisplay2[0]<br />@_teamFactionDisplay2[1]</div><div class="wedge"></div><div class="outfitScore @_hidePointsClass">@_teamPointsDisplay2</div><div class="outfitAlias">@_teamAlias2</div><div class="pointProgressContainer @(GetShowPointTargetCssClass(_shouldShowPointTarget))"><div class="pointProgressBar" style="transform: @(_teamPointBarTransform2);"></div></div> 
         </div>
         <ScoreboardBaseCaptures i_captureCount=_teamControls2 i_factionId=_teamFactionId2 i_teamOrdinal=2 />
     </div>
 
-    <div class="series-tally-container">
+    <div class="series-tally-container" style="@(GetSeriesTallyMarginString())">
         <div class="team team1 @SqCssHelper.GetFactionClassFromId(_teamFactionId1)">
-            @foreach(var matchResult in _teamSeriesResults1)
+            @foreach (var matchResult in _teamSeriesResults1)
             {
                 <div class="tally @GetSeriesMatchTallyCssClass(matchResult.ResultType)"></div>
             }
@@ -36,9 +59,9 @@
             {
                 <div class="tally @GetSeriesMatchTallyCssClass(null)"></div>
             }
-            
+
         </div>
-        
+
         <div class="team team2 @SqCssHelper.GetFactionClassFromId(_teamFactionId2)">
             @foreach (var matchResult in _teamSeriesResults2)
             {
@@ -50,19 +73,26 @@
             }
 
         </div>
+
+        @if(_isPeriodPointsEnabled)
+        { 
+            <PeriodicControlTickProgressBar />
+        }
+
     </div>
 
 </div>
 
 @code {
     [Parameter]
-    public bool i_showFeed { get; set; } = true;
+    public bool i_CurrentRoundOnly { get; set; }
+    private bool _renderedCurrentRoundOnly { get; set; } = false;
 
-    private bool _showFeed { get; set; } = true;
+    private string _noPointsString = "-"; //"_"
 
     private string _teamAlias1 { get; set; }
     private int _teamPoints1 { get; set; } = 0;
-    private string _teamPointsDisplay1 { get; set; }
+    private string _teamPointsDisplay1 => _shouldShowPoints ? _teamPoints1.ToString() : _noPointsString;
     private int? _teamFactionId1 { get; set; }
     private string[] _teamFactionDisplay1 { get; set; } = new string[2] { ".", "." };
     private int _teamControls1 { get; set; } = 0;
@@ -70,7 +100,7 @@
 
     private string _teamAlias2 { get; set; }
     private int _teamPoints2 { get; set; } = 0;
-    private string _teamPointsDisplay2 { get; set; }
+    private string _teamPointsDisplay2 => _shouldShowPoints ? _teamPoints2.ToString() : _noPointsString;
     private int? _teamFactionId2 { get; set; }
     private string[] _teamFactionDisplay2 { get; set; } = new string[2] { ".", "." };
     private int _teamControls2 { get; set; } = 0;
@@ -79,7 +109,19 @@
     private MatchState _matchState { get; set; }
     private int _currentRound { get; set; }
 
-    private bool _shouldShowPoints { get; set; } = false;
+    private bool _shouldShowPoints => (_matchState == MatchState.Uninitialized) ? false : true;
+    private string _hidePointsClass => _shouldShowPoints ? "" : "hidePoints";
+
+    private int? _pointTarget { get; set; }
+    private bool _shouldShowPointTarget { get; set; } = false;
+    private bool _shouldShowMatchTimer { get; set; } = false;
+
+    private bool _isPeriodPointsEnabled { get; set; } = false;
+    private int _periodicPointsInterval { get; set; }
+    private int _periodicPointsValue { get; set; }
+
+    private string _teamPointBarTransform1 { get; set; } = "scaleX(0)";
+    private string _teamPointBarTransform2 { get; set; } = "scaleX(0)";
 
     #region Initialization Methods
     protected override void OnInitialized()
@@ -91,30 +133,56 @@
 
         MessageService.RaiseScrimFacilityControlActionEvent += ReceiveFacilityControlEvent;
 
-        _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
-        var teamPoints1 = ScrimTeamsManager.GetTeamScoreDisplay(1);
+        _renderedCurrentRoundOnly = i_CurrentRoundOnly;
 
-        _teamPoints1 = (teamPoints1 == null) ? 0 : (int)teamPoints1;
+        SyncMatchAndTeamState();
+    }
 
-        _teamFactionId1 = ScrimTeamsManager.GetTeam(1).FactionId;
+    public void Dispose()
+    {
+        MessageService.RaiseTeamAliasChangeEvent -= ReceiveTeamAliasChangeEvent;
+        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
+        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
+        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
 
-        _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
-        var teamPoints2 = ScrimTeamsManager.GetTeamScoreDisplay(2);
+        MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveFacilityControlEvent;
+    }
 
-        _teamPoints2 = (teamPoints2 == null) ? 0 : (int)teamPoints2;
+    protected override void OnParametersSet()
+    {
+        if (_renderedCurrentRoundOnly != i_CurrentRoundOnly)
+        {
+            _renderedCurrentRoundOnly = i_CurrentRoundOnly;
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
 
-        _teamFactionId2 = ScrimTeamsManager.GetTeam(2).FactionId;
+            SyncMatchAndTeamState();
 
-        UpdateSeriesMatchResults();
+            InvokeAsyncStateHasChanged();
+        }
+    }
 
+    private void SyncMatchAndTeamState()
+    {
         _matchState = ScrimMatchEngine.GetMatchState();
         _currentRound = ScrimMatchEngine.GetCurrentRound();
+        _shouldShowPointTarget = ScrimMatchEngine.MatchConfiguration.EndRoundOnPointValueReached;
+        _shouldShowMatchTimer = ScrimMatchEngine.MatchConfiguration.EnableRoundTimeLimit;
+
+        _isPeriodPointsEnabled = ScrimMatchEngine.MatchConfiguration.EnablePeriodicFacilityControlRewards;
+        _periodicPointsInterval = ScrimMatchEngine.MatchConfiguration.PeriodicFacilityControlIntervalNonNullable;
+        _periodicPointsValue = ScrimMatchEngine.MatchConfiguration.PeriodicFacilityControlPointsNonNullable;
+
+        _teamAlias1 = ScrimTeamsManager.GetTeamAliasDisplay(1);
+        _teamAlias2 = ScrimTeamsManager.GetTeamAliasDisplay(2);
+
+        UpdateTeamPoints();
 
         UpdateTeamsControlCounts();
 
-        UpdateShouldShowPoints();
+        UpdateSeriesMatchResults();
 
-        UpdatePointsDisplay();
+        _teamFactionId1 = ScrimTeamsManager.GetTeam(1).FactionId;
+        _teamFactionId2 = ScrimTeamsManager.GetTeam(2).FactionId;
 
         if (_teamFactionId1 == null)
         {
@@ -135,50 +203,89 @@
         }
     }
 
-    public void Dispose()
-    {
-        MessageService.RaiseTeamAliasChangeEvent -= ReceiveTeamAliasChangeEvent;
-        MessageService.RaiseTeamFactionChangeEvent -= ReceiveTeamFactionChangeEvent;
-        MessageService.RaiseMatchStateUpdateEvent -= ReceiveMatchStateUpdateEvent;
-        MessageService.RaiseTeamStatUpdateEvent -= ReceiveTeamStatUpdateEvent;
-
-        MessageService.RaiseScrimFacilityControlActionEvent -= ReceiveFacilityControlEvent;
-    }
-
-    protected override void OnParametersSet()
-    {
-        if (i_showFeed != _showFeed)
-        {
-            _showFeed = i_showFeed;
-        }
-    }
     #endregion Initialization Methods
 
-
-    private void UpdatePointsDisplay()
+    private void UpdateMatchState()
     {
-        if (_shouldShowPoints)
+        _matchState = ScrimMatchEngine.GetMatchState();
+        _currentRound = ScrimMatchEngine.GetCurrentRound();
+    }
+
+    private void UpdateTeamPoints()
+    {
+        int? teamPoints1;
+        int? teamPoints2;
+
+        if (_renderedCurrentRoundOnly)
         {
-            _teamPointsDisplay1 = _teamPoints1.ToString();
-            _teamPointsDisplay2 = _teamPoints2.ToString();
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+            teamPoints1 = GetCurrentRoundTeamPoints(1, _currentRound);
+            teamPoints2 = GetCurrentRoundTeamPoints(2, _currentRound);
         }
         else
         {
-            _teamPointsDisplay1 = "_";
-            _teamPointsDisplay2 = "_";
+            teamPoints1 = ScrimTeamsManager.GetTeamScoreDisplay(1);
+            teamPoints2 = ScrimTeamsManager.GetTeamScoreDisplay(2);
+        }
+
+        _teamPoints1 = (teamPoints1 == null) ? 0 : teamPoints1.Value;
+        _teamPoints2 = (teamPoints2 == null) ? 0 : teamPoints2.Value;
+
+        _shouldShowPointTarget = ScrimMatchEngine.MatchConfiguration.EndRoundOnPointValueReached;
+        var pointTarget = ScrimMatchEngine.MatchConfiguration.TargetPointValue;
+
+        //Console.WriteLine($"ScoreboardOverlay: TargetPointValue = {pointTarget}");
+        //Console.WriteLine($"ScoreboardOverlay: _shouldShowPointTarget = {_shouldShowPointTarget}");
+
+        if (_shouldShowPointTarget && pointTarget.HasValue)
+        {
+            _pointTarget = pointTarget.Value;
+            _teamPointBarTransform1 = GetPointBarTransform(_pointTarget.Value, _teamPoints1);
+            _teamPointBarTransform2 = GetPointBarTransform(_pointTarget.Value, _teamPoints2);
+
+            //Console.WriteLine($"ScoreboardOverlay: updated bar graph transforms");
+            //Console.WriteLine($"ScoreboardOverlay: _teamPointBarTransform1 = {_teamPointBarTransform1}");
+            //Console.WriteLine($"ScoreboardOverlay: _teamPointBarTransform2 = {_teamPointBarTransform2}");
+        }
+        else
+        {
+            _shouldShowPointTarget = false;
         }
     }
 
-    private void UpdateShouldShowPoints()
+    private int? GetCurrentRoundTeamPoints(int teamOrdinal, int currentRound)
     {
-        if (_matchState == MatchState.Uninitialized)
+        var teamPoints = ScrimTeamsManager.GetTeamRoundScoreDisplay(teamOrdinal, currentRound);
+
+        if (teamPoints.HasValue)
         {
-            _shouldShowPoints = false;
+            return teamPoints;
         }
-        else
+
+        return ScrimTeamsManager.GetTeamCurrentRoundScoreDisplay(teamOrdinal);
+    }
+
+    private string GetPointBarTransform(int pointTarget, int teamPoints)
+    {
+        var scale = 0.0;
+
+        if (pointTarget > 0)
         {
-            _shouldShowPoints = true;
+            scale = teamPoints * (double)1.0 / pointTarget;
         }
+
+        if (scale > 1)
+        {
+            scale = 1;
+        }
+
+        if (scale < 0)
+        {
+            scale = 0;
+        }
+
+        return $"scaleX({scale})";
     }
 
     private void UpdateTeamFactionDisplay(int teamOrdinal, string newAbbreviation)
@@ -213,8 +320,16 @@
 
     private void UpdateTeamsControlCounts()
     {
+        //_teamControls1 = 2; // ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(1);
+        //_teamControls2 = 4; // ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(2);
         _teamControls1 = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(1);
         _teamControls2 = ScrimTeamsManager.GetCurrentMatchRoundTeamWeightedCapturesCount(2);
+    }
+
+    private void UpdateSeriesMatchResults()
+    {
+        _teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(1);
+        _teamSeriesResults2 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(2);
     }
 
     #region Event Handling
@@ -223,7 +338,28 @@
         var message = e.Message;
 
         var teamOrdinal = message.Team.TeamOrdinal;
-        var newPoints = message.Team.EventAggregate.Points;
+        int? newPointsNullable;
+
+        //var originalNewPoints = _renderedCurrentRoundOnly ? message.Team.RoundEventAggregate.Points : message.Team.EventAggregate.Points;
+        //Console.WriteLine($"ScoreboardOverlay: original newPoints = {originalNewPoints}");
+
+        if (_renderedCurrentRoundOnly)
+        {
+            _currentRound = ScrimMatchEngine.GetCurrentRound();
+
+            //Console.WriteLine($"ScoreboardOverlay: _currentRound = {_currentRound}");
+
+            newPointsNullable = GetCurrentRoundTeamPoints(teamOrdinal, _currentRound);
+        }
+        else
+        {
+            newPointsNullable = ScrimTeamsManager.GetTeamScoreDisplay(teamOrdinal);
+        }
+
+        var newPoints = (newPointsNullable == null) ? 0 : newPointsNullable.Value;
+
+        //Console.WriteLine($"ScoreboardOverlay: newPointsNullable = {newPointsNullable}");
+        //Console.WriteLine($"ScoreboardOverlay: new points for team {teamOrdinal} = {newPoints}");
 
         bool pointsChanged = false;
 
@@ -240,7 +376,34 @@
 
         if (pointsChanged)
         {
-            UpdatePointsDisplay();
+            _shouldShowPointTarget = ScrimMatchEngine.MatchConfiguration.EndRoundOnPointValueReached;
+            var pointTarget = ScrimMatchEngine.MatchConfiguration.TargetPointValue;
+
+            //Console.WriteLine($"ScoreboardOverlay: TargetPointValue = {pointTarget}");
+            //Console.WriteLine($"ScoreboardOverlay: _shouldShowPointTarget = {_shouldShowPointTarget}");
+
+            if (_shouldShowPointTarget && pointTarget.HasValue)
+            {
+                _pointTarget = pointTarget.Value;
+                var newScale = GetPointBarTransform(_pointTarget.Value, newPoints);
+
+                if (teamOrdinal == 1)
+                {
+                    _teamPointBarTransform1 = newScale;
+                    //Console.WriteLine($"ScoreboardOverlay: _teamPointBarTransform1 = {_teamPointBarTransform1}");
+                }
+                else if (teamOrdinal == 2)
+                {
+                    _teamPointBarTransform2 = newScale;
+                    //Console.WriteLine($"ScoreboardOverlay: _teamPointBarTransform2 = {_teamPointBarTransform2}");
+                }
+            }
+            else
+            {
+                _shouldShowPointTarget = false;
+            }
+
+            //Console.WriteLine($"ScoreboardOverlay: Finished processing TeamStatUpdateMessage");
 
             InvokeAsyncStateHasChanged();
         }
@@ -315,10 +478,7 @@
         {
             _matchState = newMatchState;
 
-            UpdateShouldShowPoints();
-            UpdatePointsDisplay();
-
-            UpdateSeriesMatchResults();
+            SyncMatchAndTeamState();
 
             InvokeAsyncStateHasChanged();
         }
@@ -327,7 +487,7 @@
         {
             _currentRound = newCurrentRound;
 
-            UpdateTeamsControlCounts();
+            SyncMatchAndTeamState();
 
             InvokeAsyncStateHasChanged();
         }
@@ -366,12 +526,6 @@
     }
     #endregion Event Handling
 
-    private void UpdateSeriesMatchResults()
-    {
-        _teamSeriesResults1 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(1);
-        _teamSeriesResults2 = ScrimTeamsManager.GetTeamsScrimSeriesMatchResults(2);
-    }
-
     private string GetSeriesMatchTallyCssClass(ScrimSeriesMatchResultType? matchResultType)
     {
         return matchResultType switch
@@ -393,6 +547,28 @@
             MatchState.Uninitialized => false,
             _ => false
         };
+    }
+
+    private string GetShowPointTargetCssClass(bool showPointTarget)
+    {
+        if (showPointTarget)
+        {
+            return string.Empty;
+        }
+
+        return "hide";
+    }
+
+    private string GetSeriesTallyMarginString()
+    {
+        if (_shouldShowPointTarget)
+        {
+            return "margin-top: 6px";
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     private void InvokeAsyncStateHasChanged()

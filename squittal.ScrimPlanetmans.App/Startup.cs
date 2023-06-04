@@ -8,6 +8,7 @@ using squittal.ScrimPlanetmans.CensusServices;
 using squittal.ScrimPlanetmans.CensusStream;
 using squittal.ScrimPlanetmans.Data;
 using squittal.ScrimPlanetmans.ScrimMatch;
+using squittal.ScrimPlanetmans.ScrimMatch.Timers;
 using squittal.ScrimPlanetmans.Services;
 using squittal.ScrimPlanetmans.Services.Planetside;
 using squittal.ScrimPlanetmans.Services.Rulesets;
@@ -92,6 +93,10 @@ namespace squittal.ScrimPlanetmans.App
 
             services.AddSingleton<IDbSeeder, DbSeeder>();
 
+            services.AddSingleton<IPeriodicPointsTimer, PeriodicPointsTimer>();
+            services.AddSingleton<IScrimRoundEndCheckerService, ScrimRoundEndCheckerService>();
+
+            services.AddSingleton<IOverlayStateService, OverlayStateService>();
 
             services.AddTransient<IStreamClient, StreamClient>();
             services.AddSingleton<IWebsocketEventHandler, WebsocketEventHandler>();
