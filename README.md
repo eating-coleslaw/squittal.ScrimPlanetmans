@@ -197,6 +197,14 @@ https://localhost:5001/Overlay?report=false&currentRound=true
 
 * Hides the match report and shows stats for the current round. This is what you'd want to use for streaming an in-progress match that's using a Conquest-like ruleset.
 
+https://localhost:5001/Overlay?feed=false&analytic=true&currendRound=true
+
+* Hides the feed and shows the "fancy" stats report for the current round. This is what you'd want to use after the first round of a match that's using a Conquest-like ruleset.
+
+https://localhost:5001/Overlay?report=false&currentRound=true
+
+* Hides the match report and shows stats for the current round. This is what you'd want to use for streaming an in-progress match that's using a Conquest-like ruleset.
+
 ## Reporting
 
 Results from matches, along with several types of events, are stored in the same database as the census data. Feel free to use it for your own reporting needs.
