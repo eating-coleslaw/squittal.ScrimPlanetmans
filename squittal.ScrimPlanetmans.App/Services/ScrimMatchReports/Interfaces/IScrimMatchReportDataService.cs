@@ -24,6 +24,7 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
         Task<IEnumerable<ScrimMatchReportInfantryTeamRoundStats>> GetHistoricalScrimMatchInfantryTeamRoundStatsAsync(string scrimMatchId, int scrimMatchRound, CancellationToken cancellationToken);
         Task<IEnumerable<ScrimMatchReportInfantryTeamStats>> GetHistoricalScrimMatchInfantryTeamStatsAsync(string scrimMatchId, CancellationToken cancellationToken);
         Task<ScrimMatchInfo> GetHistoricalScrimMatchInfoAsync(string scrimMatchId, CancellationToken cancellationToken);
+        Task<OverlayStatsDisplayType?> GetHistoricalScrimMatchOverlayDisplayStatsType(string scrimMatchId, CancellationToken cancellationToken);
         Task<IEnumerable<int>> GetScrimMatchBrowserFacilityIdsListAsync(CancellationToken cancellationToken);
         Task<IEnumerable<Ruleset>> GetScrimMatchBrowseRulesetIdsListAsync(CancellationToken cancellationToken);
     }

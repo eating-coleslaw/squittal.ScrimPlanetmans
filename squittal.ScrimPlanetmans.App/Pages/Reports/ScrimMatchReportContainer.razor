@@ -10,6 +10,7 @@
 
 @using squittal.ScrimPlanetmans.App.Pages.Shared;
 @using squittal.ScrimPlanetmans.Models;
+@using squittal.ScrimPlanetmans.ScrimMatch.Models;
 @using squittal.ScrimPlanetmans.Models.ScrimMatchReports;
 @using squittal.ScrimPlanetmans.Services.ScrimMatchReports;
 @using System.Threading;
@@ -73,11 +74,12 @@
                         {
                             <div style="text-align: right; margin-top: 4px; margin-bottom: 2px; padding-bottom: 4px;">
                             
+                                
                                 @if (!_showAllRoundStats)
                                 {
-                                    <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif" @onclick="OnShowAllRoundStats">Expand All Rounds</button>
+                                    <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;" @onclick="OnShowAllRoundStats">Expand All Rounds</button>
 
-                                    @if (_expandedRoundPlayers.Any() || _expandedRoundTeams.Any() || _expandedRoundTeamCaptures.Any())
+                                    @if (_expandedRoundPlayers.Any() || _expandedRoundTeams.Any() || _expandedRoundTeamCaptures.Any() || _anyRevives)
                                     {
                                         <span style="padding: 0 8px 0 8px; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;">|</span>
                                     }
@@ -86,8 +88,17 @@
                                 @if (_showAllRoundStats || _expandedRoundPlayers.Any() || _expandedRoundTeams.Any() || _expandedRoundTeamCaptures.Any())
                                 {
                                     <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;" @onclick="OnHideAllRoundStats">Collapse All Rounds</button>
+
+                                    @if(_anyRevives)
+                                    {
+                                        <span style="padding: 0 8px 0 8px; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;">|</span>
+                                    }
                                 }
 
+                                @if (_anyRevives)
+                                {
+                                    <button class="btn btn-link" style="padding: 0; font-size: 0.9rem; font-family: Roboto, 'Segoe UI', sans-serif;" @onclick="OnClickSwitchStatsType">@GetStatsTypeButtonTest()</button>
+                                }
                             </div>
                         }
                         
@@ -108,38 +119,103 @@
                                         <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
                                         <th style=" width: 90px;"></th>
                                         <th style="font-weight: 300; width: 70px;" title="Net Score">Net Score</th>
-                                        <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
-                                        <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
-                                        <th style="font-weight: 300; width: 55px;" title="Head Shot Percent">
-                                            <div class="ps2-icon headshot tr" style="filter: brightness(0) saturate(100%) invert(30%);display: inline-block;margin-top: 0px;"></div>%
-                                        </th>
+
+                                        @if (_showReviveStats)
+                                        {
+                                            <th colspan="2" style="font-weight: 300; width: 120px;" title="Kills">
+                                                <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                    <div class="multi-col-header" style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400;">Kills</div>
+                                                    <div style="grid-row: 2; grid-column: 1; text-align: right;">Secured</div>
+                                                    <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
+                                                </div>
+                                            </th>
+
+                                            <th colspan="2" style="font-weight: 300; width: 120px;" title="Deaths">
+                                                <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 50% 50%;">
+                                                    <div class="multi-col-header" style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400;">Deaths</div>
+                                                    <div style="grid-row: 2; grid-column: 1; text-align: right;">Final</div>
+                                                    <div style="grid-row: 2; grid-column: 2; text-align: right;">Total</div>
+                                                </div>
+                                            </th>
+
+                                            <th style="font-weight: 300; width: 60px;" title="Revives Given">Revives<br />Given</th>
+                                            <th colspan="3" style="font-weight: 300; width: 180px;" title="Revives Taken">
+                                                <div style="width: 100%; display: grid; grid-template-rows: 50% 50%; grid-template-columns: 33% 34% 33%;">
+                                                    <div class="multi-col-header" style="grid-column: 1 / -1; text-align: center; grid-row: 1; font-weight: 400; margin-left: 4px;">Revives Taken</div>
+                                                    <div style="grid-row: 2; grid-column: 1; text-align: right;" title="Average Life in Seconds">Avg. Life</div>
+                                                    <div style="grid-row: 2; grid-column: 2; text-align: right;" title="Deaths within 2 seconds of being revived">Inst. Dth.</div>
+                                                    <div style="grid-row: 2; grid-column: 3; text-align: right;" title="Kills while on a revived life">Kills</div>
+                                                </div>
+                                            </th>
+                                        }
+                                        else
+                                        {
+                                            <th style="font-weight: 300; width: 60px;" title="Kills">Kills</th>
+                                            <th style="font-weight: 300; width: 60px;" title="Deaths">Deaths</th>
+                                        }
+
+                                        @if(!_showReviveStats)
+                                        {
+                                            <th style="font-weight: 300; width: 55px;" title="Head Shot Percent">
+                                                <div class="ps2-icon headshot tr" style="filter: brightness(0) saturate(100%) invert(30%);display: inline-block;margin-top: 0px;"></div>%
+                                            </th>
+                                        }
+
                                         <th style="font-weight: 300; width: 55px;" title="Damage Assists">Dmg. Asst.</th>
                                         <th style="font-weight: 300; width: 70px;" title="Damage Dealt">Dmg. Dealt</th>
-                                        <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
-                                        <th style="font-weight: 300; width: 60px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
-                                        <th style="font-weight: 300; width: 60px;" title="Trickle Deaths">Trickle Deaths</th>
-                                        <th style="font-weight: 300; width: 65px;" title="Favorable Engagement Percent">Fav. Eng. %</th>
-                                        <th style="font-weight: 300; width: 65px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
-                                        <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
+
+                                        @if (!_showReviveStats)
+                                        { 
+                                            <th style="font-weight: 300; width: 60px;" title="Solo/Unassisted Kills (including spot-assisted-only kills)">Solo Kills</th>
+                                            <th style="font-weight: 300; width: 60px;" title="Assisted Deaths (excluding spot-assisted-only deaths)">Asst. Deaths</th>
+                                            <th style="font-weight: 300; width: 60px;" title="Trickle Deaths">Trickle Deaths</th>
+                                            <th style="font-weight: 300; width: 65px;" title="Favorable Engagement Percent">Fav. Eng. %</th>
+                                            <th style="font-weight: 300; width: 65px;" title="One vs One Engagement Percent">1v1 Eng. %</th>
+                                            <th style="font-weight: 300; width: 60px;" title="One vs One Kill Death Ratio">1v1 KDR</th>
+                                        }
                                     </tr>
 
                                     <tr @onclick="() => OnClickTeamRow(team.TeamOrdinal)" class=" clickable-row @GetClickableTeamRowIsActiveClass(team.TeamOrdinal) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
                                         <td style="padding-left: 8px; width: 10px;"></td>
                                         <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
-                                        <td style="padding-top: 0px;">@team.Points</td>
+                                        <td title="Points" style="padding-top: 0px;">@team.Points</td>
                                         <td style="padding-top: 0px;"></td>
-                                        <td style="padding-top: 0px;">@team.NetScore</td>
-                                        <td style="padding-top: 0px;">@team.Kills</td>
-                                        <td style="padding-top: 0px;">@team.Deaths</td>
-                                        <td style="padding-top: 0px;" title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
-                                        <td style="padding-top: 0px;">@team.DamageAssists</td>
+                                        <td title="Net Score" style="padding-top: 0px;">@team.NetScore</td>
+                                        
+                                        @if (_showReviveStats)
+                                        {
+                                            <td title="Secured Kills" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@team.SecuredKills</td>
+                                            <td title="Total Kills" style="padding-top: 0px; width: 60px;">@team.Kills</td>
+                                            <td title="Confirmed Deaths" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@team.ConfirmedDeaths</td>
+                                            <td title="Total Deaths" style="padding-top: 0px; width: 60px;">@team.Deaths</td>
+                                            <td title="Revives Given" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@team.Revives</td>
+                                            <td title="Average Post-Revive Life (seconds)" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@team.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                            <td title="Instant Post-Revive Deaths" style="padding-top: 0px; width: 60px;">@team.ReviveInstantDeaths</td>
+                                            <td title="Post-Revive Kills" style="padding-top: 0px; width: 60px; border-right: 1px solid var(--sq-ps2-primary-light-alpha-80);">@team.PostReviveKills</td>
+                                        }
+                                        else
+                                        { 
+                                            <td title="Kills" style="padding-top: 0px;">@team.Kills</td>
+                                            <td title="Deaths Kills" style="padding-top: 0px;">@team.Deaths</td>
+                                        }
+                                        
+                                        @if(!_showReviveStats)
+                                        {
+                                            <td style="padding-top: 0px;" title="@team.HeadshotKills / @team.Kills">@team.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                        }
+                                        
+                                        <td title="Damage Assists" style="padding-top: 0px;">@team.DamageAssists</td>
                                         <td style="padding-top: 0px;" title="@($"{team.TotalDamageDealt.ToString("N0")}\nKills: {team.KillDamageDealt.ToString("N0")}\nAssists: {team.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(team.TotalDamageDealt, true)</td>
-                                        <td style="padding-top: 0px;">@team.UnassistedKills</td>
-                                        <td style="padding-top: 0px;">@team.DamageAssistedEnemyDeaths</td>
-                                        <td style="padding-top: 0px;">@team.TrickleDeaths</td>
-                                        <td style="padding-top: 0px;" title="@team.FavorableEngagementCount / @team.WeightedEnemyEngagementCount">@team.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
-                                        <td style="padding-top: 0px;" title="@team.OneVsOneCount / @team.EnemyKillDeathEngagementCount">@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
-                                        <td style="padding-top: 0px;" title="@team.UnassistedKills / @team.UnassistedEnemyDeaths ">@team.OneVsOneKillDeathRatio</td>
+                                        
+                                        @if(!_showReviveStats)
+                                        { 
+                                            <td title="Unassisted Kills" style="padding-top: 0px;">@team.UnassistedKills</td>
+                                            <td title="Damage-Assisted Enemy Deaths" style="padding-top: 0px;">@team.DamageAssistedEnemyDeaths</td>
+                                            <td title="Trickle Deaths" style="padding-top: 0px;">@team.TrickleDeaths</td>
+                                            <td style="padding-top: 0px;" title="@team.FavorableEngagementCount / @team.WeightedEnemyEngagementCount">@team.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
+                                            <td style="padding-top: 0px;" title="@team.OneVsOneCount / @team.EnemyKillDeathEngagementCount">@team.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                            <td style="padding-top: 0px;" title="@team.UnassistedKills / @team.UnassistedEnemyDeaths ">@team.OneVsOneKillDeathRatio</td>
+                                        }
                                     </tr>
 
                                     @if (_expandedRoundTeams.Contains(team.TeamOrdinal))
@@ -154,20 +230,44 @@
                                                 {
                                                     @foreach (var teamRoundStats in _teamRoundStats.Where(e => e.TeamOrdinal == team.TeamOrdinal && e.ScrimMatchRound == round).ToList())
                                                     {
-                                                        <td>@teamRoundStats.Points</td>
+                                                        <td title="Points">@teamRoundStats.Points</td>
                                                         <td></td>
-                                                        <td>@teamRoundStats.NetScore</td>
-                                                        <td>@teamRoundStats.Kills</td>
-                                                        <td>@teamRoundStats.Deaths</td>
-                                                        <td title="@teamRoundStats.HeadshotKills / @teamRoundStats.Kills">@teamRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
-                                                        <td>@teamRoundStats.DamageAssists</td>
+                                                        <td title="Net Score">@teamRoundStats.NetScore</td>
+
+                                                        @if(_showReviveStats)
+                                                        {
+                                                            <td title="Secured Kills" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@teamRoundStats.SecuredKills</td>
+                                                            <td title="Total Kills" style="padding-top: 0px; width: 60px;">@teamRoundStats.Kills</td>
+                                                            <td title="Confirmed Kills" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@teamRoundStats.ConfirmedDeaths</td>
+                                                            <td title="Total Kills" style="padding-top: 0px; width: 60px;">@teamRoundStats.Deaths</td>
+                                                            <td title="Revives Given" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@teamRoundStats.Revives</td>
+                                                            <td title="Average Post-Revive Life (seconds)" style="padding-top: 0px; width: 60px; border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@teamRoundStats.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                            <td title="Instant Post-Revive Deaths" style="padding-top: 0px; width: 60px;">@teamRoundStats.ReviveInstantDeaths</td>
+                                                            <td title="Post-Revive Kills" style="padding-top: 0px; width: 60px; border-right: 1px solid var(--sq-ps2-primary-light-alpha-80);">@teamRoundStats.PostReviveKills</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td title="Kills">@teamRoundStats.Kills</td>
+                                                            <td title="Deaths">@teamRoundStats.Deaths</td>
+                                                        }
+
+                                                        @if(!_showReviveStats)
+                                                        {
+                                                            <td title="@teamRoundStats.HeadshotKills / @teamRoundStats.Kills">@teamRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                                        }
+                                                        
+                                                        <td title="Damage Assists">@teamRoundStats.DamageAssists</td>
                                                         <td title="@($"{teamRoundStats.TotalDamageDealt.ToString("N0")}\n{teamRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {teamRoundStats.AssistDamageDealt.ToString("N0")}")">@GetAbbreviatedDamageDealt(teamRoundStats.TotalDamageDealt, true)</td>
-                                                        <td>@teamRoundStats.UnassistedKills</td>
-                                                        <td>@teamRoundStats.DamageAssistedEnemyDeaths</td>
-                                                        <td>@teamRoundStats.TrickleDeaths</td>
-                                                        <td title="@teamRoundStats.FavorableEngagementCount / @teamRoundStats.WeightedEnemyEngagementCount">@teamRoundStats.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
-                                                        <td title="@teamRoundStats.OneVsOneCount / @teamRoundStats.EnemyKillDeathEngagementCount">@teamRoundStats.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
-                                                        <td title="@teamRoundStats.UnassistedKills / @teamRoundStats.UnassistedEnemyDeaths ">@teamRoundStats.OneVsOneKillDeathRatio</td>
+                                                        
+                                                        @if(!_showReviveStats)
+                                                        {
+                                                            <td title="Unassisted Kills">@teamRoundStats.UnassistedKills</td>
+                                                            <td title="Damage-Assisted Enemy Deaths">@teamRoundStats.DamageAssistedEnemyDeaths</td>
+                                                            <td title="Trickle Deaths">@teamRoundStats.TrickleDeaths</td>
+                                                            <td title="@teamRoundStats.FavorableEngagementCount / @teamRoundStats.WeightedEnemyEngagementCount">@teamRoundStats.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
+                                                            <td title="@teamRoundStats.OneVsOneCount / @teamRoundStats.EnemyKillDeathEngagementCount">@teamRoundStats.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                                            <td title="@teamRoundStats.UnassistedKills / @teamRoundStats.UnassistedEnemyDeaths ">@teamRoundStats.OneVsOneKillDeathRatio</td>
+                                                        }
                                                     }
                                                 }
                                                 else
@@ -201,7 +301,7 @@
                                                 </NavLink>
 
                                             </td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" style="text-align: right;">@player.Points</td>
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Points" style="text-align: right;">@player.Points</td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
                                                 <div class="graph" style="width: 90px;">
                                                     <div class="graph-bar" style="width: @($"{GetPointGraphWidth(player.Points)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
@@ -209,68 +309,116 @@
                                             </td>
                                             <td @onclick="() => OnClickPlayerRow(player.CharacterId)">
                                                 <div class="net stats-value">
-                                                    <span class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
+                                                    <span title="Net Score" class="value">@player.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(player.NetScore)">@GetNetScoreLabelText(player.NetScore)</span>
                                                 </div>
                                             </td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.Kills</td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.Deaths</td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssists</td>
+                                            
+                                            @if(_showReviveStats)
+                                            {
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Secured Kills" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@player.SecuredKills</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Total Kills">@player.Kills</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Confirmed Deaths" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@player.ConfirmedDeaths</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Total Deaths">@player.Deaths</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Revives Given" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@player.RevivesGiven</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Average Revived Life (seconds)" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@player.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Instant Post-Revive Deaths">@player.ReviveInstantDeaths</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Post-Revive Kills" style="border-right: 1px solid var(--sq-ps2-primary-light-alpha-80);">@player.PostReviveKills</td>
+                                            }
+                                            else
+                                            {
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Kills">@player.Kills</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Deaths">@player.Deaths</td>
+                                            }
+                                            
+                                            @if(!_showReviveStats)
+                                            {
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.HeadshotKills / @player.Kills">@player.HeadshotPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                            }
+                                              
+                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Damage Assists">@player.DamageAssists</td>
                                             <td  title="@($"{player.TotalDamageDealt.ToString("N0")}\nKills: {player.KillDamageDealt.ToString("N0")}\nAssists: {player.AssistDamageDealt.ToString("N0")}")" @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.TotalDamageDealt.ToString("N0")</td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.UnassistedKills</td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.DamageAssistedEnemyDeaths</td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)">@player.TrickleDeaths</td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
-                                            <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
+                                            
+                                            @if(!_showReviveStats)
+                                            {
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Unassisted Kills">@player.UnassistedKills</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Damage-Assisted Enemy Deaths">@player.DamageAssistedEnemyDeaths</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Trickle Deaths">@player.TrickleDeaths</td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.FavorableEngagementCount / @player.WeightedEnemyEngagementCount">@player.WeightedFavorableEngagementPercent3<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.OneVsOneCount / @player.EnemyKillDeathEngagementCount">@player.OneVsOneEngagementPercent<span style="font-size: smaller; padding-left: 1px;">%</span></td>
+                                                <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="@player.UnassistedKills / @player.UnassistedEnemyDeaths">@player.OneVsOneKillDeathRatio</td>
+                                            }
                                         </tr>
 
                                         @if (_expandedRoundPlayers.Contains(player.CharacterId))
                                         {
                                             for (var round = 1; round <= _matchInfo.RoundCount; round++)
                                             {
-                            <tr class="expanded-row @GetRoundRowBorderClass(round, _matchInfo.RoundCount) @SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
+                                                <tr class="expanded-row @GetRoundRowBorderClass(round, _matchInfo.RoundCount) @SqCssHelper.GetFactionClassFromId(player.FactionId)" style="color: var(--sq-ov-ps2-primary-dark);">
 
-                                @if (_playerRoundStats.Any(e => e.CharacterId == player.CharacterId && e.ScrimMatchRound == round))
-                                {
-                                    @foreach (var playerRoundStats in _playerRoundStats.Where(e => e.CharacterId == player.CharacterId && e.ScrimMatchRound == round).ToList())
-                                    {
-                                        <td style="padding-left: 10px;"></td>
-                                        <td style="text-align: right; width: 120px;">
-                                            <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(playerRoundStats.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId); display: inline-block; vertical-align: text-bottom; margin-right: 8px;"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
-                                            <div style="display: inline-block; vertical-align: text-bottom;">Round @round</div>
-                                        </td>
-                                        <td>@playerRoundStats.Points</td>
-                                        <td>
-                                            <div class="graph" style="width: 90px;">
-                                                <div class="graph-bar @((round == 1 ? "striped-background" : "dotted-background"))" style="width: @($"{GetPointGraphWidth(playerRoundStats.Points, round)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary-light); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="net stats-value">
-                                                <span class="value">@playerRoundStats.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(playerRoundStats.NetScore)">@GetNetScoreLabelText(playerRoundStats.NetScore)</span>
-                                            </div>
-                                        </td>
-                                        <td>@playerRoundStats.Kills</td>
-                                        <td>@playerRoundStats.Deaths</td>
-                                        <td title="@playerRoundStats.HeadshotKills / @playerRoundStats.Kills">@playerRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
-                                        <td>@playerRoundStats.DamageAssists</td>
-                                        <td title="@($"{playerRoundStats.TotalDamageDealt.ToString("N0")}\nKills: {playerRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {playerRoundStats.AssistDamageDealt.ToString("N0")}")">@playerRoundStats.TotalDamageDealt.ToString("N0")</td>
-                                        <td>@playerRoundStats.UnassistedKills</td>
-                                        <td>@playerRoundStats.DamageAssistedEnemyDeaths</td>
-                                        <td>@playerRoundStats.TrickleDeaths</td>
-                                        <td title="@playerRoundStats.FavorableEngagementCount / @playerRoundStats.WeightedEnemyEngagementCount">@playerRoundStats.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
-                                        <td title="@playerRoundStats.OneVsOneCount / @playerRoundStats.EnemyKillDeathEngagementCount">@playerRoundStats.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
-                                        <td title="@playerRoundStats.UnassistedKills / @playerRoundStats.UnassistedEnemyDeaths ">@playerRoundStats.OneVsOneKillDeathRatio</td>
-                                    }
-                                }
-                                else
-                                {
-                                    <td style="padding-left: 10px;"></td>
-                                    <td style="text-align: right;">Round @round</td>
-                                    <td colspan="13" class="sq-text-muted">No data found</td>
-                                }
-                            </tr>
+                                                    @if (_playerRoundStats.Any(e => e.CharacterId == player.CharacterId && e.ScrimMatchRound == round))
+                                                    {
+                                                        @foreach (var playerRoundStats in _playerRoundStats.Where(e => e.CharacterId == player.CharacterId && e.ScrimMatchRound == round).ToList())
+                                                        {
+                                                            <td style="padding-left: 10px;"></td>
+                                                            <td style="text-align: right; width: 120px;">
+                                                                <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(playerRoundStats.GetOrderedPlanetsideClassEventCountsList().Select(e => e.PlanetsideClass).FirstOrDefault())" style="filter: @GetLoadoutIconFilterStyle(player.FactionId); display: inline-block; vertical-align: text-bottom; margin-right: 8px;"></div>@*@player.GetOrderedPlanetsideClassEventCountsList().OrderByDescending(e => e.EventCount).FirstOrDefault().EventCount</div>*@
+                                                                <div style="display: inline-block; vertical-align: text-bottom;">Round @round</div>
+                                                            </td>
+                                                            <td title="Points">@playerRoundStats.Points</td>
+                                                            <td>
+                                                                <div class="graph" style="width: 90px;">
+                                                                    <div class="graph-bar @((round == 1 ? "striped-background" : "dotted-background"))" style="width: @($"{GetPointGraphWidth(playerRoundStats.Points, round)}%"); height: 17px; margin: 0; background-color: var(--sq-ov-ps2-primary-light); opacity: 0.9; box-sizing: border-box; border: 1px solid var(--sq-ov-ps2-primary-dark-alpha-80); border-left: 2px solid var(--sq-ov-ps2-primary-dark);"></div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="net stats-value">
+                                                                    <span  title="Net Score" class="value">@playerRoundStats.NetScore</span><span class="net-score-icon @GetNetScoreLabelCssClass(playerRoundStats.NetScore)">@GetNetScoreLabelText(playerRoundStats.NetScore)</span>
+                                                                </div>
+                                                            </td>
+                                        
+                                                            @if(_showReviveStats)
+                                                            {
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Secured Kills" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@playerRoundStats.SecuredKills</td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Total Kills">@playerRoundStats.Kills</td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Confirmed Deaths" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@playerRoundStats.ConfirmedDeaths</td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Total Deaths">@playerRoundStats.Deaths</td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Revives Given" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@playerRoundStats.RevivesGiven</td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Average Revived Life (seconds)" style="border-left: 1px solid var(--sq-ps2-primary-light-alpha-80);">@playerRoundStats.AvgRevivedLifeSeconds<span style="font-size: smaller;">s</span></td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Instant Post-Revive Deaths">@playerRoundStats.ReviveInstantDeaths</td>
+                                                                    <td @onclick="() => OnClickPlayerRow(player.CharacterId)" title="Post-Revive Kills" style="border-right: 1px solid var(--sq-ps2-primary-light-alpha-80);">@playerRoundStats.PostReviveKills</td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td title="Kills">@playerRoundStats.Kills</td>
+                                                                <td title="Deaths">@playerRoundStats.Deaths</td>
+                                                            }
+                                        
+                                                            @if(!_showReviveStats)
+                                                            {
+                                                                <td title="@playerRoundStats.HeadshotKills / @playerRoundStats.Kills">@playerRoundStats.HeadshotPercent<span style="font-size: smaller;">%</span></td>
+                                                            }
+
+                                                            <td title="Damage Assists">@playerRoundStats.DamageAssists</td>
+                                                            <td title="@($"{playerRoundStats.TotalDamageDealt.ToString("N0")}\nKills: {playerRoundStats.KillDamageDealt.ToString("N0")}\nAssists: {playerRoundStats.AssistDamageDealt.ToString("N0")}")">@playerRoundStats.TotalDamageDealt.ToString("N0")</td>
+                                        
+                                                            @if (!_showReviveStats)
+                                                            {
+                                                                <td title="Unassisted Kills">@playerRoundStats.UnassistedKills</td>
+                                                                <td title="Damage-Assisted Enemy Deaths">@playerRoundStats.DamageAssistedEnemyDeaths</td>
+                                                                <td title="Trickle Deaths">@playerRoundStats.TrickleDeaths</td>
+                                                                <td title="@playerRoundStats.FavorableEngagementCount / @playerRoundStats.WeightedEnemyEngagementCount">@playerRoundStats.WeightedFavorableEngagementPercent3<span style="font-size: smaller;">%</span></td>
+                                                                <td title="@playerRoundStats.OneVsOneCount / @playerRoundStats.EnemyKillDeathEngagementCount">@playerRoundStats.OneVsOneEngagementPercent<span style="font-size: smaller;">%</span></td>
+                                                                <td title="@playerRoundStats.UnassistedKills / @playerRoundStats.UnassistedEnemyDeaths ">@playerRoundStats.OneVsOneKillDeathRatio</td>
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <td style="padding-left: 10px;"></td>
+                                                        <td style="text-align: right;">Round @round</td>
+                                                        <td colspan="13" class="sq-text-muted">No data found</td>
+                                                    }
+                                                </tr>
                                             }
                                             <tr style="height: 8px; background-color: transparent;"></tr>
                                         }
@@ -388,6 +536,12 @@
 
     private int _maxPlayerPoints { get; set; } = 1;
 
+    //private OverlayStatsDisplayType? _matchRulestStatsDisplayType { get; set; }
+    //private bool _objectiveStats { get; set; } = false;
+
+    private bool _anyRevives { get; set; } = false;
+    private bool _showReviveStats { get; set; } = false;
+
     private bool _isLoadingScrimPlayers { get; set; } = false;
     private bool _isChangingScrimMatch { get; set; } = false;
 
@@ -450,6 +604,9 @@
                 var teamRoundStatsTask = LoadInfantryTeamRoundStats(cts.Token);
                 TaskList.Add(teamRoundStatsTask);
 
+                //var statsDisplayTypeTask = LoadRulestStatsDisplayType(cts.Token);
+                //TaskList.Add(statsDisplayTypeTask);
+
                 await Task.WhenAll(TaskList);
 
                 cts.Token.ThrowIfCancellationRequested();
@@ -506,7 +663,22 @@
             paramsChanged = true;
         }
 
+        if (_teamStats != null && _teamStats.Any())
+        {
+            var anyRevives = _teamStats.Max(r => r.Revives) > 0;
+
+            if (_anyRevives != anyRevives)
+            {
+                _anyRevives = anyRevives;
+
+                _showReviveStats = _anyRevives;
+
+                paramsChanged = true;
+            }
+        }
+
         _isLoadingScrimPlayers = false;
+
 
         if (paramsChanged)
         {
@@ -558,6 +730,13 @@
     {
         _matchInfo = await ReportDataService.GetHistoricalScrimMatchInfoAsync(_renderedScrimMatchId, cancellationToken);
     }
+
+    //private async Task LoadRulestStatsDisplayType(CancellationToken cancellationToken)
+    //{
+    //    _matchRulestStatsDisplayType = await ReportDataService.GetHistoricalScrimMatchOverlayDisplayStatsType(_renderedScrimMatchId, cancellationToken);
+
+    //    _objectiveStats = (_matchRulestStatsDisplayType == OverlayStatsDisplayType.InfantryObjective) ? true : false;
+    //}
 
     private bool IsSelectedPlayerValid()
     {
@@ -687,6 +866,11 @@
                 _expandedRoundTeamCaptures.Add(teamOrdinal);
             }
         }
+    }
+
+    private void OnClickSwitchStatsType()
+    {
+        _showReviveStats = !_showReviveStats;
     }
     #endregion UI & Form Controls
 
@@ -887,6 +1071,18 @@
     private string GetRoundRowBorderClass(int round, int maxRounds)
     {
         return round == maxRounds ? "last-of-group" : string.Empty;
+    }
+
+    private string GetStatsTypeButtonTest()
+    {
+        if (_showReviveStats)
+        {
+            return "Switch to DM Stats";
+        }
+        else
+        {
+            return "Switch to Revive Stats";
+        }
     }
 
     private MarkupString GetAbbreviatedDamageDealt(int damageDealt, bool isTeamValue)

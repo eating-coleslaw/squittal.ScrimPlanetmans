@@ -652,6 +652,53 @@ namespace squittal.ScrimPlanetmans.Services.ScrimMatchReports
             }
         }
 
+        public async Task<OverlayStatsDisplayType?> GetHistoricalScrimMatchOverlayDisplayStatsType(string scrimMatchId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var factory = _dbContextHelper.GetFactory();
+                var dbContext = factory.GetDbContext();
+
+                var matchRulesetId = await dbContext.ScrimMatchInfo
+                                            .AsNoTracking()
+                                            .Where(e => e.ScrimMatchId == scrimMatchId)
+                                            .Select(e => e.RulesetId)
+                                            .FirstOrDefaultAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var rulesetOverlayConfiguration = await dbContext.RulesetOverlayConfigurations
+                                                            .AsNoTracking()
+                                                            .Where(e => e.RulesetId == matchRulesetId)
+                                                            .FirstOrDefaultAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (rulesetOverlayConfiguration == null)
+                {
+                    return null;
+                }
+
+                return rulesetOverlayConfiguration.StatsDisplayType;
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation($"Task Request cancelled: GetHistoricalScrimMatchOverlayDisplayStatsType scrimMatchId: {scrimMatchId}");
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Request cancelled: GetHistoricalScrimMatchOverlayDisplayStatsType scrimMatchId: {scrimMatchId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex}");
+
+                return null;
+            }
+        }
+
         //public async Task<PaginatedList<ScrimMatchReportInfantryDeath>> GetHistoricalScrimMatchInfantryPlayerDeathsAsync(string scrimMatchId, int? pageIndex)
         //{
         //    try

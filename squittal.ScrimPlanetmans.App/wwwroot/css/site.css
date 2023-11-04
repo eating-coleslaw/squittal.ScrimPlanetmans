@@ -734,6 +734,11 @@ No-Link Brand Header
                 margin-top: 0.2rem;
             }
 
+.table-striped-light .multi-col-header {
+    background: var(--sq-bg-white-lit) !important;
+    border-bottom: 1px solid var(--sq-pale-purple-alpha-a0);
+    /*margin-bottom: 2px;*/
+}
 
 .leaderboard-card {
     border: 2px solid var(--sq-light-blue-gray-alpha) !important;
