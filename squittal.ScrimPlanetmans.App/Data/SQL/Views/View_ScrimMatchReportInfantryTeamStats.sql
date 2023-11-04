@@ -16,13 +16,15 @@ ALTER VIEW View_ScrimMatchReportInfantryTeamStats AS
              + COALESCE(capture_sums.Points, 0)
              + COALESCE(revive_sums.Points, 0)
              + COALESCE(enemy_revive_sums.EnemyPoints, 0)
-             + COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)) Points,
+             + COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)
+             + COALESCE(adjustment_sums.Points, 0)) Points,
          MAX(COALESCE(kill_sums.NetScore, 0)
              + COALESCE(capture_sums.Points, 0)
              + COALESCE(revive_sums.Points, 0)
              - COALESCE(revive_sums.EnemyPoints, 0)
              + COALESCE(enemy_revive_sums.EnemyPoints, 0)
-             + COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)) NetScore,
+             + COALESCE(periodic_tick_sums.PeriodicControlTickPoints, 0)
+             + COALESCE(adjustment_sums.Points, 0)) NetScore,
          MAX(COALESCE(adjustment_sums.Points, 0)) PointAdjustments,
          MAX(COALESCE(capture_sums.Points, 0)) FacilityCapturePoints,
          MAX(COALESCE(kill_sums.Kills, 0)) Kills,
