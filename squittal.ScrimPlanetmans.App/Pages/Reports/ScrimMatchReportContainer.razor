@@ -103,7 +103,7 @@
                                     }
 
                                     <tr style="line-height: 1.2; font-size: 0.8rem; vertical-align: bottom; background-color: transparent; font-family: Roboto, 'Segoe UI', sans-serif;">
-                                        <th style="padding-left: 10px;" title="Primary Class"></th>
+                                        <th style="padding-left: 8px; width: 10px;" title="Primary Class"></th>
                                         <th style="width: 145px"></th>
                                         <th style="text-align: right; font-weight: 300; width: 60px;" title="Total Points">Points</th>
                                         <th style=" width: 90px;"></th>
@@ -124,7 +124,7 @@
                                     </tr>
 
                                     <tr @onclick="() => OnClickTeamRow(team.TeamOrdinal)" class=" clickable-row @GetClickableTeamRowIsActiveClass(team.TeamOrdinal) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ps2-primary); font-size: 0.9rem; background-color: transparent; border-bottom: 2px solid var(--sq-ps2-primary-light); text-align: right; border-top: none !important; vertical-align: baseline; line-height: 1.2rem;">
-                                        <td style="padding-left: 10px; padding-top: 0px;"></td>
+                                        <td style="padding-left: 8px; width: 10px;"></td>
                                         <td style="text-align: left; font-size: 1.2rem;">@(_matchInfo.TeamAliases[team.TeamOrdinal])</td>
                                         <td style="padding-top: 0px;">@team.Points</td>
                                         <td style="padding-top: 0px;"></td>
@@ -147,7 +147,7 @@
                                         for (var round = 1; round <= _matchInfo.RoundCount; round++)
                                         {
                                             <tr class="expanded-row @GetRoundRowBorderClass(round, _matchInfo.RoundCount) @SqCssHelper.GetFactionClassFromId(_playerStats.Where(p => p.TeamOrdinal == team.TeamOrdinal).Select(p => p.FactionId).FirstOrDefault())" style="color: var(--sq-ov-ps2-primary-dark); text-align: right;">
-                                                <td style="padding-left: 10px;"></td>
+                                                <td style="padding-left: 8px; width: 10px;"></td>
                                                 <td style="text-align: right;">Round @round</td>
 
                                                 @if (_teamRoundStats.Any(e => e.TeamOrdinal == team.TeamOrdinal && e.ScrimMatchRound == round))

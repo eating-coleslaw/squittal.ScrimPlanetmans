@@ -77,7 +77,7 @@ else if (_showKillfeed)
                             </td>
                         }
                         <td class="points" style="text-align: right;">@GetPointsDisplay(death.Points)</td>
-                        <td>
+                        <td style="padding-left: 8px; padding-right: 8px; width: 10px;">
                             <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.AttackerLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.AttackerFactionId)"></div>
                         </td>
                         <td title="@death.AttackerNameDisplay [@death.AttackerCharacterId]" class="player">@death.AttackerNameDisplay</td>
@@ -91,7 +91,7 @@ else if (_showKillfeed)
                             </td>
                         }
                         <td title="@death.WeaponName [@death.WeaponId]" class="weapon">@death.WeaponName</td>
-                        <td>
+                        <td style="padding-left: 8px; padding-right: 8px; width: 10px;">
                             <div class="playerLoadoutIcon ps2-icon @GetLoadoutIconFromLoadoutId(death.VictimLoadoutId)" style="filter: @GetLoadoutIconFilterStyle(death.VictimFactionId)"></div>
                         </td>
                         <td title="@death.VictimNameDisplay [@death.VictimCharacterId]" class="@SqCssHelper.GetFactionClassFromId(death.VictimFactionId) player">@death.VictimNameDisplay</td>
